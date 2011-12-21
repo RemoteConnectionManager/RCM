@@ -1,0 +1,6 @@
+crv_connect: 
+E' un esempio di automatizzazione di connessione ad un nuovo vncserver.
+Per utilizzarlo:
+- personalizzarlo con info (vedi commenti nel codice)
+- eseguirlo
+NB: ovviamente per funzionare deve essere stato approntato lo "script server" invocato sul nodo ponte

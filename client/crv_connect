@@ -1,4 +1,10 @@
 #!/bin/bash
+# esempio di automatizzazione di connessione ad un server lanciato via pbs su nodo remoto
+# Qui e' tutto cablato nel codice:
+# - nodo ponte (login2.plx.cineca.it)
+# - posizione vncviewer in locale (~/Scrivania/remoteGraph/TurboVNC/install/bin/vncviewer)
+# - utente con cui si esegue il tunnel (non specificato quindi = a username con cui si esegue lo script)
+
 connection=`ssh login2.plx.cineca.it /plx/userinternal/cin0449a/crv/crv_connect --from-client "$@"` ; res=$?
 echo "$connection"
 if [[ $res -ne 0 ]] ; then
@@ -7,5 +13,3 @@ fi
 node=$(echo "$connection" | grep "^node:" | cut -f2 -d: )
 display=$(echo "$connection" | grep "^vnc:" | cut -f2 -d: )
 ~/Scrivania/remoteGraph/TurboVNC/install/bin/vncviewer -via login2.plx.cineca.it $node:$display 
-#node=`grep '^jnode:'  ~/.crv/$b | tail -n 1 | cut -f 2 -d:`
-#echo $node 
