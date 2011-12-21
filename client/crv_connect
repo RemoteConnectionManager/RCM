@@ -1,0 +1,11 @@
+#!/bin/bash
+connection=`ssh login2.plx.cineca.it /plx/userinternal/cin0449a/crv/crv_connect --from-client "$@"` ; res=$?
+echo "$connection"
+if [[ $res -ne 0 ]] ; then
+  echo "Can't get connection, abort."
+fi
+node=$(echo "$connection" | grep "^node:" | cut -f2 -d: )
+display=$(echo "$connection" | grep "^vnc:" | cut -f2 -d: )
+~/Scrivania/remoteGraph/TurboVNC/install/bin/vncviewer -via login2.plx.cineca.it $node:$display 
+#node=`grep '^jnode:'  ~/.crv/$b | tail -n 1 | cut -f 2 -d:`
+#echo $node 
