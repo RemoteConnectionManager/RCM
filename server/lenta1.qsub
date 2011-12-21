@@ -1,0 +1,14 @@
+#!/bin/bash
+# scrive log nella home utente
+#PBS -l walltime=30:00
+#PBS -q visual
+#PBS -A cinstaff
+#PBS -W group_list=cinstaff
+
+cd /gpfs/scratch/usercin/cin0449a
+. /cineca/prod/environment/module/3.1.6/none/init/bash
+module purge
+module use /plx/userprod/pro3dwe1/BA/modulefiles/profiles && module load luigi/advanced && module load autoload VirtualGL && module load TurboVNC
+mkdir -p ~/crv/
+vncserver -fg 2> ~/crv/vnclog.$PBS_JOBID
+date
