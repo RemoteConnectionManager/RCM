@@ -6,22 +6,40 @@
 # vnc:<display ottenuto del server>
 # Se non ok torna valore <> 0 e stampa in stdout un msg di errore
 
-jid=$(qsub ~/crv/lenta1.qsub) ; res=$?
+jid=$(qsub -o ~/crv/rubbish/ -e ~/crv/rubbish/ ~/crv/lenta1.qsub) ; res=$?
 j=${jid%%.*}
 if [[ $res -ne 0 ]] ; then
   echo "ERR: comando qsub non funzia"
   exit 1
 fi
-sleep 2
+#sleep 1
 q=$(qstat -f $jid )
 state=$(echo "$q" | grep job_state | awk 'BEGIN{FS=" = "}{print $2}')
 echo $state | grep -q 'R' ; res=$?
+COUNTER=0
+while [[ $res -ne 0 ]]; do 
+  sleep 1
+  q=$(qstat -f $jid )
+  state=$(echo "$q" | grep job_state | awk 'BEGIN{FS=" = "}{print $2}');
+  echo $state | grep -q 'R' ; res=$?
+  echo " Waiting... "  
+  let COUNTER=COUNTER+1 
+  if [[ ${COUNTER} -gt 30 ]]; then
+     qdel $jid
+     exit 1
+  fi
+done
+
+echo $state | grep -q 'R' ; res=$?
 if [[ $res -ne 0 ]] ; then
   echo "ERR: job $jid non diventa running"
+  echo " I kill it! "
+  qdel $jid
   exit 1
 fi
 node=$(echo "$q" | grep exec_host | awk 'BEGIN{FS=" = "}{print $2}')
 node=${node%%/*}
+sleep 2
 vnc=$( cat ~/crv/vnclog.$jid | grep 'desktop is' | awk 'BEGIN{FS=":"}{print $2}' )
 cat <<EOF
 jid:$jid

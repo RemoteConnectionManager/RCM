@@ -11,3 +11,4 @@ module use /plx/userprod/pro3dwe1/BA/modulefiles/profiles && module load luigi/a
 mkdir -p ~/crv/
 vncserver -fg 2> ~/crv/vnclog.$PBS_JOBID
 date
+rm ~/crv/vnclog.$PBS_JOBID
