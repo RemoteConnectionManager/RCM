@@ -5,11 +5,17 @@
 # - posizione vncviewer in locale (~/Scrivania/remoteGraph/TurboVNC/install/bin/vncviewer)
 # - utente con cui si esegue il tunnel (non specificato quindi = a username con cui si esegue lo script)
 
-connection=`ssh login2.plx.cineca.it /plx/userinternal/cin0449a/crv/crv_connect --from-client "$@"` ; res=$?
+user=cin0641a
+tvnc_path=/opt/TurboVNC/bin
+
+echo " I am ${user} and TurboVNC is located in ${tvnc_path} "
+
+connection=`ssh ${user}@login2.plx.cineca.it /plx/userinternal/${user}/crv/crv_connect --from-client "$@"` ; res=$?
 echo "$connection"
 if [[ $res -ne 0 ]] ; then
   echo "Can't get connection, abort."
+  exit 1
 fi
 node=$(echo "$connection" | grep "^node:" | cut -f2 -d: )
 display=$(echo "$connection" | grep "^vnc:" | cut -f2 -d: )
-~/Scrivania/remoteGraph/TurboVNC/install/bin/vncviewer -via login2.plx.cineca.it $node:$display 
+${tvnc_path}/vncviewer -via ${user}@login2.plx.cineca.it $node:$display 
