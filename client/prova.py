@@ -1,6 +1,9 @@
 import sys
 import os 
 from optparse import OptionParser
+import getpass
+import subprocess
+
 
 parser = OptionParser()
 #parser = argparse.ArgumentParser(description='Remote vnc connection wrapper')
@@ -23,7 +26,7 @@ parser.add_option('-t','--target', dest='targetnode',  action='store',
 print options, args
 
 config=dict()
-config['win32']=("PUTTY.EXE"," -ssh")
+config['win32']=("PLINK.EXE"," -ssh")
 
 for arg in sys.argv: 
     print arg
@@ -35,20 +38,29 @@ if os.path.exists(sshexe) :
     command = sshexe + config[sys.platform][1]
 else:
     command = "ssh"
-    
+
+passwd=getpass.getpass("Get password for" + options.username + "@" + options.proxynode + "-->")
+
+print "got passwd-->",passwd
+
+command = command + " -pw "+passwd
+
+remoterun = command + " " + options.username + "@" + options.proxynode + " module avail"
+print "executing-->" , remoterun , "<--"
+out=subprocess.check_call( remoterun)  
+print "returned--->",out
 portnumber=5900 + int(options.display_num)
 print "portnumber-->",portnumber
 
-command=command + " -L" +str(portnumber) + ":options.targetnode:" + str(portnumber) + options.username + "@" + options.proxynode + " echo pippo; sleep 10000000"
+command=command + " -L " +str(portnumber) + ":"+options.targetnode+":" + str(portnumber) + " " + options.username + "@" + options.proxynode + " sh $HOME/; sleep 10000000"
 print "executing-->" , command , "<--"
 #from subprocess import call
-import subprocess
 #subprocess.call(["D:\portable_dev\PortableApps\PuTTYPortable\App\putty/putty.exe" , "-ssh" , "-L" , str(portnumber) + ":node096:" + str(portnumber) , "cin0118a@login2.plx.cineca.it"])
 #myfile=subprocess.Popen("echo Hello World", stdout=subprocess.PIPE, shell=True).stdout
 #command="D:\portable_dev\PortableApps\PuTTYPortable\App\putty/putty.exe -ssh -m f:\prova\mycommands.txt -L " + str(portnumber) + ":node096:" + str(portnumber) + " cin0118a@login2.plx.cineca.it"
 #command="D:\portable_dev\PortableApps\PuTTYPortable\App\putty/putty.exe -ssh  -L " + str(portnumber) + ":node096:" + str(portnumber) + " cin0118a@login2.plx.cineca.it"
-command="ssh -L" +str(portnumber) + ":node096:" + str(portnumber) + " cin0118a@login2.plx.cineca.it echo pippo; sleep 10000000"
-print "executing-->" , command , "<--"
+#command="ssh -L" +str(portnumber) + ":node096:" + str(portnumber) + " cin0118a@login2.plx.cineca.it echo pippo; sleep 10000000"
+#print "executing-->" , command , "<--"
 #myprocess=subprocess.Popen(command , stdout=subprocess.PIPE, shell=True)
 #myprocess=subprocess.Popen(command , bufsize=1, shell=True)
 myprocess=subprocess.Popen(command , bufsize=1, stdout=subprocess.PIPE, shell=True)
