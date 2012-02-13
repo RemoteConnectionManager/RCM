@@ -8,7 +8,7 @@
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
 module use /plx/userprod/pro3dwe1/BA/modulefiles/profiles && module load luigi/advanced && module load autoload VirtualGL && module load TurboVNC
-mkdir -p ~/crv/
-vncserver -fg 2> ~/crv/vnclog.$PBS_JOBID
+#mkdir -p ~/crv/
+#vncserver -fg 2> ~/crv/vnclog.$PBS_JOBID
 date
-rm ~/crv/vnclog.$PBS_JOBID
+#rm ~/crv/vnclog.$PBS_JOBID

@@ -1,10 +1,4 @@
 #!/bin/env python
-# Esegue il qsub di un job che lancia un vnc server.
-# Se ok ritorna valore 0 e in stdout stampa i valori di connessione
-# jid:<job identifier>
-# node:<nodo destinazione del job>
-# vnc:<display ottenuto del server>
-# Se non ok torna valore <> 0 e stampa in stdout un msg di errore
 import subprocess
 import sys
 import getopt
@@ -29,14 +23,13 @@ def short_jobid(long_jobid):
     sjid=mo.group(1)
   return sjid
 
-#parcing parameters
 class crv_server:
   
-  maxsessions=10
-  qsub_template="""#!/bin/bash
+  self.max_user_session=10
+  self.qsub_template="""#!/bin/bash
 # scrive log nella home utente
-#PBS -l walltime=<CRV:WALLTIME>
-#PBS -eo ~/.crv/<CRV:SID>.joblog
+#PBS -l walltime=$CRV:WALLTIME
+#PBS -eo ~/.crv/$CRV:SID.joblog
 #PBS -q visual
 #PBS -A cinstaff
 #PBS -W group_list=cinstaff
@@ -45,7 +38,7 @@ class crv_server:
 module purge
 module use /plx/userprod/pro3dwe1/BA/modulefiles/profiles && module load luigi/advanced && module load autoload VirtualGL && module load TurboVNC
 mkdir -p ~/.crv
-vncserver -fg 2> ~/.crv/<CRV:SID>.vnclog
+vncserver -fg 2> ~/.crv/$CRV:SID.vnclog
 date
 """
 
@@ -133,7 +126,9 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       sys.stderr.write("ABORT: first argument unknown: %s\n" % (args[0]))
       self.usage(stderr=1)
       sys.exit(1)
-
+ 
+    # check arguments/options match
+    #TODO
 
   def execute(self):
     if (self.par_command == 'list'):
@@ -143,6 +138,12 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     elif (self.par_command == 'kill'):
       self.execute_kill()
 
+  # return a dictionary { sessionid -> jobid }
+  # jobid are the ones: 
+  # - of user (if -R=false) 
+  # - running
+  # - on visual queue
+  # - with name matching: crv-<alphanum>-<num>
   def get_jobs(self,U=False):
     (retval,stdout,stderr)=prex(['qstat','-f'])
     if (retval != 0 ) :
@@ -151,12 +152,11 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     else:
       r=re.compile('^Job Id:',re.MULTILINE)
       raw=r.split(stdout)
-      raw.pop(0)                  #primo record vuoto
+      raw.pop(0)                  #discard first record, it should be void
       if (U):
         ure='\w+'
       else:
         ure=self.par_u
-      #tutti i job eventualmente dell'utente, running, sulla coda visual, con il nome del tipo crv-alphanum-num
       #Job Id: 252575.node351.plx.cineca.it
       #    Job_Name = crv-cin0449a-23
       #    Job_Owner = aco1ss08@node342ib0.plx.cineca.it
@@ -178,15 +178,24 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
           jobs[sid]=jid
       return(jobs)
 
-  def load_sessions(self,U=False,sessionids=[]):
+  def get_crvdirs(U=False):
     if (U):
       udirs=glob.glob("/plx/user*/*/.crv")
+    else:
+      udirs=[os.path.expanduser("~%s/.crv" % (self.par_u))]
+    return(udirs)
+
+  #fill
+  # - self.sessions, a dict {sessionid -> { field -> value}}
+  # - self.sids,  a dict  {statofsids -> [sid1,sid2,...] }
+  def load_sessions(self,U=False,sessionids=[]):
+    udirs=self.get_crvdirs(U)
+    if (U):
       ure='\w+'
     else:
-      udirs=[os.path.expanduser("~%s/.crv" % (self.par_u))]  
       ure=self.par_u
 
-    #leggo le sessioni dai file
+    #read sessions files
     r=re.compile(r'crv-(?P<sid>(?P<user>%s)-\d+)\.session$' % ure) 
     self.sessions={}
     for d in udirs:
@@ -199,44 +208,124 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
           try:
             self.sessions[sid]=crv_session(fromfile=file)
           except:
-            sys.stderr.write("WARNING: no valid session file: %s\n" % (file))
-    #leggo sessioni dai job
+            sys.stderr.write("WARNING: not valid session file (it could be rewritten): %s\n" % (file))
+
+    #read sessions jobs
     jobs=self.get_jobs(U=U)
 
-    #setto attributo deletable
+    #match jobs and files
+    self.sids={'run':set([]),'err':set([]),'end':set([]),'ini':set([])}
     for sid, ses in self.sessions.items():
-      ses.deletable=0
-      if sid in jobs.keys():
-        job_jid=jobs[sid]
-        file_jid=ses.hash['jobid']
-        if ( job_jid == file_jid ):
-          del(jobs[sid])
+      if ( ses.hash['state'] ==  'init' ): #in initialization phase (probably locked)
+        type='ini'
+      else: 				   
+        if sid in jobs.keys():
+          job_jid=jobs[sid]
+          file_jid=ses.hash['jobid']
+          if ( job_jid == file_jid ):
+            type='run'
+            del(jobs[sid])
+          else:
+            sys.stderr.write('STRONG WARNING: session file of sid %s contain wrong jobid: %s (the running one is %s)\n' % (sid,file_jid,job_jid))
+            type='err'
         else:
-          sys.stderr.write('STRONG WARNING: session file of sid %s contain wrong jobid: %s (the running one is %s)\n' % (sid,file_jid,job_jid))
-       else:
-          ses.deletable=1
+          type='end'
+      self.sids[type].add(sid)
     
-    #warning su job running ma senza file
+    #warning on session jobs without session file
     for sid, jid in jobs:
       sys.stderr.write("WARNING: found crv job with session %s without session file: %s\n" % (sid,jid)
-      
-#          ses.rank=short_jobid(jobid)
+      self.sids['err'].add(sid)      
+
+  def id2sid(id,user=''):
+    if (not user):
+      user=self.par_u
+    return "crv-%s-id" % (user)  
+
+  #return
+  def new_sid(self):
+    n_err=len(self.sids['err'])
+    n_run=len(self.sids['run'])
+    n_end=len(self.sids['end'])
+    n_ini=len(self.sids['ini'])
+    n_loc= n_err + n_run + n_ini  #locked: can't reuse these sid
+    n_all= n_loc + n_end
+    if ( n_loc >= self.max_user_session ): 
+      raise Exception("ERROR: max %d sessions: no more available (%d running, %d errored).\n" % (self.max_user_session,n_run,n_err))
+    else:
+      if ( n_all >= self.max_user_session ):
+        #need to recycle a sid, the oldest 
+        res=sorted(end,key=lambda sid: self.sessions[sid].hash('created'))[0]
+      else:
+        #pick an unused sid
+        all=self.sids['err'] | self.sids['run'] | self.sids['end'] | self.sid['ini']
+        for i in range(1,self.max_user_session + 1):
+          sid=self.id2sid(i)
+          if sid not in all:
+            res=sid
+	    break
+    return res        
+
+  def delete_files(self,sid):
+    for d in self.get_crvdirs():
+      for f in glob.glob("%s/%s.*" % (d,sid))
+        os.remove(f)
+    
+
+  def submit_job(sid):
+    s=string.Template(self.qsub_template)
+    batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid)
+    file='%s/%s.job' % (self.get_crvdirs()[0],sid)
+    f=open(file,'w')
+    f.write(batch)
+    f.close()
+    (res,out,err)=prex(['qsub',file])
+    if (res != 0):
+      sys.stderr.write(err)
+      raise Exception("Cannot submit job file: %s" % (file))        
+    else:
+      if (re.match(r'\d+\.[\w\.]+$',out)):
+        return out
+      else:
+        raise Exception("Unknown qsub output: %s" % (out))
+
+  def wait_jobout(self,sid,timeout):
+    r=re.compile(r"""^New 'X' desktop is (?P<node>\w+):(?P<display>\d+)""",re.MULTILINE)
+    jobout='%s/%s.jobout' % (self.get_crvdirs()[0],sid)
+    secs=0
+    while(secs < timeout ):
+      if (os.path.isfile(outfile))
+        f=open(jobout,'r')
+        jo=f.readlines()
+        if (r.search(jo) ):
+          return (r.group('node'),r.group('display')) 
+      time.sleep(1)
+    raise Exception("Timeouted (%d seconds) job!!!" % (timeout) )
 
   def execute_list(self):
     self.load_sessions()
     
   def execute_new(self):
     self.load_sessions()
-    """    sid=self.new_sid()
-    file='%s/.crv/%s.session' % (self.u_home,sid)
+    sid=self.new_sid()
+    self.delete_files(sid)
+    file='%s/%s.session' % (self.get_crvdirs()[0],sid)
+    #put the 'inactive' lock
     c=crv_session(state='init',sessionid=sid)
     c.serialize(file)
-    jid=self.submit_job(sid)
-    (n,d)self.wait_jobvnc(jid,10) 
-    c=crv_session(state='run',node=n,display=d,jobid=jid,sessionid=sid,username=par_u)
+    jid='NOT_SUBMITTED'
+    try:
+      jid=self.submit_job(file)
+      (n,d)=self.wait_jobvnc(jid,10)
+    except Exception as e:
+      c=crv_session(state='invalid',sessionid=sid)
+      c.serialize(file)
+      if (jid != 'NOT_SUBMITTED'):
+        prex(['qdel',jid])
+      raise e
+    c=crv_session(state='valid',walltime=par_w,node=n,display=d,jobid=jid,sessionid=sid,username=par_u)
     c.serialize(file)
-    c.write(format)
-    """
+    c.write(self.par_f)
 
   def execute_kill(self):
     # self.load_session([XXX,YYY])

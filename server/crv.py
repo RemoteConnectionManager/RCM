@@ -1,5 +1,6 @@
 #!/bin/env python
 import pickle
+import datetime
 
 class crv_session:
 
@@ -8,13 +9,7 @@ class crv_session:
       self.hash=pickle.load(fromfile)
     else:
       self.hash={'file':file, 'state':state, 'node':node, 'display':display, 'jobid':jobid, 'sessionid':sessionid, 'username':username}
-
-  def set(self,key,val):
-    self.hash[key]=val
-
-  def get(self,key):
-    return(self.hash[key])
-
+      self,hash['created']=datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
   def serialize(self,file):
     pickle.dump(self.hash, open( file, "wb" ) )
 
