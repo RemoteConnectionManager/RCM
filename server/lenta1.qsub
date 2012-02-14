@@ -1,7 +1,9 @@
 #!/bin/bash
 # scrive log nella home utente
-#PBS -l walltime=30:00
-#PBS -q visual
+#PBS -l walltime=1:00
+#PBS -o /plx/userinternal/cin0449a/merda
+#PBS -j eo
+#PBS -q debug
 #PBS -A cinstaff
 #PBS -W group_list=cinstaff
 

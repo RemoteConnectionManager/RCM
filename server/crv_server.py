@@ -7,11 +7,13 @@ import os
 import pwd
 import re
 import glob
+import string
+import time
 sys.path.append( sys.path[0] )
 import crv
 
 def prex(cmd):
-  myprocess = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+  myprocess = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
   stdout,stderr = myprocess.communicate()
   myprocess.wait()                        
   return (myprocess.returncode,stdout,stderr)     
@@ -25,11 +27,14 @@ def short_jobid(long_jobid):
 
 class crv_server:
   
-  self.max_user_session=10
-  self.qsub_template="""#!/bin/bash
+  def __init__(self,pars):
+    self.max_user_session=10
+    self.qsub_template="""#!/bin/bash
 # scrive log nella home utente
-#PBS -l walltime=$CRV:WALLTIME
-#PBS -eo ~/.crv/$CRV:SID.joblog
+#PBS -l walltime=$CRV_WALLTIME
+#PBS -N $CRV_SESSIONID
+#PBS -o $CRV_JOBLOG
+#PBS -j oe
 #PBS -q visual
 #PBS -A cinstaff
 #PBS -W group_list=cinstaff
@@ -38,11 +43,9 @@ class crv_server:
 module purge
 module use /plx/userprod/pro3dwe1/BA/modulefiles/profiles && module load luigi/advanced && module load autoload VirtualGL && module load TurboVNC
 mkdir -p ~/.crv
-vncserver -fg 2> ~/.crv/$CRV:SID.vnclog
+vncserver -fg 
 date
 """
-
-  def __init__(self,pars):
     self.executable=sys.argv[0]
     self.parameters=sys.argv[1:]
     self.username=pwd.getpwuid(os.geteuid())[0]
@@ -178,7 +181,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
           jobs[sid]=jid
       return(jobs)
 
-  def get_crvdirs(U=False):
+  def get_crvdirs(self,U=False):
     if (U):
       udirs=glob.glob("/plx/user*/*/.crv")
     else:
@@ -196,20 +199,23 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       ure=self.par_u
 
     #read sessions files
-    r=re.compile(r'crv-(?P<sid>(?P<user>%s)-\d+)\.session$' % ure) 
+    r=re.compile(r'(?P<sid>crv-(?P<user>%s)-\d+)\.session$' % ure) 
     self.sessions={}
     for d in udirs:
-      for f in os.listdir(d):
-        ro= r.match(f)
-        if ro:
-          file= d + '/' + f
-          user=ro.group(2)
-          sid=ro.group(1)
-          try:
-            self.sessions[sid]=crv_session(fromfile=file)
-          except:
-            sys.stderr.write("WARNING: not valid session file (it could be rewritten): %s\n" % (file))
+      if os.path.isdir(d):
+        for f in os.listdir(d):
+          print "SESSIONS", d,f
+          ro= r.match(f)
+          if ro:
+            file= d + '/' + f
+            user=ro.group(2)
+            sid=ro.group(1)
+            try:
+              self.sessions[sid]=crv.crv_session(fromfile=file)
+            except:
+              sys.stderr.write("WARNING: not valid session file (it could be rewritten): %s\n" % (file))
 
+    print "ITEMS", self.sessions.items()
     #read sessions jobs
     jobs=self.get_jobs(U=U)
 
@@ -234,13 +240,13 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     
     #warning on session jobs without session file
     for sid, jid in jobs:
-      sys.stderr.write("WARNING: found crv job with session %s without session file: %s\n" % (sid,jid)
+      sys.stderr.write("WARNING: found crv job with session %s without session file: %s\n" % (sid,jid))
       self.sids['err'].add(sid)      
 
-  def id2sid(id,user=''):
+  def id2sid(self,id,user=''):
     if (not user):
       user=self.par_u
-    return "crv-%s-id" % (user)  
+    return "crv-%s-%d" % (user,id)  
 
   #return
   def new_sid(self):
@@ -258,24 +264,33 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
         res=sorted(end,key=lambda sid: self.sessions[sid].hash('created'))[0]
       else:
         #pick an unused sid
-        all=self.sids['err'] | self.sids['run'] | self.sids['end'] | self.sid['ini']
+        all=self.sids['err'] | self.sids['run'] | self.sids['end'] | self.sids['ini']
+        print "ERR", self.sids
+        #print "RUN", run
+        #print "END", end
+        #print "INI", ini
         for i in range(1,self.max_user_session + 1):
           sid=self.id2sid(i)
-          if sid not in all:
+          print 'SID',sid,'ALL',all
+          if ( sid not in all):
             res=sid
 	    break
     return res        
 
-  def delete_files(self,sid):
+  def clean_files(self,sid):
     for d in self.get_crvdirs():
-      for f in glob.glob("%s/%s.*" % (d,sid))
+      if ( not os.path.isdir(d) ):
+        os.mkdir(d)
+        os.chmod(d,0755)
+      for f in glob.glob("%s/%s.*" % (d,sid)):
         os.remove(f)
     
 
-  def submit_job(sid):
+  def submit_job(self,sid):
     s=string.Template(self.qsub_template)
-    batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid)
     file='%s/%s.job' % (self.get_crvdirs()[0],sid)
+    fileout='%s/%s.joblog' % (self.get_crvdirs()[0],sid)
+    batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid,CRV_JOBLOG=fileout)
     f=open(file,'w')
     f.write(batch)
     f.close()
@@ -294,7 +309,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     jobout='%s/%s.jobout' % (self.get_crvdirs()[0],sid)
     secs=0
     while(secs < timeout ):
-      if (os.path.isfile(outfile))
+      if (os.path.isfile(jobout)):
         f=open(jobout,'r')
         jo=f.readlines()
         if (r.search(jo) ):
@@ -308,22 +323,23 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
   def execute_new(self):
     self.load_sessions()
     sid=self.new_sid()
-    self.delete_files(sid)
+    self.clean_files(sid)
     file='%s/%s.session' % (self.get_crvdirs()[0],sid)
     #put the 'inactive' lock
-    c=crv_session(state='init',sessionid=sid)
+    c=crv.crv_session(state='init',sessionid=sid)
     c.serialize(file)
     jid='NOT_SUBMITTED'
     try:
-      jid=self.submit_job(file)
-      (n,d)=self.wait_jobvnc(jid,10)
-    except Exception as e:
-      c=crv_session(state='invalid',sessionid=sid)
+      jid=self.submit_job(sid)
+      (n,d)=self.wait_jobout(jid,10)
+    except Exception:
+      c=crv.crv_session(state='invalid',sessionid=sid)
+      print "FILE", file
       c.serialize(file)
       if (jid != 'NOT_SUBMITTED'):
         prex(['qdel',jid])
-      raise e
-    c=crv_session(state='valid',walltime=par_w,node=n,display=d,jobid=jid,sessionid=sid,username=par_u)
+      raise
+    c=crv.crv_session(state='valid',walltime=par_w,node=n,display=d,jobid=jid,sessionid=sid,username=par_u)
     c.serialize(file)
     c.write(self.par_f)
 
