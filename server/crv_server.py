@@ -13,10 +13,21 @@ sys.path.append( sys.path[0] )
 import crv
 
 def prex(cmd):
+  cmdstring=cmd[0]
+  for p in cmd[1:]:
+    cmdstring+=" '%s'" % (p) 
+  sys.stderr.write("Executing: %s\n" % (cmdstring)  )
   myprocess = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
   stdout,stderr = myprocess.communicate()
   myprocess.wait()                        
   return (myprocess.returncode,stdout,stderr)     
+
+def cprex(cmd):
+  (r,o,e)=prex(cmd)
+  if (r != 0):
+    raise Exception("Previous command failed!")
+  return (r,o,e)
+
 
 def short_jobid(long_jobid):
   sjid=long_jobid
@@ -30,10 +41,10 @@ class crv_server:
   def __init__(self,pars):
     self.max_user_session=10
     self.qsub_template="""#!/bin/bash
-# scrive log nella home utente
 #PBS -l walltime=$CRV_WALLTIME
 #PBS -N $CRV_SESSIONID
 #PBS -o $CRV_JOBLOG
+#PBS -l "select=1:Qlist=visual:viscons=1"
 #PBS -j oe
 #PBS -q visual
 #PBS -A cinstaff
@@ -42,14 +53,12 @@ class crv_server:
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
 module use /plx/userprod/pro3dwe1/BA/modulefiles/profiles && module load luigi/advanced && module load autoload VirtualGL && module load TurboVNC
-mkdir -p ~/.crv
-vncserver -fg 
-date
+vncserver -fg > $CRV_JOBLOG.vnc 2>&1
 """
     self.executable=sys.argv[0]
     self.parameters=sys.argv[1:]
     self.username=pwd.getpwuid(os.geteuid())[0]
-    self.available_formats=frozenset(['1'])
+    self.available_formats=frozenset(['0','1','2'])
     self.available_commands=frozenset(['list','new','kill'])
     self.parse_args()
 
@@ -72,7 +81,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     #default options
     self.par_U=False
     self.par_u=self.username
-    self.par_f=1
+    self.par_f='0'
     self.par_h=False
     self.par_w="6:00:00"
 
@@ -90,7 +99,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     #overwrite default options 
     if ('-f' in doptions):
       if (doptions['-f'] in self.available_formats):
-        self.par_f=doptions['-f']
+        self.par_f=int(doptions['-f'])
       else:
         sys.stderr.write("ABORT: unknown format: %s\n" % (doptions['-f']))
         sys.exit(1)
@@ -148,30 +157,18 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
   # - on visual queue
   # - with name matching: crv-<alphanum>-<num>
   def get_jobs(self,U=False):
-    (retval,stdout,stderr)=prex(['qstat','-f'])
+    (retval,stdout,stderr)=prex(['qstat'])
     if (retval != 0 ) :
       sys.write.stderr(stderr);
       raise Exception( 'qstat returned non zero value: ' + str(retval) )
     else:
-      r=re.compile('^Job Id:',re.MULTILINE)
-      raw=r.split(stdout)
-      raw.pop(0)                  #discard first record, it should be void
+      raw=stdout.split('\n')
       if (U):
         ure='\w+'
       else:
         ure=self.par_u
-      #Job Id: 252575.node351.plx.cineca.it
-      #    Job_Name = crv-cin0449a-23
-      #    Job_Owner = aco1ss08@node342ib0.plx.cineca.it
-      #    job_state = R
-      #    Resource_List.Qlist = visual
-      r=re.compile(r"""
-                                 	      \s*  \d+[\w\.]+             .*
-        \n  \s+  Job_Name    		\s+ = \s+  (?P<sid>crv-\w+-\d+)   .*
-        \n  \s+  Job_Owner 		\s+ = \s+  %s        		  .*
-        \n  \s+  Job_state 		\s+ = \s+       R   \s+           .*
-        \n  \s+  Resource_List.Qlist 	\s+ = \s+  visual       
-        """ % (ure) ,re.MULTILINE|re.VERBOSE|re.DOTALL)
+      #258118.node351    crv-cin0449a-10  cin0449a          00:00:06 R visual          
+      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>crv-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ visual  ' % (ure,ure) ,re.VERBOSE)
       jobs={}
       for j in raw:
         mo=r.match(j)
@@ -204,7 +201,6 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     for d in udirs:
       if os.path.isdir(d):
         for f in os.listdir(d):
-          print "SESSIONS", d,f
           ro= r.match(f)
           if ro:
             file= d + '/' + f
@@ -215,7 +211,6 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
             except:
               sys.stderr.write("WARNING: not valid session file (it could be rewritten): %s\n" % (file))
 
-    print "ITEMS", self.sessions.items()
     #read sessions jobs
     jobs=self.get_jobs(U=U)
 
@@ -230,16 +225,16 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
           file_jid=ses.hash['jobid']
           if ( job_jid == file_jid ):
             type='run'
-            del(jobs[sid])
           else:
-            sys.stderr.write('STRONG WARNING: session file of sid %s contain wrong jobid: %s (the running one is %s)\n' % (sid,file_jid,job_jid))
+            sys.stderr.write('STRONG WARNING: session file %s contains wrong jobid: %s (the running one is %s)\n' % (sid,file_jid,job_jid))
             type='err'
+          del(jobs[sid])
         else:
           type='end'
       self.sids[type].add(sid)
     
     #warning on session jobs without session file
-    for sid, jid in jobs:
+    for sid, jid in jobs.items():
       sys.stderr.write("WARNING: found crv job with session %s without session file: %s\n" % (sid,jid))
       self.sids['err'].add(sid)      
 
@@ -257,21 +252,16 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     n_loc= n_err + n_run + n_ini  #locked: can't reuse these sid
     n_all= n_loc + n_end
     if ( n_loc >= self.max_user_session ): 
-      raise Exception("ERROR: max %d sessions: no more available (%d running, %d errored).\n" % (self.max_user_session,n_run,n_err))
+      raise Exception("ERROR: max %d sessions: no more available (%d running, %d errored, %d initializing).\n" % (self.max_user_session,n_run,n_err,n_ini))
     else:
       if ( n_all >= self.max_user_session ):
         #need to recycle a sid, the oldest 
-        res=sorted(end,key=lambda sid: self.sessions[sid].hash('created'))[0]
+        res=sorted(self.sids['end'],key=lambda sid: self.sessions[sid].hash['created'])[0]
       else:
         #pick an unused sid
         all=self.sids['err'] | self.sids['run'] | self.sids['end'] | self.sids['ini']
-        print "ERR", self.sids
-        #print "RUN", run
-        #print "END", end
-        #print "INI", ini
         for i in range(1,self.max_user_session + 1):
           sid=self.id2sid(i)
-          print 'SID',sid,'ALL',all
           if ( sid not in all):
             res=sid
 	    break
@@ -294,32 +284,37 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     f=open(file,'w')
     f.write(batch)
     f.close()
-    (res,out,err)=prex(['qsub',file])
-    if (res != 0):
-      sys.stderr.write(err)
-      raise Exception("Cannot submit job file: %s" % (file))        
+    (res,out,err)=cprex(['qsub',file])
+    r=re.match(r'(\d+\.\w+)(\.[\w\.]+)?$',out)
+    if (r):
+      return r.group(1)
     else:
-      if (re.match(r'\d+\.[\w\.]+$',out)):
-        return out
-      else:
-        raise Exception("Unknown qsub output: %s" % (out))
+      raise Exception("Unknown qsub output: %s" % (out))
 
   def wait_jobout(self,sid,timeout):
     r=re.compile(r"""^New 'X' desktop is (?P<node>\w+):(?P<display>\d+)""",re.MULTILINE)
-    jobout='%s/%s.jobout' % (self.get_crvdirs()[0],sid)
+    jobout='%s/%s.joblog.vnc' % (self.get_crvdirs()[0],sid)
     secs=0
+    step=1
     while(secs < timeout ):
       if (os.path.isfile(jobout)):
         f=open(jobout,'r')
-        jo=f.readlines()
-        if (r.search(jo) ):
-          return (r.group('node'),r.group('display')) 
-      time.sleep(1)
-    raise Exception("Timeouted (%d seconds) job!!!" % (timeout) )
+        jo=f.read()
+        x=r.search(jo)
+        if (x):
+          return (x.group('node'),x.group('display')) 
+      secs+=step
+      sys.stderr.write('Waiting for job output, %d/%d\n' % (secs,timeout) )
+      time.sleep(step)
+    raise Exception("Timeouted (%d seconds) job not correcty running!!!" % (timeout) )
 
   def execute_list(self):
     self.load_sessions()
-    
+    s=crv.crv_sessions()
+    for sid in self.sids['run']:
+      s.array.append(self.sessions[sid])
+    s.write(self.par_f)
+
   def execute_new(self):
     self.load_sessions()
     sid=self.new_sid()
@@ -331,15 +326,14 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     jid='NOT_SUBMITTED'
     try:
       jid=self.submit_job(sid)
-      (n,d)=self.wait_jobout(jid,10)
+      (n,d)=self.wait_jobout(sid,10)
     except Exception:
       c=crv.crv_session(state='invalid',sessionid=sid)
-      print "FILE", file
       c.serialize(file)
       if (jid != 'NOT_SUBMITTED'):
-        prex(['qdel',jid])
+        x=prex(['qdel',jid])
       raise
-    c=crv.crv_session(state='valid',walltime=par_w,node=n,display=d,jobid=jid,sessionid=sid,username=par_u)
+    c=crv.crv_session(state='valid',walltime=self.par_w,node=n,display=d,jobid=jid,sessionid=sid,username=self.par_u)
     c.serialize(file)
     c.write(self.par_f)
 
