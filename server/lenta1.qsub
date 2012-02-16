@@ -1,9 +1,0 @@
-#!/bin/bash
-# scrive log nella home utente
-#PBS -l walltime=1:00
-#PBS -o /tmp/skip
-#PBS -j eo
-#PBS -q debug
-#PBS -A cinstaff
-#PBS -W group_list=cinstaff
-exit
