@@ -30,9 +30,11 @@ class crv_session:
 
 class crv_sessions:
 
-  def __init__(self,fromfile='',sessions=[]):
+  def __init__(self,fromstring='',fromfile='',sessions=[]):
     if (fromfile != ''):
       self.array=pickle.load(fromfile)
+    elif (fromstring != ''):
+      self.array=pickle.loads(fromstring)
     else:
       self.array=sessions
 

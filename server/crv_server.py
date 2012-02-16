@@ -355,6 +355,17 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       sys.exit(1)
     sys.exit(0) 
 
+  def execute_auto(self):
+    pass
+    #self.load_sessions()
+    #if (len(self.sids['run']) > 0 ):
+    #  c=sorted(self.sids['run'],key=lambda sid: self.sessions[sid].hash['created'])[0]
+    #else:
+    #first.write(self.par_f)
+   
+    
+    
+
 if __name__ == '__main__':
   c = crv_server(sys.argv)
   c.execute()
