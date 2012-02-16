@@ -19,12 +19,12 @@ class crv_session:
       print pickle.dumps(self.hash)
     elif ( format == 1):
       for k in sorted(self.hash.keys()):
-        print "%s:%s" % ( k , self.hash[k] )
+        print "%s;%s" % ( k , self.hash[k] )
     elif ( format == 2):
       x=[]
       for k in sorted(self.hash.keys()):
         x.append(self.hash[k])
-      print ":".join(x) 
+      print ";".join(x) 
 
 
 
@@ -48,7 +48,7 @@ class crv_sessions:
         k.write(1)
     elif ( format == 2):
       c=crv_session()
-      print ":".join(sorted(c.hash.keys())) 
+      print ";".join(sorted(c.hash.keys())) 
       for k in self.array:
         k.write(2)
 

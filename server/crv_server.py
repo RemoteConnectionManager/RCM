@@ -25,7 +25,8 @@ def prex(cmd):
 def cprex(cmd):
   (r,o,e)=prex(cmd)
   if (r != 0):
-    raise Exception("Previous command failed!")
+    print e
+    raise Exception("Previous command failed (stderr reported above)!")
   return (r,o,e)
 
 
@@ -62,12 +63,11 @@ vncserver -fg > $CRV_JOBLOG.vnc 2>&1
     self.available_commands=frozenset(['list','new','kill'])
     self.parse_args()
 
-
   def usage(self,stderr=0):
     script=os.path.basename(self.executable)
     help="""
 USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
-       %s 					kill 	JOBID [JOBID ...]
+       %s 					kill 	SESSIONID [SESSIONID ...]
        %s [-w WALLTIME] [-f FORMAT]  		new
        %s -h
 """ % (script,script,script,script)
@@ -99,7 +99,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     #overwrite default options 
     if ('-f' in doptions):
       if (doptions['-f'] in self.available_formats):
-        self.par_f=int(doptions['-f'])
+        self.par_f=doptions['-f']
       else:
         sys.stderr.write("ABORT: unknown format: %s\n" % (doptions['-f']))
         sys.exit(1)
@@ -116,12 +116,13 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     if ('-w' in doptions):
       rew=re.compile('((\d+:)?\d+:)?\d+(.\d+)?$') #[[hours:]minutes:]seconds[.milliseconds]
       if (rew.match(doptions['-w'])):
-        self.par_w=rew
+        self.par_w=doptions['-w']
       else:
         print "ABORT: wrong walltime: %s" % (doptions['-w'])
         sys.exit(1)
 
     self.u_home=os.path.expanduser("~%s" % (self.par_u))  
+    self.par_f=int(self.par_f)
 
     # check arguments
     if (self.par_h):
@@ -314,6 +315,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     for sid in self.sids['run']:
       s.array.append(self.sessions[sid])
     s.write(self.par_f)
+    sys.exit(0)
 
   def execute_new(self):
     self.load_sessions()
@@ -327,6 +329,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     try:
       jid=self.submit_job(sid)
       (n,d)=self.wait_jobout(sid,10)
+      n+='ib0'
     except Exception:
       c=crv.crv_session(state='invalid',sessionid=sid)
       c.serialize(file)
@@ -336,15 +339,21 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     c=crv.crv_session(state='valid',walltime=self.par_w,node=n,display=d,jobid=jid,sessionid=sid,username=self.par_u)
     c.serialize(file)
     c.write(self.par_f)
+    sys.exit(0)
 
   def execute_kill(self):
-    # self.load_session([XXX,YYY])
-    # c=crv_session('file')
-    # c.set('state','KILLED')
-    # jid=c.get('jobid')
-    # c.serialize(file)
-    pass
-
+    self.load_sessions(U=True)
+    norun=[]
+    for sid in self.par_command_args:
+      if sid in self.sids['run']:
+        jid=self.sessions[sid].hash['jobid']
+        cprex(['qdel',jid])
+      else:
+        norun.append(sid)
+    if (norun):
+      print "Not running sids: %s" % ", ".join(norun)
+      sys.exit(1)
+    sys.exit(0) 
 
 if __name__ == '__main__':
   c = crv_server(sys.argv)
