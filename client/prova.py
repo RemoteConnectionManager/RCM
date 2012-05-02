@@ -3,6 +3,10 @@ import os
 from optparse import OptionParser
 import getpass
 import subprocess
+import cStringIO
+
+sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "python"))
+import crv
 
 
 parser = OptionParser()
@@ -34,10 +38,12 @@ for arg in sys.argv:
 basedir = os.path.dirname(os.path.abspath(__file__))
 sshexe = os.path.join(basedir,"external",sys.platform,"bin",config[sys.platform][0])
 print "uuu",os.path.abspath(__file__),os.path.dirname(os.path.abspath(__file__))
+print "uuu", sshexe
 if os.path.exists(sshexe) :
     command = sshexe + config[sys.platform][1]
 else:
     command = "ssh"
+print "uuu", command
 
 passwd=getpass.getpass("Get password for" + options.username + "@" + options.proxynode + "-->")
 
@@ -45,14 +51,25 @@ print "got passwd-->",passwd
 
 command = command + " -pw "+passwd
 
-remoterun = command + " " + options.username + "@" + options.proxynode + " module avail"
+remotecommand = "/plx/userinternal/cin0118a/remote_viz/crv_server.py list"
+remoterun = command + " " + options.username + "@" + options.proxynode + ' ' + remotecommand
 print "executing-->" , remoterun , "<--"
-out=subprocess.check_call( remoterun)  
-print "returned--->",out
+#myoutput = cStringIO.StringIO()
+#out=subprocess.check_call( remoterun,stdout=PIPE)  
+#myout=subprocess.check_output(remoterun,stderr=subprocess.STDOUT,shell=True)
+
+myprocess=subprocess.Popen(remoterun, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+(myout,myerr)=myprocess.communicate()
+print "returned--->",myprocess.returncode
+#print "output--->", myout
+print "error--->", myerr
+sessions=crv.crv_sessions(myout)
+sessions.write(2)
+exit()
 portnumber=5900 + int(options.display_num)
 print "portnumber-->",portnumber
 
-command=command + " -L " +str(portnumber) + ":"+options.targetnode+":" + str(portnumber) + " " + options.username + "@" + options.proxynode + " sh $HOME/; sleep 10000000"
+command=command + " -L " +str(portnumber) + ":"+options.targetnode+":" + str(portnumber) + " " + options.username + "@" + options.proxynode + " cd $HOME; pwd; ls; echo 'pippo'; sleep 10000000"
 print "executing-->" , command , "<--"
 #from subprocess import call
 #subprocess.call(["D:\portable_dev\PortableApps\PuTTYPortable\App\putty/putty.exe" , "-ssh" , "-L" , str(portnumber) + ":node096:" + str(portnumber) , "cin0118a@login2.plx.cineca.it"])
