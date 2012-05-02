@@ -53,7 +53,7 @@ class crv_server:
 
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
-module use /plx/userprod/pro3dwe1/BA/modulefiles/profiles && module load luigi/advanced && module load autoload VirtualGL && module load TurboVNC
+module load profile/advanced && module load autoload VirtualGL TurboVNC
 vncserver -fg > $CRV_JOBLOG.vnc 2>&1
 """
     self.executable=sys.argv[0]
