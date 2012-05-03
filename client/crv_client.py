@@ -16,7 +16,7 @@ class crv_client_connection:
         self.config['ssh']=dict()
         self.config['vnc']=dict()
         self.config['ssh']['win32']=("PLINK.EXE"," -ssh")
-        self.config['vnc']['win32']=("vncviewer.exe")
+        self.config['vnc']['win32']=("vncviewer.exe","")
         self.config['remote_crv_server']="/plx/userinternal/cin0118a/remote_viz/crv_server.py"
         self.basedir = os.path.dirname(os.path.abspath(__file__))
         self.sshexe = os.path.join(self.basedir,"external",sys.platform,"bin",self.config['ssh'][sys.platform][0])
@@ -29,7 +29,12 @@ class crv_client_connection:
         if(self.debug):
             print "uuu", command
         
-        self.vncexe = os.path.join(self.basedir,"external",sys.platform,"bin",self.config['ssh'][sys.platform][0])
+        vncexe = os.path.join(self.basedir,"external",sys.platform,"bin",self.config['vnc'][sys.platform][0])
+        if os.path.exists(vncexe):
+            self.vncexe=vncexe
+        else:
+            print "VNC exec -->",vncexe,"<-- NOT FOUND !!!"
+            exit()
         
         self.proxynode=proxynode
         
@@ -86,13 +91,24 @@ class crv_client_connection:
             print e
             raise Exception("Killling session ->",sessionid,"<- failed ! ")
   
-    def vncsession(self,display_num):
-        portnumber=5900 + int(display_num)
+    def vncsession(self,session):
+        portnumber=5900 + int(session.hash['display'])
         print "portnumber-->",portnumber
 
-        tunnel_command=self.sshcommand + " -L " +str(portnumber) + ":"+options.targetnode+":" + str(portnumber) + " " + options.username + "@" + options.proxynode + " cd $HOME; pwd; ls; echo 'pippo'; sleep 10000000"
-        print "executing-->" , command , "<--"
+        tunnel_command=self.ssh_command  + " -L " +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " cd $HOME; pwd; ls; echo 'pippo'; sleep 10"
+        vnc_command=self.vncexe + " localhost:" +str(portnumber)
 
+        print "executing-->" , tunnel_command , "<--"
+        tunnel_process=subprocess.Popen(tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+        while True:
+            o = tunnel_process.stdout.readline()
+            if o == '' and tunnel_process.poll() != None: break
+            print "output from process---->"+o.strip()+"<---"
+            if o.strip() == 'pippo' :
+                print "starting vncviewer-->"+vnc_command+"<--"
+                vnc_process=subprocess.Popen(vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+                vnc_process.wait()
+                tunnel_process.terminate()
 
 if __name__ == '__main__':
     try:
@@ -102,8 +118,8 @@ if __name__ == '__main__':
         res.write(2)
         newc=c.newconn()
         newsession = newc.hash['sessionid']
-        print "created session -->",newsession,"<- display->",newc.hash['display']
-        print "created session -->",newsession
+        print "created session -->",newsession,"<- display->",newc.hash['display'],"<-- node-->",newc.hash['node']
+        c.vncsession(newc)
         res=c.list()
         res.write(2)
         c.kill(newsession)
