@@ -4,8 +4,41 @@ import sys
 import os 
 import getpass
 import subprocess
+import threading
+
 sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "python"))
 import crv
+
+
+class SessionThread( threading.Thread ):
+    
+    threadscount = 0
+    
+    def __init__ ( self, tunnel_cmd, vnc_cmd ):
+        self.debug=False
+        self.tunnel_command = tunnel_cmd
+        self.vnc_command = vnc_cmd
+        threading.Thread.__init__ ( self )
+        self.threadnum = SessionThread.threadscount
+        SessionThread.threadscount += 1
+        print 'This is thread ' + str ( self.threadnum ) + ' init.'
+
+    def run ( self ):
+        print 'This is thread ' + str ( self.threadnum ) + ' run.'
+
+        print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command , "<--"
+        tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+        while True:
+            o = tunnel_process.stdout.readline()
+            if o == '' and tunnel_process.poll() != None: break
+            if(self.debug):
+                print "output from process---->"+o.strip()+"<---"
+            if o.strip() == 'pippo' :
+                if(self.debug):
+                    print "starting vncviewer-->"+self.vnc_command+"<--"
+                vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+                vnc_process.wait()
+                tunnel_process.terminate()
 
 
 class crv_client_connection:
@@ -36,18 +69,23 @@ class crv_client_connection:
             print "VNC exec -->",vncexe,"<-- NOT FOUND !!!"
             exit()
         
+
+    def login_setup(self,proxynode='login2.plx.cineca.it',remoteuser='',password=''):
         self.proxynode=proxynode
         
         if (remoteuser == ''):
             self.remoteuser=raw_input("Remote user: ")
+        else:
+            self.remoteuser=remoteuser
 
         if (password == ''):
             self.passwd=getpass.getpass("Get password for" + self.remoteuser + "@" + self.proxynode + " : ")
         #    print "got passwd-->",self.passwd
+        else:
+            self.passwd=password
 
         self.login_options =  " -pw "+self.passwd + " " + self.remoteuser + "@" + self.proxynode
         self.ssh_remote_exec_command = self.ssh_command + self.login_options
-
     
     def prex(self,cmd):
         fullcommand= self.ssh_remote_exec_command + ' ' + cmd
@@ -97,22 +135,27 @@ class crv_client_connection:
 
         tunnel_command=self.ssh_command  + " -L " +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " cd $HOME; pwd; ls; echo 'pippo'; sleep 10"
         vnc_command=self.vncexe + " localhost:" +str(portnumber)
+        SessionThread ( tunnel_command, vnc_command ).start()
 
-        print "executing-->" , tunnel_command , "<--"
-        tunnel_process=subprocess.Popen(tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
-        while True:
-            o = tunnel_process.stdout.readline()
-            if o == '' and tunnel_process.poll() != None: break
-            print "output from process---->"+o.strip()+"<---"
-            if o.strip() == 'pippo' :
-                print "starting vncviewer-->"+vnc_command+"<--"
-                vnc_process=subprocess.Popen(vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
-                vnc_process.wait()
-                tunnel_process.terminate()
+##        print "executing-->" , tunnel_command , "<--"
+##        tunnel_process=subprocess.Popen(tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+##        while True:
+##            o = tunnel_process.stdout.readline()
+##            if o == '' and tunnel_process.poll() != None: break
+##            if(self.debug):
+##                print "output from process---->"+o.strip()+"<---"
+##            if o.strip() == 'pippo' :
+##                if(self.debug):
+##                    print "starting vncviewer-->"+vnc_command+"<--"
+##                vnc_process=subprocess.Popen(vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+##                vnc_process.wait()
+##                tunnel_process.terminate()
 
 if __name__ == '__main__':
     try:
+        
         c = crv_client_connection()
+        c.login_setup()
 #        c.debug=True
         res=c.list()
         res.write(2)
