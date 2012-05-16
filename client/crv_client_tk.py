@@ -59,10 +59,11 @@ class ConnectionWindow(Frame):
         self.pack( padx=10, pady=10 )
         self.master.title("Connections")
         self.master.geometry("+200+200")
+        self.f1=None
 
-        self.wL1 = Label(self, text="example label" )#, width=65, bg="gray", justify="left")
-        self.wL1.grid( row=0,column=0, sticky="w")
-        self.wL1["font"]=boldfont
+##        self.wL1 = Label(self, text="example label" )#, width=65, bg="gray", justify="left")
+##        self.wL1.grid( row=0,column=0, sticky="w")
+##        self.wL1["font"]=boldfont
 
         #f3 = Frame(self)
         #f3.grid( row=6,column=0, sticky="we")
@@ -71,12 +72,12 @@ class ConnectionWindow(Frame):
 
 
         #f3.grid( row=6,column=0, sticky="we")
-        button = Button(self, text="close", command=self.submit)
+        button = Button(self, text="new", command=self.submit)
         button.grid( row=10,column=0 )
 
-        self.f1 = Frame(self, width=500, height=100)
-        self.f1.grid( row=1,column=0) 
-        f1 = self.f1
+##        self.f1 = Frame(self, width=500, height=100)
+##        self.f1.grid( row=1,column=0) 
+##        f1 = self.f1
 ##        for i,t in enumerate([" id "," name "," np "," nf "," status "," progress "]):
 ##            w = Label(f1, text=t, relief="raised")
 ##            w.grid( row=1,column=i, sticky="we")
@@ -101,7 +102,13 @@ class ConnectionWindow(Frame):
 
     def update_sessions(self,ss):
         self.sessions=ss
+        if(self.f1):
+            self.f1.destroy()
+        self.f1 = Frame(self, width=500, height=100)
+        self.f1.grid( row=1,column=0) 
         f1 = self.f1
+
+        
         c=crv.crv_session()
         for i,t in enumerate(sorted(c.hash.keys())):
             w = Label(f1, text=t, relief="raised")
@@ -116,6 +123,7 @@ class ConnectionWindow(Frame):
                 def cmd(self=self, sessionid=el.hash['sessionid']):
                     print "killing session", sessionid
                     self.client_connection.kill(sessionid)
+                    self.update_sessions(self.client_connection.list())
                 bk = Button( f1, text="kill", command=cmd )
                 bk.grid( row=line+1, column=1 )
                 
@@ -132,10 +140,13 @@ class ConnectionWindow(Frame):
         
 
     def submit(self):
-        if tkMessageBox.askyesno("Confirm", "Subimt this job?"):
-            print "job sumitted"
-        else:
-            print "you canceled"
+        newconn=self.client_connection.newconn()
+        self.client_connection.vncsession(newconn)
+        self.update_sessions(self.client_connection.list())
+##        if tkMessageBox.askyesno("Confirm", "Subimt this job?"):
+##            print "job sumitted"
+##        else:
+##            print "you canceled"
 
 
 
