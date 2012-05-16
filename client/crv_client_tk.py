@@ -154,7 +154,7 @@ if __name__ == '__main__':
     try:
 
         c=crv_client_connection_GUI()
-
+	c.debug=True
         gui = ConnectionWindow()
         gui.mainloop()
         

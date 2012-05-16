@@ -15,7 +15,7 @@ class SessionThread( threading.Thread ):
     threadscount = 0
     
     def __init__ ( self, tunnel_cmd, vnc_cmd ):
-        self.debug=False
+        self.debug=True
         self.tunnel_command = tunnel_cmd
         self.vnc_command = vnc_cmd
         threading.Thread.__init__ ( self )
@@ -50,6 +50,8 @@ class crv_client_connection:
         self.config['vnc']=dict()
         self.config['ssh']['win32']=("PLINK.EXE"," -ssh")
         self.config['vnc']['win32']=("vncviewer.exe","")
+        self.config['ssh']['linux2']=("ssh")
+        self.config['vnc']['linux2']=("vncviewer","")
         self.config['remote_crv_server']="/plx/userinternal/cin0118a/remote_viz/crv_server.py"
         self.basedir = os.path.dirname(os.path.abspath(__file__))
         self.sshexe = os.path.join(self.basedir,"external",sys.platform,"bin",self.config['ssh'][sys.platform][0])
@@ -156,7 +158,7 @@ if __name__ == '__main__':
         
         c = crv_client_connection()
         c.login_setup()
-#        c.debug=True
+        c.debug=True
         res=c.list()
         res.write(2)
         newc=c.newconn()
