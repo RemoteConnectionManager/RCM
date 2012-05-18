@@ -140,9 +140,14 @@ class ConnectionWindow(Frame):
         
 
     def submit(self):
+        print "Requesting new connection"
         newconn=self.client_connection.newconn()
+        print "New connection aquired"
+        newconn.write(2)
         self.client_connection.vncsession(newconn)
+        print "Update connection panel"
         self.update_sessions(self.client_connection.list())
+        print "End submit"
 ##        if tkMessageBox.askyesno("Confirm", "Subimt this job?"):
 ##            print "job sumitted"
 ##        else:
@@ -163,24 +168,24 @@ class crv_client_connection_GUI(crv_client.crv_client_connection):
 
 if __name__ == '__main__':
     try:
+#        c.debug=True
 
         c=crv_client_connection_GUI()
 	c.debug=True
         gui = ConnectionWindow()
         gui.mainloop()
         
-#        c.debug=True
-        res=c.list()
-        res.write(2)
-        newc=c.newconn()
-        newsession = newc.hash['sessionid']
-        print "created session -->",newsession,"<- display->",newc.hash['display'],"<-- node-->",newc.hash['node']
-        c.vncsession(newc)
-        res=c.list()
-        res.write(2)
-        c.kill(newsession)
-        res=c.list()
-        res.write(2)
+##        res=c.list()
+##        res.write(2)
+##        newc=c.newconn()
+##        newsession = newc.hash['sessionid']
+##        print "created session -->",newsession,"<- display->",newc.hash['display'],"<-- node-->",newc.hash['node']
+##        c.vncsession(newc)
+##        res=c.list()
+##        res.write(2)
+##        c.kill(newsession)
+##        res=c.list()
+##        res.write(2)
         
         
     except Exception:
