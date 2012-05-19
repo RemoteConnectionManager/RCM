@@ -79,14 +79,25 @@ class crv_client_connection:
             self.remoteuser=raw_input("Remote user: ")
         else:
             self.remoteuser=remoteuser
-
-        if (password == ''):
-            self.passwd=getpass.getpass("Get password for" + self.remoteuser + "@" + self.proxynode + " : ")
-        #    print "got passwd-->",self.passwd
+        keyfile=os.path.join(self.basedir,'keys',self.remoteuser+'.ppk')
+        if(os.path.exists(keyfile)):
+            if(sys.platform == 'win32'):
+                self.login_options =  " -i " + keyfile + " " + self.remoteuser + "@" + self.proxynode
+            else:
+                print "PASSING PRIVATE KEY FILE NOT IMPLEMENTED ON PLATFORM -->"+sys.platform+"<--"
+                self.login_options =  self.remoteuser + "@" + self.proxynode
+                
         else:
-            self.passwd=password
-
-        self.login_options =  " -pw "+self.passwd + " " + self.remoteuser + "@" + self.proxynode
+            if(sys.platform == 'win32'):
+                if (password == ''):
+                    self.passwd=getpass.getpass("Get password for" + self.remoteuser + "@" + self.proxynode + " : ")
+                #    print "got passwd-->",self.passwd
+                else:
+                    self.passwd=password
+                self.login_options =  " -pw "+self.passwd + " " + self.remoteuser + "@" + self.proxynode
+            else:
+                print "PASSWORD ON COMMAND LINE NOT IMPLEMENTED ON PLATFORM -->"+sys.platform+"<--"
+                self.login_options =  self.remoteuser + "@" + self.proxynode
         self.ssh_remote_exec_command = self.ssh_command + self.login_options
     
     def prex(self,cmd):
