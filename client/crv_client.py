@@ -25,20 +25,24 @@ class SessionThread( threading.Thread ):
 
     def run ( self ):
         print 'This is thread ' + str ( self.threadnum ) + ' run.'
+	if(self.tunnel_command == ''):
+	  vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+	  vnc_process.wait()
+	else:
+	  print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command , "<--"
+	  tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+	  while True:
+	      o = tunnel_process.stdout.readline()
+	      if o == '' and tunnel_process.poll() != None: break
+	      if(self.debug):
+		  print "output from process---->"+o.strip()+"<---"
+	      if o.strip() == 'pippo' :
+		  if(self.debug):
+		      print "starting vncviewer-->"+self.vnc_command+"<--"
+		  vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+		  vnc_process.wait()
+		  tunnel_process.terminate()
 
-        print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command , "<--"
-        tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
-        while True:
-            o = tunnel_process.stdout.readline()
-            if o == '' and tunnel_process.poll() != None: break
-            if(self.debug):
-                print "output from process---->"+o.strip()+"<---"
-            if o.strip() == 'pippo' :
-                if(self.debug):
-                    print "starting vncviewer-->"+self.vnc_command+"<--"
-                vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
-                vnc_process.wait()
-                tunnel_process.terminate()
 
 
 class crv_client_connection:
@@ -97,7 +101,7 @@ class crv_client_connection:
                 self.login_options =  " -pw "+self.passwd + " " + self.remoteuser + "@" + self.proxynode
             else:
                 print "PASSWORD ON COMMAND LINE NOT IMPLEMENTED ON PLATFORM -->"+sys.platform+"<--"
-                self.login_options =  self.remoteuser + "@" + self.proxynode
+                self.login_options =  " " + self.remoteuser + "@" + self.proxynode
         self.ssh_remote_exec_command = self.ssh_command + self.login_options
     
     def prex(self,cmd):
@@ -146,8 +150,12 @@ class crv_client_connection:
         portnumber=5900 + int(session.hash['display'])
         print "portnumber-->",portnumber
 
-        tunnel_command=self.ssh_command  + " -L " +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " cd $HOME; pwd; ls; echo 'pippo'; sleep 10"
-        vnc_command=self.vncexe + " localhost:" +str(portnumber)
+	if(sys.platform == 'win32'):
+	  tunnel_command=self.ssh_command  + " -L " +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " cd $HOME; pwd; ls; echo 'pippo'; sleep 10"
+	  vnc_command=self.vncexe + " localhost:" +str(portnumber)
+	else:
+	  tunnel_command=''
+	  vnc_command=self.vncexe + " -medqual -user " + self.remoteuser + " -via " + self.login_options + " " + session.hash['node']+":" + session.hash['display']
         SessionThread ( tunnel_command, vnc_command ).start()
 
 ##        print "executing-->" , tunnel_command , "<--"
