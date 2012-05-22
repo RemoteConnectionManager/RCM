@@ -26,6 +26,7 @@ class SessionThread( threading.Thread ):
     def run ( self ):
         print 'This is thread ' + str ( self.threadnum ) + ' run.'
 	if(self.tunnel_command == ''):
+	  print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.vnc_command , "<--"
 	  vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
 	  vnc_process.wait()
 	else:
@@ -89,7 +90,7 @@ class crv_client_connection:
                 self.login_options =  " -i " + keyfile + " " + self.remoteuser + "@" + self.proxynode
             else:
                 print "PASSING PRIVATE KEY FILE NOT IMPLEMENTED ON PLATFORM -->"+sys.platform+"<--"
-                self.login_options =  self.remoteuser + "@" + self.proxynode
+                self.login_options =  " -i " + keyfile + " " + self.remoteuser + "@" + self.proxynode
                 
         else:
             if(sys.platform == 'win32'):
@@ -155,7 +156,7 @@ class crv_client_connection:
 	  vnc_command=self.vncexe + " localhost:" +str(portnumber)
 	else:
 	  tunnel_command=''
-	  vnc_command=self.vncexe + " -medqual -user " + self.remoteuser + " -via " + self.login_options + " " + session.hash['node']+":" + session.hash['display']
+	  vnc_command=self.vncexe + " -medqual -user " + self.remoteuser + " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
         SessionThread ( tunnel_command, vnc_command ).start()
 
 ##        print "executing-->" , tunnel_command , "<--"
