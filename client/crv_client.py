@@ -153,7 +153,7 @@ class crv_client_connection:
 
 	if(sys.platform == 'win32'):
 	  tunnel_command=self.ssh_command  + " -L " +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " cd $HOME; pwd; ls; echo 'pippo'; sleep 10"
-	  vnc_command=self.vncexe + " localhost:" +str(portnumber)
+	  vnc_command="echo paperina | " + self.vncexe +" -autopass -nounixlogin" + " localhost:" +str(portnumber)
 	else:
 	  tunnel_command=''
 	  vnc_command=self.vncexe + " -medqual -user " + self.remoteuser + " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
