@@ -60,7 +60,7 @@ vncserver -fg > $CRV_JOBLOG.vnc 2>&1
     self.parameters=sys.argv[1:]
     self.username=pwd.getpwuid(os.geteuid())[0]
     self.available_formats=frozenset(['0','1','2'])
-    self.available_commands=frozenset(['list','new','kill'])
+    self.available_commands=frozenset(['list','new','kill','otp'])
     self.parse_args()
 
   def usage(self,stderr=0):
@@ -68,6 +68,7 @@ vncserver -fg > $CRV_JOBLOG.vnc 2>&1
     help="""
 USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
        %s 					kill 	SESSIONID [SESSIONID ...]
+       %s 					otp 	SESSIONID 
        %s [-w WALLTIME] [-f FORMAT]  		new
        %s -h
 """ % (script,script,script,script)
@@ -150,6 +151,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       self.execute_new()
     elif (self.par_command == 'kill'):
       self.execute_kill()
+    elif (self.par_command == 'otp'):
+      self.execute_otp()
 
   # return a dictionary { sessionid -> jobid }
   # jobid are the ones: 
@@ -279,13 +282,14 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
 
   def submit_job(self,sid):
     s=string.Template(self.qsub_template)
+    otp='%s/%s.otp' % (self.get_crvdirs()[0],sid)
     file='%s/%s.job' % (self.get_crvdirs()[0],sid)
     fileout='%s/%s.joblog' % (self.get_crvdirs()[0],sid)
     batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid,CRV_JOBLOG=fileout)
     f=open(file,'w')
     f.write(batch)
     f.close()
-    (res,out,err)=cprex(['qsub',file])
+    (res,out,err)=cprex(['qsub','-v',"CRV_OTP_FILE="+otp,file])
     r=re.match(r'(\d+\.\w+)(\.[\w\.]+)?$',out)
     if (r):
       return r.group(1)
@@ -354,6 +358,19 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       print "Not running sids: %s" % ", ".join(norun)
       sys.exit(1)
     sys.exit(0) 
+
+  def execute_otp(self):
+    self.load_sessions(U=True)
+    for sid in self.par_command_args:
+      if sid in self.sids['run']:
+        otp_file='%s/%s.otp' % (self.get_crvdirs()[0],sid)
+        if os.path.exists(otp_file):
+          curr_otp=open(otp_file,'r').read()
+          print curr_otp
+          sys.exit(0)
+    sys.exit(1)
+
+
 
   def execute_auto(self):
     pass
