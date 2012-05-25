@@ -153,14 +153,20 @@ class crv_client_connection:
         
         if (r != 0):
             print e
-            raise Exception("getting OTP passwd session ->",sessionid,"<- failed ! ")
+            
+            #raise Exception("getting OTP passwd session ->",sessionid,"<- failed ! ")
+            return ''
+
         else:
             return o.strip()
         
-    def vncsession(self,session,autopass=''):
+    def vncsession(self,session,passwd=''):
         portnumber=5900 + int(session.hash['display'])
         print "portnumber-->",portnumber
-        #otp=self.get_otp(session.hash['sessionid'])
+        if(passwd == ''):
+          autopass=self.get_otp(session.hash['sessionid'])
+        else:
+          autopass=passwd
         if(autopass == ''):
           vnc_command=self.vncexe + " -medqual" + " -user " + self.remoteuser
         else:
