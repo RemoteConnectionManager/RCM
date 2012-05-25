@@ -157,16 +157,20 @@ class crv_client_connection:
         else:
             return o.strip()
         
-    def vncsession(self,session):
+    def vncsession(self,session,autopass=''):
         portnumber=5900 + int(session.hash['display'])
         print "portnumber-->",portnumber
-        otp=self.get_otp(session.hash['sessionid'])
+        #otp=self.get_otp(session.hash['sessionid'])
+        if(autopass == ''):
+          vnc_command=self.vncexe + " -medqual" + " -user " + self.remoteuser
+        else:
+          vnc_command="echo "+autopass + " | " + self.vncexe + " -medqual" + " -autopass -nounixlogin"
         if(sys.platform == 'win32'):
-          tunnel_command=self.ssh_command  + " -L " +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " cd $HOME; pwd; ls; echo 'pippo'; sleep 10"
-          vnc_command="echo "+otp + " | " + self.vncexe +" -autopass -nounixlogin" + " localhost:" +str(portnumber)
+          tunnel_command=self.ssh_command  + " -L " +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " echo 'pippo'; sleep 10"
+          vnc_command += " localhost:" +str(portnumber)
         else:
           tunnel_command=''
-          vnc_command=self.vncexe + " -medqual -user " + self.remoteuser + " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
+          vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
         SessionThread ( tunnel_command, vnc_command ).start()
 
 ##        print "executing-->" , tunnel_command , "<--"

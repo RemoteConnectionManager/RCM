@@ -144,7 +144,7 @@ class ConnectionWindow(Frame):
         newconn=self.client_connection.newconn()
         print "New connection aquired"
         newconn.write(2)
-        self.client_connection.vncsession(newconn)
+        self.client_connection.vncsession(newconn,newconn.hash['otp'])
         print "Update connection panel"
         self.update_sessions(self.client_connection.list())
         print "End submit"
@@ -171,9 +171,8 @@ if __name__ == '__main__':
 #        c.debug=True
 
         c=crv_client_connection_GUI()
-	c.debug=True
-        gui = ConnectionWindow()
-        gui.mainloop()
+##	c.debug=True
+##        gui = ConnectionWindow()
         
 ##        res=c.list()
 ##        res.write(2)
