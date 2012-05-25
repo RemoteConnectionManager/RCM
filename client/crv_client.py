@@ -147,16 +147,26 @@ class crv_client_connection:
             print e
             raise Exception("Killling session ->",sessionid,"<- failed ! ")
   
+    def get_otp(self,sessionid):
+
+        (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'otp' + ' ' + sessionid)
+        
+        if (r != 0):
+            print e
+            raise Exception("getting OTP passwd session ->",sessionid,"<- failed ! ")
+        else:
+            return o.strip()
+        
     def vncsession(self,session):
         portnumber=5900 + int(session.hash['display'])
         print "portnumber-->",portnumber
-
-	if(sys.platform == 'win32'):
-	  tunnel_command=self.ssh_command  + " -L " +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " cd $HOME; pwd; ls; echo 'pippo'; sleep 10"
-	  vnc_command="echo paperina | " + self.vncexe +" -autopass -nounixlogin" + " localhost:" +str(portnumber)
-	else:
-	  tunnel_command=''
-	  vnc_command=self.vncexe + " -medqual -user " + self.remoteuser + " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
+        otp=self.get_otp(session.hash['sessionid'])
+        if(sys.platform == 'win32'):
+          tunnel_command=self.ssh_command  + " -L " +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " cd $HOME; pwd; ls; echo 'pippo'; sleep 10"
+          vnc_command="echo "+otp + " | " + self.vncexe +" -autopass -nounixlogin" + " localhost:" +str(portnumber)
+        else:
+          tunnel_command=''
+          vnc_command=self.vncexe + " -medqual -user " + self.remoteuser + " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
         SessionThread ( tunnel_command, vnc_command ).start()
 
 ##        print "executing-->" , tunnel_command , "<--"
