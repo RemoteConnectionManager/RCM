@@ -54,7 +54,7 @@ class crv_server:
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
 module load profile/advanced && module load TurboVNC 
-vncserver -fg > $CRV_JOBLOG.vnc 2>&1
+vncserver -otp -fg > $CRV_JOBLOG.vnc 2>&1
 """
     self.executable=sys.argv[0]
     self.parameters=sys.argv[1:]
@@ -298,6 +298,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
 
   def wait_jobout(self,sid,timeout):
     r=re.compile(r"""^New 'X' desktop is (?P<node>\w+):(?P<display>\d+)""",re.MULTILINE)
+    otp_regex=re.compile(r"""^Full control one-time password: (?P<otp>\d+)""",re.MULTILINE)
     jobout='%s/%s.joblog.vnc' % (self.get_crvdirs()[0],sid)
     secs=0
     step=1
@@ -307,7 +308,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
         jo=f.read()
         x=r.search(jo)
         if (x):
-          return (x.group('node'),x.group('display')) 
+          otp=otp_regex.search(jo)
+          return (x.group('node'),x.group('display'),otp.group('otp')) 
       secs+=step
       sys.stderr.write('Waiting for job output, %d/%d\n' % (secs,timeout) )
       time.sleep(step)
@@ -332,7 +334,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     jid='NOT_SUBMITTED'
     try:
       jid=self.submit_job(sid)
-      (n,d)=self.wait_jobout(sid,10)
+      (n,d,otp)=self.wait_jobout(sid,10)
       n+='ib0'
     except Exception:
       c=crv.crv_session(state='invalid',sessionid=sid)
@@ -340,7 +342,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       if (jid != 'NOT_SUBMITTED'):
         x=prex(['qdel',jid])
       raise
-    c=crv.crv_session(state='valid',walltime=self.par_w,node=n,display=d,jobid=jid,sessionid=sid,username=self.par_u)
+    c=crv.crv_session(state='valid',walltime=self.par_w,node=n,display=d,jobid=jid,sessionid=sid,username=self.par_u,otp=otp)
     c.serialize(file)
     c.write(self.par_f)
     sys.exit(0)
