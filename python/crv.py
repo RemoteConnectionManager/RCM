@@ -5,9 +5,11 @@ import os
 
 class crv_session:
 
-  def __init__(self,fromfile='',file='',state='',node='',display='',jobid='',sessionid='',username='',walltime='',otp=''):
+  def __init__(self,fromstring='',fromfile='',file='',state='',node='',display='',jobid='',sessionid='',username='',walltime='',otp=''):
     if (fromfile != ''):
       self.hash=pickle.load(open(fromfile,"rb"))
+    elif (fromstring != ''):
+      self.hash=pickle.loads(fromstring)
     else:
       self.hash={'file':file, 'state':state, 'node':node, 'display':display, 'jobid':jobid, 'sessionid':sessionid, 'username':username, 'walltime':walltime, 'otp':otp}
       self.hash['created']=datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
