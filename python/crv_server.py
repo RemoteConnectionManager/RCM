@@ -283,6 +283,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
   def submit_job(self,sid):
     s=string.Template(self.qsub_template)
     otp='%s/%s.otp' % (self.get_crvdirs()[0],sid)
+    if(os.path.isfile(otp)):
+      os.remove(otp)
     file='%s/%s.job' % (self.get_crvdirs()[0],sid)
     fileout='%s/%s.joblog' % (self.get_crvdirs()[0],sid)
     batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid,CRV_JOBLOG=fileout)
@@ -368,6 +370,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
         otp_file='%s/%s.otp' % (self.get_crvdirs()[0],sid)
         if os.path.exists(otp_file):
           curr_otp=open(otp_file,'r').read()
+	  os.remove(otp_file)
           print curr_otp
           sys.exit(0)
     sys.exit(1)
