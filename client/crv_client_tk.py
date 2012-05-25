@@ -74,6 +74,11 @@ class ConnectionWindow(Frame):
         #f3.grid( row=6,column=0, sticky="we")
         button = Button(self, text="new", command=self.submit)
         button.grid( row=10,column=0 )
+ 
+        button = Button(self, text="refresh", command=self.refresh)
+        button.grid( row=10,column=1 )
+       
+        
 
 ##        self.f1 = Frame(self, width=500, height=100)
 ##        self.f1.grid( row=1,column=0) 
@@ -137,7 +142,8 @@ class ConnectionWindow(Frame):
                 lab = Label(f1, text=el.hash[t] )
                 lab.grid( row=line+1, column=i+2 )
         
-        
+ 
+    
 
     def submit(self):
         print "Requesting new connection"
@@ -154,7 +160,10 @@ class ConnectionWindow(Frame):
 ##            print "you canceled"
 
 
-
+    def refresh(self):
+        print "Refresh connection list"
+        self.update_sessions(self.client_connection.list())
+        print "End Refresh connection list"
 
 class crv_client_connection_GUI(crv_client.crv_client_connection):
     def __init__(self):
