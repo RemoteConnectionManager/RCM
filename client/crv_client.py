@@ -1,6 +1,7 @@
 #!/bin/env python
 
 import sys
+import platform
 import os 
 import getpass
 import subprocess
@@ -59,7 +60,7 @@ class crv_client_connection:
         self.config['vnc']['linux2']=("vncviewer","")
         self.config['remote_crv_server']="/plx/userinternal/cin0118a/remote_viz/crv_server.py"
         self.basedir = os.path.dirname(os.path.abspath(__file__))
-        self.sshexe = os.path.join(self.basedir,"external",sys.platform,"bin",self.config['ssh'][sys.platform][0])
+        self.sshexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['ssh'][sys.platform][0])
         if(self.debug):
             print "uuu", self.sshexe
         if os.path.exists(self.sshexe) :
@@ -69,7 +70,7 @@ class crv_client_connection:
         if(self.debug):
             print "uuu", command
         
-        vncexe = os.path.join(self.basedir,"external",sys.platform,"bin",self.config['vnc'][sys.platform][0])
+        vncexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['vnc'][sys.platform][0])
         if os.path.exists(vncexe):
             self.vncexe=vncexe
         else:
