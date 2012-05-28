@@ -71,7 +71,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
        %s 					otp 	SESSIONID 
        %s [-w WALLTIME] [-f FORMAT]  		new
        %s -h
-""" % (script,script,script,script)
+""" % (script,script,script,script,script)
     if (stderr):
       sys.stderr.write(help)
     else:
