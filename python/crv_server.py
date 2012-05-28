@@ -203,7 +203,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     r=re.compile(r'(?P<sid>crv-(?P<user>%s)-\d+)\.session$' % ure) 
     self.sessions={}
     for d in udirs:
-      if os.path.isdir(d):
+      if os.path.isdir(d) and os.access(d, os.R_OK):
         for f in os.listdir(d):
           ro= r.match(f)
           if ro:
