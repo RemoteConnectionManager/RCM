@@ -72,10 +72,12 @@ class ConnectionWindow(Frame):
 
 
         #f3.grid( row=6,column=0, sticky="we")
-        button = Button(self, text="new", command=self.submit)
+        self.f2 = Frame(self, width=500, height=100)
+        self.f2.grid( row=10,column=0) 
+        button = Button(self.f2, text="new", command=self.submit)
         button.grid( row=10,column=0 )
  
-        button = Button(self, text="refresh", command=self.refresh)
+        button = Button(self.f2, text="refresh", command=self.refresh)
         button.grid( row=10,column=1 )
        
         
