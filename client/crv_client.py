@@ -15,10 +15,11 @@ class SessionThread( threading.Thread ):
     
     threadscount = 0
     
-    def __init__ ( self, tunnel_cmd, vnc_cmd ):
+    def __init__ ( self, tunnel_cmd='', vnc_cmd='',gui_cmd=None ):
         self.debug=True
         self.tunnel_command = tunnel_cmd
         self.vnc_command = vnc_cmd
+        self.gui_cmd=gui_cmd
         threading.Thread.__init__ ( self )
         self.threadnum = SessionThread.threadscount
         SessionThread.threadscount += 1
@@ -26,10 +27,12 @@ class SessionThread( threading.Thread ):
 
     def run ( self ):
         print 'This is thread ' + str ( self.threadnum ) + ' run.'
+        if(self.gui_cmd): self.gui_cmd(active=False)
         if(self.tunnel_command == ''):
             print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.vnc_command , "<--"
             vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
             vnc_process.wait()
+            if(self.gui_cmd): self.gui_cmd(active=True)
         else:
             print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command , "<--"
             tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
@@ -43,7 +46,8 @@ class SessionThread( threading.Thread ):
                 print "starting vncviewer-->"+self.vnc_command+"<--"
             vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
             vnc_process.wait()
-            tunnel_process.terminate()
+            if(self.gui_cmd): self.gui_cmd(active=True)
+            #tunnel_process.terminate()
 
 
 
@@ -161,7 +165,7 @@ class crv_client_connection:
         else:
             return o.strip()
         
-    def vncsession(self,session,passwd=''):
+    def vncsession(self,session,passwd='',gui_cmd=None):
         portnumber=5900 + int(session.hash['display'])
         print "portnumber-->",portnumber
         if(passwd == ''):
@@ -178,7 +182,7 @@ class crv_client_connection:
         else:
           tunnel_command=''
           vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
-        SessionThread ( tunnel_command, vnc_command ).start()
+        SessionThread ( tunnel_command, vnc_command ,gui_cmd).start()
 
 ##        print "executing-->" , tunnel_command , "<--"
 ##        tunnel_process=subprocess.Popen(tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)

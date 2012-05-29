@@ -134,10 +134,18 @@ class ConnectionWindow(Frame):
                 bk = Button( f1, text="kill", command=cmd )
                 bk.grid( row=line+1, column=1 )
                 
-                def cmd(self=self, session=el):
+                bk = Button( f1, text="connect")
+                def disable_cmd(self=self, button=bk,active=True):
+                    print "button--->",button,"  active-->",active
+                    if(button.winfo_exists()):
+                        if(active):
+                            button.configure(state=ACTIVE)
+                        else:
+                            button.configure(state=DISABLED)
+                def cmd(self=self, session=el,disable_cmd=disable_cmd):
                     print "connecting to session", session.hash['sessionid']
-                    self.client_connection.vncsession(session)
-                bk = Button( f1, text="connect", command=cmd )
+                    self.client_connection.vncsession(session,gui_cmd=disable_cmd)
+                bk.configure( command=cmd )
                 bk.grid( row=line+1, column=0 )
                 
             for i,t in enumerate(sorted(c.hash.keys())):
@@ -152,9 +160,9 @@ class ConnectionWindow(Frame):
         newconn=self.client_connection.newconn()
         print "New connection aquired"
         newconn.write(2)
-        self.client_connection.vncsession(newconn,newconn.hash['otp'])
         print "Update connection panel"
         self.update_sessions(self.client_connection.list())
+        self.client_connection.vncsession(newconn,newconn.hash['otp'])
         print "End submit"
 ##        if tkMessageBox.askyesno("Confirm", "Subimt this job?"):
 ##            print "job sumitted"
