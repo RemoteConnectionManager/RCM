@@ -26,24 +26,24 @@ class SessionThread( threading.Thread ):
 
     def run ( self ):
         print 'This is thread ' + str ( self.threadnum ) + ' run.'
-	if(self.tunnel_command == ''):
-	  print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.vnc_command , "<--"
-	  vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
-	  vnc_process.wait()
-	else:
-	  print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command , "<--"
-	  tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
-	  while True:
-	      o = tunnel_process.stdout.readline()
-	      if o == '' and tunnel_process.poll() != None: break
-	      if(self.debug):
-		  print "output from process---->"+o.strip()+"<---"
-	      if o.strip() == 'pippo' :
-		  if(self.debug):
-		      print "starting vncviewer-->"+self.vnc_command+"<--"
-		  vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
-		  vnc_process.wait()
-		  tunnel_process.terminate()
+        if(self.tunnel_command == ''):
+            print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.vnc_command , "<--"
+            vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+            vnc_process.wait()
+        else:
+            print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command , "<--"
+            tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+            while True:
+                o = tunnel_process.stdout.readline()
+                if o == '' and tunnel_process.poll() != None: continue
+                if(self.debug):
+                    print "output from process---->"+o.strip()+"<---"
+                if o.strip() == 'pippo' : break
+            if(self.debug):
+                print "starting vncviewer-->"+self.vnc_command+"<--"
+            vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+            vnc_process.wait()
+            tunnel_process.terminate()
 
 
 
