@@ -56,6 +56,7 @@ class ConnectionWindow(Frame):
 
         Frame.__init__(self, master)
         self.client_connection=crv_client_connection
+        self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
         self.master.title("Connections")
         self.master.geometry("+200+200")
@@ -134,18 +135,29 @@ class ConnectionWindow(Frame):
                 bk = Button( f1, text="kill", command=cmd )
                 bk.grid( row=line+1, column=1 )
                 
+                bk = Button( f1, text="connect")
                 sessionid = el.hash['sessionid']
-                if sessionid in self.client_connection.activeConnectionsList:
-                    bk = Button( f1, text="connect", state=DISABLED)
-                else:
-                    bk = Button( f1, text="connect")
-                    
-                def cmd(self=self, session=el):
+                def disable_cmd(self=self, sessionid=el.hash['sessionid'],active=True):
+                    button=self.connection_buttons[sessionid][0]
+                    print "sessionid--->",sessionid,"  active-->",active
+                    if(button.winfo_exists()):
+                        if(active):
+                            self.client_connection.activeConnectionsList.append(sessionid)
+                            button.configure(state=DISABLED)
+                            print "button--->",button,"  configured DISABLED"
+
+                        else:
+                            button.configure(state=ACTIVE)
+                            self.client_connection.activeConnectionsList.remove(sessionid)
+                            print "button--->",button,"  configured ACTIVE"
+                self.connection_buttons[sessionid]=(bk,disable_cmd)
+                def cmd(self=self, session=el,disable_cmd=disable_cmd):
                     print "connecting to session", session.hash['sessionid']
-                    self.client_connection.vncsession(session)
-                    print "Update connection panel"
-                    self.update_sessions(self.client_connection.list())
+                    self.client_connection.vncsession(session,gui_cmd=disable_cmd)
                 bk.configure( command=cmd )
+                if sessionid in self.client_connection.activeConnectionsList:
+                    bk.configure(state=DISABLED)
+
                 bk.grid( row=line+1, column=0 )
                 
             for i,t in enumerate(sorted(c.hash.keys())):
@@ -160,12 +172,11 @@ class ConnectionWindow(Frame):
         newconn=self.client_connection.newconn()
         print "New connection aquired"
         newconn.write(2)
-        
-        self.client_connection.vncsession(newconn,newconn.hash['otp'])
-        print "End submit"
-        
         print "Update connection panel"
         self.update_sessions(self.client_connection.list())
+        #self.connection_buttons[newconn.hash['sessionid']].invoke()
+        self.client_connection.vncsession(newconn,newconn.hash['otp'],self.connection_buttons[newconn.hash['sessionid']][1])
+        print "End submit"
 ##        if tkMessageBox.askyesno("Confirm", "Subimt this job?"):
 ##            print "job sumitted"
 ##        else:
