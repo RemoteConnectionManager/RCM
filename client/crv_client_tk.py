@@ -134,17 +134,17 @@ class ConnectionWindow(Frame):
                 bk = Button( f1, text="kill", command=cmd )
                 bk.grid( row=line+1, column=1 )
                 
-                bk = Button( f1, text="connect")
-                def disable_cmd(self=self, button=bk,active=True):
-                    print "button--->",button,"  active-->",active
-                    if(button.winfo_exists()):
-                        if(active):
-                            button.configure(state=ACTIVE)
-                        else:
-                            button.configure(state=DISABLED)
-                def cmd(self=self, session=el,disable_cmd=disable_cmd):
+                sessionid = el.hash['sessionid']
+                if sessionid in self.client_connection.activeConnectionsList:
+                    bk = Button( f1, text="connect", state=DISABLED)
+                else:
+                    bk = Button( f1, text="connect")
+                    
+                def cmd(self=self, session=el):
                     print "connecting to session", session.hash['sessionid']
-                    self.client_connection.vncsession(session,gui_cmd=disable_cmd)
+                    self.client_connection.vncsession(session)
+                    print "Update connection panel"
+                    self.update_sessions(self.client_connection.list())
                 bk.configure( command=cmd )
                 bk.grid( row=line+1, column=0 )
                 
@@ -160,10 +160,12 @@ class ConnectionWindow(Frame):
         newconn=self.client_connection.newconn()
         print "New connection aquired"
         newconn.write(2)
-        print "Update connection panel"
-        self.update_sessions(self.client_connection.list())
+        
         self.client_connection.vncsession(newconn,newconn.hash['otp'])
         print "End submit"
+        
+        print "Update connection panel"
+        self.update_sessions(self.client_connection.list())
 ##        if tkMessageBox.askyesno("Confirm", "Subimt this job?"):
 ##            print "job sumitted"
 ##        else:

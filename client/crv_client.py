@@ -15,11 +15,12 @@ class SessionThread( threading.Thread ):
     
     threadscount = 0
     
-    def __init__ ( self, tunnel_cmd='', vnc_cmd='',gui_cmd=None ):
+    def __init__ ( self, tunnel_cmd='', vnc_cmd='', sessionId='', activeConnectionsList = []):
         self.debug=True
         self.tunnel_command = tunnel_cmd
         self.vnc_command = vnc_cmd
-        self.gui_cmd=gui_cmd
+        self.sessionId = sessionId
+        self.activeConnectionsList = activeConnectionsList
         threading.Thread.__init__ ( self )
         self.threadnum = SessionThread.threadscount
         SessionThread.threadscount += 1
@@ -27,12 +28,16 @@ class SessionThread( threading.Thread ):
 
     def run ( self ):
         print 'This is thread ' + str ( self.threadnum ) + ' run.'
-        if(self.gui_cmd): self.gui_cmd(active=False)
         if(self.tunnel_command == ''):
             print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.vnc_command , "<--"
             vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+            self.activeConnectionsList.append(self.sessionId)
+            if(self.debug):
+                print "Added " + str(self.sessionId)+ " to the connections list"
             vnc_process.wait()
-            if(self.gui_cmd): self.gui_cmd(active=True)
+            self.activeConnectionsList.remove(self.sessionId)
+            if(self.debug):
+                print "Removed " + self.sessionId + " to the connections list"
         else:
             print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command , "<--"
             tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
@@ -45,8 +50,13 @@ class SessionThread( threading.Thread ):
             if(self.debug):
                 print "starting vncviewer-->"+self.vnc_command+"<--"
             vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+            self.activeConnectionsList.append(self.sessionId)
+            if(self.debug):
+                print "Added " + str(self.sessionId) + " to the connections list"
             vnc_process.wait()
-            if(self.gui_cmd): self.gui_cmd(active=True)
+            if(self.debug):
+                self.activeConnectionsList.remove(self.sessionId)
+            print "Removed " + self.sessionId + " to the connections list"
             #tunnel_process.terminate()
 
 
@@ -65,6 +75,7 @@ class crv_client_connection:
         self.config['remote_crv_server']="/plx/userinternal/cin0118a/remote_viz/crv_server.py"
         self.basedir = os.path.dirname(os.path.abspath(__file__))
         self.sshexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['ssh'][sys.platform][0])
+        self.activeConnectionsList = []
         if(self.debug):
             print "uuu", self.sshexe
         if os.path.exists(self.sshexe) :
@@ -165,7 +176,7 @@ class crv_client_connection:
         else:
             return o.strip()
         
-    def vncsession(self,session,passwd='',gui_cmd=None):
+    def vncsession(self,session, passwd=''):
         portnumber=5900 + int(session.hash['display'])
         print "portnumber-->",portnumber
         if(passwd == ''):
@@ -182,7 +193,7 @@ class crv_client_connection:
         else:
           tunnel_command=''
           vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
-        SessionThread ( tunnel_command, vnc_command ,gui_cmd).start()
+        SessionThread ( tunnel_command, vnc_command ,session.hash['sessionid'], self.activeConnectionsList).start()
 
 ##        print "executing-->" , tunnel_command , "<--"
 ##        tunnel_process=subprocess.Popen(tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
