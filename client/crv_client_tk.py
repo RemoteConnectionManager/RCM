@@ -59,7 +59,8 @@ class ConnectionWindow(Frame):
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
         self.master.title("Connections")
-        self.master.geometry("1100x200+200+200")
+        self.master.geometry("1100x80+200+200")
+        self.master.minsize(1100,80)
         self.f1=None
 
 ##        self.wL1 = Label(self, text="example label" )#, width=65, bg="gray", justify="left")
@@ -133,6 +134,7 @@ class ConnectionWindow(Frame):
                     self.client_connection.kill(sessionid)
                     self.update_sessions(self.client_connection.list())
                 bk = Button( f1, text="kill", command=cmd )
+                
                 bk.grid( row=line+1, column=1 )
                 
                 bk = Button( f1, text="connect")
@@ -164,6 +166,9 @@ class ConnectionWindow(Frame):
                 lab = Label(f1, text=el.hash[t] )
                 lab.grid( row=line+1, column=i+2 )
         
+            newHeight = 80 + 28 * len(self.sessions.array)
+            geometryStr = "1100x" + str(newHeight) + "+200+200"
+            self.master.geometry(geometryStr)
  
     
 
