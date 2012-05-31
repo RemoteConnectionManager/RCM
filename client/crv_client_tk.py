@@ -16,7 +16,7 @@ class Login(Frame):
         self.pack( padx=10, pady=10 )
         self.master.title("Login:")
         self.action=action
-        #self.master.geometry("+200+200")
+        self.master.geometry("+200+200")
         self.proxy = StringVar()
         self.proxy.set(proxynode)
         self.proxynode = self.make_entry( "Host:", 16, textvariable=self.proxy)
@@ -59,7 +59,7 @@ class ConnectionWindow(Frame):
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
         self.master.title("Connections")
-        self.master.geometry("+200+200")
+        self.master.geometry("1100x200+200+200")
         self.f1=None
 
 ##        self.wL1 = Label(self, text="example label" )#, width=65, bg="gray", justify="left")
