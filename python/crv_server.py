@@ -16,7 +16,7 @@ def prex(cmd):
   cmdstring=cmd[0]
   for p in cmd[1:]:
     cmdstring+=" '%s'" % (p) 
-  sys.stderr.write("Executing: %s\n" % (cmdstring)  )
+  #sys.stderr.write("Executing: %s\n" % (cmdstring)  )
   myprocess = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
   stdout,stderr = myprocess.communicate()
   myprocess.wait()                        
