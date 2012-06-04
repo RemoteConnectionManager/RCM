@@ -313,7 +313,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
           otp=otp_regex.search(jo)
           return (x.group('node'),x.group('display'),otp.group('otp')) 
       secs+=step
-      sys.stderr.write('Waiting for job output, %d/%d\n' % (secs,timeout) )
+      #sys.stderr.write('Waiting for job output, %d/%d\n' % (secs,timeout) )
       time.sleep(step)
     raise Exception("Timeouted (%d seconds) job not correcty running!!!" % (timeout) )
 
