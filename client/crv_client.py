@@ -6,6 +6,7 @@ import os
 import getpass
 import subprocess
 import threading
+import pexpect
 
 sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "python"))
 import crv
@@ -15,11 +16,13 @@ class SessionThread( threading.Thread ):
     
     threadscount = 0
     
-    def __init__ ( self, tunnel_cmd='', vnc_cmd='',gui_cmd=None ):
+    def __init__ ( self, tunnel_cmd='', vnc_cmd='', passwd = '', otp = '', gui_cmd=None ):
         self.debug=True
         self.tunnel_command = tunnel_cmd
         self.vnc_command = vnc_cmd
         self.gui_cmd=gui_cmd
+        self.password = passwd
+        self.otp = otp
         threading.Thread.__init__ ( self )
         self.threadnum = SessionThread.threadscount
         SessionThread.threadscount += 1
@@ -30,8 +33,21 @@ class SessionThread( threading.Thread ):
         if(self.gui_cmd): self.gui_cmd(active=True)
         if(self.tunnel_command == ''):
             print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.vnc_command , "<--"
-            vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
-            vnc_process.wait()
+            #vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+            #vnc_process.wait()
+            
+            child = pexpect.spawn(self.vnc_command) 
+            i = child.expect('password:')   
+            child.sendline(self.password)
+            i = child.expect(['Password:','standard VNC authentication'])
+            if i == 0:
+                # Unix authontication
+                child.sendline(self.password)
+            elif i == 1:
+                # OTP authentication
+                child.sendline(self.otp)
+                
+            child.expect(pexpect.EOF, timeout=None)           
             if(self.gui_cmd): self.gui_cmd(active=False)
         else:
             print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command , "<--"
@@ -47,14 +63,14 @@ class SessionThread( threading.Thread ):
             vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
             vnc_process.wait()
             if(self.gui_cmd): self.gui_cmd(active=False)
-            #tunnel_process.terminate()
+
 
 
 
 class crv_client_connection:
 
     def __init__(self,proxynode='login2.plx.cineca.it',remoteuser='',password=''):
-        self.debug=False
+        self.debug=True
         self.config=dict()
         self.config['ssh']=dict()
         self.config['vnc']=dict()
@@ -73,7 +89,7 @@ class crv_client_connection:
         else:
             self.ssh_command = "ssh"
         if(self.debug):
-            print "uuu", command
+            print "uuu", self.ssh_command
         
         vncexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['vnc'][sys.platform][0])
         if os.path.exists(vncexe):
@@ -107,23 +123,43 @@ class crv_client_connection:
                     self.passwd=password
                 self.login_options =  " -pw "+self.passwd + " " + self.remoteuser + "@" + self.proxynode
             else:
-                print "PASSWORD ON COMMAND LINE NOT IMPLEMENTED ON PLATFORM -->"+sys.platform+"<--"
-                self.login_options =  " " + self.remoteuser + "@" + self.proxynode
-        self.ssh_remote_exec_command = self.ssh_command + self.login_options
-    
+                if (password == ''):
+                    self.passwd=getpass.getpass("Get password for" + self.remoteuser + "@" + self.proxynode + " : ")
+                #    print "got passwd-->",self.passwd
+                else:
+                    self.passwd=password
+                    self.login_options =  " " + self.remoteuser + "@" + self.proxynode
+        self.ssh_remote_exec_command = self.ssh_command + self.login_options    
     def prex(self,cmd):
         fullcommand= self.ssh_remote_exec_command + ' ' + cmd
         if(self.debug):
             print "executing-->",fullcommand
-        myprocess=subprocess.Popen(fullcommand, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        (myout,myerr)=myprocess.communicate()
-        if(self.debug):
-            print "returned error  -->",myerr
-            print "returned output -->",myout
-        myprocess.wait()                        
-        if(self.debug):
-            print "returned        -->",myprocess.returncode
-        return (myprocess.returncode,myout,myerr)     
+        if(sys.platform == 'win32'):
+            myprocess=subprocess.Popen(fullcommand, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            (myout,myerr)=myprocess.communicate()
+            returncode = myprocess.returncode
+            if(self.debug):
+                print "returned error  -->",myerr
+                print "returned output -->",myout
+            myprocess.wait()                        
+            if(self.debug):
+                print "returned        -->",myprocess.returncode
+        else:      
+            child = pexpect.spawn(fullcommand)
+            i = child.expect('password:')
+            child.sendline(self.passwd)
+            child.expect(pexpect.EOF)
+            myout = child.before
+            myout = myout.lstrip()
+            myout = myout.replace('\r\n', '\n')
+            sys.stdout.write(myout)
+            child.close()
+            returncode = child.exitstatus
+            print "returncode: " + str(returncode)
+            returncode = returncode
+            myerr = ''
+        
+        return (returncode,myout,myerr)     
 
     def list(self):
         (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'list')
@@ -176,14 +212,15 @@ class crv_client_connection:
         if(autopass == ''):
           vnc_command=self.vncexe + " -medqual" + " -user " + self.remoteuser
         else:
-          vnc_command="echo "+autopass + " | " + self.vncexe + " -medqual" + " -autopass -nounixlogin"
+          #vnc_command="echo "+autopass + " | " + self.vncexe + " -medqual" + " -autopass -nounixlogin"
+           vnc_command = self.vncexe + " -medqual" + " -autopass -nounixlogin"
         if(sys.platform == 'win32'):
           tunnel_command=self.ssh_command  + " -L " +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " echo 'pippo'; sleep 10"
           vnc_command += " localhost:" +str(portnumber)
         else:
           tunnel_command=''
           vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
-        SessionThread ( tunnel_command, vnc_command ,gui_cmd).start()
+        SessionThread ( tunnel_command, vnc_command, self.passwd, autopass, gui_cmd).start()
 
 ##        print "executing-->" , tunnel_command , "<--"
 ##        tunnel_process=subprocess.Popen(tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
