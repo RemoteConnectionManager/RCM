@@ -159,7 +159,6 @@ class crv_client_connection:
                 child.sendline(self.passwd)
                 i = child.expect([pexpect.EOF, 'ERROR:'])
                 if i == 1:
-                    print "_________________here**********"
                     #manage error
                     myerr = child.before
                     returncode = 1          
@@ -167,8 +166,7 @@ class crv_client_connection:
                 #manage error
                 myerr = child.before
                 returncode = 1 
-                
-            print "cacca********"
+
             myout = child.before
             myout = myout.lstrip()
             myout = myout.replace('\r\n', '\n')
@@ -211,13 +209,12 @@ class crv_client_connection:
     def get_otp(self,sessionid):
 
         (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'otp' + ' ' + sessionid)
-        
+
         if (r != 0):
             print e
             
             #raise Exception("getting OTP passwd session ->",sessionid,"<- failed ! ")
             return ''
-
         else:
             return o.strip()
         
@@ -225,20 +222,22 @@ class crv_client_connection:
         portnumber=5900 + int(session.hash['display'])
         print "portnumber-->",portnumber
         if(passwd == ''):
-          autopass=self.get_otp(session.hash['sessionid'])
+            autopass=self.get_otp(session.hash['sessionid'])
         else:
-          autopass=passwd
+            autopass=passwd
         if(autopass == ''):
-          vnc_command=self.vncexe + " -medqual" + " -user " + self.remoteuser
+            vnc_command=self.vncexe + " -medqual" + " -user " + self.remoteuser
         else:
-          #vnc_command="echo "+autopass + " | " + self.vncexe + " -medqual" + " -autopass -nounixlogin"
-           vnc_command = self.vncexe + " -medqual" + " -autopass -nounixlogin"
+            if sys.platform == 'win32':
+                vnc_command="echo "+autopass + " | " + self.vncexe + " -medqual" + " -autopass -nounixlogin"
+            else:
+                vnc_command = self.vncexe + " -medqual" + " -autopass -nounixlogin"
         if(sys.platform == 'win32'):
-          tunnel_command=self.ssh_command  + " -L " +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " echo 'pippo'; sleep 10"
-          vnc_command += " localhost:" +str(portnumber)
+            tunnel_command=self.ssh_command  + " -L " +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " echo 'pippo'; sleep 10"
+            vnc_command += " localhost:" +str(portnumber)
         else:
-          tunnel_command=''
-          vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
+            tunnel_command=''
+            vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
         SessionThread ( tunnel_command, vnc_command, self.passwd, autopass, gui_cmd).start()
 
 ##        print "executing-->" , tunnel_command , "<--"
