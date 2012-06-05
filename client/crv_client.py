@@ -6,7 +6,8 @@ import os
 import getpass
 import subprocess
 import threading
-import pexpect
+if sys.platform.startswith('linux'):
+	import pexpect
 
 sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "python"))
 import crv
@@ -37,15 +38,21 @@ class SessionThread( threading.Thread ):
             #vnc_process.wait()
             
             child = pexpect.spawn(self.vnc_command) 
-            i = child.expect('password:')   
-            child.sendline(self.password)
-            i = child.expect(['Password:','standard VNC authentication'])
+            i = child.expect(['Password:', 'standard VNC authentication', 'password:', 'ERROR:'])
+            if i == 2:
+                #no certificate
+                child.sendline(self.password)
+                i = child.expect(['Password:','standard VNC authentication', 'ERROR:'])
+                
             if i == 0:
                 # Unix authontication
                 child.sendline(self.password)
             elif i == 1:
                 # OTP authentication
                 child.sendline(self.otp)
+            else:
+                #manage error
+                print child.before
                 
             child.expect(pexpect.EOF, timeout=None)           
             if(self.gui_cmd): self.gui_cmd(active=False)
@@ -146,13 +153,25 @@ class crv_client_connection:
                 print "returned        -->",myprocess.returncode
         else:      
             child = pexpect.spawn(fullcommand)
-            i = child.expect('password:')
-            child.sendline(self.passwd)
-            child.expect(pexpect.EOF)
+            i = child.expect(['password:', pexpect.EOF, 'ERROR:'])
+            if i == 0:
+                #no certificate
+                child.sendline(self.passwd)
+                i = child.expect([pexpect.EOF, 'ERROR:'])
+                if i == 1:
+                    print "_________________here**********"
+                    #manage error
+                    myerr = child.before
+                    returncode = 1          
+            elif i == 2: 
+                #manage error
+                myerr = child.before
+                returncode = 1 
+                
+            print "cacca********"
             myout = child.before
             myout = myout.lstrip()
             myout = myout.replace('\r\n', '\n')
-            sys.stdout.write(myout)
             child.close()
             returncode = child.exitstatus
             print "returncode: " + str(returncode)
