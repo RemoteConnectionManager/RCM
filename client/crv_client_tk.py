@@ -8,6 +8,7 @@ import tkMessageBox
 
 bigfont = ("Helvetica",10)
 boldfont = ("Helvetica",12,"bold")
+checkCredential = False 
 
 class Login(Frame):
     def __init__(self, master=None,action=None,proxynode='login2.plx.cineca.it'):
@@ -36,11 +37,20 @@ class Login(Frame):
         """ Collect 1's for every failure and quit program in case of failure_max failures """
 
         #print(self.proxynode.get(),self.user.get(), self.password.get())
-        self.action(self.proxynode.get(),self.user.get(), self.password.get())
-        self.destroy()
-        self.quit()
-        print('Logged in')
-        return
+        
+        if  (self.proxynode.get() and self.user.get() and self.password.get()):
+            #Start login only if all the entry are filled
+            global checkCredential 
+            checkCredential = self.action(self.proxynode.get(),self.user.get(), self.password.get())
+            if checkCredential:
+                self.destroy()
+                self.quit()
+                print('Logged in')
+                return
+            else:
+                tkMessageBox.showwarning("Error","Authentication failed!")
+                return
+                
     
     def make_entry(self, caption, width=None, **options):
         Label(self, text=caption).pack(side=TOP)
@@ -198,9 +208,14 @@ class crv_client_connection_GUI(crv_client.crv_client_connection):
         crv_client.crv_client_connection.__init__(self)
         self.login = Login(action=self.login_setup)
         self.login.mainloop()
-        gui = ConnectionWindow(crv_client_connection=self)
-        gui.update_sessions(self.list())
-        gui.mainloop()
+        
+        print "Check credential returned: " + str(checkCredential)
+        if checkCredential:
+            gui = ConnectionWindow(crv_client_connection=self)
+            gui.update_sessions(self.list())
+            gui.mainloop()
+           
+            
 
 
 if __name__ == '__main__':

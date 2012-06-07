@@ -38,7 +38,7 @@ class SessionThread( threading.Thread ):
             #vnc_process.wait()
             
             child = pexpect.spawn(self.vnc_command) 
-            i = child.expect(['Password:', 'standard VNC authentication', 'password:', 'ERROR:'])
+            i = child.expect(['Password:', 'standard VNC authentication', 'password:', 'CRV_ERROR:'])
             if i == 2:
                 #no certificate
                 child.sendline(self.password)
@@ -124,19 +124,21 @@ class crv_client_connection:
         else:
             if(sys.platform == 'win32'):
                 if (password == ''):
-                    self.passwd=getpass.getpass("Get password for" + self.remoteuser + "@" + self.proxynode + " : ")
+                    self.passwd=getpass.getpass("Get password for " + self.remoteuser + "@" + self.proxynode + " : ")
                 #    print "got passwd-->",self.passwd
                 else:
                     self.passwd=password
                 self.login_options =  " -pw "+self.passwd + " " + self.remoteuser + "@" + self.proxynode
             else:
                 if (password == ''):
-                    self.passwd=getpass.getpass("Get password for" + self.remoteuser + "@" + self.proxynode + " : ")
+                    self.passwd=getpass.getpass("Get password for " + self.remoteuser + "@" + self.proxynode + " : ")
                 #    print "got passwd-->",self.passwd
                 else:
                     self.passwd=password
                     self.login_options =  " " + self.remoteuser + "@" + self.proxynode
-        self.ssh_remote_exec_command = self.ssh_command + self.login_options    
+        self.ssh_remote_exec_command = self.ssh_command + self.login_options   
+        return self.checkCredential() 
+        
     def prex(self,cmd):
         fullcommand= self.ssh_remote_exec_command + ' ' + cmd
         if(self.debug):
@@ -155,16 +157,21 @@ class crv_client_connection:
             child = pexpect.spawn(fullcommand)
             i = child.expect(['password:', pexpect.EOF, 'ERROR:'])
             if i == 0:
-                #no certificate
+                #no PKI
                 child.sendline(self.passwd)
                 i = child.expect([pexpect.EOF, 'ERROR:'])
                 if i == 1:
                     #manage error
                     myerr = child.before
-                    returncode = 1          
+                    print myerr
+                    returncode = 1  
+            elif i == 1:
+                #use PKI
+                pass
             elif i == 2: 
                 #manage error
                 myerr = child.before
+                print myerr
                 returncode = 1 
 
             myout = child.before
@@ -239,21 +246,48 @@ class crv_client_connection:
             tunnel_command=''
             vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
         SessionThread ( tunnel_command, vnc_command, self.passwd, autopass, gui_cmd).start()
+        
+    def checkCredential(self):
+        #check user credential 
+        #If user use PKI, I can not check password validity
+        print "Checking credentials......"
+        if(sys.platform == 'win32'):
+            myprocess=subprocess.Popen(self.ssh_remote_exec_command, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            output= ''
+            while True:
+                out = myprocess.stdout.read(1)
+                if out == '' and process.poll() != None:
+                    break
+                output += out
+                if 'password' in output:
+                    return False
+                if 'Welcome' in output:
+                    return True 
+        else:      
+            ssh_newkey = 'Are you sure you want to continue connecting'
+            # my ssh command line
+            p=pexpect.spawn(self.ssh_remote_exec_command)
 
-##        print "executing-->" , tunnel_command , "<--"
-##        tunnel_process=subprocess.Popen(tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
-##        while True:
-##            o = tunnel_process.stdout.readline()
-##            if o == '' and tunnel_process.poll() != None: break
-##            if(self.debug):
-##                print "output from process---->"+o.strip()+"<---"
-##            if o.strip() == 'pippo' :
-##                if(self.debug):
-##                    print "starting vncviewer-->"+vnc_command+"<--"
-##                vnc_process=subprocess.Popen(vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
-##                vnc_process.wait()
-##                tunnel_process.terminate()
-
+            i=p.expect([ssh_newkey,'password:',pexpect.TIMEOUT],2)
+            if i==0:
+                print "I say yes"
+                p.sendline('yes')
+                p.expect('password')
+                i = 1            
+            if i==1:
+                #send password
+                p.sendline(self.passwd)
+                i=p.expect(['Permission denied', pexpect.TIMEOUT],3)
+                if i==0:
+                    p.sendline('\r')
+                    print "Permission denied"
+                    return False 
+                elif i==1:
+                     return True
+            elif i==2: #timeout so use PKI
+                return True
+            
+    
 if __name__ == '__main__':
     try:
         
