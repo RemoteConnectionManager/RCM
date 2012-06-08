@@ -128,7 +128,7 @@ class crv_client_connection:
                 #    print "got passwd-->",self.passwd
                 else:
                     self.passwd=password
-                self.login_options =  " -pw "+self.passwd + " " + self.remoteuser + "@" + self.proxynode
+                    self.login_options =  " -pw "+self.passwd + " " + self.remoteuser + "@" + self.proxynode
             else:
                 if (password == ''):
                     self.passwd=getpass.getpass("Get password for " + self.remoteuser + "@" + self.proxynode + " : ")
@@ -225,13 +225,13 @@ class crv_client_connection:
         else:
             return o.strip()
         
-    def vncsession(self,session,passwd='',gui_cmd=None):
+    def vncsession(self,session,otp='',gui_cmd=None):
         portnumber=5900 + int(session.hash['display'])
         print "portnumber-->",portnumber
-        if(passwd == ''):
+        if(otp == ''):
             autopass=self.get_otp(session.hash['sessionid'])
         else:
-            autopass=passwd
+            autopass=otp
         if(autopass == ''):
             vnc_command=self.vncexe + " -medqual" + " -user " + self.remoteuser
         else:
@@ -245,7 +245,7 @@ class crv_client_connection:
         else:
             tunnel_command=''
             vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
-        SessionThread ( tunnel_command, vnc_command, passwd, autopass, gui_cmd).start()
+        SessionThread ( tunnel_command, vnc_command, self.passwd, autopass, gui_cmd).start()
         
     def checkCredential(self):
         #check user credential 
