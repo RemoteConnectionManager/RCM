@@ -261,14 +261,13 @@ class crv_client_connection:
                 output += out
                 if 'password' in output:
                     return False
-                if 'Welcome' in output:
+                if 'Welcome to' in output:
                     return True 
         else:      
             ssh_newkey = 'Are you sure you want to continue connecting'
             # my ssh command line
             p=pexpect.spawn(self.ssh_remote_exec_command)
-
-            i=p.expect([ssh_newkey,'password:',pexpect.TIMEOUT],10)
+            i=p.expect([ssh_newkey,'password:','Welcome to'],10)
             if i==0:
                 print "I say yes"
                 p.sendline('yes')
@@ -277,7 +276,7 @@ class crv_client_connection:
             if i==1:
                 #send password
                 p.sendline(self.passwd)
-                i=p.expect(['Permission denied', pexpect.TIMEOUT],10)
+                i=p.expect(['Permission denied', 'Welcome to'],10)
                 if i==0:
                     p.sendline('\r')
                     print "Permission denied"
