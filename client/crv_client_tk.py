@@ -177,7 +177,7 @@ class ConnectionWindow(Frame):
                 lab.grid( row=line+1, column=i+2 )
         
             newHeight = 80 + 28 * len(self.sessions.array)
-            geometryStr = "1100x" + str(newHeight) + "+200+200"
+            geometryStr = "1100x" + str(newHeight) #+ "+200+200"
             self.master.geometry(geometryStr)
  
     
