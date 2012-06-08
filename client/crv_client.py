@@ -245,7 +245,7 @@ class crv_client_connection:
         else:
             tunnel_command=''
             vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
-        SessionThread ( tunnel_command, vnc_command, self.passwd, autopass, gui_cmd).start()
+        SessionThread ( tunnel_command, vnc_command, passwd, autopass, gui_cmd).start()
         
     def checkCredential(self):
         #check user credential 
