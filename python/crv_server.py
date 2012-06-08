@@ -9,6 +9,7 @@ import re
 import glob
 import string
 import time
+import shutil
 sys.path.append( sys.path[0] )
 import crv
 
@@ -271,11 +272,18 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
 	    break
     return res        
 
+  def desktop_setup(self):
+    desktop_dest_dir=os.path.expanduser("~%s/Desktop" % (self.par_u))
+    desktop_source_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),'Desktop_setup')
+    for f in glob.glob(desktop_source_dir + '/*.desktop' ):
+      shutil.copy(f,desktop_dest_dir)
+      
   def clean_files(self,sid):
     for d in self.get_crvdirs():
       if ( not os.path.isdir(d) ):
         os.mkdir(d)
         os.chmod(d,0755)
+	self.desktop_setup()
       for f in glob.glob("%s/%s.*" % (d,sid)):
         os.remove(f)
     
