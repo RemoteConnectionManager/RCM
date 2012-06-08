@@ -86,7 +86,13 @@ class crv_client_connection:
         self.config['ssh']['linux2']=("ssh")
         self.config['vnc']['linux2']=("vncviewer","")
         self.config['remote_crv_server']="/plx/userinternal/cin0118a/remote_viz/crv_server.py"
-        self.basedir = os.path.dirname(os.path.abspath(__file__))
+        if('frozen' in dir(sys)):
+          if(os.environ.has_key('_MEIPASS2')):
+            self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
+          else:
+            self.basedir = os.path.dirname(os.path.abspath(sys.executable))
+        else:
+          self.basedir = os.path.dirname(os.path.abspath(__file__))
         self.sshexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['ssh'][sys.platform][0])
         self.activeConnectionsList = []
         if(self.debug):
