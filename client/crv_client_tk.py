@@ -69,8 +69,8 @@ class ConnectionWindow(Frame):
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
         self.master.title("Connections")
-        self.master.geometry("1100x80+200+200")
-        self.master.minsize(1100,80)
+        self.master.geometry("700x80+200+200")
+        self.master.minsize(700,80)
         self.f1=None
 
 ##        self.wL1 = Label(self, text="example label" )#, width=65, bg="gray", justify="left")
@@ -85,12 +85,12 @@ class ConnectionWindow(Frame):
 
         #f3.grid( row=6,column=0, sticky="we")
         self.f2 = Frame(self, width=500, height=100)
-        self.f2.grid( row=10,column=0) 
+        self.f2.grid( row=6,column=0) 
         button = Button(self.f2, text="new", command=self.submit)
-        button.grid( row=10,column=0 )
+        button.grid( row=6,column=0 )
  
         button = Button(self.f2, text="refresh", command=self.refresh)
-        button.grid( row=10,column=1 )
+        button.grid( row=6,column=1 )
        
         
 
@@ -126,13 +126,17 @@ class ConnectionWindow(Frame):
         self.f1 = Frame(self, width=500, height=100)
         self.f1.grid( row=1,column=0) 
         f1 = self.f1
+        labelList = ['created', 'display', 'node', 'state', 'username', 'walltime']
 
         
         c=crv.crv_session()
-        for i,t in enumerate(sorted(c.hash.keys())):
-            w = Label(f1, text=t, relief="raised")
-            w.grid( row=0,column=i+2, sticky="we")
-            f1.columnconfigure ( i, minsize=80 )
+        i = 0
+        for t in sorted(c.hash.keys()):
+            if t in labelList:
+                w = Label(f1, text=t, relief="raised")
+                w.grid( row=0,column=i+2, sticky="we")
+                f1.columnconfigure ( i, minsize=80 )
+                i = i + 1
 
 
         
@@ -171,13 +175,15 @@ class ConnectionWindow(Frame):
                     bk.configure(state=DISABLED)
 
                 bk.grid( row=line+1, column=0 )
-                
-            for i,t in enumerate(sorted(c.hash.keys())):
-                lab = Label(f1, text=el.hash[t] )
-                lab.grid( row=line+1, column=i+2 )
+            i = 0
+            for t in sorted(c.hash.keys()):
+                if t in labelList:
+                    lab = Label(f1, text=el.hash[t] )
+                    lab.grid( row=line+1, column=i+2 )
+                    i = i + 1
         
             newHeight = 80 + 28 * len(self.sessions.array)
-            geometryStr = "1100x" + str(newHeight) #+ "+200+200"
+            geometryStr = "700x" + str(newHeight)
             self.master.geometry(geometryStr)
  
     
