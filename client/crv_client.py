@@ -18,7 +18,7 @@ class SessionThread( threading.Thread ):
     threadscount = 0
     
     def __init__ ( self, tunnel_cmd='', vnc_cmd='', passwd = '', otp = '', gui_cmd=None ):
-        self.debug=True
+        self.debug=False
         self.tunnel_command = tunnel_cmd
         self.vnc_command = vnc_cmd
         self.gui_cmd=gui_cmd
@@ -27,13 +27,14 @@ class SessionThread( threading.Thread ):
         threading.Thread.__init__ ( self )
         self.threadnum = SessionThread.threadscount
         SessionThread.threadscount += 1
-        print 'This is thread ' + str ( self.threadnum ) + ' init.'
+        if(self.debug): print 'This is thread ' + str ( self.threadnum ) + ' init.'
 
     def run ( self ):
-        print 'This is thread ' + str ( self.threadnum ) + ' run.'
+        if(self.debug):
+            print 'This is thread ' + str ( self.threadnum ) + ' run.'
         if(self.gui_cmd): self.gui_cmd(active=True)
         if(self.tunnel_command == ''):
-            print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.vnc_command , "<--"
+            if(self.debug): print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.vnc_command , "<--"
             #vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
             #vnc_process.wait()
             
@@ -52,12 +53,12 @@ class SessionThread( threading.Thread ):
                 child.sendline(self.otp)
             else:
                 #manage error
-                print child.before
+                if(self.debug): print child.before
                 
             child.expect(pexpect.EOF, timeout=None)           
             if(self.gui_cmd): self.gui_cmd(active=False)
         else:
-            print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command , "<--"
+            if(self.debug): print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command , "<--"
             tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
             while True:
                 o = tunnel_process.stdout.readline()
@@ -77,7 +78,7 @@ class SessionThread( threading.Thread ):
 class crv_client_connection:
 
     def __init__(self,proxynode='login2.plx.cineca.it',remoteuser='',password=''):
-        self.debug=True
+        self.debug=False
         self.config=dict()
         self.config['ssh']=dict()
         self.config['vnc']=dict()
@@ -108,7 +109,7 @@ class crv_client_connection:
         if os.path.exists(vncexe):
             self.vncexe=vncexe
         else:
-            print "VNC exec -->",vncexe,"<-- NOT FOUND !!!"
+            if(self.debug): print "VNC exec -->",vncexe,"<-- NOT FOUND !!!"
             exit()
         
 
@@ -185,7 +186,7 @@ class crv_client_connection:
             myout = myout.replace('\r\n', '\n')
             child.close()
             returncode = child.exitstatus
-            print "returncode: " + str(returncode)
+            if(self.debug): print "returncode: " + str(returncode)
             returncode = returncode
             myerr = ''
         
@@ -233,7 +234,7 @@ class crv_client_connection:
         
     def vncsession(self,session,otp='',gui_cmd=None):
         portnumber=5900 + int(session.hash['display'])
-        print "portnumber-->",portnumber
+        if(self.debug): print "portnumber-->",portnumber
         if(otp == ''):
             autopass=self.get_otp(session.hash['sessionid'])
         else:
@@ -275,7 +276,7 @@ class crv_client_connection:
             p=pexpect.spawn(self.ssh_remote_exec_command)
             i=p.expect([ssh_newkey,'password:','Welcome to'],10)
             if i==0:
-                print "I say yes"
+                if(self.debug): print "I say yes"
                 p.sendline('yes')
                 p.expect('password')
                 i = 1            
@@ -303,7 +304,7 @@ if __name__ == '__main__':
         res.write(2)
         newc=c.newconn()
         newsession = newc.hash['sessionid']
-        print "created session -->",newsession,"<- display->",newc.hash['display'],"<-- node-->",newc.hash['node']
+        if(self.debug): print "created session -->",newsession,"<- display->",newc.hash['display'],"<-- node-->",newc.hash['node']
         c.vncsession(newc)
         res=c.list()
         res.write(2)

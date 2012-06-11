@@ -63,7 +63,7 @@ class Login(Frame):
 
 class ConnectionWindow(Frame):
     def __init__(self, master=None,crv_client_connection=None):
-
+        self.debug=False
         Frame.__init__(self, master)
         self.client_connection=crv_client_connection
         self.connection_buttons=dict()
@@ -155,17 +155,13 @@ class ConnectionWindow(Frame):
                 sessionid = el.hash['sessionid']
                 def disable_cmd(self=self, sessionid=el.hash['sessionid'],active=True):
                     button=self.connection_buttons[sessionid][0]
-                    print "sessionid--->",sessionid,"  active-->",active
                     if(button.winfo_exists()):
                         if(active):
                             self.client_connection.activeConnectionsList.append(sessionid)
                             button.configure(state=DISABLED)
-                            print "button--->",button,"  configured DISABLED"
-
                         else:
                             button.configure(state=ACTIVE)
                             self.client_connection.activeConnectionsList.remove(sessionid)
-                            print "button--->",button,"  configured ACTIVE"
                 self.connection_buttons[sessionid]=(bk,disable_cmd)
                 def cmd(self=self, session=el,disable_cmd=disable_cmd):
                     print "connecting to session", session.hash['sessionid']
@@ -193,11 +189,11 @@ class ConnectionWindow(Frame):
         newconn=self.client_connection.newconn()
         print "New connection aquired"
         newconn.write(2)
-        print "Update connection panel"
+        if(self.debug): print "Update connection panel"
         self.update_sessions(self.client_connection.list())
         #self.connection_buttons[newconn.hash['sessionid']].invoke()
         self.client_connection.vncsession(newconn,newconn.hash['otp'],self.connection_buttons[newconn.hash['sessionid']][1])
-        print "End submit"
+        if(self.debug): print "End submit"
 ##        if tkMessageBox.askyesno("Confirm", "Subimt this job?"):
 ##            print "job sumitted"
 ##        else:
@@ -205,9 +201,9 @@ class ConnectionWindow(Frame):
 
 
     def refresh(self):
-        print "Refresh connection list"
+        if(self.debug): print "Refresh connection list"
         self.update_sessions(self.client_connection.list())
-        print "End Refresh connection list"
+        if(self.debug): print "End Refresh connection list"
 
 class crv_client_connection_GUI(crv_client.crv_client_connection):
     def __init__(self):
@@ -215,7 +211,7 @@ class crv_client_connection_GUI(crv_client.crv_client_connection):
         self.login = Login(action=self.login_setup)
         self.login.mainloop()
         
-        print "Check credential returned: " + str(checkCredential)
+        if(self.debug): print "Check credential returned: " + str(checkCredential)
         if checkCredential:
             gui = ConnectionWindow(crv_client_connection=self)
             gui.update_sessions(self.list())
