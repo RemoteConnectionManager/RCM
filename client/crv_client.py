@@ -259,7 +259,7 @@ class crv_client_connection:
         #If user use PKI, I can not check password validity
         print "Checking credentials......"
         if(sys.platform == 'win32'):
-            myprocess=subprocess.Popen(self.ssh_remote_exec_command, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            myprocess=subprocess.Popen("echo yes | " + self.ssh_remote_exec_command, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             output= ''
             while True:
                 out = myprocess.stdout.read(1)
