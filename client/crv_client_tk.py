@@ -6,8 +6,8 @@ import crv
 from Tkinter import *
 import tkMessageBox
 
-bigfont = ("Helvetica",10)
-boldfont = ("Helvetica",12,"bold")
+font = ("Helvetica",10, "grey")
+boldfont = ("Helvetica",10,"bold")
 checkCredential = False 
 
 class Login(Frame):
@@ -68,57 +68,24 @@ class ConnectionWindow(Frame):
         self.client_connection=crv_client_connection
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
-        self.master.title("Connections")
-        self.master.geometry("700x80+200+200")
+        self.master.title("CRV Connection Manager")
+        self.master.geometry("750x80+200+200")
         self.master.minsize(700,80)
         self.f1=None
-
-##        self.wL1 = Label(self, text="example label" )#, width=65, bg="gray", justify="left")
-##        self.wL1.grid( row=0,column=0, sticky="w")
-##        self.wL1["font"]=boldfont
-
-        #f3 = Frame(self)
-        #f3.grid( row=6,column=0, sticky="we")
-        #w = Button(f3, text="submit", command=self.submit)
-        #w.pack(side="left")
+        self.f2=None
 
 
-        #f3.grid( row=6,column=0, sticky="we")
-        self.f2 = Frame(self, width=500, height=100)
-        self.f2.grid( row=6,column=0) 
-        button = Button(self.f2, text="new", command=self.submit)
+        self.f3 = Frame(self, width=500, height=100)
+        self.f3.grid( row=6,column=0) 
+        button = Button(self.f3, text="NEW DISPLAY", borderwidth=2, command=self.submit)
+        button["font"]=boldfont
         button.grid( row=6,column=0 )
  
-        button = Button(self.f2, text="refresh", command=self.refresh)
+        button = Button(self.f3, text="REFRESH", borderwidth=2, command=self.refresh)
+        button["font"]=boldfont
         button.grid( row=6,column=1 )
        
         
-
-##        self.f1 = Frame(self, width=500, height=100)
-##        self.f1.grid( row=1,column=0) 
-##        f1 = self.f1
-##        for i,t in enumerate([" id "," name "," np "," nf "," status "," progress "]):
-##            w = Label(f1, text=t, relief="raised")
-##            w.grid( row=1,column=i, sticky="we")
-##            f1.columnconfigure ( i, minsize=80 )
-##
-##
-##        elemento = {}
-##        elemento["id"] = "id0"
-##        elemento["name"] = "name0"
-##        
-##        for line, el in  enumerate( [elemento, elemento, elemento] ):
-##            for i,t in enumerate([" id "," name "," np "," nf "," status "," progress "]):
-##                lab1 = Label(f1, text=el["id"] )
-##                lab1.grid( row=line+2, column=0 )
-##                lab2 = Label(f1, text=el["name"] )
-##                lab2.grid( row=line+2, column=1 )
-##                def cmd(self=self, LINE=line):
-##                    print "killing jog", LINE
-##                b1 = Button( f1, text="kill this", command=cmd )
-##                b1.grid( row=line+2, column=2 )
-
-
     def update_sessions(self,ss):
         self.sessions=ss
         if(self.f1):
@@ -127,61 +94,75 @@ class ConnectionWindow(Frame):
         self.f1.grid( row=1,column=0) 
         f1 = self.f1
         labelList = ['created', 'display', 'node', 'state', 'username', 'walltime']
+        
+        if(self.f2):
+            self.f2.destroy()
+        if len(self.sessions.array) == 0:
+            self.f2 = Frame(self, width=500, height=100)
+            self.f2.grid( row=1,column=0) 
+            w = Label(self.f2, text='No display available. Press \'NEW DISPLAY\' to create a new one.', height=2)
+            w.grid( row=1,column=0)
+            geometryStr = "750x160"
+            self.master.geometry(geometryStr)
+        else:
 
         
-        c=crv.crv_session()
-        i = 0
-        for t in sorted(c.hash.keys()):
-            if t in labelList:
-                w = Label(f1, text=t, relief="raised")
-                w.grid( row=0,column=i+2, sticky="we")
-                f1.columnconfigure ( i, minsize=80 )
-                i = i + 1
-
-
-        
-        for line, el in  enumerate( self.sessions.array ):
-            if(self.client_connection):
-            
-                def cmd(self=self, sessionid=el.hash['sessionid']):
-                    print "killing session", sessionid
-                    self.client_connection.kill(sessionid)
-                    self.update_sessions(self.client_connection.list())
-                bk = Button( f1, text="kill", command=cmd )
-                
-                bk.grid( row=line+1, column=1 )
-                
-                bk = Button( f1, text="connect")
-                sessionid = el.hash['sessionid']
-                def disable_cmd(self=self, sessionid=el.hash['sessionid'],active=True):
-                    button=self.connection_buttons[sessionid][0]
-                    if(button.winfo_exists()):
-                        if(active):
-                            self.client_connection.activeConnectionsList.append(sessionid)
-                            button.configure(state=DISABLED)
-                        else:
-                            button.configure(state=ACTIVE)
-                            self.client_connection.activeConnectionsList.remove(sessionid)
-                self.connection_buttons[sessionid]=(bk,disable_cmd)
-                def cmd(self=self, session=el,disable_cmd=disable_cmd):
-                    print "connecting to session", session.hash['sessionid']
-                    self.client_connection.vncsession(session,gui_cmd=disable_cmd)
-                bk.configure( command=cmd )
-                if sessionid in self.client_connection.activeConnectionsList:
-                    bk.configure(state=DISABLED)
-
-                bk.grid( row=line+1, column=0 )
+            c=crv.crv_session()
             i = 0
             for t in sorted(c.hash.keys()):
                 if t in labelList:
-                    lab = Label(f1, text=el.hash[t] )
-                    lab.grid( row=line+1, column=i+2 )
+                    w = Label(f1, text=t.upper(), relief=RIDGE, state=ACTIVE)
+                    w.grid( row=0,column=i+2, sticky="we")
+                    f1.columnconfigure ( i, minsize=80 )
                     i = i + 1
-        
-            newHeight = 80 + 28 * len(self.sessions.array)
-            geometryStr = "700x" + str(newHeight)
-            self.master.geometry(geometryStr)
- 
+            
+            for line, el in  enumerate( self.sessions.array ):
+                if(self.client_connection):
+                
+                    def cmd(self=self, sessionid=el.hash['sessionid']):
+                        print "killing session", sessionid
+                        self.client_connection.kill(sessionid)
+                        self.update_sessions(self.client_connection.list())
+                    bk = Button( f1, text="KILL", borderwidth=2, command=cmd )
+                    bk["font"]=boldfont
+                    
+                    bk.grid( row=line+1, column=1 )
+                    
+                    bk = Button( f1, text="CONNECT", borderwidth=2)
+                    bk["font"]=boldfont
+                    sessionid = el.hash['sessionid']
+                    def disable_cmd(self=self, sessionid=el.hash['sessionid'],active=True):
+                        button=self.connection_buttons[sessionid][0]
+                        if(button.winfo_exists()):
+                            if(active):
+                                self.client_connection.activeConnectionsList.append(sessionid)
+                                button.configure(state=DISABLED)
+                            else:
+                                button.configure(state=ACTIVE)
+                                self.client_connection.activeConnectionsList.remove(sessionid)
+                    self.connection_buttons[sessionid]=(bk,disable_cmd)
+                    def cmd(self=self, session=el,disable_cmd=disable_cmd):
+                        print "connecting to session", session.hash['sessionid']
+                        self.client_connection.vncsession(session,gui_cmd=disable_cmd)
+                    bk.configure( command=cmd )
+                    if sessionid in self.client_connection.activeConnectionsList:
+                        bk.configure(state=DISABLED)
+
+                    bk.grid( row=line+1, column=0 )
+                    
+            
+            
+                i = 0
+                for t in sorted(c.hash.keys()):
+                    if t in labelList:
+                        lab = Label(f1, text=el.hash[t])
+                        lab.grid( row=line+1, column=i+2 )
+                        i = i + 1
+            
+                newHeight = 80 + 35 * len(self.sessions.array)
+                geometryStr = "750x" + str(newHeight)
+                self.master.geometry(geometryStr)
+
     
 
     def submit(self):
