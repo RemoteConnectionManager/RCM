@@ -5,6 +5,7 @@ import crv
 
 from Tkinter import *
 import tkMessageBox
+import time
 
 font = ("Helvetica",10, "grey")
 boldfont = ("Helvetica",10,"bold")
@@ -122,6 +123,7 @@ class ConnectionWindow(Frame):
                     def cmd(self=self, sessionid=el.hash['sessionid']):
                         print "killing session", sessionid
                         self.client_connection.kill(sessionid)
+                        time.sleep(2)
                         self.update_sessions(self.client_connection.list())
                     bk = Button( f1, text="KILL", borderwidth=2, command=cmd )
                     bk["font"]=boldfont
