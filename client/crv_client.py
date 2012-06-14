@@ -290,7 +290,7 @@ class crv_client_connection:
                     return False 
                 elif i==1:
                      return True
-            elif i==2: #timeout so use PKI
+            elif i==2: #use PKI
                 return True
             
     

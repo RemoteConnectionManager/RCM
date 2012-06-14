@@ -5,11 +5,13 @@ import crv
 
 from Tkinter import *
 import tkMessageBox
+import tkSimpleDialog
 import time
 
 font = ("Helvetica",10, "grey")
 boldfont = ("Helvetica",10,"bold")
 checkCredential = False 
+screenDimension = ''
 
 class Login(Frame):
     def __init__(self, master=None,action=None,proxynode='login2.plx.cineca.it'):
@@ -69,7 +71,7 @@ class ConnectionWindow(Frame):
         self.client_connection=crv_client_connection
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
-        self.master.title("CRV Connection Manager")
+        self.master.title("Remote Visualization Manager")
         self.master.geometry("750x80+200+200")
         self.master.minsize(700,80)
         self.f1=None
@@ -166,8 +168,11 @@ class ConnectionWindow(Frame):
                 self.master.geometry(geometryStr)
 
     
-
     def submit(self):
+        #ask for screen dimesions
+        self.screenDimensionDialog = screenDimensionDialog(self)
+        print "recived: " + screenDimension
+                
         print "Requesting new connection"
         newconn=self.client_connection.newconn()
         print "New connection aquired"
@@ -177,16 +182,44 @@ class ConnectionWindow(Frame):
         #self.connection_buttons[newconn.hash['sessionid']].invoke()
         self.client_connection.vncsession(newconn,newconn.hash['otp'],self.connection_buttons[newconn.hash['sessionid']][1])
         if(self.debug): print "End submit"
-##        if tkMessageBox.askyesno("Confirm", "Subimt this job?"):
-##            print "job sumitted"
-##        else:
-##            print "you canceled"
 
 
     def refresh(self):
         if(self.debug): print "Refresh connection list"
         self.update_sessions(self.client_connection.list())
         if(self.debug): print "End Refresh connection list"
+        
+class screenDimensionDialog(tkSimpleDialog.Dialog):
+    def body(self, parent):
+        self.v = IntVar()
+        self.e1 = Entry(parent, state=NORMAL)
+        self.text = ['800x600', '1024x768', '1670x960', 'custom']
+       
+        Label(parent, text="""Choose screen dimesions:""", justify = LEFT, padx = 20).pack()
+        
+        Radiobutton(parent, text=self.text[0], padx = 20, variable=self.v, value=0, command=self.enableEntry).pack(anchor=W)
+        Radiobutton(parent, text=self.text[1], padx = 20, variable=self.v, value=1, command=self.enableEntry).pack(anchor=W)
+        Radiobutton(parent, text=self.text[2], padx = 20, variable=self.v, value=2, command=self.enableEntry).pack(anchor=W)
+        Radiobutton(parent, text=self.text[3], padx = 20, variable=self.v, value=3, command=self.enableEntry).pack(anchor=W)
+        self.e1.pack(anchor=E)
+
+    
+    def enableEntry(self):
+        if  self.v.get() == 3:
+            self.e1.config(state=NORMAL)
+        else:
+            self.e1.config(state=DISABLED)
+                
+    
+    def apply(self):
+        global screenDimension 
+        if  self.v.get() == 3:
+            screenDimension = self.e1.get()
+        else:
+            screenDimension = self.text[self.v.get()]
+        print "Screen dimensions: " + screenDimension
+        return
+        
 
 class crv_client_connection_GUI(crv_client.crv_client_connection):
     def __init__(self):
