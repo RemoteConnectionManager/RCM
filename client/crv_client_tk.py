@@ -192,17 +192,17 @@ class ConnectionWindow(Frame):
 class screenDimensionDialog(tkSimpleDialog.Dialog):
     def body(self, parent):
         self.v = IntVar()
-        self.e1 = Entry(parent, state=NORMAL)
-        self.text = ['800x600', '1024x768', '1670x960', 'custom']
+        self.e1 = Entry(parent, state=DISABLED)
+        self.text = ['Full screen', '1024x768', '1670x960', 'custom']
        
-        Label(parent, text="""Choose screen dimesions:""", justify = LEFT, padx = 20).pack()
+        Label(parent, text="""Choose screen dimensions:""", justify = LEFT, padx = 20).pack()
         
         Radiobutton(parent, text=self.text[0], padx = 20, variable=self.v, value=0, command=self.enableEntry).pack(anchor=W)
         Radiobutton(parent, text=self.text[1], padx = 20, variable=self.v, value=1, command=self.enableEntry).pack(anchor=W)
         Radiobutton(parent, text=self.text[2], padx = 20, variable=self.v, value=2, command=self.enableEntry).pack(anchor=W)
         Radiobutton(parent, text=self.text[3], padx = 20, variable=self.v, value=3, command=self.enableEntry).pack(anchor=W)
         self.e1.pack(anchor=E)
-
+        
     
     def enableEntry(self):
         if  self.v.get() == 3:
@@ -213,11 +213,15 @@ class screenDimensionDialog(tkSimpleDialog.Dialog):
     
     def apply(self):
         global screenDimension 
-        if  self.v.get() == 3:
+        if  self.v.get() == 0:
+            #Full screen
+            screenDimension = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight()) 
+        elif self.v.get() == 3:
             screenDimension = self.e1.get()
         else:
             screenDimension = self.text[self.v.get()]
         print "Screen dimensions: " + screenDimension
+        self.destroy()
         return
         
 
