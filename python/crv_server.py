@@ -12,7 +12,7 @@ import time
 import shutil
 sys.path.append( sys.path[0] )
 import crv
-import pickle
+#import pickle
 
 def prex(cmd):
   cmdstring=cmd[0]
