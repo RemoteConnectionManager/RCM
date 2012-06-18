@@ -12,6 +12,7 @@ import time
 import shutil
 sys.path.append( sys.path[0] )
 import crv
+import pickle
 
 def prex(cmd):
   cmdstring=cmd[0]
@@ -55,7 +56,7 @@ class crv_server:
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
 module load profile/advanced && module load TurboVNC 
-vncserver -otp -fg > $CRV_JOBLOG.vnc 2>&1
+$CRV_VNCSERVER -otp -fg -novncauth > $CRV_JOBLOG.vnc 2>&1
 """
     self.executable=sys.argv[0]
     self.parameters=sys.argv[1:]
@@ -295,7 +296,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       os.remove(otp)
     file='%s/%s.job' % (self.get_crvdirs()[0],sid)
     fileout='%s/%s.joblog' % (self.get_crvdirs()[0],sid)
-    batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid,CRV_JOBLOG=fileout)
+    batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid,CRV_JOBLOG=fileout,CRV_VNCSERVER=self.vncserver_string)
     f=open(file,'w')
     f.write(batch)
     f.close()
@@ -334,6 +335,13 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     sys.exit(0)
 
   def execute_new(self):
+    new_params=dict()
+    for par in self.par_command_args :
+      tmp=par.split('=')
+      new_params[tmp[0]]=tmp[1]
+    self.vncserver_string= 'vncserver'
+    if('geometry' in new_params):
+      self.vncserver_string += ' -geometry ' + new_params['geometry']
     self.load_sessions()
     sid=self.new_sid()
     self.clean_files(sid)
