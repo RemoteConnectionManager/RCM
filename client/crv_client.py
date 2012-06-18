@@ -6,6 +6,7 @@ import os
 import getpass
 import subprocess
 import threading
+#import pickle
 if sys.platform.startswith('linux'):
 	import pexpect
 
@@ -77,7 +78,7 @@ class SessionThread( threading.Thread ):
 
 class crv_client_connection:
 
-    def __init__(self,proxynode='login2.plx.cineca.it', usergroup='', remoteuser='',password=''):
+    def __init__(self,proxynode='login2.plx.cineca.it', user_account='', remoteuser='',password=''):
         self.debug=False
         self.config=dict()
         self.config['ssh']=dict()
@@ -86,7 +87,7 @@ class crv_client_connection:
         self.config['vnc']['win32']=("vncviewer.exe","")
         self.config['ssh']['linux2']=("ssh")
         self.config['vnc']['linux2']=("vncviewer","")
-        self.config['remote_crv_server']="/plx/userinternal/cin0118a/remote_viz/crv_server.py"
+        self.config['remote_crv_server']="/plx/userinternal/cin0118a/remote_viz1/crv_server.py"
         if('frozen' in dir(sys)):
           if(os.environ.has_key('_MEIPASS2')):
             self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
@@ -113,9 +114,10 @@ class crv_client_connection:
             exit()
         
 
-    def login_setup(self,proxynode='login2.plx.cineca.it', usergroup='', remoteuser='',password=''):
+    def login_setup(self,proxynode='login2.plx.cineca.it', user_account='', remoteuser='',password=''):
         self.proxynode=proxynode
 
+        self.user_account=user_account
         if (remoteuser == ''):
             self.remoteuser=raw_input("Remote user: ")
         else:
@@ -203,8 +205,10 @@ class crv_client_connection:
         return sessions 
         
     def newconn(self, geometry):
-
-        (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'new')
+        
+#        new_encoded_param=pickle.dumps({'geometry': geometry, 'user_account': self.user_account})
+        new_encoded_param='geometry='+ geometry + ' ' + 'user_account='+ self.user_account
+        (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'new' + ' ' + new_encoded_param )
         
         if (r != 0):
             print e
