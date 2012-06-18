@@ -77,7 +77,7 @@ class SessionThread( threading.Thread ):
 
 class crv_client_connection:
 
-    def __init__(self,proxynode='login2.plx.cineca.it',remoteuser='',password=''):
+    def __init__(self,proxynode='login2.plx.cineca.it', usergroup='', remoteuser='',password=''):
         self.debug=False
         self.config=dict()
         self.config['ssh']=dict()
@@ -113,9 +113,9 @@ class crv_client_connection:
             exit()
         
 
-    def login_setup(self,proxynode='login2.plx.cineca.it',remoteuser='',password=''):
+    def login_setup(self,proxynode='login2.plx.cineca.it', usergroup='', remoteuser='',password=''):
         self.proxynode=proxynode
-        
+
         if (remoteuser == ''):
             self.remoteuser=raw_input("Remote user: ")
         else:
@@ -202,7 +202,7 @@ class crv_client_connection:
             sessions.write(2)
         return sessions 
         
-    def newconn(self):
+    def newconn(self, geometry):
 
         (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'new')
         

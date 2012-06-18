@@ -14,7 +14,7 @@ checkCredential = False
 screenDimension = ''
 
 class Login(Frame):
-    def __init__(self, master=None,action=None,proxynode='login2.plx.cineca.it'):
+    def __init__(self, master=None,action=None, proxynode='login2.plx.cineca.it', usergroup='cinstaff'):
 
         Frame.__init__(self, master)
         self.pack( padx=10, pady=10 )
@@ -24,6 +24,9 @@ class Login(Frame):
         self.proxy = StringVar()
         self.proxy.set(proxynode)
         self.proxynode = self.make_entry( "Host:", 16, textvariable=self.proxy)
+        self.group = StringVar()
+        self.group.set(usergroup)
+        self.usergroup = self.make_entry( "User group:", 16, textvariable=self.group)
         self.user = StringVar()
         user_entry = self.make_entry( "User name:", 16, textvariable=self.user)
         self.password = StringVar()
@@ -41,10 +44,10 @@ class Login(Frame):
 
         #print(self.proxynode.get(),self.user.get(), self.password.get())
         
-        if  (self.proxynode.get() and self.user.get() and self.password.get()):
+        if  (self.proxynode.get() and self.usergroup.get() and self.user.get() and self.password.get()):
             #Start login only if all the entry are filled
             global checkCredential 
-            checkCredential = self.action(self.proxynode.get(),self.user.get(), self.password.get())
+            checkCredential = self.action(self.proxynode.get(), self.usergroup.get(), self.user.get(), self.password.get())
             if checkCredential:
                 self.destroy()
                 self.quit()
@@ -174,7 +177,7 @@ class ConnectionWindow(Frame):
         print "recived: " + screenDimension
                 
         print "Requesting new connection"
-        newconn=self.client_connection.newconn()
+        newconn=self.client_connection.newconn(screenDimension)
         print "New connection aquired"
         newconn.write(2)
         if(self.debug): print "Update connection panel"
@@ -192,20 +195,21 @@ class ConnectionWindow(Frame):
 class screenDimensionDialog(tkSimpleDialog.Dialog):
     def body(self, parent):
         self.v = IntVar()
-        self.e1 = Entry(parent, state=DISABLED)
-        self.text = ['Full screen', '1024x768', '1670x960', 'custom']
-       
+
+        self.screenDimension = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight()) 
+        self.e1 = Entry(parent)
+        self.e1.insert (0, self.screenDimension)
+        self.e1.config(state=DISABLED)
+    
+        self.text = ['Full screen', 'custom']
         Label(parent, text="""Choose screen dimensions:""", justify = LEFT, padx = 20).pack()
-        
         Radiobutton(parent, text=self.text[0], padx = 20, variable=self.v, value=0, command=self.enableEntry).pack(anchor=W)
         Radiobutton(parent, text=self.text[1], padx = 20, variable=self.v, value=1, command=self.enableEntry).pack(anchor=W)
-        Radiobutton(parent, text=self.text[2], padx = 20, variable=self.v, value=2, command=self.enableEntry).pack(anchor=W)
-        Radiobutton(parent, text=self.text[3], padx = 20, variable=self.v, value=3, command=self.enableEntry).pack(anchor=W)
         self.e1.pack(anchor=E)
         
     
     def enableEntry(self):
-        if  self.v.get() == 3:
+        if  self.v.get() == 1:
             self.e1.config(state=NORMAL)
         else:
             self.e1.config(state=DISABLED)
@@ -215,8 +219,8 @@ class screenDimensionDialog(tkSimpleDialog.Dialog):
         global screenDimension 
         if  self.v.get() == 0:
             #Full screen
-            screenDimension = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight()) 
-        elif self.v.get() == 3:
+            screenDimension = self.screenDimension
+        elif self.v.get() == 1:
             screenDimension = self.e1.get()
         else:
             screenDimension = self.text[self.v.get()]
