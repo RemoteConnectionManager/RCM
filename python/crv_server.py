@@ -405,8 +405,19 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     
 
 if __name__ == '__main__':
-  c = crv_server(sys.argv)
-  c.execute()
+  try:
+    c = crv_server(sys.argv)
+    c.execute()
+  except Exception as e:
+  #  #send the error to the client
+    print "CRV:EXCEPTION: " , e
+  #except StandardError as e:
+  #  print "CRV:Unexpected error: ", type(e), e.args
+
+	
+    
+	  
+	
   
 """
 jid=$(qsub -o ~/crv/rubbish/ -e ~/crv/rubbish/ ~/crv/lenta1.qsub) ; res=$?
