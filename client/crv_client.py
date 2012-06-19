@@ -87,7 +87,7 @@ class crv_client_connection:
         self.config['vnc']['win32']=("vncviewer.exe","")
         self.config['ssh']['linux2']=("ssh")
         self.config['vnc']['linux2']=("vncviewer","")
-        self.config['remote_crv_server']="/plx/userinternal/cin0118a/remote_viz1/crv_server.py"
+        self.config['remote_crv_server']="module load python; /plx/userinternal/cin0118a/remote_viz/crv_server.py"
         if('frozen' in dir(sys)):
           if(os.environ.has_key('_MEIPASS2')):
             self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
