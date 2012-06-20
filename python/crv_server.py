@@ -410,13 +410,11 @@ if __name__ == '__main__':
     c.execute()
   except Exception as e:
   #  #send the error to the client
-    print "CRV:EXCEPTION: " , e
-  #except StandardError as e:
-  #  print "CRV:Unexpected error: ", type(e), e.args
+    sys.stderr.write("{0}CRV:EXCEPTION".format(e))
+    #print e, "CRV:EXCEPTION"
+    sys.exit(1)
 
-	
-    
-	  
+
 	
   
 """
