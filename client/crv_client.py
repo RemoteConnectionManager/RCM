@@ -156,6 +156,7 @@ class crv_client_connection:
         if(sys.platform == 'win32'):
             myprocess=subprocess.Popen(fullcommand, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             (myout,myerr)=myprocess.communicate()
+            myerr=myerr.rsplit("CRV:",1)[0]
             returncode = myprocess.returncode
             if(self.debug):
                 print "returned error  -->",myerr
@@ -200,7 +201,7 @@ class crv_client_connection:
         (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'list')
         if (r != 0):
             print e
-            raise Exception("Server error: {0}".format(e))
+            raise Exception("Server error:-->{0}<--".format(e))
         sessions=crv.crv_sessions(o)
         if(self.debug):
             sessions.write(2)
@@ -214,7 +215,7 @@ class crv_client_connection:
         
         if (r != 0):
             print e
-            raise Exception("Server error: {0}".format(e))
+            raise Exception("Server error:-->{0}<--".format(e))
         session=crv.crv_session(o)
         return session 
 

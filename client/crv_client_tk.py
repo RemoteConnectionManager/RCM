@@ -20,15 +20,18 @@ def safe(debug=False):
             try:
                 return f(*l_args, **d_args)
             except Exception as e:
-                tkMessageBox.showwarning("Error", e)
                 if debug:
+                    tkMessageBox.showwarning("Error","in {0}: {1}".format(f.__name__, e))
                     import traceback
                     traceback.print_exc()
+                else:
+                    tkMessageBox.showwarning("Error", e)
+
         return fsafe
     return safedec
 
+safe_debug_on = safe(True)
 safe_debug_off = safe(True)
-safe_debug_off = safe(False)
 
         
 class Login(Frame):
