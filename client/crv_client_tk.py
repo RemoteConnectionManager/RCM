@@ -13,6 +13,24 @@ boldfont = ("Helvetica",10,"bold")
 checkCredential = False 
 screenDimension = ''
 
+
+def safe(debug=False):
+    def safedec(f):
+        def fsafe(*l_args, **d_args):
+            try:
+                return f(*l_args, **d_args)
+            except Exception as e:
+                tkMessageBox.showwarning("Error", e)
+                if debug:
+                    import traceback
+                    traceback.print_exc()
+        return fsafe
+    return safedec
+
+safe_debug_off = safe(True)
+safe_debug_off = safe(False)
+
+        
 class Login(Frame):
     def __init__(self, master=None,action=None, proxynode='login2.plx.cineca.it', usergroup='cinstaff'):
 
@@ -38,7 +56,7 @@ class Login(Frame):
        
     def enter(self,event):
         self.login()
-
+        
     def login(self):
         """ Collect 1's for every failure and quit program in case of failure_max failures """
 
@@ -68,6 +86,7 @@ class Login(Frame):
 
 
 class ConnectionWindow(Frame):
+    @safe_debug_off
     def __init__(self, master=None,crv_client_connection=None):
         self.debug=False
         Frame.__init__(self, master)
@@ -91,7 +110,7 @@ class ConnectionWindow(Frame):
         button["font"]=boldfont
         button.grid( row=6,column=1 )
        
-        
+    @safe_debug_off
     def update_sessions(self,ss):
         self.sessions=ss
         if(self.f1):
@@ -170,7 +189,7 @@ class ConnectionWindow(Frame):
                 geometryStr = "750x" + str(newHeight)
                 self.master.geometry(geometryStr)
 
-    
+    @safe_debug_off
     def submit(self):
         #ask for screen dimesions
         self.screenDimensionDialog = screenDimensionDialog(self)
@@ -178,6 +197,7 @@ class ConnectionWindow(Frame):
                 
         print "Requesting new connection"
         newconn=self.client_connection.newconn(screenDimension)
+
         print "New connection aquired"
         newconn.write(2)
         if(self.debug): print "Update connection panel"
@@ -185,8 +205,10 @@ class ConnectionWindow(Frame):
         #self.connection_buttons[newconn.hash['sessionid']].invoke()
         self.client_connection.vncsession(newconn,newconn.hash['otp'],self.connection_buttons[newconn.hash['sessionid']][1])
         if(self.debug): print "End submit"
+            
 
 
+    @safe_debug_off
     def refresh(self):
         if(self.debug): print "Refresh connection list"
         self.update_sessions(self.client_connection.list())
@@ -238,14 +260,19 @@ class crv_client_connection_GUI(crv_client.crv_client_connection):
         if(self.debug): print "Check credential returned: " + str(checkCredential)
         if checkCredential:
             gui = ConnectionWindow(crv_client_connection=self)
-            gui.update_sessions(self.list())
+            slist = crv.crv_sessions()
+            try:
+                slist = self.list()
+            except Exception as e:
+                print "---------->crv_client_connection_GUI.__init__: %s" % ( e)
+            gui.update_sessions(slist)
             gui.mainloop()
            
             
 
 
 if __name__ == '__main__':
-    try:
+    #try:
 #        c.debug=True
 
         c=crv_client_connection_GUI()
@@ -265,7 +292,7 @@ if __name__ == '__main__':
 ##        res.write(2)
         
         
-    except Exception:
-        print "ERROR OCCURRED HERE"
-        raise
+    #except Exception:
+    #    print "ERROR OCCURRED HERE"
+    #    raise
   

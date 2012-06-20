@@ -6,7 +6,7 @@ import os
 import getpass
 import subprocess
 import threading
-#import pickle
+
 if sys.platform.startswith('linux'):
 	import pexpect
 
@@ -40,22 +40,23 @@ class SessionThread( threading.Thread ):
             #vnc_process.wait()
             
             child = pexpect.spawn(self.vnc_command) 
-            i = child.expect(['Password:', 'standard VNC authentication', 'password:', 'CRV_ERROR:'])
+            i = child.expect(['Password:', 'standard VNC authentication', 'password:', pexpect.TIMEOUT, pexpect.EOF], 5)
             if i == 2:
                 #no certificate
                 child.sendline(self.password)
-                i = child.expect(['Password:','standard VNC authentication', 'ERROR:'])
+                i = child.expect(['Password:','standard VNC authentication'])
                 
             if i == 0:
-                # Unix authontication
+                # Unix authentication
                 child.sendline(self.password)
             elif i == 1:
                 # OTP authentication
                 child.sendline(self.otp)
-            else:
-                #manage error
-                if(self.debug): print child.before
-                
+            elif i == 3 or i == 4:
+                print "Timeout connecting to the display"
+                if(self.gui_cmd): self.gui_cmd(active=False)
+                raise Exception("Timeout connecting to the display")
+               
             child.expect(pexpect.EOF, timeout=None)           
             if(self.gui_cmd): self.gui_cmd(active=False)
         else:
@@ -164,7 +165,7 @@ class crv_client_connection:
                 print "returned        -->",myprocess.returncode
         else:      
             child = pexpect.spawn(fullcommand)
-            i = child.expect(['password:', pexpect.EOF, 'ERROR:'])
+            i = child.expect(['password:', pexpect.EOF, 'CRV:EXCEPTION'])
             if i == 0:
                 #no PKI
                 child.sendline(self.passwd)
@@ -180,8 +181,9 @@ class crv_client_connection:
             elif i == 2: 
                 #manage error
                 myerr = child.before
-                print myerr
-                returncode = 1 
+                myout =  ''
+                returncode = 1
+                return (returncode,myout,myerr)
 
             myout = child.before
             myout = myout.lstrip()
@@ -198,7 +200,7 @@ class crv_client_connection:
         (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'list')
         if (r != 0):
             print e
-            raise Exception("Previous command failed (stderr reported above)!")
+            raise Exception("Server error: {0}".format(e))
         sessions=crv.crv_sessions(o)
         if(self.debug):
             sessions.write(2)
@@ -206,13 +208,13 @@ class crv_client_connection:
         
     def newconn(self, geometry):
         
-#        new_encoded_param=pickle.dumps({'geometry': geometry, 'user_account': self.user_account})
+#       new_encoded_param=pickle.dumps({'geometry': geometry, 'user_account': self.user_account})
         new_encoded_param='geometry='+ geometry + ' ' + 'user_account='+ self.user_account
         (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'new' + ' ' + new_encoded_param )
         
         if (r != 0):
             print e
-            raise Exception("Previous command failed (stderr reported above)!")
+            raise Exception("Server error: {0}".format(e))
         session=crv.crv_session(o)
         return session 
 
@@ -222,7 +224,7 @@ class crv_client_connection:
         
         if (r != 0):
             print e
-            raise Exception("Killling session ->",sessionid,"<- failed ! ")
+            raise Exception("Killling session -> {0} <- failed with error: {1}".format(sessionid, e))
   
     def get_otp(self,sessionid):
 
@@ -230,24 +232,22 @@ class crv_client_connection:
 
         if (r != 0):
             print e
-            
-            #raise Exception("getting OTP passwd session ->",sessionid,"<- failed ! ")
+            raise Exception("Getting OTP passwd session -> {0} <- failed with error: {1}".format(sessionid, e))
             return ''
         else:
             return o.strip()
         
     def vncsession(self,session,otp='',gui_cmd=None):
+        self.autopass = otp
         portnumber=5900 + int(session.hash['display'])
         if(self.debug): print "portnumber-->",portnumber
-        if(otp == ''):
-            autopass=self.get_otp(session.hash['sessionid'])
-        else:
-            autopass=otp
-        if(autopass == ''):
+        #if(self.autopass == ''):
+            #self.autopass=self.get_otp(session.hash['sessionid'])
+        if(self.autopass == ''):
             vnc_command=self.vncexe + " -medqual" + " -user " + self.remoteuser
         else:
             if sys.platform == 'win32':
-                vnc_command="echo "+autopass + " | " + self.vncexe + " -medqual" + " -autopass -nounixlogin"
+                vnc_command="echo "+self.autopass + " | " + self.vncexe + " -medqual" + " -autopass -nounixlogin"
             else:
                 vnc_command = self.vncexe + " -medqual" + " -autopass -nounixlogin"
         if(sys.platform == 'win32'):
@@ -256,46 +256,49 @@ class crv_client_connection:
         else:
             tunnel_command=''
             vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
-        SessionThread ( tunnel_command, vnc_command, self.passwd, autopass, gui_cmd).start()
+        SessionThread ( tunnel_command, vnc_command, self.passwd, self.autopass, gui_cmd).start()
         
     def checkCredential(self):
         #check user credential 
         #If user use PKI, I can not check password validity
         print "Checking credentials......"
-        if(sys.platform == 'win32'):
-            myprocess=subprocess.Popen("echo yes | " + self.ssh_remote_exec_command, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-            output= ''
-            while True:
-                out = myprocess.stdout.read(1)
-                if out == '' and process.poll() != None:
-                    break
-                output += out
-                if 'password' in output:
-                    return False
-                if 'Welcome to' in output:
-                    return True 
-        else:      
-            ssh_newkey = 'Are you sure you want to continue connecting'
-            # my ssh command line
-            p=pexpect.spawn(self.ssh_remote_exec_command)
-            i=p.expect([ssh_newkey,'password:','Welcome to'],10)
-            if i==0:
-                if(self.debug): print "I say yes"
-                p.sendline('yes')
-                p.expect('password')
-                i = 1            
-            if i==1:
-                #send password
-                p.sendline(self.passwd)
-                i=p.expect(['Permission denied', 'Welcome to'],10)
+        try:
+            if(sys.platform == 'win32'):
+                myprocess=subprocess.Popen("echo yes | " + self.ssh_remote_exec_command, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                output= ''
+                while True:
+                    out = myprocess.stdout.read(1)
+                    if out == '' and process.poll() != None:
+                        break
+                    output += out
+                    if 'password' in output:
+                        return False
+                    if 'Welcome to' in output:
+                        return True 
+            else:      
+                ssh_newkey = 'Are you sure you want to continue connecting'
+                # my ssh command line
+                p=pexpect.spawn(self.ssh_remote_exec_command)
+                i=p.expect([ssh_newkey,'password:','Welcome to'],10)
                 if i==0:
-                    p.sendline('\r')
-                    print "Permission denied"
-                    return False 
-                elif i==1:
-                     return True
-            elif i==2: #use PKI
-                return True
+                    if(self.debug): print "I say yes"
+                    p.sendline('yes')
+                    p.expect('password')
+                    i = 1            
+                if i==1:
+                    #send password
+                    p.sendline(self.passwd)
+                    i=p.expect(['Permission denied', 'Welcome to'],10)
+                    if i==0:
+                        p.sendline('\r')
+                        print "Permission denied"
+                        return False 
+                    elif i==1:
+                         return True
+                elif i==2: #use PKI
+                    return True
+        except:
+            pass
             
     
 if __name__ == '__main__':
