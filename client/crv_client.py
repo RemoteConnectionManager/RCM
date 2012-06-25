@@ -9,6 +9,8 @@ import threading
 
 if sys.platform.startswith('linux'):
 	import pexpect
+if sys.platform.startswith('darwin'):
+	import pexpect
 
 sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "python"))
 import crv
@@ -80,7 +82,7 @@ class SessionThread( threading.Thread ):
 class crv_client_connection:
 
     def __init__(self,proxynode='login2.plx.cineca.it', user_account='', remoteuser='',password=''):
-        self.debug=False
+        self.debug=True
         self.config=dict()
         self.config['ssh']=dict()
         self.config['vnc']=dict()
@@ -88,6 +90,8 @@ class crv_client_connection:
         self.config['vnc']['win32']=("vncviewer.exe","")
         self.config['ssh']['linux2']=("ssh")
         self.config['vnc']['linux2']=("vncviewer","")
+        self.config['ssh']['darwin']=("ssh")
+        self.config['vnc']['darwin']=("vncviewer","")
         self.config['remote_crv_server']="module load python; /plx/userinternal/cin0118a/remote_viz/crv_server.py"
         if('frozen' in dir(sys)):
           if(os.environ.has_key('_MEIPASS2')):
@@ -262,7 +266,7 @@ class crv_client_connection:
     def checkCredential(self):
         #check user credential 
         #If user use PKI, I can not check password validity
-        print "Checking credentials......"
+        print "Checking credentials......uuuu...."
         try:
             if(sys.platform == 'win32'):
                 myprocess=subprocess.Popen("echo yes | " + self.ssh_remote_exec_command, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -277,11 +281,16 @@ class crv_client_connection:
                     if 'Welcome to' in output:
                         return True 
             else:      
+                print "testo connessione-->",self.ssh_remote_exec_command,"<--"
                 ssh_newkey = 'Are you sure you want to continue connecting'
                 # my ssh command line
                 p=pexpect.spawn(self.ssh_remote_exec_command)
+                print "p.before prima --->",p.before,"<--"
                 i=p.expect([ssh_newkey,'password:','Welcome to'],10)
+                print "p.before---->",p.before,"<--"
+
                 if i==0:
+                    print "!!!!!!sono qui!!!!!"
                     if(self.debug): print "I say yes"
                     p.sendline('yes')
                     p.expect('password')
