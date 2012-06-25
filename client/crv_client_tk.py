@@ -35,19 +35,16 @@ safe_debug_off = safe(True)
 
         
 class Login(Frame):
-    def __init__(self, master=None,action=None, proxynode='login2.plx.cineca.it', usergroup='cinstaff'):
+    def __init__(self, master=None,action=None, queue='cin_visual'):
 
         Frame.__init__(self, master)
         self.pack( padx=10, pady=10 )
         self.master.title("Login:")
         self.action=action
         self.master.geometry("+200+200")
-        self.proxy = StringVar()
-        self.proxy.set(proxynode)
-        self.proxynode = self.make_entry( "Host:", 16, textvariable=self.proxy)
-        self.group = StringVar()
-        self.group.set(usergroup)
-        self.usergroup = self.make_entry( "User group:", 16, textvariable=self.group)
+        self.queueString = StringVar()
+        self.queueString.set(queue)
+        self.queue = self.make_entry( "Queue:", 16, textvariable=self.queueString)
         self.user = StringVar()
         user_entry = self.make_entry( "User name:", 16, textvariable=self.user)
         self.password = StringVar()
@@ -62,13 +59,11 @@ class Login(Frame):
         
     def login(self):
         """ Collect 1's for every failure and quit program in case of failure_max failures """
-
-        #print(self.proxynode.get(),self.user.get(), self.password.get())
-        
-        if  (self.proxynode.get() and self.usergroup.get() and self.user.get() and self.password.get()):
+       
+        if  (self.queue.get() and self.user.get() and self.password.get()):
             #Start login only if all the entry are filled
             global checkCredential 
-            checkCredential = self.action(self.proxynode.get(), self.usergroup.get(), self.user.get(), self.password.get())
+            checkCredential = self.action(self.queue.get(), self.user.get(), self.password.get())
             if checkCredential:
                 self.destroy()
                 self.quit()

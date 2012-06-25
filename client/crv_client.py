@@ -7,10 +7,9 @@ import getpass
 import subprocess
 import threading
 
-if sys.platform.startswith('linux'):
+if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
 	import pexpect
-if sys.platform.startswith('darwin'):
-	import pexpect
+
 
 sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "python"))
 import crv
@@ -119,10 +118,10 @@ class crv_client_connection:
             exit()
         
 
-    def login_setup(self,proxynode='login2.plx.cineca.it', user_account='', remoteuser='',password=''):
-        self.proxynode=proxynode
+    def login_setup(self, queue='', remoteuser='',password=''):
+        self.proxynode='login.plx.cineca.it'
 
-        self.user_account=user_account
+        self.queue=queue
         if (remoteuser == ''):
             self.remoteuser=raw_input("Remote user: ")
         else:
@@ -214,7 +213,7 @@ class crv_client_connection:
     def newconn(self, geometry):
         
 #       new_encoded_param=pickle.dumps({'geometry': geometry, 'user_account': self.user_account})
-        new_encoded_param='geometry='+ geometry + ' ' + 'user_account='+ self.user_account
+        new_encoded_param='geometry='+ geometry + ' ' + 'queue='+ self.queue
         (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'new' + ' ' + new_encoded_param )
         
         if (r != 0):
@@ -266,7 +265,7 @@ class crv_client_connection:
     def checkCredential(self):
         #check user credential 
         #If user use PKI, I can not check password validity
-        print "Checking credentials......uuuu...."
+        print "Checking credentials......"
         try:
             if(sys.platform == 'win32'):
                 myprocess=subprocess.Popen("echo yes | " + self.ssh_remote_exec_command, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -281,16 +280,11 @@ class crv_client_connection:
                     if 'Welcome to' in output:
                         return True 
             else:      
-                print "testo connessione-->",self.ssh_remote_exec_command,"<--"
                 ssh_newkey = 'Are you sure you want to continue connecting'
                 # my ssh command line
                 p=pexpect.spawn(self.ssh_remote_exec_command)
-                print "p.before prima --->",p.before,"<--"
                 i=p.expect([ssh_newkey,'password:','Welcome to'],10)
-                print "p.before---->",p.before,"<--"
-
                 if i==0:
-                    print "!!!!!!sono qui!!!!!"
                     if(self.debug): print "I say yes"
                     p.sendline('yes')
                     p.expect('password')
