@@ -35,7 +35,7 @@ safe_debug_off = safe(True)
 
         
 class Login(Frame):
-    def __init__(self, master=None,action=None, queue='cin_visual'):
+    def __init__(self, master=None,action=None, queue='visual'):
 
         Frame.__init__(self, master)
         self.pack( padx=10, pady=10 )
@@ -91,7 +91,7 @@ class ConnectionWindow(Frame):
         self.client_connection=crv_client_connection
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
-        self.master.title("Remote Visualization Manager")
+        self.master.title("Remote Connection Manager")
         self.master.geometry("750x80+200+200")
         self.master.minsize(700,80)
         self.f1=None
@@ -222,7 +222,7 @@ class screenDimensionDialog(tkSimpleDialog.Dialog):
         self.e1.config(state=DISABLED)
     
         self.text = ['Full screen', 'custom']
-        Label(parent, text="""Choose screen dimensions:""", justify = LEFT, padx = 20).pack()
+        Label(parent, text="""Choose display dimensions:""", justify = LEFT, padx = 20).pack()
         Radiobutton(parent, text=self.text[0], padx = 20, variable=self.v, value=0, command=self.enableEntry).pack(anchor=W)
         Radiobutton(parent, text=self.text[1], padx = 20, variable=self.v, value=1, command=self.enableEntry).pack(anchor=W)
         self.e1.pack(anchor=E)

@@ -204,7 +204,7 @@ class crv_client_connection:
         (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'list')
         if (r != 0):
             print e
-            raise Exception("Server error:-->{0}<--".format(e))
+            raise Exception("Server error: {0}".format(e))
         sessions=crv.crv_sessions(o)
         if(self.debug):
             sessions.write(2)
