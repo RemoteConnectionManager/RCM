@@ -7,6 +7,7 @@ from Tkinter import *
 import tkMessageBox
 import tkSimpleDialog
 import time
+import ConfigParser
 
 font = ("Helvetica",10, "grey")
 boldfont = ("Helvetica",10,"bold")
@@ -26,7 +27,6 @@ def safe(debug=False):
                     traceback.print_exc()
                 else:
                     tkMessageBox.showwarning("Error", e)
-
         return fsafe
     return safedec
 
@@ -36,6 +36,13 @@ safe_debug_off = safe(True)
         
 class Login(Frame):
     def __init__(self, master=None,action=None, queue='visual'):
+        
+        #Read configuration file
+        self.configFileName = 'RCM.cfg'
+        config = ConfigParser.RawConfigParser()
+        config.read(self.configFileName)
+        queue = config.get('LoginFields', 'queue')
+        userName = config.get('LoginFields', 'username')
 
         Frame.__init__(self, master)
         self.pack( padx=10, pady=10 )
@@ -46,6 +53,7 @@ class Login(Frame):
         self.queueString.set(queue)
         self.queue = self.make_entry( "Queue:", 16, textvariable=self.queueString)
         self.user = StringVar()
+        self.user.set(userName)
         user_entry = self.make_entry( "User name:", 16, textvariable=self.user)
         self.password = StringVar()
         password_entry = self.make_entry( "Password:", 16, textvariable=self.password, show="*")
@@ -61,6 +69,15 @@ class Login(Frame):
         """ Collect 1's for every failure and quit program in case of failure_max failures """
        
         if  (self.queue.get() and self.user.get() and self.password.get()):
+            
+            #Write configuration file
+            config = ConfigParser.RawConfigParser()
+            config.add_section('LoginFields')
+            config.set('LoginFields', 'queue', self.queue.get())
+            config.set('LoginFields', 'username',self.user.get())
+            with open(self.configFileName, 'wb') as configfile:
+                config.write(configfile)
+            
             #Start login only if all the entry are filled
             global checkCredential 
             checkCredential = self.action(self.queue.get(), self.user.get(), self.password.get())
