@@ -80,7 +80,7 @@ class SessionThread( threading.Thread ):
 
 class crv_client_connection:
 
-    def __init__(self,proxynode='login2.plx.cineca.it', user_account='', remoteuser='',password=''):
+    def __init__(self,proxynode='login.plx.cineca.it', user_account='', remoteuser='',password=''):
         self.debug=True
         self.config=dict()
         self.config['ssh']=dict()
