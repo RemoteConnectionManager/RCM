@@ -169,21 +169,18 @@ class crv_client_connection:
                 print "returned        -->",myprocess.returncode
         else:      
             child = pexpect.spawn(fullcommand)
-            i = child.expect(['password:', pexpect.EOF, 'CRV:EXCEPTION'])
+            i = child.expect(['password:', 'CRV:EXCEPTION', pexpect.EOF,])
             if i == 0:
                 #no PKI
                 child.sendline(self.passwd)
-                i = child.expect([pexpect.EOF, 'ERROR:', 'CRV:EXCEPTION'])
-                if i == 1:
-                    #manage error
-                    myerr = child.before
-                    print myerr
-                    returncode = 1  
-            elif i == 1:
+                i = child.expect([pexpect.EOF, 'CRV:EXCEPTION'])
+                print "return ---------> ", i
+            elif i == 2:
                 #use PKI
                 pass
-            if i == 2: 
+            if i == 1: 
                 #manage error
+                print "herrrrrrrrrrrrrrrrrrrrrrre"
                 myerr = child.before
                 myout =  ''
                 returncode = 1
