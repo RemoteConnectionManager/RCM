@@ -57,7 +57,7 @@ class Login(Frame):
         user_entry = self.make_entry( "User name:", 16, textvariable=self.user)
         self.password = StringVar()
         password_entry = self.make_entry( "Password:", 16, textvariable=self.password, show="*")
-        self.b = Button(self, borderwidth=4, text="Login", width=10, pady=8, command=self.login)
+        self.b = Button(self, borderwidth=2, text="Login", width=10, pady=8, command=self.login)
         self.b.pack(side=BOTTOM)
         password_entry.bind('<Return>', self.enter)
         user_entry.focus_set()

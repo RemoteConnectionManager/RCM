@@ -20,7 +20,7 @@ class SessionThread( threading.Thread ):
     threadscount = 0
     
     def __init__ ( self, tunnel_cmd='', vnc_cmd='', passwd = '', otp = '', gui_cmd=None ):
-        self.debug=False
+        self.debug=True
         self.tunnel_command = tunnel_cmd
         self.vnc_command = vnc_cmd
         self.gui_cmd=gui_cmd
@@ -41,7 +41,7 @@ class SessionThread( threading.Thread ):
             #vnc_process.wait()
             
             child = pexpect.spawn(self.vnc_command) 
-            i = child.expect(['Password:', 'standard VNC authentication', 'password:', pexpect.TIMEOUT, pexpect.EOF], 5)
+            i = child.expect(['Password:', 'standard VNC authentication', 'password:', pexpect.TIMEOUT, pexpect.EOF], 10)
             if i == 2:
                 #no certificate
                 child.sendline(self.password)
@@ -173,7 +173,7 @@ class crv_client_connection:
             if i == 0:
                 #no PKI
                 child.sendline(self.passwd)
-                i = child.expect([pexpect.EOF, 'ERROR:'])
+                i = child.expect([pexpect.EOF, 'ERROR:', 'CRV:EXCEPTION'])
                 if i == 1:
                     #manage error
                     myerr = child.before
@@ -182,7 +182,7 @@ class crv_client_connection:
             elif i == 1:
                 #use PKI
                 pass
-            elif i == 2: 
+            if i == 2: 
                 #manage error
                 myerr = child.before
                 myout =  ''
@@ -218,7 +218,7 @@ class crv_client_connection:
         
         if (r != 0):
             print e
-            raise Exception("Server error:-->{0}<--".format(e))
+            raise Exception("Server error: {0}".format(e))
         session=crv.crv_session(o)
         return session 
 
@@ -283,7 +283,7 @@ class crv_client_connection:
                 ssh_newkey = 'Are you sure you want to continue connecting'
                 # my ssh command line
                 p=pexpect.spawn(self.ssh_remote_exec_command)
-                i=p.expect([ssh_newkey,'password:','Welcome to'],10)
+                i=p.expect([ssh_newkey,'password:','Welcome to'],20)
                 if i==0:
                     if(self.debug): print "I say yes"
                     p.sendline('yes')
@@ -292,7 +292,7 @@ class crv_client_connection:
                 if i==1:
                     #send password
                     p.sendline(self.passwd)
-                    i=p.expect(['Permission denied', 'Welcome to'],10)
+                    i=p.expect(['Permission denied', 'Welcome to'],20)
                     if i==0:
                         p.sendline('\r')
                         print "Permission denied"
