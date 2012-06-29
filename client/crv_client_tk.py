@@ -1,5 +1,7 @@
 #!/bin/env python
 
+import os
+import tempfile
 import crv_client
 import crv
 
@@ -38,11 +40,13 @@ class Login(Frame):
     def __init__(self, master=None,action=None, queue='visual'):
         
         #Read configuration file
-        self.configFileName = 'RCM.cfg'
-        config = ConfigParser.RawConfigParser()
-        config.read(self.configFileName)
-        queue = config.get('LoginFields', 'queue')
-        userName = config.get('LoginFields', 'username')
+        self.configFileName = os.path.join(tempfile.gettempdir(),'RCM.cfg')
+        userName=""
+        if(os.path.exists(self.configFileName)):
+            config = ConfigParser.RawConfigParser()
+            config.read(self.configFileName)
+            queue = config.get('LoginFields', 'queue')
+            userName = config.get('LoginFields', 'username')
 
         Frame.__init__(self, master)
         self.pack( padx=10, pady=10 )
