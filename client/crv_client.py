@@ -174,13 +174,11 @@ class crv_client_connection:
                 #no PKI
                 child.sendline(self.passwd)
                 i = child.expect([pexpect.EOF, 'CRV:EXCEPTION'])
-                print "return ---------> ", i
             elif i == 2:
                 #use PKI
                 pass
             if i == 1: 
                 #manage error
-                print "herrrrrrrrrrrrrrrrrrrrrrre"
                 myerr = child.before
                 myout =  ''
                 returncode = 1
