@@ -28,7 +28,7 @@ def cprex(cmd):
   (r,o,e)=prex(cmd)
   if (r != 0):
     print e
-    raise Exception("Previous command failed (stderr reported above)!")
+    raise Exception("command {0} failed with error: {1}".format([cmd[0],cmd[-1]],e))
   return (r,o,e)
 
 
@@ -42,16 +42,28 @@ def short_jobid(long_jobid):
 class crv_server:
   
   def __init__(self,pars):
-    self.max_user_session=10
+    self.max_user_session=50
     self.qsub_template="""#!/bin/bash
 #PBS -l walltime=$CRV_WALLTIME
 #PBS -N $CRV_SESSIONID
 #PBS -o $CRV_JOBLOG
+
+##following line is probably needed for a bug in PBS thad slows down the scheduling ... ask Federico
+##maybe we can take down Qlist=visual
 #PBS -l "select=1:Qlist=visual:viscons=1"
+
 #PBS -j oe
-#PBS -q visual
-#PBS -A cinstaff
-#PBS -W group_list=cinstaff
+#PBS -q $CRV_QUEUE
+
+## to be substituted by the proper account: either specific for the queue if the accounting is disabled or to be
+## selected by the user when the accounting will be activated
+##PBS -A cinstaff
+#PBS -A $CRV_GROUP
+
+##the following line specify the specific group for controlling access to the queue ( not accounting)
+##while on testing this is fixed, equal to account group
+##PBS -W group_list=cinstaff
+#PBS -W group_list=$CRV_GROUP
 
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
@@ -232,8 +244,9 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
           if ( job_jid == file_jid ):
             type='run'
           else:
-            sys.stderr.write('STRONG WARNING: session file %s contains wrong jobid: %s (the running one is %s)\n' % (sid,file_jid,job_jid))
-            type='err'
+            #sys.stderr.write('STRONG WARNING: session file %s contains wrong jobid: %s (the running one is %s)\n' % (sid,file_jid,job_jid))
+	    raise Exception("STRONG WARNING: session file# {0} contains wrong jobid: {1} (the running one is {2}".format(sid,file_jid,job_jid))
+            #type='err'
           del(jobs[sid])
         else:
           type='end'
@@ -241,7 +254,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     
     #warning on session jobs without session file
     for sid, jid in jobs.items():
-      sys.stderr.write("WARNING: found crv job with session %s without session file: %s\n" % (sid,jid))
+      #sys.stderr.write("WARNING: found crv job with session %s without session file: %s\n" % (sid,jid))
+      raise Exception("WARNING: found crv job with session {0} without session file: {1}".format(sid,jid))
       self.sids['err'].add(sid)      
 
   def id2sid(self,id,user=''):
@@ -274,7 +288,10 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     return res        
 
   def desktop_setup(self):
-    desktop_dest_dir=os.path.expanduser("~%s/Desktop" % (self.par_u))
+    desktop_dest_dir=os.path.expanduser("~%s/Desktop/" % (self.par_u))
+    if (not os.path.exists(desktop_dest_dir)):
+      os.makedirs(desktop_dest_dir)
+    
     desktop_source_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),'Desktop_setup')
     for f in glob.glob(desktop_source_dir + '/*.desktop' ):
       shutil.copy(f,desktop_dest_dir)
@@ -296,7 +313,13 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       os.remove(otp)
     file='%s/%s.job' % (self.get_crvdirs()[0],sid)
     fileout='%s/%s.joblog' % (self.get_crvdirs()[0],sid)
-    batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid,CRV_JOBLOG=fileout,CRV_VNCSERVER=self.vncserver_string)
+    
+    if( 'cin' in self.par_u):
+      group="cinstaff"
+    else:
+      group="cin_visual"
+
+    batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid,CRV_JOBLOG=fileout,CRV_GROUP=group,CRV_QUEUE=self.queue,CRV_VNCSERVER=self.vncserver_string)
     f=open(file,'w')
     f.write(batch)
     f.close()
@@ -342,6 +365,9 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     self.vncserver_string= 'vncserver'
     if('geometry' in new_params):
       self.vncserver_string += ' -geometry ' + new_params['geometry']
+    if('queue' in new_params):
+	self.queue = new_params['queue']
+
     self.load_sessions()
     sid=self.new_sid()
     self.clean_files(sid)
@@ -354,12 +380,12 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       jid=self.submit_job(sid)
       (n,d,otp)=self.wait_jobout(sid,10)
       n+='ib0'
-    except Exception:
+    except Exception as e:
       c=crv.crv_session(state='invalid',sessionid=sid)
       c.serialize(file)
       if (jid != 'NOT_SUBMITTED'):
         x=prex(['qdel',jid])
-      raise
+      raise Exception("Error in execute_new:{0}".format(e))
     c=crv.crv_session(state='valid',walltime=self.par_w,node=n,display=d,jobid=jid,sessionid=sid,username=self.par_u,otp=otp)
     c.serialize(file)
     c.write(self.par_f)
