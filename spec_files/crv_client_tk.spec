@@ -8,7 +8,7 @@ if(sys.platform == 'win32'):
 else:
   myplatform=platform.architecture()[0]
   print "----",platform
-  data_files=[('external/linux2/'+myplatform+'/bin/vncviewer', os.path.join(ROOTPATH,'client','external','linux2',myplatform,'bin','vncviewer'), 'DATA')]
+  data_files=[('external/'+sys.platform+'/'+myplatform+'/bin/vncviewer', os.path.join(ROOTPATH,'client','external',sys.platform,myplatform,'bin','vncviewer'), 'DATA')]
 a = Analysis([os.path.join(HOMEPATH,'support','_mountzlib.py'), os.path.join(HOMEPATH,'support','unpackTK.py'), os.path.join(HOMEPATH,'support','useTK.py'), os.path.join(HOMEPATH,'support','useUnicode.py'), os.path.join(ROOTPATH,'client','crv_client_tk.py'), os.path.join(HOMEPATH,'support','removeTK.py')],
              pathex=[os.path.join(ROOTPATH,'python'), os.path.join(ROOTPATH,'pyinstaller-1.5.1')])
 pyz = PYZ(a.pure)
