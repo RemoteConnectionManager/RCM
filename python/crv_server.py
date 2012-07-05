@@ -50,14 +50,13 @@ class crv_server:
 
 ##following line is probably needed for a bug in PBS thad slows down the scheduling ... ask Federico
 ##maybe we can take down Qlist=visual
-#PBS -l "select=1:Qlist=visual:viscons=1"
+#PBS -l "$CRV_QUEUEPARAMETER"
 
 #PBS -j oe
 #PBS -q $CRV_QUEUE
 
 ## to be substituted by the proper account: either specific for the queue if the accounting is disabled or to be
 ## selected by the user when the accounting will be activated
-##PBS -A cinstaff
 #PBS -A $CRV_GROUP
 
 ##the following line specify the specific group for controlling access to the queue ( not accounting)
@@ -74,7 +73,7 @@ $CRV_VNCSERVER -otp -fg -novncauth > $CRV_JOBLOG.vnc 2>&1
     self.parameters=sys.argv[1:]
     self.username=pwd.getpwuid(os.geteuid())[0]
     self.available_formats=frozenset(['0','1','2'])
-    self.available_commands=frozenset(['list','new','kill','otp'])
+    self.available_commands=frozenset(['list','new','kill','otp','queue'])
     self.parse_args()
 
   def usage(self,stderr=0):
@@ -167,6 +166,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       self.execute_kill()
     elif (self.par_command == 'otp'):
       self.execute_otp()
+    elif (self.par_command == 'queue'):
+      self.execute_queue()
 
   # return a dictionary { sessionid -> jobid }
   # jobid are the ones: 
@@ -186,7 +187,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       else:
         ure=self.par_u
       #258118.node351    crv-cin0449a-10  cin0449a          00:00:06 R visual          
-      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>crv-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ visual  ' % (ure,ure) ,re.VERBOSE)
+#original..single queue      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>crv-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ visual  ' % (ure,ure) ,re.VERBOSE)
+      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>crv-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ ' % (ure,ure) ,re.VERBOSE)
       jobs={}
       for j in raw:
         mo=r.match(j)
@@ -318,8 +320,14 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       group="cinstaff"
     else:
       group="cin_visual"
+      
+    #For reserved queue set only "select=1"   
+    queueParameter = "select=1"
+    if(not self.queue.startswith('R')):
+      queueParameter += ":Qlist=" + self.queue + ":viscons=1"
 
-    batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid,CRV_JOBLOG=fileout,CRV_GROUP=group,CRV_QUEUE=self.queue,CRV_VNCSERVER=self.vncserver_string)
+
+    batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid,CRV_JOBLOG=fileout,CRV_GROUP=group,CRV_QUEUE=self.queue,CRV_QUEUEPARAMETER=queueParameter, CRV_VNCSERVER=self.vncserver_string)
     f=open(file,'w')
     f.write(batch)
     f.close()
@@ -417,6 +425,10 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
           sys.exit(0)
     sys.exit(1)
 
+  def execute_queue(self):
+    #return the list of avilable queue
+    sys.stdout.write("visual rvn_visual")
+    sys.exit(0)
 
 
   def execute_auto(self):
