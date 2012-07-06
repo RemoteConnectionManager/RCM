@@ -14,7 +14,7 @@ import ConfigParser
 font = ("Helvetica",10, "grey")
 boldfont = ("Helvetica",10,"bold")
 checkCredential = False 
-screenDimension = ''
+queueList= []
 
 
 def safe(debug=False):
@@ -37,25 +37,25 @@ safe_debug_off = safe(True)
 
         
 class Login(Frame):
-    def __init__(self, master=None,action=None, queue='visual'):
+    def __init__(self, master=None,action=None):
         
         #Read configuration file
         self.configFileName = os.path.join(tempfile.gettempdir(),'RCM.cfg')
         userName=""
         if(os.path.exists(self.configFileName)):
-            config = ConfigParser.RawConfigParser()
-            config.read(self.configFileName)
-            queue = config.get('LoginFields', 'queue')
-            userName = config.get('LoginFields', 'username')
+            try:
+                config = ConfigParser.RawConfigParser()
+                config.read(self.configFileName)
+                userName = config.get('LoginFields', 'username')
+            except:
+                os.remove(self.configFileName)
+                    
 
         Frame.__init__(self, master)
         self.pack( padx=10, pady=10 )
         self.master.title("Login:")
         self.action=action
         self.master.geometry("+200+200")
-        self.queueString = StringVar()
-        self.queueString.set(queue)
-        self.queue = self.make_entry( "Queue:", 16, textvariable=self.queueString)
         self.user = StringVar()
         self.user.set(userName)
         user_entry = self.make_entry( "User name:", 16, textvariable=self.user)
@@ -72,19 +72,18 @@ class Login(Frame):
     def login(self):
         """ Collect 1's for every failure and quit program in case of failure_max failures """
        
-        if  (self.queue.get() and self.user.get() and self.password.get()):
+        if  (self.user.get() and self.password.get()):
             
             #Write configuration file
             config = ConfigParser.RawConfigParser()
             config.add_section('LoginFields')
-            config.set('LoginFields', 'queue', self.queue.get())
             config.set('LoginFields', 'username',self.user.get())
             with open(self.configFileName, 'wb') as configfile:
                 config.write(configfile)
             
             #Start login only if all the entry are filled
             global checkCredential 
-            checkCredential = self.action(self.queue.get(), self.user.get(), self.password.get())
+            checkCredential = self.action(self.user.get(), self.password.get())
             if checkCredential:
                 self.destroy()
                 self.quit()
@@ -210,12 +209,18 @@ class ConnectionWindow(Frame):
 
     @safe_debug_off
     def submit(self):
-        #ask for screen dimesions
-        self.screenDimensionDialog = screenDimensionDialog(self)
-        print "recived: " + screenDimension
+        global queueList
+        queueList = self.client_connection.get_queue()
+        if(self.debug): print "Queue list: ", queueList
+        if len(queueList) == 0:
+            tkMessageBox.showwarning("Error", "Queue not found...")
+            return
+            
+        #ask for queue and screen dimesions
+        dd = newDisplayDialog(self)
                 
         print "Requesting new connection"
-        newconn=self.client_connection.newconn(screenDimension)
+        newconn=self.client_connection.newconn(dd.queue.get(), dd.displayDimension)
 
         print "New connection aquired"
         newconn.write(2)
@@ -233,20 +238,32 @@ class ConnectionWindow(Frame):
         self.update_sessions(self.client_connection.list())
         if(self.debug): print "End Refresh connection list"
         
-class screenDimensionDialog(tkSimpleDialog.Dialog):
+        
+        
+class newDisplayDialog(tkSimpleDialog.Dialog):
+    
     def body(self, parent):
         self.v = IntVar()
+        optionFrame = Frame(parent, padx = 20)
+        
+        Label(optionFrame, text="""Select a queue:""").pack(side=LEFT)        
+        self.queue = StringVar(parent)
+        self.queue.set(queueList[0]) # default value
+        w = apply(OptionMenu, (optionFrame, self.queue) + tuple(queueList))
+        w.pack(side=LEFT)
+        
+        optionFrame.pack(anchor=W)
 
-        self.screenDimension = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight()) 
+        self.fullScreenDimension = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight()) 
         self.e1 = Entry(parent)
-        self.e1.insert (0, self.screenDimension)
+        self.e1.insert (0, self.fullScreenDimension)
         self.e1.config(state=DISABLED)
     
         self.text = ['Full screen', 'custom']
-        Label(parent, text="""Choose display dimensions:""", justify = LEFT, padx = 20).pack()
+        Label(parent, text="""Choose display dimensions:""", padx = 20).pack(anchor=W)
         Radiobutton(parent, text=self.text[0], padx = 20, variable=self.v, value=0, command=self.enableEntry).pack(anchor=W)
-        Radiobutton(parent, text=self.text[1], padx = 20, variable=self.v, value=1, command=self.enableEntry).pack(anchor=W)
-        self.e1.pack(anchor=E)
+        Radiobutton(parent, text=self.text[1], padx = 20,variable=self.v, value=1, command=self.enableEntry).pack(anchor=W)
+        self.e1.pack(padx = 20, anchor=W)
         
     
     def enableEntry(self):
@@ -257,15 +274,16 @@ class screenDimensionDialog(tkSimpleDialog.Dialog):
                 
     
     def apply(self):
-        global screenDimension 
+        print "queue choosen: ----------> ", self.queue.get()
+        #self.displayDimension 
         if  self.v.get() == 0:
             #Full screen
-            screenDimension = self.screenDimension
-        elif self.v.get() == 1:
-            screenDimension = self.e1.get()
-        else:
-            screenDimension = self.text[self.v.get()]
-        print "Screen dimensions: " + screenDimension
+            self.displayDimension = self.fullScreenDimension
+        if self.v.get() == 1:
+            self.displayDimension = self.e1.get()
+        #else:
+        #    self.displayDimension = self.text[self.v.get()]
+        print "Display dimensions: ------> " + self.displayDimension
         self.destroy()
         return
         

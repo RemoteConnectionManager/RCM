@@ -118,10 +118,9 @@ class crv_client_connection:
             exit()
         
 
-    def login_setup(self, queue='', remoteuser='',password=''):
+    def login_setup(self, remoteuser='',password=''):
         self.proxynode='login.plx.cineca.it'
-
-        self.queue=queue
+        
         if (remoteuser == ''):
             self.remoteuser=raw_input("Remote user: ")
         else:
@@ -205,10 +204,10 @@ class crv_client_connection:
             sessions.write(2)
         return sessions 
         
-    def newconn(self, geometry):
+    def newconn(self, queue, geometry):
         
 #       new_encoded_param=pickle.dumps({'geometry': geometry, 'user_account': self.user_account})
-        new_encoded_param='geometry='+ geometry + ' ' + 'queue='+ self.queue
+        new_encoded_param='geometry='+ geometry + ' ' + 'queue='+ queue
         (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'new' + ' ' + new_encoded_param )
         
         if (r != 0):
@@ -235,7 +234,19 @@ class crv_client_connection:
             return ''
         else:
             return o.strip()
-        
+
+    def get_queue(self):
+
+        (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'queue')
+        if(self.debug): print "available queue: ", o
+
+        if (r != 0):
+            print e
+            raise Exception("Getting available queue -> {0} <- failed with error: {1}".format(sessionid, e))
+            return ''
+        else:
+            return o.split(' ')
+                
     def vncsession(self,session,otp='',gui_cmd=None):
         self.autopass = otp
         portnumber=5900 + int(session.hash['display'])
