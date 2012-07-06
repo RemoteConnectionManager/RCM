@@ -219,6 +219,8 @@ class ConnectionWindow(Frame):
         #ask for queue and screen dimesions
         dd = newDisplayDialog(self)
                 
+        if dd.displayDimension == NONE:
+            return
         print "Requesting new connection"
         newconn=self.client_connection.newconn(dd.queue.get(), dd.displayDimension)
 
@@ -244,6 +246,7 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
     
     def body(self, parent):
         self.v = IntVar()
+        self.displayDimension = NONE
         optionFrame = Frame(parent, padx = 20)
         
         Label(optionFrame, text="""Select a queue:""").pack(side=LEFT)        
@@ -274,8 +277,6 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
                 
     
     def apply(self):
-        print "queue choosen: ----------> ", self.queue.get()
-        #self.displayDimension 
         if  self.v.get() == 0:
             #Full screen
             self.displayDimension = self.fullScreenDimension
@@ -283,7 +284,6 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
             self.displayDimension = self.e1.get()
         #else:
         #    self.displayDimension = self.text[self.v.get()]
-        print "Display dimensions: ------> " + self.displayDimension
         self.destroy()
         return
         
