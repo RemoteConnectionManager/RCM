@@ -65,7 +65,7 @@ class crv_server:
 
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
-module load profile/advanced && module load TurboVNC 
+module load  /cineca/prod/modulefiles/advanced/tools/TurboVNC/1.0.90
 $CRV_VNCSERVER -otp -fg -novncauth > $CRV_JOBLOG.vnc 2>&1
 """
     self.executable=sys.argv[0]
@@ -454,7 +454,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
         queueParameter += ":Qlist=" + i + ":viscons=1"
 
       #submit a job of 1 sec to test if user can submit to that queue
-      p1 = subprocess.Popen(["qsub", "-l", "walltime=0:00:01", "-l", "select=1", "-q",i, "-A",group, "-W","group_list={0}".format(group), "--","echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      p1 = subprocess.Popen(["qsub", "-l", "walltime=0:00:01", "-l", "select=1", "-q",i, "-o","/dev/null","-A",group, "-W","group_list={0}".format(group), "--","echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       stdout,stderr=p1.communicate() 
       if "Unauthorized Request" in stderr:
         queueList.remove(i)
