@@ -61,7 +61,6 @@ class crv_server:
 
 ##the following line specify the specific group for controlling access to the queue ( not accounting)
 ##while on testing this is fixed, equal to account group
-##PBS -W group_list=cinstaff
 #PBS -W group_list=$CRV_GROUP
 
 . /cineca/prod/environment/module/3.1.6/none/init/bash
@@ -426,11 +425,45 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     sys.exit(1)
 
   def execute_queue(self):
+    #get list of possible queue (named "visual" and reserved)
+    queueList = []
+    
+    p1 = subprocess.Popen(["qstat","-q"], stdout=subprocess.PIPE)
+    p2 = subprocess.Popen(["grep", "-E","(visual|^R)"], stdin=p1.stdout, stdout=subprocess.PIPE)
+    p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
+    stdout,stderr = p2.communicate()
+    
+    if (p2.returncode != 0) :
+      raise Exception( 'qstat returned non zero value: ' + stderr) 
+    else:
+      row=stdout.split('\n')
+    for j in row:
+      if len(j) != 0:
+        queueList.append(j.split(' ')[0])
+      
+    #try to submit in each queue of the list
+    for i in queueList:   
+      if( 'cin' in self.par_u):
+        group="cinstaff"
+      else:
+        group="cin_visual"
+        
+      #For reserved queue set only "select=1"   
+      queueParameter = "select=1"
+      if(not i.startswith('R')):
+        queueParameter += ":Qlist=" + i + ":viscons=1"
+
+      #submit a job of 1 sec to test if user can submit to that queue
+      p1 = subprocess.Popen(["qsub", "-l", "walltime=0:00:01", "-l", "select=1", "-q",i, "-A",group, "-W","group_list={0}".format(group), "--","echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      stdout,stderr=p1.communicate() 
+      if "Unauthorized Request" in stderr:
+        queueList.remove(i)
+    
     #return the list of avilable queue
-    sys.stdout.write("visual rvn_visual")
+    sys.stdout.write(' '.join(queueList))
     sys.exit(0)
-
-
+    
+    
   def execute_auto(self):
     pass
     #self.load_sessions()
