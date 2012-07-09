@@ -91,7 +91,7 @@ class crv_client_connection:
         self.config['vnc']['linux2']=("vncviewer","")
         self.config['ssh']['darwin']=("ssh")
         self.config['vnc']['darwin']=("vncviewer","")
-        self.config['remote_crv_server']="module load python; /plx/userinternal/cin0118a/remote_viz/crv_server.py"
+        self.config['remote_crv_server']="module load /cineca/prod/modulefiles/advanced/tools/python/2.7.2; /plx/userinternal/cin0118a/remote_viz/crv_server.py"
         if('frozen' in dir(sys)):
           if(os.environ.has_key('_MEIPASS2')):
             self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
