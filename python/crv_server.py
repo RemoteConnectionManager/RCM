@@ -40,7 +40,35 @@ def short_jobid(long_jobid):
   return sjid
 
 class crv_server:
-  
+
+  def getUserAccounts(self):
+    p1 = subprocess.Popen(["saldo","-nb"], stdout=subprocess.PIPE)
+    stdout,stderr = p1.communicate()
+    if 'not existing' in stdout:
+      #old type user
+      return []
+    else:
+      #now return a fixed group for experimentation
+      return ['cin_visual']
+
+  def groupSubstitution(self, groupName, template):
+    #print "groupName : ", groupName , "template: ", template
+    if len(groupName) == 0:
+      return ''
+    else:
+      return string.Template(template).substitute(CRV_GROUP=groupName)
+        
+  def getQueueGroup(self,queue):
+    if len(self.accountList) == 0:
+      return ''
+    else:
+      if( 'cin' in self.par_u):
+        group="cinstaff"
+      else:
+        group="cin_visual"
+      return group
+    
+    
   def __init__(self,pars):
     self.max_user_session=50
     self.qsub_template="""#!/bin/bash
@@ -57,11 +85,12 @@ class crv_server:
 
 ## to be substituted by the proper account: either specific for the queue if the accounting is disabled or to be
 ## selected by the user when the accounting will be activated
-#PBS -A $CRV_GROUP
+$CRV_DIRECTIVE_A
 
 ##the following line specify the specific group for controlling access to the queue ( not accounting)
 ##while on testing this is fixed, equal to account group
-#PBS -W group_list=$CRV_GROUP
+
+$CRV_DIRECTIVE_W
 
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
@@ -74,6 +103,7 @@ $CRV_VNCSERVER -otp -fg -novncauth > $CRV_JOBLOG.vnc 2>&1
     self.available_formats=frozenset(['0','1','2'])
     self.available_commands=frozenset(['list','new','kill','otp','queue'])
     self.parse_args()
+    self.accountList = self.getUserAccounts()
 
   def usage(self,stderr=0):
     script=os.path.basename(self.executable)
@@ -315,18 +345,17 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     file='%s/%s.job' % (self.get_crvdirs()[0],sid)
     fileout='%s/%s.joblog' % (self.get_crvdirs()[0],sid)
     
-    if( 'cin' in self.par_u):
-      group="cinstaff"
-    else:
-      group="cin_visual"
+    group = self.getQueueGroup(self.queue) 
       
     #For reserved queue set only "select=1"   
     queueParameter = "select=1"
     if(not self.queue.startswith('R')):
       queueParameter += ":Qlist=" + self.queue + ":viscons=1"
+    crv_directive_A = self.groupSubstitution(group,'#PBS -A $CRV_GROUP')
+    crv_directive_W = self.groupSubstitution(group,'#PBS -W group_list=$CRV_GROUP')
 
+    batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid,CRV_JOBLOG=fileout,CRV_DIRECTIVE_A=crv_directive_A,CRV_DIRECTIVE_W=crv_directive_W,CRV_QUEUE=self.queue,CRV_QUEUEPARAMETER=queueParameter,CRV_VNCSERVER=self.vncserver_string)
 
-    batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid,CRV_JOBLOG=fileout,CRV_GROUP=group,CRV_QUEUE=self.queue,CRV_QUEUEPARAMETER=queueParameter, CRV_VNCSERVER=self.vncserver_string)
     f=open(file,'w')
     f.write(batch)
     f.close()
@@ -441,28 +470,26 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       if len(j) != 0:
         queueList.append(j.split(' ')[0])
       
+      
     #try to submit in each queue of the list
-    for i in queueList:   
-      if( 'cin' in self.par_u):
-        group="cinstaff"
-      else:
-        group="cin_visual"
-        
+    for tmpQueue in queueList:   
+      group = self.getQueueGroup(tmpQueue)
+              
       #For reserved queue set only "select=1"   
       queueParameter = "select=1"
-      if(not i.startswith('R')):
-        queueParameter += ":Qlist=" + i + ":viscons=1"
-
-      #submit a job of 1 sec to test if user can submit to that queue
-      p1 = subprocess.Popen(["qsub", "-l", "walltime=0:00:01", "-l", "select=1", "-q",i, "-o","/dev/null","-A",group, "-W","group_list={0}".format(group), "--","echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      if(not tmpQueue.startswith('R')):
+        queueParameter += ":Qlist=" + tmpQueue + ":viscons=1"
+    
+      p1 = subprocess.Popen(["qsub", "-l", "walltime=0:00:01", "-l", "select=1", "-q",tmpQueue, "-o","/dev/null"] + self.groupSubstitution(group, "-A $CRV_GROUP -W group_list=$CRV_GROUP").split() + [ "--","echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       stdout,stderr=p1.communicate() 
-      if "Unauthorized Request" in stderr:
-        queueList.remove(i)
+      if len(stderr) > 0:
+        queueList.remove(tmpQueue)
     
     #return the list of avilable queue
     sys.stdout.write(' '.join(queueList))
     sys.exit(0)
     
+   
     
   def execute_auto(self):
     pass
