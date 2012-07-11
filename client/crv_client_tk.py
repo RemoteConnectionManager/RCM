@@ -5,11 +5,13 @@ import tempfile
 import crv_client
 import crv
 
+
 from Tkinter import *
 import tkMessageBox
 import tkSimpleDialog
 import time
 import ConfigParser
+import datetime
 
 font = ("Helvetica",10, "grey")
 boldfont = ("Helvetica",10,"bold")
@@ -112,8 +114,8 @@ class ConnectionWindow(Frame):
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
         self.master.title("Remote Connection Manager")
-        self.master.geometry("750x80+200+200")
-        self.master.minsize(700,80)
+        self.master.geometry("800x80+200+200")
+        self.master.minsize(800,80)
         self.f1=None
         self.f2=None
 
@@ -136,7 +138,7 @@ class ConnectionWindow(Frame):
         self.f1 = Frame(self, width=500, height=100)
         self.f1.grid( row=1,column=0) 
         f1 = self.f1
-        labelList = ['created', 'display', 'node', 'state', 'username', 'walltime']
+        labelList = ['created', 'display', 'node', 'state', 'username', 'walltime', 'timeleft']
         
         if(self.f2):
             self.f2.destroy()
@@ -193,18 +195,22 @@ class ConnectionWindow(Frame):
                         bk.configure(state=DISABLED)
 
                     bk.grid( row=line+1, column=0 )
-                    
-            
             
                 i = 0
                 for t in sorted(c.hash.keys()):
                     if t in labelList:
                         lab = Label(f1, text=el.hash[t])
+                        if t == 'timeleft':
+                            timeleft = datetime.datetime.strptime(el.hash[t],"%H:%M:%S")
+                            endTime = timeleft.replace(hour=0,minute=0,second=0)
+                            limit = timeleft - endTime
+                            if limit < datetime.timedelta(hours=1):
+                                lab.configure(fg="red")                      
                         lab.grid( row=line+1, column=i+2 )
                         i = i + 1
             
                 newHeight = 80 + 35 * len(self.sessions.array)
-                geometryStr = "750x" + str(newHeight)
+                geometryStr = "800x" + str(newHeight)
                 self.master.geometry(geometryStr)
 
     @safe_debug_off
