@@ -11,7 +11,7 @@ class crv_session:
     elif (fromstring != ''):
       self.hash=pickle.loads(fromstring)
     else:
-      self.hash={'file':file, 'state':state, 'node':node, 'display':display, 'jobid':jobid, 'sessionid':sessionid, 'username':username, 'walltime':walltime, 'otp':otp}
+      self.hash={'file':file, 'state':state, 'node':node, 'display':display, 'jobid':jobid, 'sessionid':sessionid, 'username':username, 'walltime':walltime,'timeleft':walltime, 'otp':otp}
       self.hash['created']=datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
   def serialize(self,file):
     pickle.dump(self.hash, open( file, "wb" ) )

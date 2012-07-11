@@ -10,6 +10,7 @@ import glob
 import string
 import time
 import shutil
+import datetime
 sys.path.append( sys.path[0] )
 import crv
 #import pickle
@@ -202,7 +203,6 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
   # jobid are the ones: 
   # - of user (if -R=false) 
   # - running
-  # - on visual queue
   # - with name matching: crv-<alphanum>-<num>
   def get_jobs(self,U=False):
     (retval,stdout,stderr)=prex(['qstat'])
@@ -257,6 +257,11 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
             sid=ro.group(1)
             try:
               self.sessions[sid]=crv.crv_session(fromfile=file)
+              walltime = datetime.datetime.strptime("6:00:00", "%I:%M:%S")
+              endtime=datetime.datetime.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S") + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
+              timedelta = endtime - datetime.datetime.now()
+              #(datetime.datetime.min + timedelta).time()
+              self.sessions[sid].hash['timeleft'] = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
             except:
               sys.stderr.write("WARNING: not valid session file (it could be rewritten): %s\n" % (file))
 
@@ -454,27 +459,49 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     sys.exit(1)
 
   def execute_queue(self):
-    #get list of possible queue (named "visual" and reserved)
+    #get list of possible queue (named "visual")
     queueList = []
     
     p1 = subprocess.Popen(["qstat","-q"], stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(["grep", "-E","(visual|^R)"], stdin=p1.stdout, stdout=subprocess.PIPE)
+    #p2 = subprocess.Popen(["grep", "-E","(visual|^R)"], stdin=p1.stdout, stdout=subprocess.PIPE)
+    p2 = subprocess.Popen(["grep", "visual"], stdin=p1.stdout, stdout=subprocess.PIPE)
     p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
     stdout,stderr = p2.communicate()
-    
     if (p2.returncode != 0) :
       raise Exception( 'qstat returned non zero value: ' + stderr) 
     else:
       row=stdout.split('\n')
+      row = filter(None, row)
     for j in row:
-      if len(j) != 0:
-        queueList.append(j.split(' ')[0])
+      queueList.append(j.split(' ')[0])
       
+    #############################
+    #check "visual" reserved queue
+    p1 = subprocess.Popen(["pbs_rstat","-F"], stdout=subprocess.PIPE)
+    p2 = subprocess.Popen(["grep", "Name:"], stdin=p1.stdout, stdout=subprocess.PIPE)
+    p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
+    stdout,stderr = p2.communicate()
+    if (p2.returncode != 0) :
+      raise Exception( 'pbs_rstat returned non zero value: ' + stderr) 
+    else:
+      reservations=stdout.split('\n')
+      reservations = filter(None, reservations)
+    for i in reservations:
+      resId = i.replace('Name: ', '')
+      p1 = subprocess.Popen(["pbs_rstat","-F", resId], stdout=subprocess.PIPE)
+      p2 = subprocess.Popen(["grep", "Reserve_Name"], stdin=p1.stdout, stdout=subprocess.PIPE)
+      p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
+      stdout,stderr = p2.communicate()
+      if (p2.returncode != 0) :
+        raise Exception( 'pbs_rstat returned non zero value: ' + stderr) 
+      else:
+        if 'visual' in stdout:
+          queueList.append(resId.split('.')[0])
+     ############################### 
       
     #try to submit in each queue of the list
-    for tmpQueue in queueList:   
+    for tmpQueue in queueList:
       group = self.getQueueGroup(tmpQueue)
-              
       #For reserved queue set only "select=1"   
       queueParameter = "select=1"
       if(not tmpQueue.startswith('R')):
