@@ -36,7 +36,7 @@ class SessionThread( threading.Thread ):
             print 'This is thread ' + str ( self.threadnum ) + ' run.'
         if(self.gui_cmd): self.gui_cmd(active=True)
         if(self.tunnel_command == ''):
-            if(self.debug): print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.vnc_command , "<--"
+            if(self.debug): print 'This is thread ' + str ( self.threadnum ) + " executing-->" , self.vnc_command.replace(self.password,"****") , "<--"
             #vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
             #vnc_process.wait()
             
@@ -61,7 +61,7 @@ class SessionThread( threading.Thread ):
             child.expect(pexpect.EOF, timeout=None)           
             if(self.gui_cmd): self.gui_cmd(active=False)
         else:
-            if(self.debug): print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command , "<--"
+            if(self.debug): print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command.replace(self.password,"****") , "<--"
             tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
             while True:
                 o = tunnel_process.stdout.readline()
@@ -70,7 +70,7 @@ class SessionThread( threading.Thread ):
                     print "output from process---->"+o.strip()+"<---"
                 if o.strip() == 'pippo' : break
             if(self.debug):
-                print "starting vncviewer-->"+self.vnc_command+"<--"
+                print "starting vncviewer-->"+self.vnc_command.replace(self.password,"****")+"<--"
             vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
             vnc_process.wait()
             if(self.gui_cmd): self.gui_cmd(active=False)
@@ -154,7 +154,7 @@ class crv_client_connection:
     def prex(self,cmd):
         fullcommand= self.ssh_remote_exec_command + ' ' + cmd
         if(self.debug):
-            print "executing-->",fullcommand
+            print "executing-->",fullcommand.replace(self.passwd,"****")
         if(sys.platform == 'win32'):
             myprocess=subprocess.Popen(fullcommand, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             (myout,myerr)=myprocess.communicate()
