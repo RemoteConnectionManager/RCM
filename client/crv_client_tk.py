@@ -44,11 +44,13 @@ class Login(Frame):
         #Read configuration file
         self.configFileName = os.path.join(tempfile.gettempdir(),'RCM.cfg')
         userName=""
+        self.customDisplayDimenions=''
         if(os.path.exists(self.configFileName)):
             try:
                 config = ConfigParser.RawConfigParser()
                 config.read(self.configFileName)
                 userName = config.get('LoginFields', 'username')
+                self.customDisplayDimenions = config.get('LoginFields', 'displaydimenions')
             except:
                 os.remove(self.configFileName)
                     
@@ -80,6 +82,7 @@ class Login(Frame):
             config = ConfigParser.RawConfigParser()
             config.add_section('LoginFields')
             config.set('LoginFields', 'username',self.user.get())
+            config.set('LoginFields', 'displaydimenions',self.customDisplayDimenions)
             with open(self.configFileName, 'wb') as configfile:
                 config.write(configfile)
             
@@ -251,6 +254,22 @@ class ConnectionWindow(Frame):
 class newDisplayDialog(tkSimpleDialog.Dialog):
     
     def body(self, parent):
+
+        #Read configuration file
+        self.configFileName = os.path.join(tempfile.gettempdir(),'RCM.cfg')
+        self.userName=''
+        self.customDisplayDimenions=''
+        if(os.path.exists(self.configFileName)):
+            try:
+                config = ConfigParser.RawConfigParser()
+                config.read(self.configFileName)
+                self.userName = config.get('LoginFields', 'username')
+                self.customDisplayDimenions = config.get('LoginFields', 'displaydimenions')
+            except:
+                os.remove(self.configFileName)        
+        
+        
+        
         self.v = IntVar()
         self.displayDimension = NONE
         optionFrame = Frame(parent, padx = 20)
@@ -263,9 +282,10 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
         
         optionFrame.pack(anchor=W)
 
-        self.fullScreenDimension = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight()) 
+        if self.customDisplayDimenions == '':
+            self.customDisplayDimenions = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight()) 
         self.e1 = Entry(parent)
-        self.e1.insert (0, self.fullScreenDimension)
+        self.e1.insert (0, self.customDisplayDimenions)
         self.e1.config(state=DISABLED)
     
         self.text = ['Full screen', 'custom']
@@ -285,12 +305,20 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
     def apply(self):
         if  self.v.get() == 0:
             #Full screen
-            self.displayDimension = self.fullScreenDimension
+            self.displayDimension = self.customDisplayDimenions
         if self.v.get() == 1:
             self.displayDimension = self.e1.get()
         #else:
         #    self.displayDimension = self.text[self.v.get()]
         self.destroy()
+        
+        #Write configuration file
+        config = ConfigParser.RawConfigParser()
+        config.add_section('LoginFields')
+        config.set('LoginFields', 'username',self.userName)
+        config.set('LoginFields', 'displaydimenions',self.displayDimension)
+        with open(self.configFileName, 'wb') as configfile:
+            config.write(configfile)
         return
         
 
