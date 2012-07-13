@@ -71,7 +71,7 @@ class crv_server:
     
     
   def __init__(self,pars):
-    self.max_user_session=50
+    self.max_user_session=2
     self.qsub_template="""#!/bin/bash
 #PBS -l walltime=$CRV_WALLTIME
 #PBS -N $CRV_SESSIONID
@@ -127,7 +127,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     self.par_u=self.username
     self.par_f='0'
     self.par_h=False
-    self.par_w="6:00:00"
+    self.par_w="06:00:00"
 
     #read arguments
     try:
@@ -257,13 +257,14 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
             sid=ro.group(1)
             try:
               self.sessions[sid]=crv.crv_session(fromfile=file)
-              walltime = datetime.datetime.strptime(self.sessions[sid].hash['walltime'], "%I:%M:%S")
+              walltime = datetime.datetime.strptime(self.sessions[sid].hash['walltime'], "%H:%M:%S")
               endtime=datetime.datetime.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S") + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
               timedelta = endtime - datetime.datetime.now()
-              #(datetime.datetime.min + timedelta).time()
-              self.sessions[sid].hash['timeleft'] = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
-            except:
-              sys.stderr.write("WARNING: not valid session file (it could be rewritten): %s\n" % (file))
+              #check if timedelta is positive
+              if timedelta > datetime.timedelta(0):
+                self.sessions[sid].hash['timeleft'] = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
+            except Exception as e:
+              raise Exception("WARNING: not valid session file %s: %s\n" % (file, e))
 
     #read sessions jobs
     jobs=self.get_jobs(U=U)
@@ -433,7 +434,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     sys.exit(0)
 
   def execute_kill(self):
-    self.load_sessions(U=True)
+    self.load_sessions(self.par_U)
     norun=[]
     for sid in self.par_command_args:
       if sid in self.sids['run']:
@@ -447,7 +448,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     sys.exit(0) 
 
   def execute_otp(self):
-    self.load_sessions(U=True)
+    self.load_sessions(self.par_U)
     for sid in self.par_command_args:
       if sid in self.sids['run']:
         otp_file='%s/%s.otp' % (self.get_crvdirs()[0],sid)
