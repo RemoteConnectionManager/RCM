@@ -508,7 +508,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       if(not tmpQueue.startswith('R')):
         queueParameter += ":Qlist=" + tmpQueue + ":viscons=1"
     
-      p1 = subprocess.Popen(["qsub", "-l", "walltime=0:00:01", "-l", "select=1", "-q",tmpQueue, "-o","/dev/null"] + self.groupSubstitution(group, "-A $CRV_GROUP -W group_list=$CRV_GROUP").split() + [ "--","echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      p1 = subprocess.Popen(["qsub", "-l", "walltime=0:00:01", "-l", "select=1", "-q",tmpQueue, "-o","/dev/null", "-e","/dev/null" ] + self.groupSubstitution(group, "-A $CRV_GROUP -W group_list=$CRV_GROUP").split() + [ "--","echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       stdout,stderr=p1.communicate() 
       if len(stderr) > 0:
         queueList.remove(tmpQueue)
