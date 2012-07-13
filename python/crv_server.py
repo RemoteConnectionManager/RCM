@@ -257,7 +257,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
             sid=ro.group(1)
             try:
               self.sessions[sid]=crv.crv_session(fromfile=file)
-              walltime = datetime.datetime.strptime("6:00:00", "%I:%M:%S")
+              walltime = datetime.datetime.strptime(self.sessions[sid].hash['walltime'], "%I:%M:%S")
               endtime=datetime.datetime.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S") + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
               timedelta = endtime - datetime.datetime.now()
               #(datetime.datetime.min + timedelta).time()
