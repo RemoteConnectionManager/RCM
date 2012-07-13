@@ -95,8 +95,8 @@ class crv_client_connection:
         self.config['vnc']['linux2']=("vncviewer","")
         self.config['ssh']['darwin']=("ssh")
         self.config['vnc']['darwin']=("vncviewer","")
-#        self.config['remote_crv_server']="module load /cineca/prod/modulefiles/advanced/tools/python/2.7.2; /plx/userinternal/cin0118a/remote_viz/crv_server.py"
-        self.config['remote_crv_server']="module load profile/advanced; module load autoload RCM; python $RCM_HOME/bin/python/crv_server.py"
+
+        self.config['remote_crv_server']="module load profile/advanced; module load autoload RCM  2>/dev/null; python $RCM_HOME/bin/python/crv_server.py"
         #finding out the basedir, it dpends if we are running as executable pyinstaler or as script
         if('frozen' in dir(sys)):
           if(os.environ.has_key('_MEIPASS2')):
