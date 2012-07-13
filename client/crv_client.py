@@ -19,8 +19,8 @@ class SessionThread( threading.Thread ):
     
     threadscount = 0
     
-    def __init__ ( self, tunnel_cmd='', vnc_cmd='', passwd = '', otp = '', gui_cmd=None ):
-        self.debug=True
+    def __init__ ( self, tunnel_cmd='', vnc_cmd='', passwd = '', otp = '', gui_cmd=None, debug = True ):
+        self.debug=debug
         self.tunnel_command = tunnel_cmd
         self.vnc_command = vnc_cmd
         self.gui_cmd=gui_cmd
@@ -54,7 +54,7 @@ class SessionThread( threading.Thread ):
                 # OTP authentication
                 child.sendline(self.otp)
             elif i == 3 or i == 4:
-                print "Timeout connecting to the display"
+                if(self.debug): print "Timeout connecting to the display"
                 if(self.gui_cmd): self.gui_cmd(active=False)
                 raise Exception("Timeout connecting to the display")
                
@@ -62,7 +62,9 @@ class SessionThread( threading.Thread ):
             if(self.gui_cmd): self.gui_cmd(active=False)
         else:
             if(self.debug): print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command.replace(self.password,"****") , "<--"
-            tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+            tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
+            tunnel_process.stderr.close()
+            tunnel_process.stdin.close()
             while True:
                 o = tunnel_process.stdout.readline()
                 if o == '' and tunnel_process.poll() != None: continue
@@ -71,7 +73,9 @@ class SessionThread( threading.Thread ):
                 if o.strip() == 'pippo' : break
             if(self.debug):
                 print "starting vncviewer-->"+self.vnc_command.replace(self.password,"****")+"<--"
-            vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
+            vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
+            vnc_process.stderr.close()
+            vnc_process.stdin.close()
             vnc_process.wait()
             if(self.gui_cmd): self.gui_cmd(active=False)
 
@@ -92,11 +96,13 @@ class crv_client_connection:
         self.config['ssh']['darwin']=("ssh")
         self.config['vnc']['darwin']=("vncviewer","")
         self.config['remote_crv_server']="module load /cineca/prod/modulefiles/advanced/tools/python/2.7.2; /plx/userinternal/cin0118a/remote_viz/crv_server.py"
+        #finding out the basedir, it dpends if we are running as executable pyinstaler or as script
         if('frozen' in dir(sys)):
           if(os.environ.has_key('_MEIPASS2')):
             self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
           else:
             self.basedir = os.path.dirname(os.path.abspath(sys.executable))
+          self.debug=False
         else:
           self.basedir = os.path.dirname(os.path.abspath(__file__))
         self.sshexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['ssh'][sys.platform][0])
@@ -130,7 +136,7 @@ class crv_client_connection:
             if(sys.platform == 'win32'):
                 self.login_options =  " -i " + keyfile + " " + self.remoteuser + "@" + self.proxynode
             else:
-                print "PASSING PRIVATE KEY FILE NOT IMPLEMENTED ON PLATFORM -->"+sys.platform+"<--"
+                if(self.debug): print "PASSING PRIVATE KEY FILE NOT IMPLEMENTED ON PLATFORM -->"+sys.platform+"<--"
                 self.login_options =  " -i " + keyfile + " " + self.remoteuser + "@" + self.proxynode
                 
         else:
@@ -156,7 +162,8 @@ class crv_client_connection:
         if(self.debug):
             print "executing-->",fullcommand.replace(self.passwd,"****")
         if(sys.platform == 'win32'):
-            myprocess=subprocess.Popen(fullcommand, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            myprocess=subprocess.Popen(fullcommand, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
+            myprocess.stdin.close()
             (myout,myerr)=myprocess.communicate()
             myerr=myerr.rsplit("CRV:",1)[0]
             returncode = myprocess.returncode
@@ -197,7 +204,7 @@ class crv_client_connection:
     def list(self):
         (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'list')
         if (r != 0):
-            print e
+            if(self.debug): print e
             raise Exception("Server error: {0}".format(e))
         sessions=crv.crv_sessions(o)
         if(self.debug):
@@ -211,7 +218,7 @@ class crv_client_connection:
         (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'new' + ' ' + new_encoded_param )
         
         if (r != 0):
-            print e
+            if(self.debug): print e
             raise Exception("Server error: {0}".format(e))
         session=crv.crv_session(o)
         return session 
@@ -221,7 +228,7 @@ class crv_client_connection:
         (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'kill' + ' ' + sessionid)
         
         if (r != 0):
-            print e
+            if(self.debug): print e
             raise Exception("Killling session -> {0} <- failed with error: {1}".format(sessionid, e))
   
     def get_otp(self,sessionid):
@@ -229,7 +236,7 @@ class crv_client_connection:
         (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'otp' + ' ' + sessionid)
 
         if (r != 0):
-            print e
+            if(self.debug): print e
             raise Exception("Getting OTP passwd session -> {0} <- failed with error: {1}".format(sessionid, e))
             return ''
         else:
@@ -241,7 +248,7 @@ class crv_client_connection:
         if(self.debug): print "available queue: ", o
 
         if (r != 0):
-            print e
+            if(self.debug): print e
             raise Exception("Getting available queue -> {0} <- failed with error: {1}".format(sessionid, e))
             return ''
         else:
@@ -266,15 +273,18 @@ class crv_client_connection:
         else:
             tunnel_command=''
             vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
-        SessionThread ( tunnel_command, vnc_command, self.passwd, self.autopass, gui_cmd).start()
+        SessionThread ( tunnel_command, vnc_command, self.passwd, self.autopass, gui_cmd, self.debug).start()
         
     def checkCredential(self):
         #check user credential 
         #If user use PKI, I can not check password validity
-        print "Checking credentials......"
+        if(self.debug): print "Checking credentials......"
         try:
             if(sys.platform == 'win32'):
-                myprocess=subprocess.Popen("echo yes | " + self.ssh_remote_exec_command, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                myprocess=subprocess.Popen("echo yes | " + self.ssh_remote_exec_command, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
+                myprocess.stderr.close()
+                myprocess.stdin.close()
+                #myprocess=subprocess.Popen(self.ssh_remote_exec_command, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
                 output= ''
                 while True:
                     out = myprocess.stdout.read(1)
@@ -301,14 +311,14 @@ class crv_client_connection:
                     i=p.expect(['Permission denied', 'Welcome to'],20)
                     if i==0:
                         p.sendline('\r')
-                        print "Permission denied"
+                        if(self.debug): print "Permission denied"
                         return False 
                     elif i==1:
                          return True
                 elif i==2: #use PKI
                     return True
-        except:
-            pass
+        except Exception as e:
+            raise Exeception("check credential failed with error: {0}\n".format(e))
             
     
 if __name__ == '__main__':
@@ -331,6 +341,6 @@ if __name__ == '__main__':
         
         
     except Exception:
-        print "ERROR OCCURRED HERE"
+        if(self.debug): print "ERROR OCCURRED HERE"
         raise
   

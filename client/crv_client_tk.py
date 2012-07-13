@@ -26,8 +26,8 @@ def safe(debug=False):
                 return f(*l_args, **d_args)
             except Exception as e:
                 if debug:
-                    tkMessageBox.showwarning("Error","in {0}: {1}".format(f.__name__, e))
                     import traceback
+                    tkMessageBox.showwarning("Error","in {0}: {1}\n{2}".format(f.__name__, e,traceback.format_exc()))
                     traceback.print_exc()
                 else:
                     tkMessageBox.showwarning("Error", e)
@@ -92,7 +92,7 @@ class Login(Frame):
             if checkCredential:
                 self.destroy()
                 self.quit()
-                print('Logged in')
+                #if(self.debug): print('Logged in')
                 return
             else:
                 tkMessageBox.showwarning("Error","Authentication failed!")
@@ -168,7 +168,7 @@ class ConnectionWindow(Frame):
                 if(self.client_connection):
                 
                     def cmd(self=self, sessionid=el.hash['sessionid']):
-                        print "killing session", sessionid
+                        if(self.debug): print "killing session", sessionid
                         self.client_connection.kill(sessionid)
                         time.sleep(2)
                         self.update_sessions(self.client_connection.list())
@@ -191,7 +191,7 @@ class ConnectionWindow(Frame):
                                 self.client_connection.activeConnectionsList.remove(sessionid)
                     self.connection_buttons[sessionid]=(bk,disable_cmd)
                     def cmd(self=self, session=el,disable_cmd=disable_cmd):
-                        print "connecting to session", session.hash['sessionid']
+                        if(self.debug): print "connecting to session", session.hash['sessionid']
                         self.client_connection.vncsession(session,gui_cmd=disable_cmd)
                     bk.configure( command=cmd )
                     if sessionid in self.client_connection.activeConnectionsList:
@@ -230,10 +230,10 @@ class ConnectionWindow(Frame):
                 
         if dd.displayDimension == NONE:
             return
-        print "Requesting new connection"
+        if(self.debug): print "Requesting new connection"
         newconn=self.client_connection.newconn(dd.queue.get(), dd.displayDimension)
 
-        print "New connection aquired"
+        if(self.debug): print "New connection aquired"
         newconn.write(2)
         if(self.debug): print "Update connection panel"
         self.update_sessions(self.client_connection.list())
@@ -335,7 +335,7 @@ class crv_client_connection_GUI(crv_client.crv_client_connection):
             try:
                 slist = self.list()
             except Exception as e:
-                print "---------->crv_client_connection_GUI.__init__: %s" % ( e)
+                if(self.debug): print "---------->crv_client_connection_GUI.__init__: %s" % ( e)
             gui.update_sessions(slist)
             gui.mainloop()
            
