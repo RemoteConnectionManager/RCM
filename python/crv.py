@@ -6,6 +6,7 @@ import os
 class crv_session:
 
   def __init__(self,fromstring='',fromfile='',file='',state='',node='',display='',jobid='',sessionid='',username='',walltime='',otp=''):
+    self.hash={'file':'', 'state':'', 'node':'', 'display':'', 'jobid':'', 'sessionid':'', 'username':'', 'walltime':'00:00:00','timeleft':'00:00:00', 'otp':''}
     if (fromfile != ''):
       self.hash=pickle.load(open(fromfile,"rb"))
     elif (fromstring != ''):
