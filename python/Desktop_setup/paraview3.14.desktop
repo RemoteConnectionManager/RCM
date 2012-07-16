@@ -2,10 +2,10 @@
 Comment=
 Comment[en_US]=
 Encoding=UTF-8
-Exec='/plx/userinternal/cin0118a/remote_viz/Desktop_setup/paraview.sh'
+Exec='@RCM_SERVER_DIR@/Desktop_setup/paraview.sh'
 GenericName=
 GenericName[en_US]=
-Icon=/plx/userinternal/cin0118a/remote_viz/Desktop_setup/paraview.png
+Icon=@RCMSERVER_DIR@/Desktop_setup/paraview.png
 MimeType=
 Name=paraview3.14
 Name[en_US]=paraview3.14
