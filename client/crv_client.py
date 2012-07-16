@@ -96,7 +96,10 @@ class crv_client_connection:
         self.config['ssh']['darwin']=("ssh")
         self.config['vnc']['darwin']=("vncviewer","")
 
-        self.config['remote_crv_server']="module load profile/advanced; module load autoload RCM  2>/dev/null; python $RCM_HOME/bin/python/crv_server.py"
+        if(sys.platform == 'win32'):
+          self.config['remote_crv_server']="module load profile/advanced; module load autoload RCM; python $RCM_HOME/bin/python/crv_server.py"
+        else:
+          self.config['remote_crv_server']="module load profile/advanced; module load autoload RCM 2>/dev/null; python $RCM_HOME/bin/python/crv_server.py"
         #finding out the basedir, it dpends if we are running as executable pyinstaler or as script
         if('frozen' in dir(sys)):
           if(os.environ.has_key('_MEIPASS2')):
