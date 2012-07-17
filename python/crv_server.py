@@ -257,12 +257,16 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
             sid=ro.group(1)
             try:
               self.sessions[sid]=crv.crv_session(fromfile=file)
-              walltime = datetime.datetime.strptime(self.sessions[sid].hash['walltime'], "%H:%M:%S")
-              endtime=datetime.datetime.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S") + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
-              timedelta = endtime - datetime.datetime.now()
-              #check if timedelta is positive
-              if timedelta > datetime.timedelta(0):
+              try:
+                walltime = datetime.datetime.strptime(self.sessions[sid].hash['walltime'], "%H:%M:%S")
+                endtime=datetime.datetime.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S") + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
+                timedelta = endtime - datetime.datetime.now()
+                #check if timedelta is positive
+                if timedelta <= datetime.timedelta(0):
+	  	  timedelta = datetime.timedelta(0)
                 self.sessions[sid].hash['timeleft'] = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
+              except:
+                pass
             except Exception as e:
               raise Exception("WARNING: not valid session file %s: %s\n" % (file, e))
 
@@ -420,7 +424,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     jid='NOT_SUBMITTED'
     try:
       jid=self.submit_job(sid)
-      (n,d,otp)=self.wait_jobout(sid,10)
+      (n,d,otp)=self.wait_jobout(sid,20)
       n+='ib0'
     except Exception as e:
       c=crv.crv_session(state='invalid',sessionid=sid)
