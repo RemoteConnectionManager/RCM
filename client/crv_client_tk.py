@@ -221,8 +221,8 @@ class ConnectionWindow(Frame):
         global queueList
         queueList = self.client_connection.get_queue()
         if(self.debug): print "Queue list: ", queueList
-        if len(queueList) == 0:
-            tkMessageBox.showwarning("Error", "Queue not found...")
+        if queueList == ['']:
+            tkMessageBox.showwarning("Warning", "Queue not found...")
             return
             
         #ask for queue and screen dimesions
