@@ -505,7 +505,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
      ############################### 
       
     #try to submit in each queue of the list
-    for tmpQueue in queueList:
+    queueListcopy = list(queueList);
+    for tmpQueue in queueListcopy:
       group = self.getQueueGroup(tmpQueue)
       #For reserved queue set only "select=1"   
       queueParameter = "select=1"
