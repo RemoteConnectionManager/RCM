@@ -3,12 +3,13 @@ import platform
 ROOTPATH=os.path.dirname(os.path.dirname(os.path.abspath(HOMEPATH)))
 print "---------------->", os.path.abspath(HOMEPATH)
 print "---------------->",ROOTPATH
+myplatform=platform.architecture()[0]
+print "----",platform
 if(sys.platform == 'win32'):
-  data_files=[('external/win32/32bit/bin/vncviewer.exe', os.path.join(ROOTPATH,'client','external','win32','32bit','bin','vncviewer.exe'), 'DATA'),('external/win32/32bit/bin/PLINK.EXE', os.path.join(ROOTPATH,'client','external','win32','32bit','bin','PLINK.EXE'), 'DATA')]
+  data_files=[('external/'+sys.platform+'/'+myplatform+'/bin/vncviewer.exe', os.path.join(ROOTPATH,'client','external',sys.platform,myplatform,'bin','vncviewer.exe'), 'DATA'),('external/'+sys.platform+'/'+myplatform+'/bin/PLINK.EXE', os.path.join(ROOTPATH,'client','external',sys.platform,myplatform,'bin','PLINK.EXE'), 'DATA')]
+#  data_files=[('external/win32/32bit/bin/vncviewer.exe', os.path.join(ROOTPATH,'client','external','win32','32bit','bin','vncviewer.exe'), 'DATA'),('external/win32/32bit/bin/PLINK.EXE', os.path.join(ROOTPATH,'client','external','win32','32bit','bin','PLINK.EXE'), 'DATA')]
   outFile = 'RCM.exe'
 else:
-  myplatform=platform.architecture()[0]
-  print "----",platform
   data_files=[('external/'+sys.platform+'/'+myplatform+'/bin/vncviewer', os.path.join(ROOTPATH,'client','external',sys.platform,myplatform,'bin','vncviewer'), 'DATA')]
   outFile = 'RCM'
   if sys.platform.startswith('linux'):
