@@ -17,13 +17,12 @@ import threading
 import Queue
 import tkFont
 import hashlib
-import hashlib
 
 
 font = ("Helvetica",10, "grey")
 boldfont = ("Helvetica",10,"bold")
 checkCredential = False 
-queueList= []
+queueList = []
 
 #CLIENT VERSION
 downloadURL = ""
@@ -162,7 +161,8 @@ class ConnectionWindow(Frame):
                     break
                 m.update(data)
             currentChecksum = m.hexdigest()
-              
+            
+            lastClientVersion = []
             lastClientVersion = self.client_connection.get_version()
             if(currentChecksum != lastClientVersion[0]):
                 global downloadURL

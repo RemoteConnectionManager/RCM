@@ -269,15 +269,14 @@ class crv_client_connection:
             return o.strip()
 
     def get_version(self):
-        # (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'version' + ' ' + self.buildPlatformString)
-
-        # if (r != 0):
-            # if(self.debug): print e
-            # raise Exception("Getting last client version failed with error: {0}".format(e))
-            # return ''
-        # else:
-            # return o.split(' ')
-        return ["1.1",self.buildPlatformString]
+        (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'version' + ' ' + self.buildPlatformString)
+        if (r != 0):
+            if(self.debug): print e
+            raise Exception("Getting last client version failed with error: {0}".format(e))
+            return ''
+        else:
+            return o.split(' ')
+        #return ["1.1",self.buildPlatformString]
         
 
     def get_queue(self):
