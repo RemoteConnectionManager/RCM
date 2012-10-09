@@ -526,7 +526,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
   def execute_version(self):
     buildPlatformString = self.par_command_args[0]
     config = ConfigParser.RawConfigParser()
-    config.read('versionRCM.cfg')
+    config.read(os.path.dirname(os.path.abspath(__file__)) + 'versionRCM.cfg')
     checksum = config.get('checksum', buildPlatformString)
     downloadurl = config.get('url', buildPlatformString)
     sys.stdout.write(checksum)
