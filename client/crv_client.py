@@ -7,6 +7,7 @@ import getpass
 import subprocess
 import threading
 
+
 if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
 	import pexpect
 
@@ -100,7 +101,7 @@ class crv_client_connection:
           self.config['remote_crv_server']="module load profile/advanced; module load autoload RCM; python $RCM_HOME/bin/python/crv_server.py"
         else:
           self.config['remote_crv_server']="module load profile/advanced; module load autoload RCM 2>/dev/null; python $RCM_HOME/bin/python/crv_server.py"
-        #finding out the basedir, it dpends if we are running as executable pyinstaler or as script
+        #finding out the basedir, it depends if we are running as executable pyinstaler or as script
         if('frozen' in dir(sys)):
           if(os.environ.has_key('_MEIPASS2')):
             self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
@@ -109,6 +110,16 @@ class crv_client_connection:
           self.debug=False
         else:
           self.basedir = os.path.dirname(os.path.abspath(__file__))
+            
+        #Read file containing the platform on which the client were build
+        buildPlatform = os.path.join(self.basedir,"external","build_platform.txt")
+        self.buildPlatformString = ""
+        if (buildPlatform):
+            in_file = open(buildPlatform,"r")
+            self.buildPlatformString = in_file.read()
+            in_file.close()
+        
+        
         self.sshexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['ssh'][sys.platform][0])
         self.activeConnectionsList = []
         if(self.debug):
@@ -197,6 +208,17 @@ class crv_client_connection:
             myout = child.before
             myout = myout.lstrip()
             myout = myout.replace('\r\n', '\n')
+
+            #Remove module load autoload output, for example "### auto-loading modules gnu/4.5.2"
+            found = '###' in myout
+            while found:
+                index = myout.find('###')
+                indexEndLine = myout.find('\n',index) + 1
+                stringToRemove = myout[index:indexEndLine]
+                myout = myout.replace(stringToRemove,"",1)
+                found = '###' in myout            
+            
+            print myout
             child.close()
             returncode = child.exitstatus
             if(self.debug): print "returncode: " + str(returncode)
@@ -245,6 +267,18 @@ class crv_client_connection:
             return ''
         else:
             return o.strip()
+
+    def get_version(self):
+        # (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'version' + ' ' + self.buildPlatformString)
+
+        # if (r != 0):
+            # if(self.debug): print e
+            # raise Exception("Getting last client version failed with error: {0}".format(e))
+            # return ''
+        # else:
+            # return o.split(' ')
+        return ["1.1",self.buildPlatformString]
+        
 
     def get_queue(self):
 

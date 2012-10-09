@@ -12,6 +12,7 @@ import time
 import shutil
 import datetime
 sys.path.append( sys.path[0] )
+import ConfigParser
 import crv
 #import pickle
 
@@ -198,6 +199,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       self.execute_otp()
     elif (self.par_command == 'queue'):
       self.execute_queue()
+    elif (self.par_command == 'version'):
+      self.execute_version()
 
   # return a dictionary { sessionid -> jobid }
   # jobid are the ones: 
@@ -285,7 +288,6 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
           if ( job_jid == file_jid ):
             type='run'
           else:
-            #sys.stderr.write('STRONG WARNING: session file %s contains wrong jobid: %s (the running one is %s)\n' % (sid,file_jid,job_jid))
 	    raise Exception("STRONG WARNING: session file# {0} contains wrong jobid: {1} (the running one is {2}".format(sid,file_jid,job_jid))
             #type='err'
           del(jobs[sid])
@@ -295,7 +297,6 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     
     #warning on session jobs without session file
     for sid, jid in jobs.items():
-      #sys.stderr.write("WARNING: found crv job with session %s without session file: %s\n" % (sid,jid))
       raise Exception("WARNING: found crv job with session {0} without session file: {1}".format(sid,jid))
       self.sids['err'].add(sid)      
 
@@ -522,7 +523,16 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     sys.stdout.write(' '.join(queueList))
     sys.exit(0)
     
-   
+  def execute_version(self):
+    buildPlatformString = self.par_command_args[0]
+    config = ConfigParser.RawConfigParser()
+    config.read('versionRCM.cfg')
+    checksum = config.get('checksum', buildPlatformString)
+    downloadurl = config.get('url', buildPlatformString)
+    sys.stdout.write(checksum)
+    sys.stdout.write(' ')
+    sys.stdout.write(downloadurl)
+    sys.exit(0) 
     
   def execute_auto(self):
     pass

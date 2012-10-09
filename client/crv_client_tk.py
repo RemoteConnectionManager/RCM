@@ -7,16 +7,26 @@ import crv
 
 
 from Tkinter import *
+import ttk
 import tkMessageBox
 import tkSimpleDialog
 import time
 import ConfigParser
 import datetime
+import threading
+import Queue
+import tkFont
+import hashlib
+import hashlib
+
 
 font = ("Helvetica",10, "grey")
 boldfont = ("Helvetica",10,"bold")
 checkCredential = False 
 queueList= []
+
+#CLIENT VERSION
+downloadURL = ""
 
 
 def safe(debug=False):
@@ -31,11 +41,12 @@ def safe(debug=False):
                     traceback.print_exc()
                 else:
                     tkMessageBox.showwarning("Error", e)
+                
         return fsafe
     return safedec
 
 safe_debug_on = safe(True)
-safe_debug_off = safe(False)
+safe_debug_off = safe(True)
 
         
 class Login(Frame):
@@ -73,11 +84,8 @@ class Login(Frame):
     def enter(self,event):
         self.login()
         
-    def login(self):
-        """ Collect 1's for every failure and quit program in case of failure_max failures """
-       
+    def login(self):     
         if  (self.user.get() and self.password.get()):
-            
             #Write configuration file
             config = ConfigParser.RawConfigParser()
             config.add_section('LoginFields')
@@ -109,52 +117,76 @@ class Login(Frame):
 
 
 class ConnectionWindow(Frame):
+       
     @safe_debug_off
     def __init__(self, master=None,crv_client_connection=None):
-        self.debug=False
+        self.debug=True
         Frame.__init__(self, master)
         self.client_connection=crv_client_connection
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
-        self.master.title("Remote Connection Manager")
-        self.master.geometry("800x80+200+200")
+        self.master.title("Remote Connection Manager - CINECA")
+        self.master.geometry("800x115+200+200")
         self.master.minsize(800,80)
+        
+        self.q = Queue.Queue()
+        self.updateGUI()
+        
+        self.progressbar = ttk.Progressbar(orient=HORIZONTAL, length=200, mode='determinate')
+        self.progressbar.pack(side="top")
+        
         self.f1=None
-        self.f2=None
-
-
-        self.f3 = Frame(self, width=500, height=100)
-        self.f3.grid( row=6,column=0) 
-        button = Button(self.f3, text="NEW DISPLAY", borderwidth=2, command=self.submit)
+        self.f2 = Frame(self)
+        self.f2.grid( row=1,column=0) 
+        button = Button(self.f2, text="NEW DISPLAY", borderwidth=2, command=self.submitit)
         button["font"]=boldfont
-        button.grid( row=6,column=0 )
+        button.grid( row=0,column=0 )
  
-        button = Button(self.f3, text="REFRESH", borderwidth=2, command=self.refresh)
+        button = Button(self.f2, text="REFRESH", borderwidth=2, command=self.refreshit)
         button["font"]=boldfont
-        button.grid( row=6,column=1 )
+        button.grid( row=0,column=1 )
+        
+        self.check_version()
+        
+        self.refreshit()
+    
+    @safe_debug_off
+    def check_version(self):
+        if('frozen' in dir(sys)):
+            executable = sys.executable
+            fh = open(executable, 'rb')
+            m = hashlib.md5()
+            while True:
+                data = fh.read(8192)
+                if not data:
+                    break
+                m.update(data)
+            currentChecksum = m.hexdigest()
+              
+            lastClientVersion = self.client_connection.get_version()
+            if(currentChecksum != lastClientVersion[0]):
+                global downloadURL
+                downloadURL = lastClientVersion[1]
+                verDialog = newVersionDialog(self)
+                if (verDialog.result == False):
+                    self.master.destroy()
+         
        
     @safe_debug_off
     def update_sessions(self,ss):
+        buttonHeight = 0
         self.sessions=ss
         if(self.f1):
             self.f1.destroy()
-        self.f1 = Frame(self, width=500, height=100)
-        self.f1.grid( row=1,column=0) 
-        f1 = self.f1
-        labelList = ['created', 'display', 'node', 'state', 'username', 'walltime', 'timeleft']
-        
-        if(self.f2):
-            self.f2.destroy()
-        if len(self.sessions.array) == 0:
-            self.f2 = Frame(self, width=500, height=100)
-            self.f2.grid( row=1,column=0) 
-            w = Label(self.f2, text='No display available. Press \'NEW DISPLAY\' to create a new one.', height=2)
-            w.grid( row=1,column=0)
-            geometryStr = "750x160"
-            self.master.geometry(geometryStr)
-        else:
 
-        
+        self.f1 = Frame(self, width=500, height=100)
+        self.f1.grid( row=0,column=0) 
+        if len(self.sessions.array) == 0:
+            w = Label(self.f1, text='No display available. Press \'NEW DISPLAY\' to create a new one.', height=2)
+            w.grid( row=1,column=0)
+        else:
+            f1 = self.f1
+            labelList = ['created', 'display', 'node', 'state', 'username', 'walltime', 'timeleft']
             c=crv.crv_session()
             i = 0
             for t in sorted(c.hash.keys()):
@@ -169,17 +201,18 @@ class ConnectionWindow(Frame):
                 
                     def cmd(self=self, sessionid=el.hash['sessionid']):
                         if(self.debug): print "killing session", sessionid
-                        self.client_connection.kill(sessionid)
-                        time.sleep(2)
-                        self.update_sessions(self.client_connection.list())
+                        self.killit(sessionid)
+                        
                     bk = Button( f1, text="KILL", borderwidth=2, command=cmd )
                     bk["font"]=boldfont
-                    
                     bk.grid( row=line+1, column=1 )
                     
-                    bk = Button( f1, text="CONNECT", borderwidth=2)
-                    bk["font"]=boldfont
+                    bc = Button( f1, text="CONNECT", borderwidth=2)
+                    bc["font"]=boldfont
+                    bc.grid( row=line+1, column=0 )
+                    buttonHeight = bc.winfo_reqheight()
                     sessionid = el.hash['sessionid']
+                    
                     def disable_cmd(self=self, sessionid=el.hash['sessionid'],active=True):
                         button=self.connection_buttons[sessionid][0]
                         if(button.winfo_exists()):
@@ -189,15 +222,15 @@ class ConnectionWindow(Frame):
                             else:
                                 button.configure(state=ACTIVE)
                                 self.client_connection.activeConnectionsList.remove(sessionid)
-                    self.connection_buttons[sessionid]=(bk,disable_cmd)
+                                
+                    self.connection_buttons[sessionid]=(bc,disable_cmd)
+                    
                     def cmd(self=self, session=el,disable_cmd=disable_cmd):
                         if(self.debug): print "connecting to session", session.hash['sessionid']
                         self.client_connection.vncsession(session,gui_cmd=disable_cmd)
-                    bk.configure( command=cmd )
+                    bc.configure( command=cmd )
                     if sessionid in self.client_connection.activeConnectionsList:
-                        bk.configure(state=DISABLED)
-
-                    bk.grid( row=line+1, column=0 )
+                        bc.configure(state=DISABLED)
             
                 i = 0
                 for t in sorted(c.hash.keys()):
@@ -212,48 +245,143 @@ class ConnectionWindow(Frame):
                         lab.grid( row=line+1, column=i+2 )
                         i = i + 1
             
-                newHeight = 80 + 35 * len(self.sessions.array)
-                geometryStr = "800x" + str(newHeight)
-                self.master.geometry(geometryStr)
+        newHeight = 115 + buttonHeight * len(self.sessions.array)
+        geometryStr = "800x" + str(newHeight)
+        self.master.geometry(geometryStr)
 
     @safe_debug_off
-    def submit(self):
+    def killit(self, sessionid):  
+        threading.Thread(target=self.kill, args=(sessionid,)).start()
+        
+  
+    def kill(self, sessionid):
+        try:
+            self.q.put( (self.startProgress,) )
+            self.client_connection.kill(sessionid)
+            
+            #qdel takes dome time...
+            time.sleep(5)
+
+            refreshList = self.client_connection.list()
+            self.q.put( (self.update_sessions, refreshList) )
+            self.q.put( (self.stopProgress,) )
+        except Exception as e:
+            self.q.put( (self.raiseException, e) )
+
+    @safe_debug_off
+    def submitit(self):
         global queueList
         queueList = self.client_connection.get_queue()
         if(self.debug): print "Queue list: ", queueList
         if queueList == ['']:
             tkMessageBox.showwarning("Warning", "Queue not found...")
             return
-            
+
         #ask for queue and screen dimesions
         dd = newDisplayDialog(self)
                 
         if dd.displayDimension == NONE:
             return
-        if(self.debug): print "Requesting new connection"
-        newconn=self.client_connection.newconn(dd.queue.get(), dd.displayDimension)
+        
+        self.displayDimension = dd.displayDimension
+        self.queue = dd.queue.get()
+        t = threading.Thread(target=self.submit).start()
+                    
+        
+    def submit(self):
+        try:
+            self.q.put( (self.startProgress,) )
+            if(self.debug): print "Requesting new connection"
+            newconn=self.client_connection.newconn(self.queue, self.displayDimension)
 
-        if(self.debug): print "New connection aquired"
-        newconn.write(2)
-        if(self.debug): print "Update connection panel"
-        self.update_sessions(self.client_connection.list())
-        #self.connection_buttons[newconn.hash['sessionid']].invoke()
-        self.client_connection.vncsession(newconn,newconn.hash['otp'],self.connection_buttons[newconn.hash['sessionid']][1])
-        if(self.debug): print "End submit"
+            if(self.debug): print "New connection aquired"
             
+            refreshList = self.client_connection.list()
+            self.q.put( (self.update_sessions, refreshList) )
+            time.sleep(2)
+            self.q.put( (self.client_connection.vncsession, newconn, newconn.hash['otp'], self.connection_buttons[newconn.hash['sessionid']][1] ) )
 
-
+            if(self.debug): print "End submit"     
+            self.q.put( (self.stopProgress,) )
+        except Exception as e:
+            self.q.put( (self.raiseException, e) )
+ 
     @safe_debug_off
+    def refreshit(self):
+        t = threading.Thread(target=self.refresh)
+        t.start()
+                
     def refresh(self):
-        if(self.debug): print "Refresh connection list"
-        self.update_sessions(self.client_connection.list())
-        if(self.debug): print "End Refresh connection list"
+        try:
+            self.q.put( (self.startProgress,) )
+            if(self.debug): print "Refresh connection list"
+            
+            refreshList = self.client_connection.list()
+            self.q.put( (self.update_sessions, refreshList) )
+            if(self.debug): print "End Refresh connection list"
+            self.q.put( (self.stopProgress,) )
+        except Exception as e:
+            self.q.put( (self.raiseException, e) )
+        
+    def raiseException(self, error):
+        #self.stopProgress()
+        self.q.put( (self.stopProgress,) )
+        tkMessageBox.showwarning("Error", error)
         
         
+
+    def updateGUI(self):
+        try:
+            while True :
+                items = self.q.get_nowait()
+                print items
+                func = items[0]
+                if func:
+                    args = items[1:]
+                    func(*args)
+                     #if (self.debug): print "***********execute updateGUI*************************"
+        except Queue.Empty:
+            pass
+        self.after(100, self.updateGUI)
+
+
+
+    def startProgress(self):
+        self.progressbar.configure(mode='indeterminate')
+        self.progressbar.start()
         
+    def stopProgress(self):
+        self.progressbar.stop()  
+        self.progressbar.configure(mode='determinate')
+        
+class newVersionDialog(tkSimpleDialog.Dialog):
+
+    def body(self, master):
+        url = downloadURL
+        self.result = False
+
+        Label(master, text="A new version of the \"Remote Connection Manager\" is avaiable at:").grid(row=0)
+        ent = Entry(master, state='readonly', fg='blue', width=len(url), justify=CENTER)
+        var = StringVar()
+        var.set(url)
+        ent.config(textvariable=var, relief='flat', highlightthickness=0)
+        ent.grid(row=1)
+        Label(master, text="Continue anyway?").grid(row=2)
+        
+        # clone the font, set the underline attribute,
+        # and assign it to our widget
+        f = tkFont.Font(ent, ent.cget("font"))
+        f.configure(underline = True)
+        ent.configure(font=f)
+
+    def apply(self):
+        self.result = True
+                
+        
+
 class newDisplayDialog(tkSimpleDialog.Dialog):
     
-    def body(self, parent):
+    def body(self, master):
 
         #Read configuration file
         self.configFileName = os.path.join(tempfile.gettempdir(),'RCM.cfg')
@@ -268,14 +396,12 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
             except:
                 os.remove(self.configFileName)        
         
-        
-        
         self.v = IntVar()
         self.displayDimension = NONE
-        optionFrame = Frame(parent, padx = 20)
+        optionFrame = Frame(master, padx = 20)
         
         Label(optionFrame, text="""Select a queue:""").pack(side=LEFT)        
-        self.queue = StringVar(parent)
+        self.queue = StringVar(master)
         self.queue.set(queueList[0]) # default value
         w = apply(OptionMenu, (optionFrame, self.queue) + tuple(queueList))
         w.pack(side=LEFT)
@@ -285,15 +411,16 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
         self.fullDisplayDimension = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight())
         if self.customDisplayDimension == '':
             self.customDisplayDimension = self.fullDisplayDimension
-        self.e1 = Entry(parent)
+        self.e1 = Entry(master)
         self.e1.insert (0, self.customDisplayDimension)
         self.e1.config(state=DISABLED)
     
         self.text = ['Full screen', 'custom']
-        Label(parent, text="""Choose display dimensions:""", padx = 20).pack(anchor=W)
-        Radiobutton(parent, text=self.text[0], padx = 20, variable=self.v, value=0, command=self.enableEntry).pack(anchor=W)
-        Radiobutton(parent, text=self.text[1], padx = 20,variable=self.v, value=1, command=self.enableEntry).pack(anchor=W)
+        Label(master, text="""Choose display dimensions:""", padx = 20).pack(anchor=W)
+        Radiobutton(master, text=self.text[0], padx = 20, variable=self.v, value=0, command=self.enableEntry).pack(anchor=W)
+        Radiobutton(master, text=self.text[1], padx = 20,variable=self.v, value=1, command=self.enableEntry).pack(anchor=W)
         self.e1.pack(padx = 20, anchor=W)
+        return self.e1
         
     
     def enableEntry(self):
@@ -309,8 +436,6 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
             self.displayDimension = self.fullDisplayDimension
         if self.v.get() == 1:
             self.displayDimension = self.e1.get()
-        #else:
-        #    self.displayDimension = self.text[self.v.get()]
         self.destroy()
         
         #Write configuration file
@@ -321,8 +446,9 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
         with open(self.configFileName, 'wb') as configfile:
             config.write(configfile)
         return
-        
-
+            
+    
+    
 class crv_client_connection_GUI(crv_client.crv_client_connection):
     def __init__(self):
         crv_client.crv_client_connection.__init__(self)
@@ -332,12 +458,6 @@ class crv_client_connection_GUI(crv_client.crv_client_connection):
         if(self.debug): print "Check credential returned: " + str(checkCredential)
         if checkCredential:
             gui = ConnectionWindow(crv_client_connection=self)
-            slist = crv.crv_sessions()
-            try:
-                slist = self.list()
-            except Exception as e:
-                if(self.debug): print "---------->crv_client_connection_GUI.__init__: %s" % ( e)
-            gui.update_sessions(slist)
             gui.mainloop()
            
             
