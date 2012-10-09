@@ -103,7 +103,7 @@ $CRV_VNCSERVER -otp -fg -novncauth > $CRV_JOBLOG.vnc 2>&1
     self.parameters=sys.argv[1:]
     self.username=pwd.getpwuid(os.geteuid())[0]
     self.available_formats=frozenset(['0','1','2'])
-    self.available_commands=frozenset(['list','new','kill','otp','queue'])
+    self.available_commands=frozenset(['list','new','kill','otp','queue','verision'])
     self.parse_args()
     self.accountList = self.getUserAccounts()
 
