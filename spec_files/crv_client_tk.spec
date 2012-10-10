@@ -15,7 +15,7 @@ else:
   data_files=[('external/'+sys.platform+'/'+platform.architecture()[0]+'/bin/vncviewer', os.path.join(ROOTPATH,'client','external',sys.platform,platform.architecture()[0],'bin','vncviewer'), 'DATA')]
   if sys.platform.startswith('linux'):
     myplatform += '_' + platform.linux_distribution()[0] + '_' + platform.linux_distribution()[1]
-    outFile += myplatform
+  outFile += myplatform
 print "Building ----> ",outFile
 
 print "------------->" , data_files
