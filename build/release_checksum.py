@@ -42,7 +42,7 @@ for exefile in os.listdir(release_dir):
         print myplatform+" = "+checksum[myplatform]
 
 #edit configuration file
-configurationFile = os.path.join(root,"python", "versionRCM.cfg")
+configurationFile = os.path.join(root,"server", "versionRCM.cfg")
 f = open(configurationFile, 'w')
 f.write("[checksum]" + '\n')
 for checksumKey in checksum.keys():
