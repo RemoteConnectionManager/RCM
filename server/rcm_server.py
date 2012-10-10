@@ -13,7 +13,7 @@ import shutil
 import datetime
 sys.path.append( sys.path[0] )
 import ConfigParser
-import crv
+import rcm
 #import pickle
 
 def prex(cmd):
@@ -41,7 +41,7 @@ def short_jobid(long_jobid):
     sjid=mo.group(1)
   return sjid
 
-class crv_server:
+class rcm_server:
 
   def getUserAccounts(self):
     p1 = subprocess.Popen(["saldo","-nb"], stdout=subprocess.PIPE)
@@ -58,7 +58,7 @@ class crv_server:
     if len(groupName) == 0:
       return ''
     else:
-      return string.Template(template).substitute(CRV_GROUP=groupName)
+      return string.Template(template).substitute(RCM_GROUP=groupName)
         
   def getQueueGroup(self,queue):
     if len(self.accountList) == 0:
@@ -74,30 +74,30 @@ class crv_server:
   def __init__(self,pars):
     self.max_user_session=2
     self.qsub_template="""#!/bin/bash
-#PBS -l walltime=$CRV_WALLTIME
-#PBS -N $CRV_SESSIONID
-#PBS -o $CRV_JOBLOG
+#PBS -l walltime=$RCM_WALLTIME
+#PBS -N $RCM_SESSIONID
+#PBS -o $RCM_JOBLOG
 
 ##following line is probably needed for a bug in PBS thad slows down the scheduling ... ask Federico
 ##maybe we can take down Qlist=visual
-#PBS -l "$CRV_QUEUEPARAMETER"
+#PBS -l "$RCM_QUEUEPARAMETER"
 
 #PBS -j oe
-#PBS -q $CRV_QUEUE
+#PBS -q $RCM_QUEUE
 
 ## to be substituted by the proper account: either specific for the queue if the accounting is disabled or to be
 ## selected by the user when the accounting will be activated
-$CRV_DIRECTIVE_A
+$RCM_DIRECTIVE_A
 
 ##the following line specify the specific group for controlling access to the queue ( not accounting)
 ##while on testing this is fixed, equal to account group
 
-$CRV_DIRECTIVE_W
+$RCM_DIRECTIVE_W
 
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
 module load  /cineca/prod/modulefiles/advanced/tools/TurboVNC/1.0.90
-$CRV_VNCSERVER -otp -fg -novncauth > $CRV_JOBLOG.vnc 2>&1
+$RCM_VNCSERVER -otp -fg -novncauth > $RCM_JOBLOG.vnc 2>&1
 """
     self.executable=sys.argv[0]
     self.parameters=sys.argv[1:]
@@ -206,7 +206,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
   # jobid are the ones: 
   # - of user (if -R=false) 
   # - running
-  # - with name matching: crv-<alphanum>-<num>
+  # - with name matching: rcm-<alphanum>-<num>
   def get_jobs(self,U=False):
     (retval,stdout,stderr)=prex(['qstat'])
     if (retval != 0 ) :
@@ -218,9 +218,9 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
         ure='\w+'
       else:
         ure=self.par_u
-      #258118.node351    crv-cin0449a-10  cin0449a          00:00:06 R visual          
-#original..single queue      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>crv-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ visual  ' % (ure,ure) ,re.VERBOSE)
-      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>crv-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ ' % (ure,ure) ,re.VERBOSE)
+      #258118.node351    rcm-cin0449a-10  cin0449a          00:00:06 R visual          
+#original..single queue      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>rcm-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ visual  ' % (ure,ure) ,re.VERBOSE)
+      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>rcm-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ ' % (ure,ure) ,re.VERBOSE)
       jobs={}
       for j in raw:
         mo=r.match(j)
@@ -230,25 +230,25 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
           jobs[sid]=jid
       return(jobs)
 
-  def get_crvdirs(self,U=False):
+  def get_rcmdirs(self,U=False):
     if (U):
-      udirs=glob.glob("/plx/user*/*/.crv")
+      udirs=glob.glob("/plx/user*/*/.rcm")
     else:
-      udirs=[os.path.expanduser("~%s/.crv" % (self.par_u))]
+      udirs=[os.path.expanduser("~%s/.rcm" % (self.par_u))]
     return(udirs)
 
   #fill
   # - self.sessions, a dict {sessionid -> { field -> value}}
   # - self.sids,  a dict  {statofsids -> [sid1,sid2,...] }
   def load_sessions(self,U=False,sessionids=[]):
-    udirs=self.get_crvdirs(U)
+    udirs=self.get_rcmdirs(U)
     if (U):
       ure='\w+'
     else:
       ure=self.par_u
 
     #read sessions files
-    r=re.compile(r'(?P<sid>crv-(?P<user>%s)-\d+)\.session$' % ure) 
+    r=re.compile(r'(?P<sid>rcm-(?P<user>%s)-\d+)\.session$' % ure) 
     self.sessions={}
     for d in udirs:
       if os.path.isdir(d) and os.access(d, os.R_OK):
@@ -259,7 +259,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
             user=ro.group(2)
             sid=ro.group(1)
             try:
-              self.sessions[sid]=crv.crv_session(fromfile=file)
+              self.sessions[sid]=rcm.rcm_session(fromfile=file)
               try:
                 walltime = datetime.datetime.strptime(self.sessions[sid].hash['walltime'], "%H:%M:%S")
                 endtime=datetime.datetime.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S") + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
@@ -297,13 +297,13 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     
     #warning on session jobs without session file
     for sid, jid in jobs.items():
-      raise Exception("WARNING: found crv job with session {0} without session file: {1}".format(sid,jid))
+      raise Exception("WARNING: found rcm job with session {0} without session file: {1}".format(sid,jid))
       self.sids['err'].add(sid)      
 
   def id2sid(self,id,user=''):
     if (not user):
       user=self.par_u
-    return "crv-%s-%d" % (user,id)  
+    return "rcm-%s-%d" % (user,id)  
 
   #return
   def new_sid(self):
@@ -339,7 +339,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       shutil.copy(f,desktop_dest_dir)
       
   def clean_files(self,sid):
-    for d in self.get_crvdirs():
+    for d in self.get_rcmdirs():
       if ( not os.path.isdir(d) ):
         os.mkdir(d)
         os.chmod(d,0755)
@@ -350,11 +350,11 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
 
   def submit_job(self,sid):
     s=string.Template(self.qsub_template)
-    otp='%s/%s.otp' % (self.get_crvdirs()[0],sid)
+    otp='%s/%s.otp' % (self.get_rcmdirs()[0],sid)
     if(os.path.isfile(otp)):
       os.remove(otp)
-    file='%s/%s.job' % (self.get_crvdirs()[0],sid)
-    fileout='%s/%s.joblog' % (self.get_crvdirs()[0],sid)
+    file='%s/%s.job' % (self.get_rcmdirs()[0],sid)
+    fileout='%s/%s.joblog' % (self.get_rcmdirs()[0],sid)
     
     group = self.getQueueGroup(self.queue) 
       
@@ -362,15 +362,15 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     queueParameter = "select=1"
     if(not self.queue.startswith('R')):
       queueParameter += ":Qlist=" + self.queue + ":viscons=1"
-    crv_directive_A = self.groupSubstitution(group,'#PBS -A $CRV_GROUP')
-    crv_directive_W = self.groupSubstitution(group,'#PBS -W group_list=$CRV_GROUP')
+    rcm_directive_A = self.groupSubstitution(group,'#PBS -A $RCM_GROUP')
+    rcm_directive_W = self.groupSubstitution(group,'#PBS -W group_list=$RCM_GROUP')
 
-    batch=s.substitute(CRV_WALLTIME=self.par_w,CRV_SESSIONID=sid,CRV_JOBLOG=fileout,CRV_DIRECTIVE_A=crv_directive_A,CRV_DIRECTIVE_W=crv_directive_W,CRV_QUEUE=self.queue,CRV_QUEUEPARAMETER=queueParameter,CRV_VNCSERVER=self.vncserver_string)
+    batch=s.substitute(RCM_WALLTIME=self.par_w,RCM_SESSIONID=sid,RCM_JOBLOG=fileout,RCM_DIRECTIVE_A=rcm_directive_A,RCM_DIRECTIVE_W=rcm_directive_W,RCM_QUEUE=self.queue,RCM_QUEUEPARAMETER=queueParameter,RCM_VNCSERVER=self.vncserver_string)
 
     f=open(file,'w')
     f.write(batch)
     f.close()
-    (res,out,err)=cprex(['qsub','-v',"CRV_OTP_FILE="+otp,file])
+    (res,out,err)=cprex(['qsub','-v',"RCM_OTP_FILE="+otp,file])
     r=re.match(r'(\d+\.\w+)(\.[\w\.]+)?$',out)
     if (r):
       return r.group(1)
@@ -380,7 +380,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
   def wait_jobout(self,sid,timeout):
     r=re.compile(r"""^New 'X' desktop is (?P<node>\w+):(?P<display>\d+)""",re.MULTILINE)
     otp_regex=re.compile(r"""^Full control one-time password: (?P<otp>\d+)""",re.MULTILINE)
-    jobout='%s/%s.joblog.vnc' % (self.get_crvdirs()[0],sid)
+    jobout='%s/%s.joblog.vnc' % (self.get_rcmdirs()[0],sid)
     secs=0
     step=1
     while(secs < timeout ):
@@ -398,7 +398,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
 
   def execute_list(self):
     self.load_sessions()
-    s=crv.crv_sessions()
+    s=rcm.rcm_sessions()
     for sid in self.sids['run']:
       s.array.append(self.sessions[sid])
     s.write(self.par_f)
@@ -418,9 +418,9 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     self.load_sessions()
     sid=self.new_sid()
     self.clean_files(sid)
-    file='%s/%s.session' % (self.get_crvdirs()[0],sid)
+    file='%s/%s.session' % (self.get_rcmdirs()[0],sid)
     #put the 'inactive' lock
-    c=crv.crv_session(state='init',sessionid=sid)
+    c=rcm.rcm_session(state='init',sessionid=sid)
     c.serialize(file)
     jid='NOT_SUBMITTED'
     try:
@@ -428,12 +428,12 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       (n,d,otp)=self.wait_jobout(sid,20)
       n+='ib0'
     except Exception as e:
-      c=crv.crv_session(state='invalid',sessionid=sid)
+      c=rcm.rcm_session(state='invalid',sessionid=sid)
       c.serialize(file)
       if (jid != 'NOT_SUBMITTED'):
         x=prex(['qdel',jid])
       raise Exception("Error in execute_new:{0}".format(e))
-    c=crv.crv_session(state='valid',walltime=self.par_w,node=n,display=d,jobid=jid,sessionid=sid,username=self.par_u,otp=otp)
+    c=rcm.rcm_session(state='valid',walltime=self.par_w,node=n,display=d,jobid=jid,sessionid=sid,username=self.par_u,otp=otp)
     c.serialize(file)
     c.write(self.par_f)
     sys.exit(0)
@@ -456,7 +456,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     self.load_sessions(self.par_U)
     for sid in self.par_command_args:
       if sid in self.sids['run']:
-        otp_file='%s/%s.otp' % (self.get_crvdirs()[0],sid)
+        otp_file='%s/%s.otp' % (self.get_rcmdirs()[0],sid)
         if os.path.exists(otp_file):
           curr_otp=open(otp_file,'r').read()
 	  os.remove(otp_file)
@@ -514,7 +514,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       if(not tmpQueue.startswith('R')):
         queueParameter += ":Qlist=" + tmpQueue + ":viscons=1"
     
-      p1 = subprocess.Popen(["qsub", "-l", "walltime=0:00:01", "-l", "select=1", "-q",tmpQueue, "-o","/dev/null", "-e","/dev/null" ] + self.groupSubstitution(group, "-A $CRV_GROUP -W group_list=$CRV_GROUP").split() + [ "--","echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      p1 = subprocess.Popen(["qsub", "-l", "walltime=0:00:01", "-l", "select=1", "-q",tmpQueue, "-o","/dev/null", "-e","/dev/null" ] + self.groupSubstitution(group, "-A $RCM_GROUP -W group_list=$RCM_GROUP").split() + [ "--","echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       stdout,stderr=p1.communicate() 
       if len(stderr) > 0:
         queueList.remove(tmpQueue)
@@ -549,19 +549,19 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
 
 if __name__ == '__main__':
   try:
-    c = crv_server(sys.argv)
+    c = rcm_server(sys.argv)
     c.execute()
   except Exception as e:
   #  #send the error to the client
-    sys.stderr.write("{0}CRV:EXCEPTION".format(e))
-    #print e, "CRV:EXCEPTION"
+    sys.stderr.write("{0}RCM:EXCEPTION".format(e))
+    #print e, "RCM:EXCEPTION"
     sys.exit(1)
 
 
 	
   
 """
-jid=$(qsub -o ~/crv/rubbish/ -e ~/crv/rubbish/ ~/crv/lenta1.qsub) ; res=$?
+jid=$(qsub -o ~/rcm/rubbish/ -e ~/rcm/rubbish/ ~/rcm/lenta1.qsub) ; res=$?
 j=${jid%%.*}
 if [[ $res -ne 0 ]] ; then
   echo "ERR: comando qsub non funzia"
@@ -595,7 +595,7 @@ fi
 node=$(echo "$q" | grep exec_host | awk 'BEGIN{FS=" = "}{print $2}')
 node=${node%%/*}
 sleep 2
-vnc=$( cat ~/crv/vnclog.$jid | grep 'desktop is' | awk 'BEGIN{FS=":"}{print $2}' )
+vnc=$( cat ~/rcm/vnclog.$jid | grep 'desktop is' | awk 'BEGIN{FS=":"}{print $2}' )
 cat <<EOF
 jid:$jid
 node:$node
