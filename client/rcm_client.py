@@ -13,7 +13,7 @@ if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
 
 
 sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "python"))
-import crv
+import rcm
 
 
 class SessionThread( threading.Thread ):
@@ -83,7 +83,7 @@ class SessionThread( threading.Thread ):
 
 
 
-class crv_client_connection:
+class rcm_client_connection:
 
     def __init__(self,proxynode='login.plx.cineca.it', user_account='', remoteuser='',password=''):
         self.debug=True
@@ -98,9 +98,9 @@ class crv_client_connection:
         self.config['vnc']['darwin']=("vncviewer","")
 
         if(sys.platform == 'win32'):
-          self.config['remote_crv_server']="module load profile/advanced; module load autoload RCM; python $RCM_HOME/bin/python/crv_server.py"
+          self.config['remote_rcm_server']="module load profile/advanced; module load autoload RCM; python $RCM_HOME/bin/python/rcm_server.py"
         else:
-          self.config['remote_crv_server']="module load profile/advanced; module load autoload RCM 2>/dev/null; python $RCM_HOME/bin/python/crv_server.py"
+          self.config['remote_rcm_server']="module load profile/advanced; module load autoload RCM 2>/dev/null; python $RCM_HOME/bin/python/rcm_server.py"
         #finding out the basedir, it depends if we are running as executable pyinstaler or as script
         if('frozen' in dir(sys)):
           if(os.environ.has_key('_MEIPASS2')):
@@ -180,7 +180,7 @@ class crv_client_connection:
             myprocess=subprocess.Popen(fullcommand, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
             myprocess.stdin.close()
             (myout,myerr)=myprocess.communicate()
-            myerr=myerr.rsplit("CRV:",1)[0]
+            myerr=myerr.rsplit("RCM:",1)[0]
             returncode = myprocess.returncode
             if(self.debug):
                 print "returned error  -->",myerr
@@ -190,11 +190,11 @@ class crv_client_connection:
                 print "returned        -->",myprocess.returncode
         else:      
             child = pexpect.spawn(fullcommand)
-            i = child.expect(['password:', 'CRV:EXCEPTION', pexpect.EOF,])
+            i = child.expect(['password:', 'RCM:EXCEPTION', pexpect.EOF,])
             if i == 0:
                 #no PKI
                 child.sendline(self.passwd)
-                i = child.expect([pexpect.EOF, 'CRV:EXCEPTION'])
+                i = child.expect([pexpect.EOF, 'RCM:EXCEPTION'])
             elif i == 2:
                 #use PKI
                 pass
@@ -228,11 +228,11 @@ class crv_client_connection:
         return (returncode,myout,myerr)     
 
     def list(self):
-        (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'list')
+        (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'list')
         if (r != 0):
             if(self.debug): print e
             raise Exception("Server error: {0}".format(e))
-        sessions=crv.crv_sessions(o)
+        sessions=rcm.rcm_sessions(o)
         if(self.debug):
             sessions.write(2)
         return sessions 
@@ -241,17 +241,17 @@ class crv_client_connection:
         
 #       new_encoded_param=pickle.dumps({'geometry': geometry, 'user_account': self.user_account})
         new_encoded_param='geometry='+ geometry + ' ' + 'queue='+ queue
-        (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'new' + ' ' + new_encoded_param )
+        (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'new' + ' ' + new_encoded_param )
         
         if (r != 0):
             if(self.debug): print e
             raise Exception("Server error: {0}".format(e))
-        session=crv.crv_session(o)
+        session=rcm.rcm_session(o)
         return session 
 
     def kill(self,sessionid):
 
-        (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'kill' + ' ' + sessionid)
+        (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'kill' + ' ' + sessionid)
         
         if (r != 0):
             if(self.debug): print e
@@ -259,7 +259,7 @@ class crv_client_connection:
   
     def get_otp(self,sessionid):
 
-        (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'otp' + ' ' + sessionid)
+        (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'otp' + ' ' + sessionid)
 
         if (r != 0):
             if(self.debug): print e
@@ -269,7 +269,7 @@ class crv_client_connection:
             return o.strip()
 
     def get_version(self):
-        (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'version' + ' ' + self.buildPlatformString)
+        (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'version' + ' ' + self.buildPlatformString)
         if (r != 0):
             if(self.debug): print e
             raise Exception("Getting last client version failed with error: {0}".format(e))
@@ -281,7 +281,7 @@ class crv_client_connection:
 
     def get_queue(self):
 
-        (r,o,e)=self.prex(self.config['remote_crv_server'] + ' ' + 'queue')
+        (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'queue')
         if(self.debug): print "available queue: ", o
 
         if (r != 0):
@@ -361,7 +361,7 @@ class crv_client_connection:
 if __name__ == '__main__':
     try:
         
-        c = crv_client_connection()
+        c = rcm_client_connection()
         c.login_setup()
         c.debug=True
         res=c.list()

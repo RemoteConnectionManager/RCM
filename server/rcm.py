@@ -3,7 +3,7 @@ import pickle
 import datetime
 import os
 
-class crv_session:
+class rcm_session:
 
   def __init__(self,fromstring='',fromfile='',file='',state='',node='',display='',jobid='',sessionid='',username='',walltime='',otp=''):
     self.hash={'file':'', 'state':'', 'node':'', 'display':'', 'jobid':'', 'sessionid':'', 'username':'', 'walltime':'00:00:00','timeleft':'00:00:00', 'otp':''}
@@ -31,7 +31,7 @@ class crv_session:
 
 
 
-class crv_sessions:
+class rcm_sessions:
 
   def __init__(self,fromstring='',fromfile='',sessions=[]):
     if (fromfile != ''):
@@ -52,7 +52,7 @@ class crv_sessions:
         print "---------------------"
         k.write(1)
     elif ( format == 2):
-      c=crv_session()
+      c=rcm_session()
       print ";".join(sorted(c.hash.keys())) 
       for k in self.array:
         k.write(2)

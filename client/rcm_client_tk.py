@@ -2,8 +2,8 @@
 
 import os
 import tempfile
-import crv_client
-import crv
+import rcm_client
+import rcm
 
 
 from Tkinter import *
@@ -118,10 +118,10 @@ class Login(Frame):
 class ConnectionWindow(Frame):
        
     @safe_debug_off
-    def __init__(self, master=None,crv_client_connection=None):
+    def __init__(self, master=None,rcm_client_connection=None):
         self.debug=True
         Frame.__init__(self, master)
-        self.client_connection=crv_client_connection
+        self.client_connection=rcm_client_connection
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
         self.master.title("Remote Connection Manager - CINECA")
@@ -187,7 +187,7 @@ class ConnectionWindow(Frame):
         else:
             f1 = self.f1
             labelList = ['created', 'display', 'node', 'state', 'username', 'walltime', 'timeleft']
-            c=crv.crv_session()
+            c=rcm.rcm_session()
             i = 0
             for t in sorted(c.hash.keys()):
                 if t in labelList:
@@ -449,15 +449,15 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
             
     
     
-class crv_client_connection_GUI(crv_client.crv_client_connection):
+class rcm_client_connection_GUI(rcm_client.rcm_client_connection):
     def __init__(self):
-        crv_client.crv_client_connection.__init__(self)
+        rcm_client.rcm_client_connection.__init__(self)
         self.login = Login(action=self.login_setup)
         self.login.mainloop()
         
         if(self.debug): print "Check credential returned: " + str(checkCredential)
         if checkCredential:
-            gui = ConnectionWindow(crv_client_connection=self)
+            gui = ConnectionWindow(rcm_client_connection=self)
             gui.mainloop()
            
             
@@ -467,7 +467,7 @@ if __name__ == '__main__':
     #try:
 #        c.debug=True
 
-        c=crv_client_connection_GUI()
+        c=rcm_client_connection_GUI()
 ##	c.debug=True
 ##        gui = ConnectionWindow()
         

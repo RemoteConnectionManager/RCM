@@ -15,10 +15,10 @@ print "Root dir: ", root
 
 #create tmp dir
 tmpDir = tempfile.gettempdir()
-tmpFile = os.path.join(tmpDir,'crv_client_tk.spec')
+tmpFile = os.path.join(tmpDir,'rcm_client_tk.spec')
 print "Tmp dir: ",tmpDir
 
-shutil.copyfile(os.path.join(root,'spec_files','crv_client_tk.spec'), tmpFile)
+shutil.copyfile(os.path.join(root,'spec_files','rcm_client_tk.spec'), tmpFile)
 
 os.chdir(tmpDir)
 if(sys.platform == 'darwin'):

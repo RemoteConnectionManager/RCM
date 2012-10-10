@@ -27,8 +27,8 @@ versionfile.close()
 data_files.append(('external/build_platform.txt',versionFileName, 'DATA'))
 
 print "------------->" , data_files
-a = Analysis([os.path.join(HOMEPATH,'support','_mountzlib.py'), os.path.join(HOMEPATH,'support','unpackTK.py'), os.path.join(HOMEPATH,'support','useTK.py'), os.path.join(HOMEPATH,'support','useUnicode.py'), os.path.join(ROOTPATH,'client','crv_client_tk.py'), os.path.join(HOMEPATH,'support','removeTK.py')],
-             pathex=[os.path.join(ROOTPATH,'python'), os.path.join(ROOTPATH,'pyinstaller-1.5.1')])
+a = Analysis([os.path.join(HOMEPATH,'support','_mountzlib.py'), os.path.join(HOMEPATH,'support','unpackTK.py'), os.path.join(HOMEPATH,'support','useTK.py'), os.path.join(HOMEPATH,'support','useUnicode.py'), os.path.join(ROOTPATH,'client','rcm_client_tk.py'), os.path.join(HOMEPATH,'support','removeTK.py')],
+             pathex=[os.path.join(ROOTPATH,'server'), os.path.join(ROOTPATH,'pyinstaller-1.5.1')])
 pyz = PYZ(a.pure)
 
 
