@@ -266,7 +266,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
                 timedelta = endtime - datetime.datetime.now()
                 #check if timedelta is positive
                 if timedelta <= datetime.timedelta(0):
-	  	  timedelta = datetime.timedelta(0)
+                    timedelta = datetime.timedelta(0)
                 self.sessions[sid].hash['timeleft'] = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
               except:
                 pass
