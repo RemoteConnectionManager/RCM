@@ -527,7 +527,6 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     buildPlatformString = self.par_command_args[0]
     config = ConfigParser.RawConfigParser()
     myPath =  os.path.dirname(os.path.abspath(__file__))
-    print os.path.join(myPath, 'versionRCM.cfg')
     config.read(os.path.join(myPath, 'versionRCM.cfg'))
     checksum = config.get('checksum', buildPlatformString)
     downloadurl = config.get('url', buildPlatformString)
