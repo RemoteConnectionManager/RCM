@@ -12,7 +12,7 @@ if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
 	import pexpect
 
 
-sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "python"))
+sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "server"))
 import rcm
 
 
@@ -64,10 +64,11 @@ class SessionThread( threading.Thread ):
         else:
             if(self.debug): print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command.replace(self.password,"****") , "<--"
             tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
-            tunnel_process.stderr.close()
+            #tunnel_process.stderr.close()
             tunnel_process.stdin.close()
             while True:
                 o = tunnel_process.stdout.readline()
+                #print "into the while!-->",o
                 if o == '' and tunnel_process.poll() != None: continue
                 if(self.debug):
                     print "output from process---->"+o.strip()+"<---"
@@ -75,7 +76,7 @@ class SessionThread( threading.Thread ):
             if(self.debug):
                 print "starting vncviewer-->"+self.vnc_command.replace(self.password,"****")+"<--"
             vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
-            vnc_process.stderr.close()
+            #vnc_process.stderr.close()
             vnc_process.stdin.close()
             vnc_process.wait()
             if(self.gui_cmd): self.gui_cmd(active=False)
@@ -114,7 +115,7 @@ class rcm_client_connection:
         #Read file containing the platform on which the client were build
         buildPlatform = os.path.join(self.basedir,"external","build_platform.txt")
         self.buildPlatformString = ""
-        if (buildPlatform):
+        if (os.path.exists(buildPlatform)):
             in_file = open(buildPlatform,"r")
             self.buildPlatformString = in_file.read()
             in_file.close()
