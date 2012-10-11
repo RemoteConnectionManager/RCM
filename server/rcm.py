@@ -18,6 +18,7 @@ class rcm_session:
     pickle.dump(self.hash, open( file, "wb" ) )
 
   def write(self,format):
+    print "server output->"
     if ( format == 0):
       print pickle.dumps(self.hash)
     elif ( format == 1):
@@ -45,6 +46,7 @@ class rcm_sessions:
     pickle.dump(self.array, open( file, "wb" ) )
 
   def write(self,format):
+    print "server output->"
     if ( format == 0):
       print pickle.dumps(self.array)
     elif ( format == 1):
