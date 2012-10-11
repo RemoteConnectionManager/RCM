@@ -42,7 +42,7 @@ class SessionThread( threading.Thread ):
             #vnc_process.wait()
             
             child = pexpect.spawn(self.vnc_command) 
-            i = child.expect(['Password:', 'standard VNC authentication', 'password:', pexpect.TIMEOUT, pexpect.EOF], 20)
+            i = child.expect(['Password:', 'standard VNC authentication', 'password:', pexpect.TIMEOUT, pexpect.EOF])
             if i == 2:
                 #no certificate
                 child.sendline(self.password)
@@ -190,7 +190,7 @@ class rcm_client_connection:
                 print "returned        -->",myprocess.returncode
         else:      
             child = pexpect.spawn(fullcommand)
-            i = child.expect(['password:', 'RCM:EXCEPTION', pexpect.EOF,])
+            i = child.expect(['password:', 'RCM:EXCEPTION', pexpect.EOF])
             if i == 0:
                 #no PKI
                 child.sendline(self.passwd)
@@ -332,7 +332,7 @@ class rcm_client_connection:
                 ssh_newkey = 'Are you sure you want to continue connecting'
                 # my ssh command line
                 p=pexpect.spawn(self.ssh_remote_exec_command)
-                i=p.expect([ssh_newkey,'password:','Welcome to'],20)
+                i=p.expect([ssh_newkey,'password:','Welcome to', pexpect.TIMEOUT])
                 if i==0:
                     if(self.debug): print "I say yes"
                     p.sendline('yes')
@@ -350,6 +350,9 @@ class rcm_client_connection:
                          return True
                 elif i==2: #use PKI
                     return True
+                if i==3:
+                    raise Exception("Timeout checking credential")
+                    
         except Exception as e:
             raise Exeception("check credential failed with error: {0}\n".format(e))
             
