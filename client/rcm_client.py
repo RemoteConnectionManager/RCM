@@ -207,24 +207,21 @@ class rcm_client_connection:
 
             myout = child.before
             myout = myout.lstrip()
-            myout = myout.replace('\r\n', '\n')
+            myout = myout.replace('\r\n', '\n')        
 
-            #Remove module load autoload output, for example "### auto-loading modules gnu/4.5.2"
-            found = '###' in myout
-            while found:
-                index = myout.find('###')
-                indexEndLine = myout.find('\n',index) + 1
-                stringToRemove = myout[index:indexEndLine]
-                myout = myout.replace(stringToRemove,"",1)
-                found = '###' in myout            
-            
-            print myout
             child.close()
             returncode = child.exitstatus
             if(self.debug): print "returncode: " + str(returncode)
             returncode = returncode
             myerr = ''
-        
+        #find where the real server output starts
+        serverOutputString = "server output->"
+        index = myout.find(serverOutputString)
+        if  index != -1:
+            index += len(serverOutputString)
+            myout = myout[index:]
+            myout = myout.replace('\n', '',1)
+
         return (returncode,myout,myerr)     
 
     def list(self):
@@ -276,7 +273,6 @@ class rcm_client_connection:
             return ''
         else:
             return o.split(' ')
-        #return ["1.1",self.buildPlatformString]
         
 
     def get_queue(self):
