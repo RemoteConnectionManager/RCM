@@ -106,6 +106,7 @@ $RCM_VNCSERVER -otp -fg -novncauth > $RCM_JOBLOG.vnc 2>&1
     self.available_commands=frozenset(['list','new','kill','otp','queue','version'])
     self.parse_args()
     self.accountList = self.getUserAccounts()
+    self.serverOutputString = 'server output->'
 
   def usage(self,stderr=0):
     script=os.path.basename(self.executable)
@@ -113,7 +114,9 @@ $RCM_VNCSERVER -otp -fg -novncauth > $RCM_JOBLOG.vnc 2>&1
 USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
        %s 					kill 	SESSIONID [SESSIONID ...]
        %s 					otp 	SESSIONID 
+       %s 					queue   ACCOUNT	
        %s [-w WALLTIME] [-f FORMAT]  		new
+       %s 					version CLIENT_PLATFORM 
        %s -h
 """ % (script,script,script,script,script)
     if (stderr):
@@ -520,6 +523,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
         queueList.remove(tmpQueue)
     
     #return the list of avilable queue
+    sys.stdout.write(self.serverOutputString)
     sys.stdout.write(' '.join(queueList))
     sys.exit(0)
     
@@ -530,6 +534,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     config.read(os.path.join(myPath, 'versionRCM.cfg'))
     checksum = config.get('checksum', buildPlatformString)
     downloadurl = config.get('url', buildPlatformString)
+    sys.stdout.write(self.serverOutputString)
     sys.stdout.write(checksum)
     sys.stdout.write(' ')
     sys.stdout.write(downloadurl)
