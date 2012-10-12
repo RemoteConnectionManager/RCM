@@ -52,7 +52,8 @@ class Login(Frame):
     def __init__(self, master=None,action=None):
         
         #Read configuration file
-        self.configFileName = os.path.join(tempfile.gettempdir(),'RCM.cfg')
+        #self.configFileName = os.path.join(tempfile.gettempdir(),'RCM.cfg')
+        self.configFileName = os.path.join(os.path.dirname(sys.executable),'RCM.cfg')
         userName=""
         self.customDisplayDimension=''
         if(os.path.exists(self.configFileName)):
@@ -340,8 +341,7 @@ class ConnectionWindow(Frame):
         self.q.put( (self.master.config(cursor=""),))
         tkMessageBox.showwarning("Error", error)
         
-        
-
+    
     def updateGUI(self):
         try:
             while True :
@@ -351,12 +351,9 @@ class ConnectionWindow(Frame):
                 if func:
                     args = items[1:]
                     func(*args)
-                     #if (self.debug): print "***********execute updateGUI*************************"
         except Queue.Empty:
             pass
         self.after(100, self.updateGUI)
-
-
 
     def startProgress(self):
         self.progressbar.configure(mode='indeterminate')
@@ -398,7 +395,8 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
     def body(self, master):
 
         #Read configuration file
-        self.configFileName = os.path.join(tempfile.gettempdir(),'RCM.cfg')
+        #self.configFileName = os.path.join(tempfile.gettempdir(),'RCM.cfg')
+        self.configFileName = os.path.join(os.path.dirname(sys.executable),'RCM.cfg')
         self.userName=''
         self.customDisplayDimension=''
         if(os.path.exists(self.configFileName)):
