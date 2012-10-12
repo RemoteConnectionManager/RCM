@@ -173,12 +173,16 @@ class ConnectionWindow(Frame):
                 if(currentChecksum != lastClientVersion[0]):
                     global downloadURL
                     downloadURL = lastClientVersion[1]
-                    verDialog = newVersionDialog(self)
-                    if (verDialog.result == False):
-                        self.master.destroy()
+                    self.q.put( (self.showVersionDialog,) )
+
         except Exception as e:
             self.q.put( (self.raiseException, e) )
          
+    def showVersionDialog(self):
+        verDialog = newVersionDialog(self)
+        if (verDialog.result == False):
+            self.master.quit()
+            self.master.destroy()
        
     @safe_debug_off
     def update_sessions(self,ss):
