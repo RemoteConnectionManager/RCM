@@ -191,7 +191,7 @@ class rcm_client_connection:
                 print "returned        -->",myprocess.returncode
         else:      
             child = pexpect.spawn(fullcommand)
-            i = child.expect(['password:', 'RCM:EXCEPTION', pexpect.EOF])
+            i = child.expect(['password:', 'RCM:EXCEPTION', pexpect.EOF, pexpect.TIMEOUT])
             if i == 0:
                 #no PKI
                 child.sendline(self.passwd)
@@ -205,6 +205,8 @@ class rcm_client_connection:
                 myout =  ''
                 returncode = 1
                 return (returncode,myout,myerr)
+            if i==3:
+                raise Exception("Timeout contacting the server")
 
             myout = child.before
             myout = myout.lstrip()
