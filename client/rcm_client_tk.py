@@ -137,39 +137,47 @@ class ConnectionWindow(Frame):
         self.f1=None
         self.f2 = Frame(self)
         self.f2.grid( row=1,column=0) 
-        button = Button(self.f2, text="NEW DISPLAY", borderwidth=2, command=self.submitit)
+        button = Button(self.f2, text="NEW DISPLAY", borderwidth=2, command=self.submit)
         button["font"]=boldfont
         button.grid( row=0,column=0 )
  
-        button = Button(self.f2, text="REFRESH", borderwidth=2, command=self.refreshit)
+        button = Button(self.f2, text="REFRESH", borderwidth=2, command=self.refresh)
         button["font"]=boldfont
         button.grid( row=0,column=1 )
         
         self.check_version()
-        
-        self.refreshit()
+        self.refresh()
     
-    @safe_debug_off
+    @safe_debug_off   
     def check_version(self):
-        if('frozen' in dir(sys)):
-            executable = sys.executable
-            fh = open(executable, 'rb')
-            m = hashlib.md5()
-            while True:
-                data = fh.read(8192)
-                if not data:
-                    break
-                m.update(data)
-            currentChecksum = m.hexdigest()
-            
-            lastClientVersion = []
-            lastClientVersion = self.client_connection.get_version()
-            if(currentChecksum != lastClientVersion[0]):
-                global downloadURL
-                downloadURL = lastClientVersion[1]
-                verDialog = newVersionDialog(self)
-                if (verDialog.result == False):
-                    self.master.destroy()
+        t = threading.Thread(target=self.check_versionThread)
+        t.start()
+
+    def check_versionThread(self):
+        try:
+            self.q.put( (self.master.config(cursor="watch"),))
+            if('frozen' in dir(sys)):
+                executable = sys.executable
+                fh = open(executable, 'rb')
+                m = hashlib.md5()
+                while True:
+                    data = fh.read(8192)
+                    if not data:
+                        break
+                    m.update(data)
+                currentChecksum = m.hexdigest()
+                
+                lastClientVersion = []
+                lastClientVersion = self.client_connection.get_version()
+                self.q.put( (self.master.config(cursor=""),))
+                if(currentChecksum != lastClientVersion[0]):
+                    global downloadURL
+                    downloadURL = lastClientVersion[1]
+                    verDialog = newVersionDialog(self)
+                    if (verDialog.result == False):
+                        self.master.destroy()
+        except Exception as e:
+            self.q.put( (self.raiseException, e) )
          
        
     @safe_debug_off
@@ -201,7 +209,7 @@ class ConnectionWindow(Frame):
                 
                     def cmd(self=self, sessionid=el.hash['sessionid']):
                         if(self.debug): print "killing session", sessionid
-                        self.killit(sessionid)
+                        self.kill(sessionid)
                         
                     bk = Button( f1, text="KILL", borderwidth=2, command=cmd )
                     bk["font"]=boldfont
@@ -250,11 +258,11 @@ class ConnectionWindow(Frame):
         self.master.geometry(geometryStr)
 
     @safe_debug_off
-    def killit(self, sessionid):  
-        threading.Thread(target=self.kill, args=(sessionid,)).start()
+    def kill(self, sessionid):  
+        threading.Thread(target=self.killThread, args=(sessionid,)).start()
         
   
-    def kill(self, sessionid):
+    def killThread(self, sessionid):
         try:
             self.q.put( (self.startProgress,) )
             self.client_connection.kill(sessionid)
@@ -269,7 +277,7 @@ class ConnectionWindow(Frame):
             self.q.put( (self.raiseException, e) )
 
     @safe_debug_off
-    def submitit(self):
+    def submit(self):
         global queueList
         queueList = self.client_connection.get_queue()
         if(self.debug): print "Queue list: ", queueList
@@ -285,10 +293,10 @@ class ConnectionWindow(Frame):
         
         self.displayDimension = dd.displayDimension
         self.queue = dd.queue.get()
-        t = threading.Thread(target=self.submit).start()
+        t = threading.Thread(target=self.submitThread).start()
                     
         
-    def submit(self):
+    def submitThread(self):
         try:
             self.q.put( (self.startProgress,) )
             if(self.debug): print "Requesting new connection"
@@ -307,25 +315,28 @@ class ConnectionWindow(Frame):
             self.q.put( (self.raiseException, e) )
  
     @safe_debug_off
-    def refreshit(self):
-        t = threading.Thread(target=self.refresh)
+    def refresh(self):
+        t = threading.Thread(target=self.refreshThread)
         t.start()
                 
-    def refresh(self):
+    def refreshThread(self):
         try:
             self.q.put( (self.startProgress,) )
+            self.q.put( (self.master.config(cursor="watch"),))
             if(self.debug): print "Refresh connection list"
             
             refreshList = self.client_connection.list()
             self.q.put( (self.update_sessions, refreshList) )
             if(self.debug): print "End Refresh connection list"
             self.q.put( (self.stopProgress,) )
+            self.q.put( (self.master.config(cursor=""),))
         except Exception as e:
             self.q.put( (self.raiseException, e) )
         
     def raiseException(self, error):
         #self.stopProgress()
         self.q.put( (self.stopProgress,) )
+        self.q.put( (self.master.config(cursor=""),))
         tkMessageBox.showwarning("Error", error)
         
         
