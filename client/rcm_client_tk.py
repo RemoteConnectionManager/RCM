@@ -326,14 +326,11 @@ class ConnectionWindow(Frame):
     def refreshThread(self):
         try:
             self.q.put( (self.startProgress,) )
-            self.q.put( (self.master.config(cursor="watch"),))
             if(self.debug): print "Refresh connection list"
-            
             refreshList = self.client_connection.list()
             self.q.put( (self.update_sessions, refreshList) )
             if(self.debug): print "End Refresh connection list"
             self.q.put( (self.stopProgress,) )
-            self.q.put( (self.master.config(cursor=""),))
         except Exception as e:
             self.q.put( (self.raiseException, e) )
         
@@ -364,10 +361,12 @@ class ConnectionWindow(Frame):
     def startProgress(self):
         self.progressbar.configure(mode='indeterminate')
         self.progressbar.start()
+        self.master.config(cursor="watch")
         
     def stopProgress(self):
         self.progressbar.stop()  
         self.progressbar.configure(mode='determinate')
+        self.master.config(cursor="")
         
 class newVersionDialog(tkSimpleDialog.Dialog):
 
