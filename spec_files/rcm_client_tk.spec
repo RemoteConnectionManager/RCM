@@ -1,16 +1,28 @@
 # -*- mode: python -*-
 import platform
 import hashlib
+import subprocess
+
+rcmVersion = "1.0."
 
 ROOTPATH=os.path.dirname(os.path.dirname(os.path.abspath(HOMEPATH)))
 print "---------------->", os.path.abspath(HOMEPATH)
 print "---------------->",ROOTPATH
+
+#add revision to rcm version 
+myprocess = subprocess.Popen(["svnversion",ROOTPATH],stdout=subprocess.PIPE)
+(myout,myerr)=myprocess.communicate()
+
+print "revision number:" + str(myout)
+rcmVersion = rcmVersion + str(myout)
+rcmVersion = rcmVersion.rstrip()
+
 myplatform=sys.platform + '_' + platform.architecture()[0]
 
-outFile = 'RCM_'
+outFile = 'RCM_'+ rcmVersion + '_'
 if(sys.platform == 'win32'):
   data_files=[('external/'+sys.platform+'/'+platform.architecture()[0]+'/bin/vncviewer.exe', os.path.join(ROOTPATH,'client','external',sys.platform,platform.architecture()[0],'bin','vncviewer.exe'), 'DATA'),('external/'+sys.platform+'/'+platform.architecture()[0]+'/bin/PLINK.EXE', os.path.join(ROOTPATH,'client','external',sys.platform,platform.architecture()[0],'bin','PLINK.EXE'), 'DATA')]
-  outFile += myplatform + '.exe'
+  outFile += myplatform +'.exe'
 else:
   data_files=[('external/'+sys.platform+'/'+platform.architecture()[0]+'/bin/vncviewer', os.path.join(ROOTPATH,'client','external',sys.platform,platform.architecture()[0],'bin','vncviewer'), 'DATA')]
   if sys.platform.startswith('linux'):
@@ -22,7 +34,8 @@ print "------------->" , data_files
 
 versionFileName = os.path.join(ROOTPATH, 'build','dist', 'build_platform.txt')
 versionfile = open(versionFileName,"w")
-versionfile.write(myplatform)
+versionfile.write(myplatform + '\n')
+versionfile.write(rcmVersion)
 versionfile.close()
 data_files.append(('external/build_platform.txt',versionFileName, 'DATA'))
 
