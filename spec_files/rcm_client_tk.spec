@@ -19,7 +19,7 @@ rcmVersion = rcmVersion.rstrip()
 
 myplatform=sys.platform + '_' + platform.architecture()[0]
 
-outFile = 'RCM_'+ rcmVersion + '_'
+outFile = 'RCM_'
 if(sys.platform == 'win32'):
   data_files=[('external/'+sys.platform+'/'+platform.architecture()[0]+'/bin/vncviewer.exe', os.path.join(ROOTPATH,'client','external',sys.platform,platform.architecture()[0],'bin','vncviewer.exe'), 'DATA'),('external/'+sys.platform+'/'+platform.architecture()[0]+'/bin/PLINK.EXE', os.path.join(ROOTPATH,'client','external',sys.platform,platform.architecture()[0],'bin','PLINK.EXE'), 'DATA')]
   outFile += myplatform +'.exe'
