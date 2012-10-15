@@ -115,11 +115,12 @@ class rcm_client_connection:
         #Read file containing the platform on which the client were build
         buildPlatform = os.path.join(self.basedir,"external","build_platform.txt")
         self.buildPlatformString = ""
+        self.rcmVersion = ""
         if (os.path.exists(buildPlatform)):
             in_file = open(buildPlatform,"r")
-            self.buildPlatformString = in_file.read()
+            self.buildPlatformString = in_file.readline()
+            self.rcmVersion = in_file.readline()
             in_file.close()
-        
         
         self.sshexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['ssh'][sys.platform][0])
         self.activeConnectionsList = []
