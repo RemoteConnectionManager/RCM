@@ -183,7 +183,7 @@ class ConnectionWindow(Frame):
         verDialog = newVersionDialog(self)
         if (verDialog.result == False):
             self.master.quit()
-            self.master.destroy()
+            
        
     @safe_debug_off
     def update_sessions(self,ss):
