@@ -17,7 +17,7 @@ import threading
 import Queue
 import tkFont
 import hashlib
-
+import webbrowser
 
 font = ("Helvetica",10, "grey")
 boldfont = ("Helvetica",10,"bold")
@@ -53,7 +53,7 @@ class Login(Frame):
         
         #Read configuration file
         #self.configFileName = os.path.join(tempfile.gettempdir(),'RCM.cfg')
-        self.configFileName = os.path.join(os.path.dirname(sys.executable),'RCM.cfg')
+        self.configFileName = os.path.join(os.path.expanduser('~'),'.rcm','RCM.cfg')
         userName=""
         self.customDisplayDimension=''
         if(os.path.exists(self.configFileName)):
@@ -68,7 +68,7 @@ class Login(Frame):
 
         Frame.__init__(self, master)
         self.pack( padx=10, pady=10 )
-        self.master.title("Login:")
+        self.master.title("RCM Login:")
         self.action=action
         self.master.geometry("+200+200")
         self.user = StringVar()
@@ -91,6 +91,10 @@ class Login(Frame):
             config.add_section('LoginFields')
             config.set('LoginFields', 'username',self.user.get())
             config.set('LoginFields', 'displaydimension',self.customDisplayDimension)
+            d = os.path.dirname(self.configFileName)
+            if not os.path.exists(d):
+                os.makedirs(d)
+            
             with open(self.configFileName, 'wb') as configfile:
                 config.write(configfile)
             
@@ -125,7 +129,7 @@ class ConnectionWindow(Frame):
         self.client_connection=rcm_client_connection
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
-        self.master.title("Remote Connection Manager - CINECA")
+        self.master.title("Remote Connection Manager " + rcm_client_connection.rcmVersion +" - CINECA")
         self.master.geometry("800x115+200+200")
         self.master.minsize(800,80)
         
@@ -181,7 +185,8 @@ class ConnectionWindow(Frame):
          
     def showVersionDialog(self):
         verDialog = newVersionDialog(self)
-        if (verDialog.result == False):
+        if (verDialog.result == True):
+            webbrowser.open_new_tab(downloadURL)
             self.master.quit()
             
        
@@ -377,7 +382,7 @@ class newVersionDialog(tkSimpleDialog.Dialog):
         var.set(url)
         ent.config(textvariable=var, relief='flat', highlightthickness=0)
         ent.grid(row=1)
-        Label(master, text="Continue anyway?").grid(row=2)
+        Label(master, text="Do you want to download it?").grid(row=2)
         
         # clone the font, set the underline attribute,
         # and assign it to our widget
@@ -396,7 +401,7 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
 
         #Read configuration file
         #self.configFileName = os.path.join(tempfile.gettempdir(),'RCM.cfg')
-        self.configFileName = os.path.join(os.path.dirname(sys.executable),'RCM.cfg')
+        self.configFileName = os.path.join(os.path.expanduser('~'),'.rcm','RCM.cfg')
         self.userName=''
         self.customDisplayDimension=''
         if(os.path.exists(self.configFileName)):
@@ -455,6 +460,9 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
         config.add_section('LoginFields')
         config.set('LoginFields', 'username',self.userName)
         config.set('LoginFields', 'displaydimension',self.displayDimension)
+        d = os.path.dirname(self.configFileName)
+        if not os.path.exists(d):
+            os.makedirs(d)
         with open(self.configFileName, 'wb') as configfile:
             config.write(configfile)
         return
