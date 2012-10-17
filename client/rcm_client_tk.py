@@ -27,8 +27,8 @@ boldfont = ("Helvetica",10,"bold")
 checkCredential = False 
 queueList = []
 
-#CLIENT VERSION
-downloadURL = ""
+lastClientVersion = []
+
 
 
 def safe(debug=False):
@@ -51,6 +51,17 @@ safe_debug_on = safe(True)
 safe_debug_off = safe(True)
 
         
+        
+
+def  compute_checksum(filename):
+                fh = open(filename, 'rb')
+                m = hashlib.md5()
+                while True:
+                    data = fh.read(8192)
+                    if not data:
+                        break
+                    m.update(data)
+                return m.hexdigest()
         
 def download_file(url,outfile):
             tkMessageBox.showwarning("Debug", "Downloading: "+url)
@@ -78,46 +89,51 @@ def download_file(url,outfile):
                 
             f.close()
 
-def update_exe_file(url):
+def update_exe_file():
             exe_dir=os.path.dirname(sys.executable)
             tmpDir = tempfile.gettempdir()
             newfile=os.path.join(tmpDir,os.path.basename(sys.executable))
-            download_file(url,newfile)
-
-            if(sys.platform=='win32'):
-                batchfilename=os.path.join(tmpDir,"RCM_update.bat")
-                tkMessageBox.showwarning("Debug", "Writing batch file: {0}".format(batchfilename))
-                batchfile=open(batchfilename, 'wb')
-                batchfile.write("rem start update bat"+"\n")
-                tkMessageBox.showwarning("Debug", "Writing on batch file: {0}".format("rem start update bat"))
-                batchfile.write("cd /D "+exe_dir+"\n")
-                batchfile.write("copy mybatch.bat mybatch.txt\n")
-                #batchfile.write("copy mybatch.bat mybatch1.txt\n")
-                batchfile.write('ping -n 10 localhost >nul 2>&1'+"\n")
-                batchfile.write("del mybatch.txt\n")
-                #batchfile.write('ping -n 10 localhost >nul 2>&1'+"\n")
-                batchfile.write("ren "+os.path.basename(sys.executable)+" _"+os.path.basename(sys.executable)+"\n")
-                tkMessageBox.showwarning("Debug", "Writing on batch file: {0}".format("copy "+newfile))
-                batchfile.write("copy "+newfile+"\n")
-                batchfile.write("del "+" _"+os.path.basename(sys.executable)+"\n")
-                batchfile.write("del "+newfile+"\n")
-                batchfile.write("del "+batchfilename+"\n")
-                batchfile.write("start "+os.path.basename(sys.executable)+"\n")
-                batchfile.write("exit\n")
-                batchfile.close()
-                tkMessageBox.showwarning("Debug", "Starting batch file: {0}".format(batchfilename))
-                os.startfile(batchfilename)
+            download_file(lastClientVersion[1],newfile)
+            newfile_checksum = compute_checksum(newfile)
+            if(lastClientVersion[0] != newfile_checksum):
+                tkMessageBox.showwarning("SECURITY ALERT", "Downloaded file Checksum mismatch \n Expected: "+lastClientVersion[0] +"\n Found  : "+ newfile_checksum )
+                os.remove(newfile)
             else:
-                batchfile=open(batchfilename, 'wb')
-                batchfile.write("#!/bin/bash\n")
-                batchfile.write("#start update bat"+"\n")
-                batchfile.write("cd "+exe_dir+"\n")
-                batchfile.write("sleep 10 \n")
-                batchfile.write("rm "+os.path.basename(sys.executable)+"\n")
-                batchfile.write("cp "+newfile+" .\n")
-                batchfile.close()
-                os.startfile(batchfilename)
-                
+                if(sys.platform=='win32'):
+                    batchfilename=os.path.join(tmpDir,"RCM_update.bat")
+                    tkMessageBox.showwarning("Debug", "Writing batch file: {0}".format(batchfilename))
+                    batchfile=open(batchfilename, 'wb')
+                    batchfile.write("rem start update bat"+"\n")
+                    tkMessageBox.showwarning("Debug", "Writing on batch file: {0}".format("rem start update bat"))
+                    batchfile.write("cd /D "+exe_dir+"\n")
+                    batchfile.write("copy mybatch.bat mybatch.txt\n")
+                    #batchfile.write("copy mybatch.bat mybatch1.txt\n")
+                    batchfile.write('ping -n 5 localhost >nul 2>&1'+"\n")
+                    batchfile.write("del mybatch.txt\n")
+                    #batchfile.write('ping -n 10 localhost >nul 2>&1'+"\n")
+                    batchfile.write("ren "+os.path.basename(sys.executable)+" _"+os.path.basename(sys.executable)+"\n")
+                    tkMessageBox.showwarning("Debug", "Writing on batch file: {0}".format("copy "+newfile))
+                    batchfile.write("copy "+newfile+"\n")
+                    batchfile.write("del "+" _"+os.path.basename(sys.executable)+"\n")
+                    batchfile.write("del "+newfile+"\n")
+                    batchfile.write("start "+os.path.basename(sys.executable)+"\n")
+                    batchfile.write("del "+batchfilename+"\n")
+                    batchfile.write("exit\n")
+                    batchfile.close()
+                    tkMessageBox.showwarning("Debug", "Starting batch file: {0}".format(batchfilename))
+                    os.startfile(batchfilename)
+                else:
+                    batchfilename=os.path.join(tmpDir,"RCM_update.sh")
+                    batchfile=open(batchfilename, 'wb')
+                    batchfile.write("#!/bin/bash\n")
+                    batchfile.write("#start update bat"+"\n")
+                    batchfile.write("cd "+exe_dir+"\n")
+                    batchfile.write("sleep 5 \n")
+                    batchfile.write("rm "+os.path.basename(sys.executable)+"\n")
+                    batchfile.write("cp "+newfile+" .\n")
+                    batchfile.close()
+                    os.startfile(batchfilename)
+                    
 class Login(Frame):
     def __init__(self, master=None,action=None):
         
@@ -232,22 +248,11 @@ class ConnectionWindow(Frame):
         try:
             self.q.put( (self.master.config(cursor="watch"),))
             if('frozen' in dir(sys)):
-                executable = sys.executable
-                fh = open(executable, 'rb')
-                m = hashlib.md5()
-                while True:
-                    data = fh.read(8192)
-                    if not data:
-                        break
-                    m.update(data)
-                currentChecksum = m.hexdigest()
-                
-                lastClientVersion = []
+                currentChecksum = compute_checksum(sys.executable)
+                global lastClientVersion
                 lastClientVersion = self.client_connection.get_version()
                 self.q.put( (self.master.config(cursor=""),))
                 if(currentChecksum != lastClientVersion[0]):
-                    global downloadURL
-                    downloadURL = lastClientVersion[1]
                     self.q.put( (self.showVersionDialog,) )
 
         except Exception as e:
@@ -256,8 +261,7 @@ class ConnectionWindow(Frame):
     def showVersionDialog(self):
         verDialog = newVersionDialog(self)
         if (verDialog.result == True):
-            #webbrowser.open_new_tab(downloadURL)
-            update_exe_file(downloadURL)
+            update_exe_file()
 
             self.master.quit()
             
@@ -445,7 +449,7 @@ class ConnectionWindow(Frame):
 class newVersionDialog(tkSimpleDialog.Dialog):
 
     def body(self, master):
-        url = downloadURL
+        url = lastClientVersion[1]
         self.result = False
 
         Label(master, text="A new version of the \"Remote Connection Manager\" is avaiable at:").grid(row=0)
@@ -559,12 +563,7 @@ if __name__ == '__main__':
     #try:
 #        c.debug=True
 
-        #if('frozen' in dir(sys)):
-            #downloadURL="https://hpc-forge.cineca.it/svn/RemoteGraph/trunk/build/dist/Releases/RCM_win32_32bit.exe"
-            #download_file(downloadURL,os.path.join(os.path.dirname(sys.executable)," _"+os.path.basename(sys.executable)))
-            #update_exe_file(downloadURL)
-            #exit()
-        c=rcm_client_connection_GUI()
+    c=rcm_client_connection_GUI()
 ##	c.debug=True
 ##        gui = ConnectionWindow()
         
