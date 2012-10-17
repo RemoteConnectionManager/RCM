@@ -18,6 +18,9 @@ import Queue
 import tkFont
 import hashlib
 import webbrowser
+import urllib2
+import tempfile
+
 
 font = ("Helvetica",10, "grey")
 boldfont = ("Helvetica",10,"bold")
@@ -48,6 +51,73 @@ safe_debug_on = safe(True)
 safe_debug_off = safe(True)
 
         
+        
+def download_file(url,outfile):
+            tkMessageBox.showwarning("Debug", "Downloading: "+url)
+            file_name = url.split('/')[-1]
+            tkMessageBox.showwarning("Debug ", "saving: "+outfile)
+            u = urllib2.urlopen(url)
+            #f = open(file_name, 'wb')
+            meta = u.info()
+            file_size = int(meta.getheaders("Content-Length")[0])
+            tkMessageBox.showwarning("Error", "Downloading: {0} Bytes: {1} into {2}".format(url, file_size,outfile))
+            f = open(outfile, 'wb')
+            file_size_dl = 0
+            block_sz = 8192
+            while True:
+                buffer = u.read(block_sz)
+                if not buffer:
+                    break
+
+                file_size_dl += len(buffer)
+                f.write(buffer)
+                p = float(file_size_dl) / file_size
+                status = r"{0}  [{1:.2%}]".format(file_size_dl, p)
+                #status = status + chr(8)*(len(status)+1)
+                #sys.stdout.write(status)
+                
+            f.close()
+
+def update_exe_file(url):
+            exe_dir=os.path.dirname(sys.executable)
+            tmpDir = tempfile.gettempdir()
+            newfile=os.path.join(tmpDir,os.path.basename(sys.executable))
+            download_file(url,newfile)
+
+            if(sys.platform=='win32'):
+                batchfilename=os.path.join(tmpDir,"RCM_update.bat")
+                tkMessageBox.showwarning("Debug", "Writing batch file: {0}".format(batchfilename))
+                batchfile=open(batchfilename, 'wb')
+                batchfile.write("rem start update bat"+"\n")
+                tkMessageBox.showwarning("Debug", "Writing on batch file: {0}".format("rem start update bat"))
+                batchfile.write("cd /D "+exe_dir+"\n")
+                batchfile.write("copy mybatch.bat mybatch.txt\n")
+                #batchfile.write("copy mybatch.bat mybatch1.txt\n")
+                batchfile.write('ping -n 10 localhost >nul 2>&1'+"\n")
+                batchfile.write("del mybatch.txt\n")
+                #batchfile.write('ping -n 10 localhost >nul 2>&1'+"\n")
+                batchfile.write("ren "+os.path.basename(sys.executable)+" _"+os.path.basename(sys.executable)+"\n")
+                tkMessageBox.showwarning("Debug", "Writing on batch file: {0}".format("copy "+newfile))
+                batchfile.write("copy "+newfile+"\n")
+                batchfile.write("del "+" _"+os.path.basename(sys.executable)+"\n")
+                batchfile.write("del "+newfile+"\n")
+                batchfile.write("del "+batchfilename+"\n")
+                batchfile.write("start "+os.path.basename(sys.executable)+"\n")
+                batchfile.write("exit\n")
+                batchfile.close()
+                tkMessageBox.showwarning("Debug", "Starting batch file: {0}".format(batchfilename))
+                os.startfile(batchfilename)
+            else:
+                batchfile=open(batchfilename, 'wb')
+                batchfile.write("#!/bin/bash\n")
+                batchfile.write("#start update bat"+"\n")
+                batchfile.write("cd "+exe_dir+"\n")
+                batchfile.write("sleep 10 \n")
+                batchfile.write("rm "+os.path.basename(sys.executable)+"\n")
+                batchfile.write("cp "+newfile+" .\n")
+                batchfile.close()
+                os.startfile(batchfilename)
+                
 class Login(Frame):
     def __init__(self, master=None,action=None):
         
@@ -186,7 +256,9 @@ class ConnectionWindow(Frame):
     def showVersionDialog(self):
         verDialog = newVersionDialog(self)
         if (verDialog.result == True):
-            webbrowser.open_new_tab(downloadURL)
+            #webbrowser.open_new_tab(downloadURL)
+            update_exe_file(downloadURL)
+
             self.master.quit()
             
        
@@ -487,6 +559,11 @@ if __name__ == '__main__':
     #try:
 #        c.debug=True
 
+        #if('frozen' in dir(sys)):
+            #downloadURL="https://hpc-forge.cineca.it/svn/RemoteGraph/trunk/build/dist/Releases/RCM_win32_32bit.exe"
+            #download_file(downloadURL,os.path.join(os.path.dirname(sys.executable)," _"+os.path.basename(sys.executable)))
+            #update_exe_file(downloadURL)
+            #exit()
         c=rcm_client_connection_GUI()
 ##	c.debug=True
 ##        gui = ConnectionWindow()
