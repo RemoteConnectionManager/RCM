@@ -26,9 +26,7 @@ font = ("Helvetica",10, "grey")
 boldfont = ("Helvetica",10,"bold")
 checkCredential = False 
 queueList = []
-
 lastClientVersion = []
-
 
 
 def safe(debug=False):
@@ -50,89 +48,92 @@ def safe(debug=False):
 safe_debug_on = safe(True)
 safe_debug_off = safe(True)
 
-        
-        
-
-def  compute_checksum(filename):
-                fh = open(filename, 'rb')
-                m = hashlib.md5()
-                while True:
-                    data = fh.read(8192)
-                    if not data:
-                        break
-                    m.update(data)
-                return m.hexdigest()
+def compute_checksum(filename):
+    fh = open(filename, 'rb')
+    m = hashlib.md5()
+    while True:
+        data = fh.read(8192)
+        if not data:
+            break
+        m.update(data)
+    return m.hexdigest()
         
 def download_file(url,outfile):
-            tkMessageBox.showwarning("Debug", "Downloading: "+url)
-            file_name = url.split('/')[-1]
-            tkMessageBox.showwarning("Debug ", "saving: "+outfile)
-            u = urllib2.urlopen(url)
-            #f = open(file_name, 'wb')
-            meta = u.info()
-            file_size = int(meta.getheaders("Content-Length")[0])
-            tkMessageBox.showwarning("Error", "Downloading: {0} Bytes: {1} into {2}".format(url, file_size,outfile))
-            f = open(outfile, 'wb')
-            file_size_dl = 0
-            block_sz = 8192
-            while True:
-                buffer = u.read(block_sz)
-                if not buffer:
-                    break
+    tkMessageBox.showwarning("Debug", "Downloading: "+url)
+    file_name = url.split('/')[-1]
+    tkMessageBox.showwarning("Debug ", "saving: "+outfile)
+    u = urllib2.urlopen(url)
+    #f = open(file_name, 'wb')
+    meta = u.info()
+    file_size = int(meta.getheaders("Content-Length")[0])
+    tkMessageBox.showwarning("Error", "Downloading: {0} Bytes: {1} into {2}".format(url, file_size,outfile))
+    f = open(outfile, 'wb')
+    file_size_dl = 0
+    block_sz = 8192
+    while True:
+        buffer = u.read(block_sz)
+        if not buffer:
+            break
 
-                file_size_dl += len(buffer)
-                f.write(buffer)
-                p = float(file_size_dl) / file_size
-                status = r"{0}  [{1:.2%}]".format(file_size_dl, p)
-                #status = status + chr(8)*(len(status)+1)
-                #sys.stdout.write(status)
-                
-            f.close()
+        file_size_dl += len(buffer)
+        f.write(buffer)
+        p = float(file_size_dl) / file_size
+        status = r"{0}  [{1:.2%}]".format(file_size_dl, p)
+        #status = status + chr(8)*(len(status)+1)
+        #sys.stdout.write(status)
+        
+    f.close()
 
 def update_exe_file():
-            exe_dir=os.path.dirname(sys.executable)
-            tmpDir = tempfile.gettempdir()
-            newfile=os.path.join(tmpDir,os.path.basename(sys.executable))
-            download_file(lastClientVersion[1],newfile)
-            newfile_checksum = compute_checksum(newfile)
-            if(lastClientVersion[0] != newfile_checksum):
-                tkMessageBox.showwarning("SECURITY ALERT", "Downloaded file Checksum mismatch \n Expected: "+lastClientVersion[0] +"\n Found  : "+ newfile_checksum )
-                os.remove(newfile)
-            else:
-                if(sys.platform=='win32'):
-                    batchfilename=os.path.join(tmpDir,"RCM_update.bat")
-                    tkMessageBox.showwarning("Debug", "Writing batch file: {0}".format(batchfilename))
-                    batchfile=open(batchfilename, 'wb')
-                    batchfile.write("rem start update bat"+"\n")
-                    tkMessageBox.showwarning("Debug", "Writing on batch file: {0}".format("rem start update bat"))
-                    batchfile.write("cd /D "+exe_dir+"\n")
-                    batchfile.write("copy mybatch.bat mybatch.txt\n")
-                    #batchfile.write("copy mybatch.bat mybatch1.txt\n")
-                    batchfile.write('ping -n 5 localhost >nul 2>&1'+"\n")
-                    batchfile.write("del mybatch.txt\n")
-                    #batchfile.write('ping -n 10 localhost >nul 2>&1'+"\n")
-                    batchfile.write("ren "+os.path.basename(sys.executable)+" _"+os.path.basename(sys.executable)+"\n")
-                    tkMessageBox.showwarning("Debug", "Writing on batch file: {0}".format("copy "+newfile))
-                    batchfile.write("copy "+newfile+"\n")
-                    batchfile.write("del "+" _"+os.path.basename(sys.executable)+"\n")
-                    batchfile.write("del "+newfile+"\n")
-                    batchfile.write("start "+os.path.basename(sys.executable)+"\n")
-                    batchfile.write("del "+batchfilename+"\n")
-                    batchfile.write("exit\n")
-                    batchfile.close()
-                    tkMessageBox.showwarning("Debug", "Starting batch file: {0}".format(batchfilename))
-                    os.startfile(batchfilename)
-                else:
-                    batchfilename=os.path.join(tmpDir,"RCM_update.sh")
-                    batchfile=open(batchfilename, 'wb')
-                    batchfile.write("#!/bin/bash\n")
-                    batchfile.write("#start update bat"+"\n")
-                    batchfile.write("cd "+exe_dir+"\n")
-                    batchfile.write("sleep 5 \n")
-                    batchfile.write("rm "+os.path.basename(sys.executable)+"\n")
-                    batchfile.write("cp "+newfile+" .\n")
-                    batchfile.close()
-                    os.startfile(batchfilename)
+    exe_dir=os.path.dirname(sys.executable)
+    tmpDir = tempfile.gettempdir()
+    newfile=os.path.join(tmpDir,os.path.basename(sys.executable))
+    download_file(lastClientVersion[1],newfile)
+    newfile_checksum = compute_checksum(newfile)
+    if(lastClientVersion[0] != newfile_checksum):
+        tkMessageBox.showwarning("SECURITY ALERT", "Downloaded file Checksum mismatch \n Expected: "+lastClientVersion[0] +"\n Found  : "+ newfile_checksum )
+        os.remove(newfile)
+    else:
+        if(sys.platform=='win32'):
+            batchfilename=os.path.join(tmpDir,"RCM_update.bat")
+            tkMessageBox.showwarning("Debug", "Writing batch file: {0}".format(batchfilename))
+            batchfile=open(batchfilename, 'wb')
+            batchfile.write("rem start update bat"+"\n")
+            tkMessageBox.showwarning("Debug", "Writing on batch file: {0}".format("rem start update bat"))
+            batchfile.write("cd /D "+exe_dir+"\n")
+            batchfile.write("copy mybatch.bat mybatch.txt\n")
+            #batchfile.write("copy mybatch.bat mybatch1.txt\n")
+            batchfile.write('ping -n 5 localhost >nul 2>&1'+"\n")
+            batchfile.write("del mybatch.txt\n")
+            #batchfile.write('ping -n 10 localhost >nul 2>&1'+"\n")
+            batchfile.write("ren "+os.path.basename(sys.executable)+" _"+os.path.basename(sys.executable)+"\n")
+            tkMessageBox.showwarning("Debug", "Writing on batch file: {0}".format("copy "+newfile))
+            batchfile.write("copy "+newfile+"\n")
+            batchfile.write("del "+" _"+os.path.basename(sys.executable)+"\n")
+            batchfile.write("del "+newfile+"\n")
+            batchfile.write("start "+os.path.basename(sys.executable)+"\n")
+            batchfile.write("del "+batchfilename+"\n")
+            batchfile.write("exit\n")
+            batchfile.close()
+            tkMessageBox.showwarning("Debug", "Starting batch file: {0}".format(batchfilename))
+            os.startfile(batchfilename)
+        else:
+            batchfilename=os.path.join(tmpDir,"RCM_update.sh")
+            batchfile=open(batchfilename, 'wb')
+            batchfile.write("#!/bin/bash\n")
+            batchfile.write("#start update bat"+"\n")
+            batchfile.write("cd "+exe_dir+"\n")
+            batchfile.write("sleep 5 \n")
+            batchfile.write("rm "+os.path.basename(sys.executable)+"\n")
+            batchfile.write("cp "+newfile+" .\n")
+            batchfile.write("chmod a+x "+os.path.basename(sys.executable)+"\n")
+            batchfile.write("./"+os.path.basename(sys.executable)+"\n")
+            #batchfile.write("rm "+batchfilename+"\n")
+
+            batchfile.close()
+            batchfile.close()
+            #os.startfile(batchfilename)
+            os.system("sh "+batchfilename+ " &") 
                     
 class Login(Frame):
     def __init__(self, master=None,action=None):
