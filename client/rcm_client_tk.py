@@ -237,7 +237,6 @@ class ConnectionWindow(Frame):
         status = Label(self.master, textvariable=self.statusBarText, bd=1, relief=SUNKEN, anchor=W)
         status.pack(side=BOTTOM, fill=X)
         
-        self.statusBarText.set("Checking new client version...")
         self.check_version();
 
     
@@ -248,13 +247,12 @@ class ConnectionWindow(Frame):
 
     def check_versionThread(self):
         try:
-            self.q.put( (self.startProgress,) )
+            self.q.put( (self.startBusy,"Checking new client version...") )
             if('frozen' in dir(sys)):
                 currentChecksum = compute_checksum(sys.executable)
                 global lastClientVersion
                 lastClientVersion = self.client_connection.get_version()
                 self.q.put( (self.checkVersionDialog,currentChecksum) )
-                #self.q.put( (self.stopProgress,) )
         except Exception as e:
             self.q.put( (self.raiseException, e) )
          
@@ -262,8 +260,7 @@ class ConnectionWindow(Frame):
         if(currentChecksum != lastClientVersion[0]):
             verDialog = newVersionDialog(self)
             if (verDialog.result == True):
-                self.q.put( (self.startProgress,) )
-                self.statusBarText.set("Downloading new version client...")
+                self.q.put( (self.startBusy,"Downloading new version client...") )
                 update_exe_file()
                 self.master.quit()
         self.refresh()
@@ -348,13 +345,12 @@ class ConnectionWindow(Frame):
 
     @safe_debug_off
     def kill(self, sessionid):  
-        self.statusBarText.set("Killing the remote display...")
         threading.Thread(target=self.killThread, args=(sessionid,)).start()
         
   
     def killThread(self, sessionid):
         try:
-            self.q.put( (self.startProgress,) )
+            self.q.put( (self.startBusy,"Killing the remote display...") )
             self.client_connection.kill(sessionid)
             
             #qdel takes some time...
@@ -362,30 +358,29 @@ class ConnectionWindow(Frame):
 
             refreshList = self.client_connection.list()
             self.q.put( (self.update_sessions, refreshList) )
-            self.q.put( (self.stopProgress,) )
+            self.q.put( (self.stopBusy,) )
             
         except Exception as e:
             self.q.put( (self.raiseException, e) )
 
     @safe_debug_off
     def submit(self):
-        self.statusBarText.set("Waiting for queue list...")
         t = threading.Thread(target=self.queueThread).start()
         
     def queueThread(self):
         try:
-            self.q.put( (self.startProgress,) )
+            self.q.put( (self.startBusy,"Waiting for queue list...") )
 
             global queueList
             queueList = self.client_connection.get_queue()
             if(self.debug): print "Queue list: ", queueList
             if queueList == ['']:
                 tkMessageBox.showwarning("Warning", "Queue not found...")
-                self.q.put( (self.stopProgress,) )
+                self.q.put( (self.stopBusy,) )
                 return
             
             self.q.put( (self.showDisplayDialog,) )
-            #self.q.put( (self.stopProgress,) )
+            #self.q.put( (self.stopBusy,) )
         except Exception as e:
             self.q.put( (self.raiseException, e) )
               
@@ -394,17 +389,16 @@ class ConnectionWindow(Frame):
         dd = newDisplayDialog(self)
                 
         if dd.displayDimension == NONE:
-            self.q.put( (self.stopProgress,) )
+            self.q.put( (self.stopBusy,) )
             return
         
         self.displayDimension = dd.displayDimension
         self.queue = dd.queue.get()
-        self.statusBarText.set("Creating a new remote display...")
         t = threading.Thread(target=self.newDisplayThread).start()
             
     def newDisplayThread(self):
         try:
-            self.q.put( (self.startProgress,) )
+            self.q.put( (self.startBusy,"Creating a new remote display...") )
             if(self.debug): print "Requesting new connection"
             newconn=self.client_connection.newconn(self.queue, self.displayDimension)
 
@@ -416,31 +410,30 @@ class ConnectionWindow(Frame):
             self.q.put( (self.client_connection.vncsession, newconn, newconn.hash['otp'], self.connection_buttons[newconn.hash['sessionid']][1] ) )
 
             if(self.debug): print "End submit"     
-            self.q.put( (self.stopProgress,) )
+            self.q.put( (self.stopBusy,) )
         except Exception as e:
             self.q.put( (self.raiseException, e) )
             
  
     @safe_debug_off
     def refresh(self):
-        self.statusBarText.set("Rereshing display list...")
         t = threading.Thread(target=self.refreshThread)
         t.start()
                 
     def refreshThread(self):
         try:
-            self.q.put( (self.startProgress,) )
+            self.q.put( (self.startBusy,"Rereshing display list...") )
             if(self.debug): print "Refresh connection list"
             refreshList = self.client_connection.list()
             self.q.put( (self.update_sessions, refreshList) )
             if(self.debug): print "End Refresh connection list"
-            self.q.put( (self.stopProgress,) )
+            self.q.put( (self.stopBusy,) )
         except Exception as e:
             self.q.put( (self.raiseException, e) )
         
     def raiseException(self, error):
-        #self.stopProgress()
-        self.q.put( (self.stopProgress,) )
+        #self.stopBusy()
+        self.q.put( (self.stopBusy,) )
         self.q.put( (self.master.config(cursor=""),))
         self.statusBarText.set("Idle")
         tkMessageBox.showwarning("Error", error)
@@ -459,12 +452,13 @@ class ConnectionWindow(Frame):
             pass
         self.after(100, self.updateGUI)
 
-    def startProgress(self):
+    def startBusy(self, text):
         #self.progressbar.configure(mode='indeterminate')
         #self.progressbar.start()
         self.master.config(cursor="watch")
+        self.statusBarText.set(text)
         
-    def stopProgress(self):
+    def stopBusy(self):
         #self.progressbar.stop()  
         #self.progressbar.configure(mode='determinate')
         self.master.config(cursor="")
