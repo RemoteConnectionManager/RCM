@@ -236,9 +236,7 @@ class ConnectionWindow(Frame):
         self.statusBarText.set("Idle")
         status = Label(self.master, textvariable=self.statusBarText, bd=1, relief=SUNKEN, anchor=W)
         status.pack(side=BOTTOM, fill=X)
-        
         self.check_version();
-
     
     @safe_debug_off   
     def check_version(self):
@@ -339,7 +337,7 @@ class ConnectionWindow(Frame):
                         lab.grid( row=line+1, column=i+2 )
                         i = i + 1
             
-        newHeight = 100 + buttonHeight * len(self.sessions.array)
+        newHeight = 110 + buttonHeight * len(self.sessions.array)
         geometryStr = "800x" + str(newHeight)
         self.master.geometry(geometryStr)
 
