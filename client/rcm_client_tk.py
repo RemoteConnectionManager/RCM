@@ -211,10 +211,17 @@ class ConnectionWindow(Frame):
         self.q = Queue.Queue()
         self.updateGUI()
         
-        self.progressbar = ttk.Progressbar(orient=HORIZONTAL, length=200, mode='determinate')
-        self.progressbar.pack(side="top")
+        #self.progressbar = ttk.Progressbar(orient=HORIZONTAL, length=200, mode='determinate')
+        #self.progressbar.pack(side="top")
         
         self.f1=None
+        self.f1 = Frame(self, width=500, height=100)
+        self.f1.grid( row=0,column=0) 
+        w = Label(self.f1, text='Welcome to the Remote Connection Manager!', height=2)
+        w.grid( row=1,column=0)
+        
+        
+        
         self.f2 = Frame(self)
         self.f2.grid( row=1,column=0) 
         button = Button(self.f2, text="NEW DISPLAY", borderwidth=2, command=self.submit)
@@ -224,9 +231,13 @@ class ConnectionWindow(Frame):
         button = Button(self.f2, text="REFRESH", borderwidth=2, command=self.refresh)
         button["font"]=boldfont
         button.grid( row=0,column=1 )
+                
+        self.statusBarText = StringVar()
+        self.statusBarText.set("Idle")
+        status = Label(self.master, textvariable=self.statusBarText, bd=1, relief=SUNKEN, anchor=W)
+        status.pack(side=BOTTOM, fill=X)
         
-        #StatusBar = Label(self.master, text="idle..", relief=RIDGE  )
-        #StatusBar.pack({"side":"left", "expand":"yes", "fill":"x"})       
+        self.statusBarText.set("Checking new client version...")
         self.check_version();
 
     
@@ -235,7 +246,6 @@ class ConnectionWindow(Frame):
         t = threading.Thread(target=self.check_versionThread)
         t.start()
 
-
     def check_versionThread(self):
         try:
             self.q.put( (self.startProgress,) )
@@ -243,10 +253,8 @@ class ConnectionWindow(Frame):
                 currentChecksum = compute_checksum(sys.executable)
                 global lastClientVersion
                 lastClientVersion = self.client_connection.get_version()
-                
                 self.q.put( (self.checkVersionDialog,currentChecksum) )
-                
-                self.q.put( (self.stopProgress,) )
+                #self.q.put( (self.stopProgress,) )
         except Exception as e:
             self.q.put( (self.raiseException, e) )
          
@@ -255,10 +263,10 @@ class ConnectionWindow(Frame):
             verDialog = newVersionDialog(self)
             if (verDialog.result == True):
                 self.q.put( (self.startProgress,) )
-                update_exe_file()
+                self.statusBarText.set("Downloading new version client...")
+                update_exe_file(self)
                 self.master.quit()
-        rt = threading.Thread(target=self.refreshThread)
-        rt.start()
+        self.refresh()
             
        
     @safe_debug_off
@@ -334,12 +342,13 @@ class ConnectionWindow(Frame):
                         lab.grid( row=line+1, column=i+2 )
                         i = i + 1
             
-        newHeight = 115 + buttonHeight * len(self.sessions.array)
+        newHeight = 100 + buttonHeight * len(self.sessions.array)
         geometryStr = "800x" + str(newHeight)
         self.master.geometry(geometryStr)
 
     @safe_debug_off
     def kill(self, sessionid):  
+        self.statusBarText.set("Killing the remote display...")
         threading.Thread(target=self.killThread, args=(sessionid,)).start()
         
   
@@ -354,30 +363,46 @@ class ConnectionWindow(Frame):
             refreshList = self.client_connection.list()
             self.q.put( (self.update_sessions, refreshList) )
             self.q.put( (self.stopProgress,) )
+            
         except Exception as e:
             self.q.put( (self.raiseException, e) )
 
     @safe_debug_off
     def submit(self):
-        global queueList
-        queueList = self.client_connection.get_queue()
-        if(self.debug): print "Queue list: ", queueList
-        if queueList == ['']:
-            tkMessageBox.showwarning("Warning", "Queue not found...")
-            return
+        self.statusBarText.set("Waiting for queue list...")
+        t = threading.Thread(target=self.queueThread).start()
+        
+    def queueThread(self):
+        try:
+            self.q.put( (self.startProgress,) )
 
-        #ask for queue and screen dimesions
+            global queueList
+            queueList = self.client_connection.get_queue()
+            if(self.debug): print "Queue list: ", queueList
+            if queueList == ['']:
+                tkMessageBox.showwarning("Warning", "Queue not found...")
+                self.q.put( (self.stopProgress,) )
+                return
+            
+            self.q.put( (self.showDisplayDialog,) )
+            #self.q.put( (self.stopProgress,) )
+        except Exception as e:
+            self.q.put( (self.raiseException, e) )
+              
+        
+    def showDisplayDialog(self):
         dd = newDisplayDialog(self)
                 
         if dd.displayDimension == NONE:
+            self.q.put( (self.stopProgress,) )
             return
         
         self.displayDimension = dd.displayDimension
         self.queue = dd.queue.get()
-        t = threading.Thread(target=self.submitThread).start()
-                    
-        
-    def submitThread(self):
+        self.statusBarText.set("Creating a new remote display...")
+        t = threading.Thread(target=self.newDisplayThread).start()
+            
+    def newDisplayThread(self):
         try:
             self.q.put( (self.startProgress,) )
             if(self.debug): print "Requesting new connection"
@@ -394,9 +419,11 @@ class ConnectionWindow(Frame):
             self.q.put( (self.stopProgress,) )
         except Exception as e:
             self.q.put( (self.raiseException, e) )
+            
  
     @safe_debug_off
     def refresh(self):
+        self.statusBarText.set("Rereshing display list...")
         t = threading.Thread(target=self.refreshThread)
         t.start()
                 
@@ -415,6 +442,7 @@ class ConnectionWindow(Frame):
         #self.stopProgress()
         self.q.put( (self.stopProgress,) )
         self.q.put( (self.master.config(cursor=""),))
+        self.statusBarText.set("Idle")
         tkMessageBox.showwarning("Error", error)
         
     
@@ -432,14 +460,15 @@ class ConnectionWindow(Frame):
         self.after(100, self.updateGUI)
 
     def startProgress(self):
-        self.progressbar.configure(mode='indeterminate')
-        self.progressbar.start()
+        #self.progressbar.configure(mode='indeterminate')
+        #self.progressbar.start()
         self.master.config(cursor="watch")
         
     def stopProgress(self):
-        self.progressbar.stop()  
-        self.progressbar.configure(mode='determinate')
+        #self.progressbar.stop()  
+        #self.progressbar.configure(mode='determinate')
         self.master.config(cursor="")
+        self.statusBarText.set("Idle")
         
 class newVersionDialog(tkSimpleDialog.Dialog):
 
