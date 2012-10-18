@@ -59,14 +59,10 @@ def compute_checksum(filename):
     return m.hexdigest()
         
 def download_file(url,outfile):
-    tkMessageBox.showwarning("Debug", "Downloading: "+url)
     file_name = url.split('/')[-1]
-    tkMessageBox.showwarning("Debug ", "saving: "+outfile)
     u = urllib2.urlopen(url)
-    #f = open(file_name, 'wb')
     meta = u.info()
     file_size = int(meta.getheaders("Content-Length")[0])
-    tkMessageBox.showwarning("Error", "Downloading: {0} Bytes: {1} into {2}".format(url, file_size,outfile))
     f = open(outfile, 'wb')
     file_size_dl = 0
     block_sz = 8192
@@ -79,8 +75,6 @@ def download_file(url,outfile):
         f.write(buffer)
         p = float(file_size_dl) / file_size
         status = r"{0}  [{1:.2%}]".format(file_size_dl, p)
-        #status = status + chr(8)*(len(status)+1)
-        #sys.stdout.write(status)
         
     f.close()
 
@@ -90,24 +84,23 @@ def update_exe_file():
     newfile=os.path.join(tmpDir,os.path.basename(sys.executable))
     download_file(lastClientVersion[1],newfile)
     newfile_checksum = compute_checksum(newfile)
+    time.sleep(5)
+
     if(lastClientVersion[0] != newfile_checksum):
-        tkMessageBox.showwarning("SECURITY ALERT", "Downloaded file Checksum mismatch \n Expected: "+lastClientVersion[0] +"\n Found  : "+ newfile_checksum )
+        tkMessageBox.showwarning("Client Update", "Downloaded file Checksum mismatch \n Expected: "+lastClientVersion[0] +"\nFound  : "+ newfile_checksum \
+        + "\nUpdate stopped.")        
         os.remove(newfile)
     else:
+        global batchfilename
         if(sys.platform=='win32'):
             batchfilename=os.path.join(tmpDir,"RCM_update.bat")
-            tkMessageBox.showwarning("Debug", "Writing batch file: {0}".format(batchfilename))
             batchfile=open(batchfilename, 'wb')
             batchfile.write("rem start update bat"+"\n")
-            tkMessageBox.showwarning("Debug", "Writing on batch file: {0}".format("rem start update bat"))
             batchfile.write("cd /D "+exe_dir+"\n")
             batchfile.write("copy mybatch.bat mybatch.txt\n")
-            #batchfile.write("copy mybatch.bat mybatch1.txt\n")
-            batchfile.write('ping -n 5 localhost >nul 2>&1'+"\n")
+            batchfile.write('ping -n 3 localhost >nul 2>&1'+"\n")
             batchfile.write("del mybatch.txt\n")
-            #batchfile.write('ping -n 10 localhost >nul 2>&1'+"\n")
             batchfile.write("ren "+os.path.basename(sys.executable)+" _"+os.path.basename(sys.executable)+"\n")
-            tkMessageBox.showwarning("Debug", "Writing on batch file: {0}".format("copy "+newfile))
             batchfile.write("copy "+newfile+"\n")
             batchfile.write("del "+" _"+os.path.basename(sys.executable)+"\n")
             batchfile.write("del "+newfile+"\n")
@@ -115,7 +108,7 @@ def update_exe_file():
             batchfile.write("del "+batchfilename+"\n")
             batchfile.write("exit\n")
             batchfile.close()
-            tkMessageBox.showwarning("Debug", "Starting batch file: {0}".format(batchfilename))
+            tkMessageBox.showinfo("Client Update", "The application will be closed and the new one will start in a while!")
             os.startfile(batchfilename)
         else:
             batchfilename=os.path.join(tmpDir,"RCM_update.sh")
@@ -123,23 +116,19 @@ def update_exe_file():
             batchfile.write("#!/bin/bash\n")
             batchfile.write("#start update bat"+"\n")
             batchfile.write("cd "+exe_dir+"\n")
-            batchfile.write("sleep 5 \n")
+            batchfile.write("sleep 3 \n")
             batchfile.write("rm "+os.path.basename(sys.executable)+"\n")
             batchfile.write("cp "+newfile+" .\n")
             batchfile.write("chmod a+x "+os.path.basename(sys.executable)+"\n")
             batchfile.write("./"+os.path.basename(sys.executable)+"\n")
-            #batchfile.write("rm "+batchfilename+"\n")
-
             batchfile.close()
-            batchfile.close()
-            #os.startfile(batchfilename)
+            tkMessageBox.showinfo("Client Update", "The application will be closed and the new one will start in a while!")
             os.system("sh "+batchfilename+ " &") 
                     
 class Login(Frame):
     def __init__(self, master=None,action=None):
         
         #Read configuration file
-        #self.configFileName = os.path.join(tempfile.gettempdir(),'RCM.cfg')
         self.configFileName = os.path.join(os.path.expanduser('~'),'.rcm','RCM.cfg')
         userName=""
         self.customDisplayDimension=''
@@ -191,7 +180,6 @@ class Login(Frame):
             if checkCredential:
                 self.destroy()
                 self.quit()
-                #if(self.debug): print('Logged in')
                 return
             else:
                 tkMessageBox.showwarning("Error","Authentication failed!")
@@ -237,34 +225,40 @@ class ConnectionWindow(Frame):
         button["font"]=boldfont
         button.grid( row=0,column=1 )
         
-        self.check_version()
-        self.refresh()
+        #StatusBar = Label(self.master, text="idle..", relief=RIDGE  )
+        #StatusBar.pack({"side":"left", "expand":"yes", "fill":"x"})       
+        self.check_version();
+
     
     @safe_debug_off   
     def check_version(self):
         t = threading.Thread(target=self.check_versionThread)
         t.start()
 
+
     def check_versionThread(self):
         try:
-            self.q.put( (self.master.config(cursor="watch"),))
+            self.q.put( (self.startProgress,) )
             if('frozen' in dir(sys)):
                 currentChecksum = compute_checksum(sys.executable)
                 global lastClientVersion
                 lastClientVersion = self.client_connection.get_version()
-                self.q.put( (self.master.config(cursor=""),))
-                if(currentChecksum != lastClientVersion[0]):
-                    self.q.put( (self.showVersionDialog,) )
-
+                
+                self.q.put( (self.checkVersionDialog,currentChecksum) )
+                
+                self.q.put( (self.stopProgress,) )
         except Exception as e:
             self.q.put( (self.raiseException, e) )
          
-    def showVersionDialog(self):
-        verDialog = newVersionDialog(self)
-        if (verDialog.result == True):
-            update_exe_file()
-
-            self.master.quit()
+    def checkVersionDialog(self, currentChecksum):
+        if(currentChecksum != lastClientVersion[0]):
+            verDialog = newVersionDialog(self)
+            if (verDialog.result == True):
+                self.q.put( (self.startProgress,) )
+                update_exe_file()
+                self.master.quit()
+        rt = threading.Thread(target=self.refreshThread)
+        rt.start()
             
        
     @safe_debug_off
@@ -354,7 +348,7 @@ class ConnectionWindow(Frame):
             self.q.put( (self.startProgress,) )
             self.client_connection.kill(sessionid)
             
-            #qdel takes dome time...
+            #qdel takes some time...
             time.sleep(5)
 
             refreshList = self.client_connection.list()
@@ -459,7 +453,8 @@ class newVersionDialog(tkSimpleDialog.Dialog):
         var.set(url)
         ent.config(textvariable=var, relief='flat', highlightthickness=0)
         ent.grid(row=1)
-        Label(master, text="Do you want to download it?").grid(row=2)
+        Label(master, text="It is highly recommended to install the new version to keep working properly.").grid(row=2)
+        Label(master, text="Do you want to install it now?").grid(row=3)
         
         # clone the font, set the underline attribute,
         # and assign it to our widget
