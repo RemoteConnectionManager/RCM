@@ -264,7 +264,7 @@ class ConnectionWindow(Frame):
             if (verDialog.result == True):
                 self.q.put( (self.startProgress,) )
                 self.statusBarText.set("Downloading new version client...")
-                update_exe_file(self)
+                update_exe_file()
                 self.master.quit()
         self.refresh()
             
