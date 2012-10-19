@@ -210,8 +210,6 @@ class ConnectionWindow(Frame):
         w = Label(self.f1, text='Welcome to the Remote Connection Manager!', height=2)
         w.grid( row=1,column=0)
         
-        
-        
         self.f2 = Frame(self)
         self.f2.grid( row=1,column=0) 
         button = Button(self.f2, text="NEW DISPLAY", borderwidth=2, command=self.submit)
@@ -228,7 +226,7 @@ class ConnectionWindow(Frame):
         self.status.pack(side=BOTTOM, fill=X)
 
         #check version after mainloop is started
-        self.after(1000,self.check_version)
+        self.after(500,self.check_version)
     
     @safe_debug_off   
     def check_version(self):       
@@ -239,11 +237,14 @@ class ConnectionWindow(Frame):
             lastClientVersion = self.client_connection.get_version()
             
             if(currentChecksum != lastClientVersion[0]):
+                self.stopBusy()
                 verDialog = newVersionDialog(self)
                 if (verDialog.result == True):
                     self.startBusy("Downloading new version client...")
                     update_exe_file()
+                    self.stopBusy()
                     self.master.quit()
+        self.stopBusy()        
         self.refresh()
 
        
@@ -367,7 +368,7 @@ class ConnectionWindow(Frame):
         
         refreshList = self.client_connection.list()
         self.update_sessions(refreshList)
-        sself.startBusy("Connecting to the remote display...")
+        self.startBusy("Connecting to the remote display...")
         time.sleep(2)
         self.client_connection.vncsession(newconn, newconn.hash['otp'], self.connection_buttons[newconn.hash['sessionid']][1] )
         self.after(2000,self.stopBusy)
@@ -382,13 +383,15 @@ class ConnectionWindow(Frame):
 
     def startBusy(self, text):
         self.master.config(cursor="watch")
-        self.master.update_idletasks()
         self.statusBarText.set(text)
-        self.status.update_idletasks()
+        self.update()
+        self.update_idletasks()
         
     def stopBusy(self):
         self.master.config(cursor="")
         self.statusBarText.set("Idle")
+        self.update()
+        self.update_idletasks()
         
         
 class newVersionDialog(tkSimpleDialog.Dialog):
