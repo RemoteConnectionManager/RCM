@@ -302,7 +302,10 @@ class ConnectionWindow(Frame):
                     
                     def cmd(self=self, session=el,disable_cmd=disable_cmd):
                         if(self.debug): print "connecting to session", session.hash['sessionid']
+                        self.startBusy("Connecting to the remote display...")
                         self.client_connection.vncsession(session,gui_cmd=disable_cmd)
+                        self.after(2000,self.stopBusy)
+                        
                     bc.configure( command=cmd )
                     if sessionid in self.client_connection.activeConnectionsList:
                         bc.configure(state=DISABLED)
@@ -348,7 +351,6 @@ class ConnectionWindow(Frame):
             tkMessageBox.showwarning("Warning", "Queue not found...")
             return
         
-        #self.showDisplayDialog()
         dd = newDisplayDialog(self)
                 
         if dd.displayDimension == NONE:
@@ -365,9 +367,10 @@ class ConnectionWindow(Frame):
         
         refreshList = self.client_connection.list()
         self.update_sessions(refreshList)
+        sself.startBusy("Connecting to the remote display...")
         time.sleep(2)
         self.client_connection.vncsession(newconn, newconn.hash['otp'], self.connection_buttons[newconn.hash['sessionid']][1] )
-        self.stopBusy()
+        self.after(2000,self.stopBusy)
  
     @safe_debug_off
     def refresh(self):       
