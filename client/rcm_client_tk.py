@@ -31,6 +31,7 @@ def safe(debug=False):
             try:
                 return f(*l_args, **d_args)
             except Exception as e:
+                stopBusy()
                 if debug:
                     import traceback
                     tkMessageBox.showwarning("Error","in {0}: {1}\n{2}".format(f.__name__, e,traceback.format_exc()))
