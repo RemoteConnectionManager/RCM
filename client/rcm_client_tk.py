@@ -7,17 +7,13 @@ import rcm
 
 
 from Tkinter import *
-import ttk
 import tkMessageBox
 import tkSimpleDialog
 import time
 import ConfigParser
 import datetime
-import threading
-import Queue
 import tkFont
 import hashlib
-import webbrowser
 import urllib2
 import tempfile
 
@@ -184,7 +180,7 @@ class Login(Frame):
             else:
                 tkMessageBox.showwarning("Error","Authentication failed!")
                 return
-                
+            
     
     def make_entry(self, caption, width=None, **options):
         Label(self, text=caption).pack(side=TOP)
@@ -208,12 +204,6 @@ class ConnectionWindow(Frame):
         self.master.geometry("800x115+200+200")
         self.master.minsize(800,80)
         
-        self.q = Queue.Queue()
-        self.updateGUI()
-        
-        #self.progressbar = ttk.Progressbar(orient=HORIZONTAL, length=200, mode='determinate')
-        #self.progressbar.pack(side="top")
-        
         self.f1=None
         self.f1 = Frame(self, width=500, height=100)
         self.f1.grid( row=0,column=0) 
@@ -234,35 +224,28 @@ class ConnectionWindow(Frame):
                 
         self.statusBarText = StringVar()
         self.statusBarText.set("Idle")
-        status = Label(self.master, textvariable=self.statusBarText, bd=1, relief=SUNKEN, anchor=W)
-        status.pack(side=BOTTOM, fill=X)
-        self.check_version();
+        self.status = Label(self.master, textvariable=self.statusBarText, bd=1, relief=SUNKEN, anchor=W)
+        self.status.pack(side=BOTTOM, fill=X)
+
+        #check version after mainloop is started
+        self.after(1000,self.check_version)
     
     @safe_debug_off   
-    def check_version(self):
-        t = threading.Thread(target=self.check_versionThread)
-        t.start()
-
-    def check_versionThread(self):
-        try:
-            self.q.put( (self.startBusy,"Checking new client version...") )
-            if('frozen' in dir(sys)):
-                currentChecksum = compute_checksum(sys.executable)
-                global lastClientVersion
-                lastClientVersion = self.client_connection.get_version()
-                self.q.put( (self.checkVersionDialog,currentChecksum) )
-        except Exception as e:
-            self.q.put( (self.raiseException, e) )
-         
-    def checkVersionDialog(self, currentChecksum):
-        if(currentChecksum != lastClientVersion[0]):
-            verDialog = newVersionDialog(self)
-            if (verDialog.result == True):
-                self.q.put( (self.startBusy,"Downloading new version client...") )
-                update_exe_file()
-                self.master.quit()
-        self.refresh()
+    def check_version(self):       
+        self.startBusy("Checking new client version...")
+        if('frozen' in dir(sys)):
+            currentChecksum = compute_checksum(sys.executable)
+            global lastClientVersion
+            lastClientVersion = self.client_connection.get_version()
             
+            if(currentChecksum != lastClientVersion[0]):
+                verDialog = newVersionDialog(self)
+                if (verDialog.result == True):
+                    self.startBusy("Downloading new version client...")
+                    update_exe_file()
+                    self.master.quit()
+        self.refresh()
+
        
     @safe_debug_off
     def update_sessions(self,ss):
@@ -343,124 +326,67 @@ class ConnectionWindow(Frame):
 
     @safe_debug_off
     def kill(self, sessionid):  
-        threading.Thread(target=self.killThread, args=(sessionid,)).start()
+        self.startBusy("Killing the remote display...")
+        self.client_connection.kill(sessionid)
         
-  
-    def killThread(self, sessionid):
-        try:
-            self.q.put( (self.startBusy,"Killing the remote display...") )
-            self.client_connection.kill(sessionid)
-            
-            #qdel takes some time...
-            time.sleep(5)
+        #qdel takes some time...
+        time.sleep(5)
 
-            refreshList = self.client_connection.list()
-            self.q.put( (self.update_sessions, refreshList) )
-            self.q.put( (self.stopBusy,) )
-            
-        except Exception as e:
-            self.q.put( (self.raiseException, e) )
+        refreshList = self.client_connection.list()
+        self.update_sessions(refreshList)
+        self.stopBusy()
+  
 
     @safe_debug_off
     def submit(self):
-        t = threading.Thread(target=self.queueThread).start()
+        self.startBusy("Waiting for queue list...")
+        global queueList
+        queueList = self.client_connection.get_queue()
+        self.stopBusy()
+        if(self.debug): print "Queue list: ", queueList
+        if queueList == ['']:
+            tkMessageBox.showwarning("Warning", "Queue not found...")
+            return
         
-    def queueThread(self):
-        try:
-            self.q.put( (self.startBusy,"Waiting for queue list...") )
-
-            global queueList
-            queueList = self.client_connection.get_queue()
-            if(self.debug): print "Queue list: ", queueList
-            if queueList == ['']:
-                tkMessageBox.showwarning("Warning", "Queue not found...")
-                self.q.put( (self.stopBusy,) )
-                return
-            
-            self.q.put( (self.showDisplayDialog,) )
-            #self.q.put( (self.stopBusy,) )
-        except Exception as e:
-            self.q.put( (self.raiseException, e) )
-              
-        
-    def showDisplayDialog(self):
+        #self.showDisplayDialog()
         dd = newDisplayDialog(self)
                 
         if dd.displayDimension == NONE:
-            self.q.put( (self.stopBusy,) )
+            self.stopBusy()
             return
         
         self.displayDimension = dd.displayDimension
         self.queue = dd.queue.get()
-        t = threading.Thread(target=self.newDisplayThread).start()
-            
-    def newDisplayThread(self):
-        try:
-            self.q.put( (self.startBusy,"Creating a new remote display...") )
-            if(self.debug): print "Requesting new connection"
-            newconn=self.client_connection.newconn(self.queue, self.displayDimension)
+        self.startBusy("Creating a new remote display...")
+        if(self.debug): print "Requesting new connection"
+        newconn=self.client_connection.newconn(self.queue, self.displayDimension)
 
-            if(self.debug): print "New connection aquired"
-            
-            refreshList = self.client_connection.list()
-            self.q.put( (self.update_sessions, refreshList) )
-            time.sleep(2)
-            self.q.put( (self.client_connection.vncsession, newconn, newconn.hash['otp'], self.connection_buttons[newconn.hash['sessionid']][1] ) )
-
-            if(self.debug): print "End submit"     
-            self.q.put( (self.stopBusy,) )
-        except Exception as e:
-            self.q.put( (self.raiseException, e) )
-            
+        if(self.debug): print "New connection aquired"
+        
+        refreshList = self.client_connection.list()
+        self.update_sessions(refreshList)
+        time.sleep(2)
+        self.client_connection.vncsession(newconn, newconn.hash['otp'], self.connection_buttons[newconn.hash['sessionid']][1] )
+        self.stopBusy()
  
     @safe_debug_off
-    def refresh(self):
-        t = threading.Thread(target=self.refreshThread)
-        t.start()
-                
-    def refreshThread(self):
-        try:
-            self.q.put( (self.startBusy,"Rereshing display list...") )
-            if(self.debug): print "Refresh connection list"
-            refreshList = self.client_connection.list()
-            self.q.put( (self.update_sessions, refreshList) )
-            if(self.debug): print "End Refresh connection list"
-            self.q.put( (self.stopBusy,) )
-        except Exception as e:
-            self.q.put( (self.raiseException, e) )
-        
-    def raiseException(self, error):
-        #self.stopBusy()
-        self.q.put( (self.stopBusy,) )
-        self.q.put( (self.master.config(cursor=""),))
-        self.statusBarText.set("Idle")
-        tkMessageBox.showwarning("Error", error)
-        
-    
-    def updateGUI(self):
-        try:
-            while True :
-                items = self.q.get_nowait()
-                print items
-                func = items[0]
-                if func:
-                    args = items[1:]
-                    func(*args)
-        except Queue.Empty:
-            pass
-        self.after(100, self.updateGUI)
+    def refresh(self):       
+        self.startBusy("Rereshing display list...")
+        refreshList = self.client_connection.list()
+        self.update_sessions(refreshList)
+        self.stopBusy()
+            
 
     def startBusy(self, text):
-        #self.progressbar.configure(mode='indeterminate')
-        #self.progressbar.start()
         self.master.config(cursor="watch")
+        self.master.update_idletasks()
         self.statusBarText.set(text)
+        self.status.update_idletasks()
         
     def stopBusy(self):
-        #self.progressbar.stop()  
-        #self.progressbar.configure(mode='determinate')
         self.master.config(cursor="")
         self.statusBarText.set("Idle")
+        
         
 class newVersionDialog(tkSimpleDialog.Dialog):
 
@@ -493,7 +419,6 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
     def body(self, master):
 
         #Read configuration file
-        #self.configFileName = os.path.join(tempfile.gettempdir(),'RCM.cfg')
         self.configFileName = os.path.join(os.path.expanduser('~'),'.rcm','RCM.cfg')
         self.userName=''
         self.customDisplayDimension=''
