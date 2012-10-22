@@ -45,6 +45,7 @@ def safe(debug=False):
 safe_debug_on = safe(True)
 safe_debug_off = safe(False)
 
+@safe_debug_off
 def compute_checksum(filename):
     fh = open(filename, 'rb')
     m = hashlib.md5()
@@ -54,7 +55,8 @@ def compute_checksum(filename):
             break
         m.update(data)
     return m.hexdigest()
-        
+   
+@safe_debug_off     
 def download_file(url,outfile):
     file_name = url.split('/')[-1]
     u = urllib2.urlopen(url)
@@ -75,6 +77,7 @@ def download_file(url,outfile):
         
     f.close()
 
+@safe_debug_off
 def update_exe_file():
     exe_dir=os.path.dirname(sys.executable)
     tmpDir = tempfile.gettempdir()
@@ -171,7 +174,6 @@ class Login(Frame):
         w.pack(side=TOP)
         titleFrame.pack() 
            
-
         loginFrame = Frame(self, padx = 20, bd=8)
         Label(loginFrame, text="User name: ",height=2).grid(row=0)
         Label(loginFrame, text="Password:",height=2).grid(row=1)
@@ -195,7 +197,8 @@ class Login(Frame):
        
     def enter(self,event):
         self.login()
-        
+    
+    @safe_debug_off
     def login(self):     
         if  (self.user.get() and self.password.get()):
             #Write configuration file

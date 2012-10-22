@@ -57,9 +57,9 @@ class SessionThread( threading.Thread ):
                 # OTP authentication
                 child.sendline(self.otp)
             elif i == 3 or i == 4:
-                if(self.debug): print "Timeout connecting to the display"
+                if(self.debug): print "Timeout connecting to the display."
                 if(self.gui_cmd): self.gui_cmd(active=False)
-                raise Exception("Timeout connecting to the display")
+                raise Exception("Timeout connecting to the display.")
                
             child.expect(pexpect.EOF, timeout=None)           
             #if(self.gui_cmd): self.gui_cmd(active=False)
@@ -207,7 +207,7 @@ class rcm_client_connection:
                 returncode = 1
                 return (returncode,myout,myerr)
             if i==3:
-                raise Exception("Timeout contacting the server")
+                raise Exception("Timeout contacting the server.")
 
             myout = child.before
             myout = myout.lstrip()
@@ -355,10 +355,10 @@ class rcm_client_connection:
                 elif i==2: #use PKI
                     return True
                 if i==3:
-                    raise Exception("Timeout checking credential")
+                    raise Exception("Timeout checking credential.")
                     
         except Exception as e:
-            raise Exception("Check credential failed with error: {0}\n".format(e))
+            raise Exception("Check credential failed.\n")
             
     
 if __name__ == '__main__':
