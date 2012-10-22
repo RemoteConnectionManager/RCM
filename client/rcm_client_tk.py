@@ -156,7 +156,7 @@ class Login(Frame):
             self.basedir = os.path.dirname(os.path.abspath(sys.executable))
           self.debug=False
         else:
-          self.basedir = os.path.dirname(os.path.abspath(__file__))
+          self.basedir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         
         imagePath = os.path.join(self.basedir,'client','logo_cineca.gif')
         
@@ -228,6 +228,10 @@ class Login(Frame):
 class ConnectionWindow(Frame):
        
     @safe_debug_off
+    def deathHandler(self, event):
+        if(self.debug): print self, " main app win has been closed . killing vnc connections"
+        self.client_connection.vncsession_kill()
+        
     def __init__(self, master=None,rcm_client_connection=None):
         self.debug=True
         Frame.__init__(self, master)
@@ -258,7 +262,8 @@ class ConnectionWindow(Frame):
         self.statusBarText.set("Idle")
         self.status = Label(self.master, textvariable=self.statusBarText, bd=1, relief=SUNKEN, anchor=W)
         self.status.pack(side=BOTTOM, fill=X)
-
+        
+        self.bind("<Destroy>", self.deathHandler)
         #check version after mainloop is started
         self.after(500,self.check_version)
     

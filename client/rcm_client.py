@@ -29,11 +29,18 @@ class SessionThread( threading.Thread ):
         self.gui_cmd=gui_cmd
         self.password = passwd
         self.otp = otp
+        self.vnc_process = None
+        self.tunnel_process = None
         threading.Thread.__init__ ( self )
         self.threadnum = SessionThread.threadscount
         SessionThread.threadscount += 1
         if(self.debug): print 'This is thread ' + str ( self.threadnum ) + ' init.'
 
+    def terminate( self ):
+        self.gui_cmd=None
+        if(self.vnc_process):
+            self.vnc_process.kill()
+            self.tunnel_process.kill()
     def run ( self ):
         if(self.debug):
             print 'This is thread ' + str ( self.threadnum ) + ' run.'
@@ -65,10 +72,10 @@ class SessionThread( threading.Thread ):
             #if(self.gui_cmd): self.gui_cmd(active=False)
         else:
             if(self.debug): print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command.replace(self.password,"****") , "<--"
-            tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
-            tunnel_process.stdin.close()
+            self.tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
+            self.tunnel_process.stdin.close()
             while True:
-                o = tunnel_process.stdout.readline()
+                o = self.tunnel_process.stdout.readline()
                 #print "into the while!-->",o
                 if o == '' and tunnel_process.poll() != None: continue
                 if(self.debug):
@@ -76,9 +83,9 @@ class SessionThread( threading.Thread ):
                 if o.strip() == 'pippo' : break
             if(self.debug):
                 print "starting vncviewer-->"+self.vnc_command.replace(self.password,"****")+"<--"
-            vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
-            vnc_process.stdin.close()
-            vnc_process.wait()
+            self.vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False)
+            self.vnc_process.stdin.close()
+            self.vnc_process.wait()
         if(self.gui_cmd): self.gui_cmd(active=False)
 
 
@@ -139,7 +146,7 @@ class rcm_client_connection:
         else:
             if(self.debug): print "VNC exec -->",vncexe,"<-- NOT FOUND !!!"
             exit()
-        
+        self.session_thread=[]
 
     def login_setup(self, remoteuser='',password=''):
         self.proxynode='login.plx.cineca.it'
@@ -310,8 +317,14 @@ class rcm_client_connection:
         else:
             tunnel_command=''
             vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
-        SessionThread ( tunnel_command, vnc_command, self.passwd, self.autopass, gui_cmd, self.debug).start()
-        
+        st=SessionThread ( tunnel_command, vnc_command, self.passwd, self.autopass, gui_cmd, self.debug)
+        if(self.debug): print "!!!!!session thread--->",st,"\n"
+        self.session_thread.append(st)
+        st.start()
+
+    def vncsession_kill(self):
+        for t in self.session_thread:
+           t.terminate()
     def checkCredential(self):
         #check user credential 
         #If user use PKI, I can not check password validity
