@@ -7,6 +7,7 @@ import rcm
 
 
 from Tkinter import *
+import ttk
 import tkMessageBox
 import tkSimpleDialog
 import time
@@ -31,7 +32,6 @@ def safe(debug=False):
             try:
                 return f(*l_args, **d_args)
             except Exception as e:
-                stopBusy()
                 if debug:
                     import traceback
                     tkMessageBox.showwarning("Error","in {0}: {1}\n{2}".format(f.__name__, e,traceback.format_exc()))
@@ -43,7 +43,7 @@ def safe(debug=False):
     return safedec
 
 safe_debug_on = safe(True)
-safe_debug_off = safe(True)
+safe_debug_off = safe(False)
 
 def compute_checksum(filename):
     fh = open(filename, 'rb')
@@ -140,19 +140,60 @@ class Login(Frame):
                     
 
         Frame.__init__(self, master)
-        self.pack( padx=10, pady=10 )
+        self.pack( padx=20, pady=30 )
         self.master.title("RCM Login:")
         self.action=action
         self.master.geometry("+200+200")
+        
+        #CINECA LOGO       
+        if('frozen' in dir(sys)):
+          if(os.environ.has_key('_MEIPASS2')):
+            self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
+          else:
+            self.basedir = os.path.dirname(os.path.abspath(sys.executable))
+          self.debug=False
+        else:
+          self.basedir = os.path.dirname(os.path.abspath(__file__))
+        
+        imagePath = os.path.join(self.basedir,'client','logo_cineca.gif')
+        
+        im = PhotoImage(file=imagePath)
+        lbl = ttk.Label(self, image=im, relief=GROOVE, border=2)
+        lbl.image = im
+        lbl.pack(side=TOP)
+        
+        w = Label(self, text='WELCOME TO THE REMOTE CONNECTION MANAGER!', height=2)
+        w["font"]=boldfont
+        w.pack(side=TOP)
+        
+##        print "verison: " +rcmVerson
+##        w = Label(self, text='version: '+ rcmVerson, height=1)
+##        w.pack(side=TOP)
+        
+        w = Label(self, text='Please sign in.', height=1)
+        w.pack(side=TOP)
+    
+
+        loginFrame = Frame(self, padx = 20)
+        Label(loginFrame, text="User name: ",height=2).grid(row=0)
+        Label(loginFrame, text="Password:",height=2).grid(row=1)
+
         self.user = StringVar()
         self.user.set(userName)
-        user_entry = self.make_entry( "User name:", 16, textvariable=self.user)
+        userEntry = Entry(loginFrame, textvariable=self.user)
         self.password = StringVar()
-        password_entry = self.make_entry( "Password:", 16, textvariable=self.password, show="*")
-        self.b = Button(self, borderwidth=2, text="Login", width=10, pady=8, command=self.login)
+        passwordEntry = Entry(loginFrame, textvariable=self.password, show="*")
+
+        userEntry.grid(row=0, column=1)
+        passwordEntry.grid(row=1, column=1) 
+        loginFrame.pack(anchor=W)       
+
+        self.b = Button(self, borderwidth=2, text="LOGIN", width=10, pady=8, command=self.login)
+        self.b["font"]=boldfont
         self.b.pack(side=BOTTOM)
-        password_entry.bind('<Return>', self.enter)
-        user_entry.focus_set()
+        passwordEntry.bind('<Return>', self.enter)
+        userEntry.focus_set()
+
        
     def enter(self,event):
         self.login()
@@ -181,15 +222,6 @@ class Login(Frame):
             else:
                 tkMessageBox.showwarning("Error","Authentication failed!")
                 return
-            
-    
-    def make_entry(self, caption, width=None, **options):
-        Label(self, text=caption).pack(side=TOP)
-        entry = Entry(self, **options)
-        if width:
-            entry.config(width=width)
-        entry.pack(side=TOP, padx=10, fill=BOTH)
-        return entry
 
 
 class ConnectionWindow(Frame):
@@ -208,7 +240,7 @@ class ConnectionWindow(Frame):
         self.f1=None
         self.f1 = Frame(self, width=500, height=100)
         self.f1.grid( row=0,column=0) 
-        w = Label(self.f1, text='Welcome to the Remote Connection Manager!', height=2)
+        w = Label(self.f1, text='Please wait...', height=2)
         w.grid( row=1,column=0)
         
         self.f2 = Frame(self)
@@ -391,8 +423,8 @@ class ConnectionWindow(Frame):
     def stopBusy(self):
         self.master.config(cursor="")
         self.statusBarText.set("Idle")
-        self.update()
-        self.update_idletasks()
+##        self.update()
+##        self.update_idletasks()
         
         
 class newVersionDialog(tkSimpleDialog.Dialog):
@@ -463,14 +495,12 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
         Radiobutton(master, text=self.text[1], padx = 20,variable=self.v, value=1, command=self.enableEntry).pack(anchor=W)
         self.e1.pack(padx = 20, anchor=W)
         return self.e1
-        
     
     def enableEntry(self):
         if  self.v.get() == 1:
             self.e1.config(state=NORMAL)
         else:
             self.e1.config(state=DISABLED)
-                
     
     def apply(self):
         if  self.v.get() == 0:
@@ -493,7 +523,6 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
         return
             
     
-    
 class rcm_client_connection_GUI(rcm_client.rcm_client_connection):
     def __init__(self):
         rcm_client.rcm_client_connection.__init__(self)
@@ -504,8 +533,6 @@ class rcm_client_connection_GUI(rcm_client.rcm_client_connection):
         if checkCredential:
             gui = ConnectionWindow(rcm_client_connection=self)
             gui.mainloop()
-           
-            
 
 
 if __name__ == '__main__':

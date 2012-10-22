@@ -60,11 +60,10 @@ class SessionThread( threading.Thread ):
                 raise Exception("Timeout connecting to the display")
                
             child.expect(pexpect.EOF, timeout=None)           
-            if(self.gui_cmd): self.gui_cmd(active=False)
+            #if(self.gui_cmd): self.gui_cmd(active=False)
         else:
             if(self.debug): print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command.replace(self.password,"****") , "<--"
             tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
-            #tunnel_process.stderr.close()
             tunnel_process.stdin.close()
             while True:
                 o = tunnel_process.stdout.readline()
@@ -76,10 +75,9 @@ class SessionThread( threading.Thread ):
             if(self.debug):
                 print "starting vncviewer-->"+self.vnc_command.replace(self.password,"****")+"<--"
             vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
-            #vnc_process.stderr.close()
             vnc_process.stdin.close()
             vnc_process.wait()
-            if(self.gui_cmd): self.gui_cmd(active=False)
+        if(self.gui_cmd): self.gui_cmd(active=False)
 
 
 
