@@ -162,8 +162,8 @@ class Login(Frame):
         lbl.image = im
         lbl.pack(side=TOP)
         
-        titleFrame = Frame(self, padx = 10, bd=10)
-        w = Label(titleFrame, text='WELCOME TO THE REMOTE CONNECTION MANAGER!', height=1)
+        titleFrame = Frame(self, padx = 1, bd=10)
+        w = Label(titleFrame, text='REMOTE CONNECTION MANAGER', height=1)
         w["font"]=boldfont
         w.pack(side=TOP)
 
@@ -178,9 +178,9 @@ class Login(Frame):
 
         self.user = StringVar()
         self.user.set(userName)
-        userEntry = Entry(loginFrame, textvariable=self.user)
+        userEntry = Entry(loginFrame, textvariable=self.user, width=16)
         self.password = StringVar()
-        passwordEntry = Entry(loginFrame, textvariable=self.password, show="*")
+        passwordEntry = Entry(loginFrame, textvariable=self.password, show="*", width=16)
 
         userEntry.grid(row=0, column=1)
         passwordEntry.grid(row=1, column=1) 

@@ -358,7 +358,7 @@ class rcm_client_connection:
                     raise Exception("Timeout checking credential")
                     
         except Exception as e:
-            raise Exeception("check credential failed with error: {0}\n".format(e))
+            raise Exception("Check credential failed with error: {0}\n".format(e))
             
     
 if __name__ == '__main__':
