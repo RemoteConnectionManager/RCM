@@ -7,6 +7,8 @@ import getpass
 import subprocess
 import threading
 
+rcmVersion = ""
+
 
 if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
 	import pexpect
@@ -113,11 +115,11 @@ class rcm_client_connection:
         #Read file containing the platform on which the client were build
         buildPlatform = os.path.join(self.basedir,"external","build_platform.txt")
         self.buildPlatformString = ""
-        self.rcmVersion = ""
+        global rcmVersion
         if (os.path.exists(buildPlatform)):
             in_file = open(buildPlatform,"r")
             self.buildPlatformString = in_file.readline()
-            self.rcmVersion = in_file.readline()
+            rcmVersion = in_file.readline()
             in_file.close()
         
         self.sshexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['ssh'][sys.platform][0])

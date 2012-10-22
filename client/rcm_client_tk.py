@@ -162,19 +162,17 @@ class Login(Frame):
         lbl.image = im
         lbl.pack(side=TOP)
         
-        w = Label(self, text='WELCOME TO THE REMOTE CONNECTION MANAGER!', height=2)
+        titleFrame = Frame(self, padx = 10, bd=10)
+        w = Label(titleFrame, text='WELCOME TO THE REMOTE CONNECTION MANAGER!', height=1)
         w["font"]=boldfont
         w.pack(side=TOP)
-        
-##        print "verison: " +rcmVerson
-##        w = Label(self, text='version: '+ rcmVerson, height=1)
-##        w.pack(side=TOP)
-        
-        w = Label(self, text='Please sign in.', height=1)
-        w.pack(side=TOP)
-    
 
-        loginFrame = Frame(self, padx = 20)
+        w = Label(titleFrame, text='version: '+ rcm_client.rcmVersion, height=1)
+        w.pack(side=TOP)
+        titleFrame.pack() 
+           
+
+        loginFrame = Frame(self, padx = 20, bd=8)
         Label(loginFrame, text="User name: ",height=2).grid(row=0)
         Label(loginFrame, text="Password:",height=2).grid(row=1)
 
@@ -186,7 +184,7 @@ class Login(Frame):
 
         userEntry.grid(row=0, column=1)
         passwordEntry.grid(row=1, column=1) 
-        loginFrame.pack(anchor=W)       
+        loginFrame.pack()       
 
         self.b = Button(self, borderwidth=2, text="LOGIN", width=10, pady=8, command=self.login)
         self.b["font"]=boldfont
@@ -233,7 +231,7 @@ class ConnectionWindow(Frame):
         self.client_connection=rcm_client_connection
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
-        self.master.title("Remote Connection Manager " + rcm_client_connection.rcmVersion +" - CINECA")
+        self.master.title("Remote Connection Manager " + rcm_client.rcmVersion +" - CINECA")
         self.master.geometry("800x115+200+200")
         self.master.minsize(800,80)
         
