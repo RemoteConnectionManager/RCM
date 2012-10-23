@@ -32,6 +32,7 @@ def safe(debug=False):
             try:
                 return f(*l_args, **d_args)
             except Exception as e:
+                l_args[0].stopBusy()
                 if debug:
                     import traceback
                     tkMessageBox.showwarning("Error","in {0}: {1}\n{2}".format(f.__name__, e,traceback.format_exc()))
@@ -233,7 +234,7 @@ class ConnectionWindow(Frame):
         self.client_connection.vncsession_kill()
         
     def __init__(self, master=None,rcm_client_connection=None):
-        self.debug=True
+        self.debug=False
         Frame.__init__(self, master)
         self.client_connection=rcm_client_connection
         self.connection_buttons=dict()
@@ -344,7 +345,7 @@ class ConnectionWindow(Frame):
                         if(self.debug): print "connecting to session", session.hash['sessionid']
                         self.startBusy("Connecting to the remote display...")
                         self.client_connection.vncsession(session,gui_cmd=disable_cmd)
-                        self.after(2000,self.stopBusy)
+                        self.after(4000,self.stopBusy)
                         
                     bc.configure( command=cmd )
                     if sessionid in self.client_connection.activeConnectionsList:
@@ -410,7 +411,7 @@ class ConnectionWindow(Frame):
         self.startBusy("Connecting to the remote display...")
         time.sleep(2)
         self.client_connection.vncsession(newconn, newconn.hash['otp'], self.connection_buttons[newconn.hash['sessionid']][1] )
-        self.after(2000,self.stopBusy)
+        self.after(4000,self.stopBusy)
  
     @safe_debug_off
     def refresh(self):       
@@ -429,8 +430,6 @@ class ConnectionWindow(Frame):
     def stopBusy(self):
         self.master.config(cursor="")
         self.statusBarText.set("Idle")
-##        self.update()
-##        self.update_idletasks()
         
         
 class newVersionDialog(tkSimpleDialog.Dialog):

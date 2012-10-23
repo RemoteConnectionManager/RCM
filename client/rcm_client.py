@@ -94,7 +94,7 @@ class SessionThread( threading.Thread ):
 class rcm_client_connection:
 
     def __init__(self,proxynode='login.plx.cineca.it', user_account='', remoteuser='',password=''):
-        self.debug=True
+        self.debug=False
         self.config=dict()
         self.config['ssh']=dict()
         self.config['vnc']=dict()
