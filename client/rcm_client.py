@@ -39,7 +39,9 @@ class SessionThread( threading.Thread ):
     def terminate( self ):
         self.gui_cmd=None
         if(self.vnc_process):
+            if(self.debug): print "Killing vnc process-->",self.vnc_process
             self.vnc_process.kill()
+            if(self.debug): print "Killing tunnel process-->",self.tunnel_process
             self.tunnel_process.kill()
     def run ( self ):
         if(self.debug):
@@ -81,11 +83,31 @@ class SessionThread( threading.Thread ):
                 if(self.debug):
                     print "output from process---->"+o.strip()+"<---"
                 if o.strip() == 'pippo' : break
+            a=self.vnc_command.split("|")
             if(self.debug):
                 print "starting vncviewer-->"+self.vnc_command.replace(self.password,"****")+"<--"
-            self.vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False)
+                print "splitting-->",a,"<--"
+            if(len(a)>1):
+                tmppass=a[0].strip().split()[1].strip()
+                commandlist=a[1].strip()
+            else:
+                tmppass=None
+                commandlist=self.vnc_command.split()
+                if(self.debug):
+                    print "vncviewer tmp  pass-->",tmppass,"<--"
+            if(self.debug):
+                print "vncviewer command-->",commandlist,"<--"
+                
+            #self.vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
+            self.vnc_process=subprocess.Popen(commandlist , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False)
+            if(tmppass):
+                self.vnc_process.stdin.write(tmppass)
+                o=self.vnc_process.communicate()
+                if(self.debug):
+                    print "vnc res-->",o,"<--"
             self.vnc_process.stdin.close()
             self.vnc_process.wait()
+            self.vnc_process=None
         if(self.gui_cmd): self.gui_cmd(active=False)
 
 
@@ -336,15 +358,19 @@ class rcm_client_connection:
                 myprocess.stdin.close()
                 #myprocess=subprocess.Popen(self.ssh_remote_exec_command, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
                 output= ''
+                result=None
                 while True:
                     out = myprocess.stdout.read(1)
                     if out == '' and process.poll() != None:
                         break
                     output += out
                     if 'password' in output:
-                        return False
+                        result=False
                     if 'Welcome to' in output:
-                        return True 
+                        result=True 
+                    if(result != None):
+                        myprocess.kill()
+                        return result
             else:      
                 ssh_newkey = 'Are you sure you want to continue connecting'
                 # my ssh command line
