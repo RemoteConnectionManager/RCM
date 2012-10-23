@@ -448,6 +448,11 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       if sid in self.sids['run']:
         jid=self.sessions[sid].hash['jobid']
         cprex(['qdel',jid])
+	file='%s/%s.session' % (self.get_rcmdirs()[0],sid)
+    	c=rcm.rcm_session(fromfile=file)
+	c.hash['state']='killed'
+	c.serialize(file)
+
       else:
         norun.append(sid)
     if (norun):
