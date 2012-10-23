@@ -319,6 +319,8 @@ class ConnectionWindow(Frame):
                         if(self.debug): print "killing session", sessionid
                         self.kill(sessionid)
                         
+                    if(el.hash['sessionid'] == 'killed'):
+                        continue
                     bk = Button( f1, text="KILL", borderwidth=2, command=cmd )
                     bk["font"]=boldfont
                     bk.grid( row=line+1, column=1 )
@@ -372,9 +374,6 @@ class ConnectionWindow(Frame):
     def kill(self, sessionid):  
         self.startBusy("Killing the remote display...")
         self.client_connection.kill(sessionid)
-        
-        #qdel takes some time...
-        time.sleep(5)
 
         refreshList = self.client_connection.list()
         self.update_sessions(refreshList)
