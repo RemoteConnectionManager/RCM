@@ -319,7 +319,7 @@ class ConnectionWindow(Frame):
                         if(self.debug): print "killing session", sessionid
                         self.kill(sessionid)
                         
-                    if(el.hash['sessionid'] == 'killed'):
+                    if(el.hash['state'] == 'killed'):
                         continue
                     bk = Button( f1, text="KILL", borderwidth=2, command=cmd )
                     bk["font"]=boldfont
