@@ -388,12 +388,16 @@ class rcm_client_connection:
                     if i==0:
                         p.sendline('\r')
                         if(self.debug): print "Permission denied"
+                        p.close()
                         return False 
                     elif i==1:
-                         return True
+                        p.close()
+                        return True
                 elif i==2: #use PKI
+                    p.close()
                     return True
                 if i==3:
+                    p.close()
                     raise Exception("Timeout checking credential.")
                     
         except Exception as e:
