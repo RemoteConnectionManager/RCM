@@ -400,9 +400,6 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     raise Exception("Timeouted (%d seconds) job not correcty running!!!" % (timeout) )
 
   def execute_list(self):
-    raise Exception( 'A new client version is available at https://hpc-forge.cineca.it/files/RemoteGraph/public/clients/RCM/.\n\
-    Please download the new one to keep working!') 
-    
     self.load_sessions()
     s=rcm.rcm_sessions()
     for sid in self.sids['run']:
