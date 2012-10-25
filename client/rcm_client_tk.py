@@ -283,7 +283,7 @@ class ConnectionWindow(Frame):
                     self.startBusy("Downloading new version client...")
                     update_exe_file()
                     self.stopBusy()
-                    self.master.quit()
+                    self.master.destroy()
         self.stopBusy()        
         self.refresh()
 
