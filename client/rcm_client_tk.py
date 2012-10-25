@@ -284,6 +284,7 @@ class ConnectionWindow(Frame):
                     update_exe_file()
                     self.stopBusy()
                     self.master.destroy()
+                    return
         self.stopBusy()        
         self.refresh()
 
