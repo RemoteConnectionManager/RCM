@@ -6,6 +6,10 @@ import shutil
 import sys
 
 
+for arg in sys.argv: 
+    print "args " + arg
+
+if len(sys.argv) > 1: print 'Custom platfrom: ' + sys.argv[1]
 
 build = os.path.dirname(os.path.abspath(__file__))
 root = os.path.dirname(build)
@@ -18,7 +22,15 @@ tmpDir = tempfile.gettempdir()
 tmpFile = os.path.join(tmpDir,'rcm_client_tk.spec')
 print "Tmp dir: ",tmpDir
 
-shutil.copyfile(os.path.join(root,'spec_files','rcm_client_tk.spec'), tmpFile)
+if len(sys.argv) > 1:
+    #insert exe file name in tmp spec file
+    with open(tmpFile, "wt") as out:
+        for line in open(os.path.join(root,'spec_files','rcm_client_tk.spec')):
+            out.write(line.replace('customPlatform=\'\'', 'customPlatform=\''+ sys.argv[1] +'\''))
+else:
+    shutil.copyfile(os.path.join(root,'spec_files','rcm_client_tk.spec'), tmpFile)
+    
+    
 
 os.chdir(tmpDir)
 if(sys.platform == 'darwin'):
