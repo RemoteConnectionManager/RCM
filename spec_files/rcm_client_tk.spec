@@ -22,24 +22,24 @@ rcmVersion = rcmVersion.rstrip()
 
 
 outFile = 'RCM_'
+myplatform=sys.platform + '_' + platform.architecture()[0]
+file_suffix=""
+
 if(sys.platform == 'win32'):
     data_files=[('external/'+sys.platform+'/'+platform.architecture()[0]+'/bin/vncviewer.exe', os.path.join(ROOTPATH,'client','external',sys.platform,platform.architecture()[0],'bin','vncviewer.exe'), 'DATA'),('external/'+sys.platform+'/'+platform.architecture()[0]+'/bin/PLINK.EXE', os.path.join(ROOTPATH,'client','external',sys.platform,platform.architecture()[0],'bin','PLINK.EXE'), 'DATA')]
-    if(customPlatform):
-        outFile += customPlatform
-        myplatform = customPlatform
-    else:
-        outFile += myplatform +'.exe'
+    file_suffix=".exe"
 else:
-    myplatform=sys.platform + '_' + platform.architecture()[0]
     data_files=[('external/'+sys.platform+'/'+platform.architecture()[0]+'/bin/vncviewer', os.path.join(ROOTPATH,'client','external',sys.platform,platform.architecture()[0],'bin','vncviewer'), 'DATA')]
     if sys.platform.startswith('linux'):
         myplatform += '_' + platform.linux_distribution()[0] + '_' + platform.linux_distribution()[1]
-    if(customPlatform):
-        outFile += customPlatform
-        myplatform = customPlatform
-    else:
-        outFile += myplatform
         
+if(customPlatform):
+    outFile += customPlatform
+    myplatform = customPlatform
+else:
+    outFile += myplatform 
+outFile += file_suffix
+
 print "Building ----> ",outFile
 
 print "------------->" , data_files
