@@ -7,7 +7,6 @@ import rcm
 
 
 from Tkinter import *
-import ttk
 import tkMessageBox
 import tkSimpleDialog
 import time
@@ -162,7 +161,7 @@ class Login(Frame):
         imagePath = os.path.join(self.basedir,'client','logo_cineca.gif')
         
         im = PhotoImage(file=imagePath)
-        lbl = ttk.Label(self, image=im, relief=GROOVE, border=2)
+        lbl = Label(self, image=im, relief=GROOVE, border=2)
         lbl.image = im
         lbl.pack(side=TOP)
         
