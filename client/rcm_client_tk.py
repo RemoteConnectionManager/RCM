@@ -414,7 +414,7 @@ class ConnectionWindow(Frame):
  
     @safe_debug_off
     def refresh(self):       
-        self.startBusy("Rereshing display list...")
+        self.startBusy("Refreshing display list...")
         refreshList = self.client_connection.list()
         self.update_sessions(refreshList)
         self.stopBusy()
