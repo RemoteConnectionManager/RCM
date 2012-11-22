@@ -502,14 +502,27 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       reservations = filter(None, reservations)
     for i in reservations:
       resId = i.replace('Name: ', '')
+      
       p1 = subprocess.Popen(["pbs_rstat","-F", resId], stdout=subprocess.PIPE)
-      p2 = subprocess.Popen(["grep", "Reserve_Name"], stdin=p1.stdout, stdout=subprocess.PIPE)
-      p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
-      stdout,stderr = p2.communicate()
-      if (p2.returncode != 0) :
-        raise Exception( 'pbs_rstat returned non zero value: ' + stderr) 
-      else:
-        if 'visual' in stdout:
+      stdout,stderr = p1.communicate()
+      outputLines=stdout.split('\n')
+
+      r = dict()
+      r["reserveName"]=["",re.compile('^Reserve_Name = (.*)')]
+      r["reserveStart"]=["",re.compile('^reserve_start = (.*)')]
+      r["reserveEnd"]=["",re.compile('^reserve_end = (.*)')]
+    
+      for l in outputLines:
+	for n in r.keys():
+          m = r[n][1].match(l)
+          if m:
+            r[n][0] = m.group(1) 
+	    #print "matched: " + r[n][0]
+
+      starttime=datetime.datetime.strptime(r["reserveStart"][0], "%a %b %d %H:%M:%S %Y")
+      endtime=datetime.datetime.strptime(r["reserveEnd"][0], "%a %b %d %H:%M:%S %Y")
+      now = datetime.datetime.now()
+      if 'visual' in r["reserveName"][0] and now >= starttime and now <= endtime:
           queueList.append(resId.split('.')[0])
      ############################### 
       
