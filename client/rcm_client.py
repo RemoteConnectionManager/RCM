@@ -43,6 +43,7 @@ class SessionThread( threading.Thread ):
             self.vnc_process.kill()
             if(self.debug): print "Killing tunnel process-->",self.tunnel_process
             self.tunnel_process.kill()
+            
     def run ( self ):
         if(self.debug):
             print 'This is thread ' + str ( self.threadnum ) + ' run.'
@@ -285,7 +286,7 @@ class rcm_client_connection:
         
         if (r != 0):
             if(self.debug): print e
-            raise Exception("Killling session -> {0} <- failed with error: {1}".format(sessionid, e))
+            raise Exception("Killing session -> {0} <- failed with error: {1}".format(sessionid, e))
   
     def get_otp(self,sessionid):
 

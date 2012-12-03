@@ -239,7 +239,7 @@ class ConnectionWindow(Frame):
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
         self.master.title("Remote Connection Manager " + rcm_client.rcmVersion +" - CINECA")
-        self.master.geometry("800x115+200+200")
+        self.master.geometry("800x115")
         self.master.minsize(800,80)
         
         self.f1=None
@@ -340,8 +340,10 @@ class ConnectionWindow(Frame):
                             else:
                                 button.configure(state=ACTIVE)
                                 self.client_connection.activeConnectionsList.remove(sessionid)
+                        self.after(2000,self.refresh)
                                 
                     self.connection_buttons[sessionid]=(bc,disable_cmd)
+                    
                     
                     def cmd(self=self, session=el,disable_cmd=disable_cmd):
                         if(self.debug): print "connecting to session", session.hash['sessionid']
