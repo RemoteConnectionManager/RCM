@@ -131,6 +131,7 @@ class rcm_client_connection:
         if(sys.platform == 'win32'):
           self.config['remote_rcm_server']="module load profile/advanced; module load autoload RCM; python $RCM_HOME/bin/server/rcm_server.py"
         else:
+          #
           self.config['remote_rcm_server']="module load profile/advanced; module load autoload RCM 2>/dev/null; python $RCM_HOME/bin/server/rcm_server.py"
         #finding out the basedir, it depends if we are running as executable pyinstaler or as script
         if('frozen' in dir(sys)):
@@ -316,7 +317,7 @@ class rcm_client_connection:
 
         if (r != 0):
             if(self.debug): print e
-            raise Exception("Getting available queue -> {0} <- failed with error: {1}".format(sessionid, e))
+            raise Exception("Getting available queue failed with error: {0}".format(e))
             return ''
         else:
             return o.split(' ')
