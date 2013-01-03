@@ -14,6 +14,7 @@ import datetime
 sys.path.append( sys.path[0] )
 import ConfigParser
 import rcm
+import rcm_server_pbs as rcm_scheduler
 #import pickle
 
 def prex(cmd):
@@ -25,13 +26,6 @@ def prex(cmd):
   stdout,stderr = myprocess.communicate()
   myprocess.wait()                        
   return (myprocess.returncode,stdout,stderr)     
-
-def cprex(cmd):
-  (r,o,e)=prex(cmd)
-  if (r != 0):
-    print e
-    raise Exception("command {0} failed with error: {1}".format([cmd[0],cmd[-1]],e))
-  return (r,o,e)
 
 
 def short_jobid(long_jobid):
@@ -73,32 +67,7 @@ class rcm_server:
     
   def __init__(self,pars):
     self.max_user_session=2
-    self.qsub_template="""#!/bin/bash
-#PBS -l walltime=$RCM_WALLTIME
-#PBS -N $RCM_SESSIONID
-#PBS -o $RCM_JOBLOG
 
-##following line is probably needed for a bug in PBS thad slows down the scheduling ... ask Federico
-##maybe we can take down Qlist=visual
-#PBS -l "$RCM_QUEUEPARAMETER"
-
-#PBS -j oe
-#PBS -q $RCM_QUEUE
-
-## to be substituted by the proper account: either specific for the queue if the accounting is disabled or to be
-## selected by the user when the accounting will be activated
-$RCM_DIRECTIVE_A
-
-##the following line specify the specific group for controlling access to the queue ( not accounting)
-##while on testing this is fixed, equal to account group
-
-$RCM_DIRECTIVE_W
-
-. /cineca/prod/environment/module/3.1.6/none/init/bash
-module purge
-module load  /cineca/prod/modulefiles/advanced/tools/TurboVNC/1.0.90
-$RCM_VNCSERVER -otp -fg -novncauth > $RCM_JOBLOG.vnc 2>&1
-"""
     self.executable=sys.argv[0]
     self.parameters=sys.argv[1:]
     self.username=pwd.getpwuid(os.geteuid())[0]
@@ -211,27 +180,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
   # - running
   # - with name matching: rcm-<alphanum>-<num>
   def get_jobs(self,U=False):
-    (retval,stdout,stderr)=prex(['qstat'])
-    if (retval != 0 ) :
-      sys.write.stderr(stderr);
-      raise Exception( 'qstat returned non zero value: ' + str(retval) )
-    else:
-      raw=stdout.split('\n')
-      if (U):
-        ure='\w+'
-      else:
-        ure=self.par_u
-      #258118.node351    rcm-cin0449a-10  cin0449a          00:00:06 R visual          
-#original..single queue      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>rcm-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ visual  ' % (ure,ure) ,re.VERBOSE)
-      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>rcm-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ ' % (ure,ure) ,re.VERBOSE)
-      jobs={}
-      for j in raw:
-        mo=r.match(j)
-        if (mo): 
-          sid=mo.group('sid')
-          jid=mo.group('jid')
-          jobs[sid]=jid
-      return(jobs)
+    return rcm_scheduler.get_jobs(self, U)
+    
 
   def get_rcmdirs(self,U=False):
     if (U):
@@ -351,35 +301,6 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
         os.remove(f)
     
 
-  def submit_job(self,sid):
-    s=string.Template(self.qsub_template)
-    otp='%s/%s.otp' % (self.get_rcmdirs()[0],sid)
-    if(os.path.isfile(otp)):
-      os.remove(otp)
-    file='%s/%s.job' % (self.get_rcmdirs()[0],sid)
-    fileout='%s/%s.joblog' % (self.get_rcmdirs()[0],sid)
-    
-    group = self.getQueueGroup(self.queue) 
-      
-    #For reserved queue set only "select=1"   
-    queueParameter = "select=1"
-    if(not self.queue.startswith('R')):
-      queueParameter += ":Qlist=" + self.queue + ":viscons=1"
-    rcm_directive_A = self.groupSubstitution(group,'#PBS -A $RCM_GROUP')
-    rcm_directive_W = self.groupSubstitution(group,'#PBS -W group_list=$RCM_GROUP')
-
-    batch=s.substitute(RCM_WALLTIME=self.par_w,RCM_SESSIONID=sid,RCM_JOBLOG=fileout,RCM_DIRECTIVE_A=rcm_directive_A,RCM_DIRECTIVE_W=rcm_directive_W,RCM_QUEUE=self.queue,RCM_QUEUEPARAMETER=queueParameter,RCM_VNCSERVER=self.vncserver_string)
-
-    f=open(file,'w')
-    f.write(batch)
-    f.close()
-    (res,out,err)=cprex(['qsub','-v',"RCM_OTP_FILE="+otp,file])
-    r=re.match(r'(\d+\.\w+)(\.[\w\.]+)?$',out)
-    if (r):
-      return r.group(1)
-    else:
-      raise Exception("Unknown qsub output: %s" % (out))
-
   def wait_jobout(self,sid,timeout):
     r=re.compile(r"""^New 'X' desktop is (?P<node>\w+):(?P<display>\d+)""",re.MULTILINE)
     otp_regex=re.compile(r"""^Full control one-time password: (?P<otp>\d+)""",re.MULTILINE)
@@ -421,20 +342,21 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     self.load_sessions()
     sid=self.new_sid()
     self.clean_files(sid)
-    file='%s/%s.session' % (self.get_rcmdirs()[0],sid)
+    udirs=self.get_rcmdirs()
+    file='%s/%s.session' % (udirs[0],sid)
     #put the 'inactive' lock
     c=rcm.rcm_session(state='init',sessionid=sid)
     c.serialize(file)
     jid='NOT_SUBMITTED'
     try:
-      jid=self.submit_job(sid)
+      jid=rcm_scheduler.submit_job(self,sid,udirs)
       (n,d,otp)=self.wait_jobout(sid,20)
       n+='ib0'
     except Exception as e:
       c=rcm.rcm_session(state='invalid',sessionid=sid)
       c.serialize(file)
       if (jid != 'NOT_SUBMITTED'):
-        x=prex(['qdel',jid])
+        rcm_scheduler.kill_job(self, jid)   
       raise Exception("Error in execute_new:{0}".format(e))
     c=rcm.rcm_session(state='valid',walltime=self.par_w,node=n,display=d,jobid=jid,sessionid=sid,username=self.par_u,otp=otp)
     c.serialize(file)
@@ -447,7 +369,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     for sid in self.par_command_args:
       if sid in self.sids['run']:
         jid=self.sessions[sid].hash['jobid']
-        cprex(['qdel',jid])
+        rcm_scheduler.kill_job(self,jid)
 	file='%s/%s.session' % (self.get_rcmdirs()[0],sid)
     	c=rcm.rcm_session(fromfile=file)
 	c.hash['state']='killed'
@@ -473,72 +395,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     sys.exit(1)
 
   def execute_queue(self):
-    #get list of possible queue (named "visual")
-    queueList = []
-    
-    p1 = subprocess.Popen(["qstat","-q"], stdout=subprocess.PIPE)
-    #p2 = subprocess.Popen(["grep", "-E","(visual|^R)"], stdin=p1.stdout, stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(["grep", "visual"], stdin=p1.stdout, stdout=subprocess.PIPE)
-    p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
-    stdout,stderr = p2.communicate()
-    if (p2.returncode != 0) :
-      raise Exception( 'qstat returned non zero value: ' + stderr) 
-    else:
-      row=stdout.split('\n')
-      row = filter(None, row)
-    for j in row:
-      queueList.append(j.split(' ')[0])
-      
-    #############################
-    #check "visual" reserved queue
-    p1 = subprocess.Popen(["pbs_rstat","-F"], stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(["grep", "Name:"], stdin=p1.stdout, stdout=subprocess.PIPE)
-    p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
-    stdout,stderr = p2.communicate()
-    if (p2.returncode != 0) :
-      raise Exception( 'pbs_rstat returned non zero value: ' + stderr) 
-    else:
-      reservations=stdout.split('\n')
-      reservations = filter(None, reservations)
-    for i in reservations:
-      resId = i.replace('Name: ', '')
-      
-      p1 = subprocess.Popen(["pbs_rstat","-F", resId], stdout=subprocess.PIPE)
-      stdout,stderr = p1.communicate()
-      outputLines=stdout.split('\n')
-
-      r = dict()
-      r["reserveName"]=["",re.compile('^Reserve_Name = (.*)')]
-      r["reserveStart"]=["",re.compile('^reserve_start = (.*)')]
-      r["reserveEnd"]=["",re.compile('^reserve_end = (.*)')]
-    
-      for l in outputLines:
-	for n in r.keys():
-          m = r[n][1].match(l)
-          if m:
-            r[n][0] = m.group(1) 
-	    #print "matched: " + r[n][0]
-
-      starttime=datetime.datetime.strptime(r["reserveStart"][0], "%a %b %d %H:%M:%S %Y")
-      endtime=datetime.datetime.strptime(r["reserveEnd"][0], "%a %b %d %H:%M:%S %Y")
-      now = datetime.datetime.now()
-      if 'visual' in r["reserveName"][0] and now >= starttime and now <= endtime:
-          queueList.append(resId.split('.')[0])
-     ############################### 
-      
-    #try to submit in each queue of the list
-    queueListcopy = list(queueList);
-    for tmpQueue in queueListcopy:
-      group = self.getQueueGroup(tmpQueue)
-      #For reserved queue set only "select=1"   
-      queueParameter = "select=1"
-      if(not tmpQueue.startswith('R')):
-        queueParameter += ":Qlist=" + tmpQueue + ":viscons=1"
-    
-      p1 = subprocess.Popen(["qsub", "-l", "walltime=0:00:01", "-l", "select=1", "-q",tmpQueue, "-o","/dev/null", "-e","/dev/null" ] + self.groupSubstitution(group, "-A $RCM_GROUP -W group_list=$RCM_GROUP").split() + [ "--","echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-      stdout,stderr=p1.communicate() 
-      if len(stderr) > 0:
-        queueList.remove(tmpQueue)
+    queueList = rcm_scheduler.get_queue(self)
     
     #return the list of avilable queue
     sys.stdout.write(self.serverOutputString)
@@ -580,48 +437,3 @@ if __name__ == '__main__':
     sys.exit(1)
 
 
-	
-  
-"""
-jid=$(qsub -o ~/rcm/rubbish/ -e ~/rcm/rubbish/ ~/rcm/lenta1.qsub) ; res=$?
-j=${jid%%.*}
-if [[ $res -ne 0 ]] ; then
-  echo "ERR: comando qsub non funzia"
-  exit 1
-fi
-#sleep 1
-q=$(qstat -f $jid )
-state=$(echo "$q" | grep job_state | awk 'BEGIN{FS=" = "}{print $2}')
-echo $state | grep -q 'R' ; res=$?
-COUNTER=0
-while [[ $res -ne 0 ]]; do
-  sleep 1
-  q=$(qstat -f $jid )
-  state=$(echo "$q" | grep job_state | awk 'BEGIN{FS=" = "}{print $2}');
-  echo $state | grep -q 'R' ; res=$?
-  echo " Waiting... "  
-  let COUNTER=COUNTER+1
-  if [[ ${COUNTER} -gt 30 ]]; then
-     qdel $jid
-     exit 1
-  fi
-done
-
-echo $state | grep -q 'R' ; res=$?
-if [[ $res -ne 0 ]] ; then
-  echo "ERR: job $jid non diventa running"
-  echo " I kill it! "
-  qdel $jid
-  exit 1
-fi
-node=$(echo "$q" | grep exec_host | awk 'BEGIN{FS=" = "}{print $2}')
-node=${node%%/*}
-sleep 2
-vnc=$( cat ~/rcm/vnclog.$jid | grep 'desktop is' | awk 'BEGIN{FS=":"}{print $2}' )
-cat <<EOF
-jid:$jid
-node:$node
-vnc:$vnc
-EOF
-exit 0
-"""
