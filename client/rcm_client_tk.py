@@ -31,7 +31,7 @@ def safe(debug=False):
             try:
                 return f(*l_args, **d_args)
             except Exception as e:
-                l_args[0].stopBusy()
+                #l_args[0].stopBusy()
                 if debug:
                     import traceback
                     tkMessageBox.showwarning("Error","in {0}: {1}\n{2}".format(f.__name__, e,traceback.format_exc()))
@@ -175,8 +175,15 @@ class Login(Frame):
         titleFrame.pack() 
            
         loginFrame = Frame(self, padx = 20, bd=8)
-        Label(loginFrame, text="User name: ",height=2).grid(row=0)
-        Label(loginFrame, text="Password:",height=2).grid(row=1)
+        
+                
+        Label(loginFrame, text="""Login to:""").grid(row=0)
+        self.cluster = StringVar()
+        self.cluster.set("PLX")
+        OptionMenu(loginFrame, self.cluster, "PLX","FERMI").grid(row=0, column=1, sticky=W)
+        
+        Label(loginFrame, text="User name: ",height=2).grid(row=1)
+        Label(loginFrame, text="Password:",height=2).grid(row=2)
 
         self.user = StringVar()
         self.user.set(userName)
@@ -184,8 +191,8 @@ class Login(Frame):
         self.password = StringVar()
         passwordEntry = Entry(loginFrame, textvariable=self.password, show="*", width=16)
 
-        userEntry.grid(row=0, column=1)
-        passwordEntry.grid(row=1, column=1) 
+        userEntry.grid(row=1, column=1)
+        passwordEntry.grid(row=2, column=1) 
         loginFrame.pack()       
 
         self.b = Button(self, borderwidth=2, text="LOGIN", width=10, pady=8, command=self.login)
@@ -215,7 +222,7 @@ class Login(Frame):
             
             #Start login only if all the entry are filled
             global checkCredential 
-            checkCredential = self.action(self.user.get(), self.password.get())
+            checkCredential = self.action(self.cluster.get(), self.user.get(), self.password.get())
             if checkCredential:
                 self.destroy()
                 self.quit()

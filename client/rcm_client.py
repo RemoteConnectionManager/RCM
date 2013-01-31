@@ -172,8 +172,15 @@ class rcm_client_connection:
             exit()
         self.session_thread=[]
 
-    def login_setup(self, remoteuser='',password=''):
-        self.proxynode='login.plx.cineca.it'
+    def login_setup(self, cluster='', remoteuser='',password=''):
+       
+        if (cluster == "PLX"):
+            self.proxynode='login.plx.cineca.it'
+        elif (cluster == "FERMI"):
+            self.proxynode='login.fermi.cineca.it'
+        if(self.debug): print "Login cluster: " + self.proxynode
+
+            
         
         if (remoteuser == ''):
             self.remoteuser=raw_input("Remote user: ")
