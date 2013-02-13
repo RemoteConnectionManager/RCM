@@ -4,4 +4,4 @@ module load profile/advanced
 module load autoload VirtualGL
 module load autoload ParaView
 
-vglrun  paraview
+vglrun  paraview $@

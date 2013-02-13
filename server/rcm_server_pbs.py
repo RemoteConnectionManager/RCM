@@ -79,7 +79,12 @@ $RCM_VNCSERVER -otp -fg -novncauth > $RCM_JOBLOG.vnc 2>&1
     if(not self.queue.startswith('R')):
       queueParameter += ":Qlist=" + self.queue + ":viscons=1"
     rcm_directive_A = self.groupSubstitution(group,'#PBS -A $RCM_GROUP')
-    rcm_directive_W = self.groupSubstitution(group,'#PBS -W group_list=$RCM_GROUP')
+
+    #Industrial users do not have to use -W group_list
+    if( self.par_u.startswith('a06',0,3) ):
+      rcm_directive_W = ''
+    else:
+      rcm_directive_W = self.groupSubstitution(group,'#PBS -W group_list=$RCM_GROUP')
 
     batch=s.substitute(RCM_WALLTIME=self.par_w,RCM_SESSIONID=sid,RCM_JOBLOG=fileout,RCM_DIRECTIVE_A=rcm_directive_A,RCM_DIRECTIVE_W=rcm_directive_W,RCM_QUEUE=self.queue,RCM_QUEUEPARAMETER=queueParameter,RCM_VNCSERVER=self.vncserver_string)
 
