@@ -15,7 +15,18 @@ sys.path.append( sys.path[0] )
 import ConfigParser
 import rcm
 
-self.platform_config()
+config = ConfigParser.RawConfigParser()
+myPath =  os.path.dirname(os.path.abspath(__file__))
+config.read(os.path.join(myPath, 'platform.cfg'))
+nodepostfix = ''
+importString=''
+try:
+    importString="rcm_server_"+config.get('platform','batchscheduler')
+    nodepostfix=config.get('platform','nodepostfix')
+except Exception as e:
+    raise Exception("Error in platform_config:{0}".format(e))
+exec("import "+importString+" as rcm_scheduler")
+
 #import rcm_server_ll as rcm_scheduler
 #import pickle
 
@@ -36,6 +47,7 @@ def short_jobid(long_jobid):
   if (mo):
     sjid=mo.group(1)
   return sjid
+
 
 class rcm_server:
 
