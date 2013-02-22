@@ -361,7 +361,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     try:
       jid=rcm_scheduler.submit_job(self,sid,udirs)
       (n,d,otp)=self.wait_jobout(sid,20)
-      n+='ib0'
+      #n+='ib0'
     except Exception as e:
       c=rcm.rcm_session(state='invalid',sessionid=sid)
       c.serialize(file)
