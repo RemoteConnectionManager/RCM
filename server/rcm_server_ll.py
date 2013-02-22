@@ -39,7 +39,7 @@ def cprex(cmd):
 # submit a LL job
 # stdout and stderr are separated in 2 files
 def submit_job(self,sid,rcm_dirs):
-    self.qsub_template="""
+    self.ll_template="""
 #!/bin/bash
 # @ job_type =serial
 # @ job_name = $RCM_SESSIONID
@@ -58,7 +58,8 @@ module load turbovnc/svn
 $RCM_VNCSERVER -otp -fg -novncauth > $RCM_JOBLOG.vnc 2>&1   
 """
 
-    s=string.Template(self.qsub_template)
+    s=string.Template(self.ll_template)
+    print s
     otp='%s/%s.otp' % (rcm_dirs[0],sid)
     if(os.path.isfile(otp)):
       os.remove(otp)
@@ -67,10 +68,11 @@ $RCM_VNCSERVER -otp -fg -novncauth > $RCM_JOBLOG.vnc 2>&1
       
     batch=s.substitute(RCM_WALLTIME=self.par_w,RCM_SESSIONID=sid,RCM_JOBLOG=fileout,RCM_QUEUE=self.queue,RCM_VNCSERVER=self.vncserver_string)
 
+    
     f=open(file,'w')
     f.write(batch)
     f.close()
-    (res,out,err)=cprex(['llsubmit','-v',"RCM_OTP_FILE="+otp,file])
+    (res,out,err)=cprex(['llsubmit',file])
 
     p = re.compile('^llsubmit:.*job\s+[^"]*"([^"]*)".*')
 
@@ -87,8 +89,8 @@ $RCM_VNCSERVER -otp -fg -novncauth > $RCM_JOBLOG.vnc 2>&1
     ro2 = r2.match(jid_complete)
     if (ro):
         if (ro2):
-            print ro.group(1) + "." + ro2.group(1)
-            return ro.group(1) + "." + ro2.group(1)
+            #add ".0" becuse it's a non contatenated job
+            return (ro.group(1) + "." + ro2.group(1) + ".0").strip()
     
     raise Exception("Unknown llsubmit output: %s" % (out))
 
@@ -110,7 +112,7 @@ def get_queue(self):
 def get_jobs(self, U=False):
     #(retval,stdout,stderr)=prex(['llq'])
     #get list of jobs: blank-delimited list of categories (job name, class, owner)
-    (retval,stdout,stderr)=prex(['llq','-f','%jn','%c','%o'])
+    (retval,stdout,stderr)=prex(['llq','-f','%id','%jn','%c','%o'])
     if (retval != 0 ) :
       sys.write.stderr(stderr);
       raise Exception( 'llq returned non zero value: ' + str(retval) )
@@ -121,8 +123,8 @@ def get_jobs(self, U=False):
       else:
         ure=self.par_u
       #258118.node351    rcm-cin0449a-10  cin0449a          00:00:06 R visual   
-      #rcm-cin0449a-10   serial     rmucci00
-      r=re.compile(r'(?P<sid>rcm-%s-\d+) \s+ (%s) \s+ (%s) ' % (ure,'serial',ure) ,re.VERBOSE)
+      #fen03.47217.0 rcm-cin0449a-10   serial     rmucci00
+      r=re.compile(r'(?P<jid>.*) \s+ (?P<sid>rcm-%s-\d+) \s+ (%s) \s+ (%s) ' % (ure,'serial',ure) ,re.VERBOSE)
       #r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>rcm-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ ' % (ure,ure) ,re.VERBOSE)
       jobs={}
       for j in raw:
@@ -131,4 +133,5 @@ def get_jobs(self, U=False):
           sid=mo.group('sid')
           jid=mo.group('jid')
           jobs[sid]=jid
+      print jobs
       return(jobs)
