@@ -14,7 +14,7 @@ import datetime
 sys.path.append( sys.path[0] )
 import ConfigParser
 import rcm
-import rcm_server_pbs as rcm_scheduler
+import rcm_server_ll as rcm_scheduler
 #import pickle
 
 def prex(cmd):
@@ -185,7 +185,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
 
   def get_rcmdirs(self,U=False):
     if (U):
-      udirs=glob.glob("/plx/user*/*/.rcm")
+      udirs=glob.glob("/fermi/user*/*/.rcm")
     else:
       udirs=[os.path.expanduser("~%s/.rcm" % (self.par_u))]
     return(udirs)
@@ -236,8 +236,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
         type='ini'
       else: 				   
         if sid in jobs.keys():
-          job_jid=jobs[sid]
-          file_jid=ses.hash['jobid']
+          job_jid=jobs[sid].strip()
+          file_jid=ses.hash['jobid'].strip()
           if ( job_jid == file_jid ):
             type='run'
           else:
@@ -302,7 +302,10 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     
 
   def wait_jobout(self,sid,timeout):
+    #Output depends on TurboVNC version!
     r=re.compile(r"""^New 'X' desktop is (?P<node>\w+):(?P<display>\d+)""",re.MULTILINE)
+    r2=re.compile(r"""^Desktop '(.*)' started on display (?P<node>\w+):(?P<display>\d+)""",re.MULTILINE)
+
     otp_regex=re.compile(r"""^Full control one-time password: (?P<otp>\d+)""",re.MULTILINE)
     jobout='%s/%s.joblog.vnc' % (self.get_rcmdirs()[0],sid)
     secs=0
@@ -315,14 +318,21 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
         if (x):
           otp=otp_regex.search(jo)
           return (x.group('node'),x.group('display'),otp.group('otp')) 
+        x=r2.search(jo)
+        if (x):
+          otp=otp_regex.search(jo)
+          return (x.group('node'),x.group('display'),otp.group('otp')) 
       secs+=step
       ##FP sys.stderr.write('Waiting for job output, %d/%d\n' % (secs,timeout) )
       time.sleep(step)
     raise Exception("Timeouted (%d seconds) job not correcty running!!!" % (timeout) )
 
   def execute_list(self):
+    print "HERE"
     self.load_sessions()
+    print "HERE1"
     s=rcm.rcm_sessions()
+    print "HERE2"
     for sid in self.sids['run']:
       s.array.append(self.sessions[sid])
     s.write(self.par_f)
@@ -338,7 +348,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       self.vncserver_string += ' -geometry ' + new_params['geometry']
     if('queue' in new_params):
 	self.queue = new_params['queue']
-
+      
     self.load_sessions()
     sid=self.new_sid()
     self.clean_files(sid)
