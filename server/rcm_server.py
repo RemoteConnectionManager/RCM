@@ -14,7 +14,9 @@ import datetime
 sys.path.append( sys.path[0] )
 import ConfigParser
 import rcm
-import rcm_server_ll as rcm_scheduler
+
+self.platform_config()
+#import rcm_server_ll as rcm_scheduler
 #import pickle
 
 def prex(cmd):
@@ -411,6 +413,22 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     sys.stdout.write(self.serverOutputString)
     sys.stdout.write(' '.join(queueList))
     sys.exit(0)
+    
+  def platform_config(self):
+    config = ConfigParser.RawConfigParser()
+    myPath =  os.path.dirname(os.path.abspath(__file__))
+    config.read(os.path.join(myPath, 'platform.cfg'))
+    nodepostfix = ''
+    importString=''
+    try:
+        importString="rcm_server"+config.get('batchscheduler')
+        nodepostfix=config.get('nodepostfix')
+    except Exception as e:
+        raise Exception("Error in platform_config:{0}".format(e))
+        
+    exec("import "+importString+" as rcm_scheduler")
+    
+    
     
   def execute_version(self):
     buildPlatformString = self.par_command_args[0]
