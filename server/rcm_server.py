@@ -114,7 +114,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     self.par_u=self.username
     self.par_f='0'
     self.par_h=False
-    self.par_w="06:00:00"
+    self.par_w="12:00:00"
 
     #read arguments
     try:
