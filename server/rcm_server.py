@@ -342,11 +342,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     raise Exception("Timeouted (%d seconds) job not correcty running!!!" % (timeout) )
 
   def execute_list(self):
-    print "HERE"
     self.load_sessions()
-    print "HERE1"
     s=rcm.rcm_sessions()
-    print "HERE2"
     for sid in self.sids['run']:
       s.array.append(self.sessions[sid])
     s.write(self.par_f)
@@ -366,7 +363,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     self.load_sessions()
     sid=self.new_sid()
     self.clean_files(sid)
-    udirs=self.get_rcmdirs()
+    udirs=self.get_rcmdirs()H
     file='%s/%s.session' % (udirs[0],sid)
     #put the 'inactive' lock
     c=rcm.rcm_session(state='init',sessionid=sid)
