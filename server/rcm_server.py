@@ -20,7 +20,7 @@ myPath =  os.path.dirname(os.path.abspath(__file__))
 config.read(os.path.join(myPath, 'platform.cfg'))
 nodepostfix = ''
 importString=''
-walltimelimit="6:00:00"
+walltimelimit="06:00:00"
 try:
     importString="rcm_server_"+config.get('platform','batchscheduler')
     nodepostfix=config.get('platform','nodepostfix')
@@ -201,7 +201,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
 
   def get_rcmdirs(self,U=False):
     if (U):
-      udirs=glob.glob("/fermi/user*/*/.rcm")
+      udirs=glob.glob("/plx/user*/*/.rcm")
     else:
       udirs=[os.path.expanduser("~%s/.rcm" % (self.par_u))]
     return(udirs)
@@ -365,7 +365,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     self.load_sessions()
     sid=self.new_sid()
     self.clean_files(sid)
-    udirs=self.get_rcmdirs()H
+    udirs=self.get_rcmdirs()
     file='%s/%s.session' % (udirs[0],sid)
     #put the 'inactive' lock
     c=rcm.rcm_session(state='init',sessionid=sid)
