@@ -20,9 +20,11 @@ myPath =  os.path.dirname(os.path.abspath(__file__))
 config.read(os.path.join(myPath, 'platform.cfg'))
 nodepostfix = ''
 importString=''
+walltimelimit="6:00:00"
 try:
     importString="rcm_server_"+config.get('platform','batchscheduler')
     nodepostfix=config.get('platform','nodepostfix')
+    walltimelimit=config.get('platform','walltimelimit')
 except Exception as e:
     raise Exception("Error in platform_config:{0}".format(e))
 exec("import "+importString+" as rcm_scheduler")
@@ -114,7 +116,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     self.par_u=self.username
     self.par_f='0'
     self.par_h=False
-    self.par_w="12:00:00"
+    self.par_w=walltimelimit
 
     #read arguments
     try:
