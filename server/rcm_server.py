@@ -38,7 +38,7 @@ def prex(cmd):
     cmdstring+=" '%s'" % (p) 
   #sys.stderr.write("Executing: %s\n" % (cmdstring)  )
   myprocess = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-  stdout,stderr = myprocess.communicate()
+  uuuuuuustderr = myprocess.communicate()
   myprocess.wait()                        
   return (myprocess.returncode,stdout,stderr)     
 
@@ -251,6 +251,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       if ( ses.hash['state'] ==  'init' ): #in initialization phase (probably locked)
         type='ini'
       else: 				   
+        print jobs.keys()
         if sid in jobs.keys():
           job_jid=jobs[sid].strip()
           file_jid=ses.hash['jobid'].strip()

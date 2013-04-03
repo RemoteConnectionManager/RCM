@@ -41,12 +41,12 @@ def cprex(cmd):
 def submit_job(self,sid,rcm_dirs):
     self.ll_template="""
 #!/bin/bash
-# @ job_type =serial
+# @ job_type = serial
 # @ job_name = $RCM_SESSIONID
 # @ output = $RCM_JOBLOG
 # @ error = $RCM_JOBLOG.err
 # @ wall_clock_limit = $RCM_WALLTIME
-# @ class = serial
+# @ class = visual
 # @ queue
 
 #source /fermi/home/userinternal/lcalori0/module_setup.sh
@@ -101,11 +101,11 @@ def kill_job(self,jid):
     cprex(['llcancel',jid])
     
     
-# get available queues for the user (on Fermi only serial?!)
+# get available queues for the user (on Fermi class is visual?!)
 def get_queue(self):
     queueList = []
     #tutti gli utenti possono sottomettere nella cosa serial??
-    queueList.append("serial")
+    queueList.append("visual")
     return queueList
       
 # get running jobs
@@ -124,7 +124,7 @@ def get_jobs(self, U=False):
         ure=self.par_u
       #258118.node351    rcm-cin0449a-10  cin0449a          00:00:06 R visual   
       #fen03.47217.0 rcm-cin0449a-10   serial     rmucci00
-      r=re.compile(r'(?P<jid>.*) \s+ (?P<sid>rcm-%s-\d+) \s+ (%s) \s+ (%s) ' % (ure,'serial',ure) ,re.VERBOSE)
+      r=re.compile(r'(?P<jid>.*) \s+ (?P<sid>rcm-%s-\d+) \s+ (%s) \s+ (%s) ' % (ure,'visual',ure) ,re.VERBOSE)
       #r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>rcm-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ ' % (ure,ure) ,re.VERBOSE)
       jobs={}
       for j in raw:
