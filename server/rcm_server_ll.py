@@ -51,9 +51,9 @@ def submit_job(self,sid,rcm_dirs):
 
 #source /fermi/home/userinternal/lcalori0/module_setup.sh
 
-module use /fermi/home/userinternal/lcalori0/BA/modulefiles/profiles/
-module load lcalori0/advanced
-module load turbovnc/svn
+
+module load profile/advanced
+module load turbovnc
 
 $RCM_VNCSERVER -otp -fg -novncauth > $RCM_JOBLOG.vnc 2>&1   
 """
