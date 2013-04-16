@@ -49,9 +49,6 @@ def submit_job(self,sid,rcm_dirs):
 # @ class = visual
 # @ queue
 
-#source /fermi/home/userinternal/lcalori0/module_setup.sh
-
-
 module load profile/advanced
 module load turbovnc
 
