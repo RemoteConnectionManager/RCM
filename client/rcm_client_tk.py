@@ -16,6 +16,8 @@ import tkFont
 import hashlib
 import urllib2
 import tempfile
+import pickle
+import collections
 
 
 font = ("Helvetica",10, "grey")
@@ -31,7 +33,10 @@ def safe(debug=False):
             try:
                 return f(*l_args, **d_args)
             except Exception as e:
-                #l_args[0].stopBusy()
+                try:
+                    l_args[0].stopBusy()
+                except:
+                    pass
                 if debug:
                     import traceback
                     tkMessageBox.showwarning("Error","in {0}: {1}\n{2}".format(f.__name__, e,traceback.format_exc()))
@@ -132,11 +137,15 @@ class Login(Frame):
         self.configFileName = os.path.join(os.path.expanduser('~'),'.rcm','RCM.cfg')
         userName=""
         self.customDisplayDimension=''
+        self.hostCollections = collections.deque(maxlen=5)
         if(os.path.exists(self.configFileName)):
             try:
                 config = ConfigParser.RawConfigParser()
-                config.read(self.configFileName)
-                userName = config.get('LoginFields', 'username')
+                config.read(self.configFileName)    
+                hostList = config.get('LoginFields', 'hostList')
+                self.hostCollections=pickle.loads(hostList)
+                print list(self.hostCollections)
+               
                 self.customDisplayDimension = config.get('LoginFields', 'displaydimension')
             except:
                 os.remove(self.configFileName)
@@ -178,21 +187,34 @@ class Login(Frame):
         
                 
         Label(loginFrame, text="""Login to:""").grid(row=0)
-        self.cluster = StringVar()
-        self.cluster.set("PLX")
-        OptionMenu(loginFrame, self.cluster, "PLX","FERMI").grid(row=0, column=1, sticky=W)
         
-        Label(loginFrame, text="User name: ",height=2).grid(row=1)
-        Label(loginFrame, text="Password:",height=2).grid(row=2)
+        #OPTIONS = []
+        #OPTIONS = list(hostCollections)
+        if (len(list(self.hostCollections)) == 0):
+            self.hostCollections.append(" ")
+        print list(self.hostCollections)
+
+        self.variable = StringVar(loginFrame)
+        self.variable.set(list(self.hostCollections)[0]) # default value
+
+        OptionMenu(loginFrame, self.variable, *list(self.hostCollections), command=self.fillCredentials).grid(row=0, column=1, sticky=W)        
+        
+        Label(loginFrame, text="Host: ",height=2).grid(row=1)
+        Label(loginFrame, text="User: ",height=2).grid(row=2)
+        Label(loginFrame, text="Password:",height=2).grid(row=3)
+
+        self.host = StringVar()
+        hostEntry = Entry(loginFrame, textvariable=self.host, width=16)
 
         self.user = StringVar()
-        self.user.set(userName)
+        
         userEntry = Entry(loginFrame, textvariable=self.user, width=16)
         self.password = StringVar()
         passwordEntry = Entry(loginFrame, textvariable=self.password, show="*", width=16)
 
-        userEntry.grid(row=1, column=1)
-        passwordEntry.grid(row=2, column=1) 
+        hostEntry.grid(row=1, column=1)
+        userEntry.grid(row=2, column=1)
+        passwordEntry.grid(row=3, column=1) 
         loginFrame.pack()       
 
         self.b = Button(self, borderwidth=2, text="LOGIN", width=10, pady=8, command=self.login)
@@ -201,29 +223,44 @@ class Login(Frame):
         passwordEntry.bind('<Return>', self.enter)
         userEntry.focus_set()
 
-       
+    def fillCredentials(self,v):
+        host = self.variable.get()
+        
+        self.host.set(host.split('@')[1])
+        self.user.set(host.split('@')[0])
+        
+        
     def enter(self,event):
         self.login()
     
     @safe_debug_off
     def login(self):     
-        if  (self.user.get() and self.password.get()):
-            #Write configuration file
-            config = ConfigParser.RawConfigParser()
-            config.add_section('LoginFields')
-            config.set('LoginFields', 'username',self.user.get())
-            config.set('LoginFields', 'displaydimension',self.customDisplayDimension)
-            d = os.path.dirname(self.configFileName)
-            if not os.path.exists(d):
-                os.makedirs(d)
-            
-            with open(self.configFileName, 'wb') as configfile:
-                config.write(configfile)
-            
+        if  (self.host.get() and self.user.get() and self.password.get()):           
+           
             #Start login only if all the entry are filled
             global checkCredential 
-            checkCredential = self.action(self.cluster.get(), self.user.get(), self.password.get())
+            hostCollections = collections.deque(maxlen=5)
+            checkCredential = self.action(self.host.get(), self.user.get(), self.password.get())
             if checkCredential:
+                #Write configuration file
+                config = ConfigParser.RawConfigParser()
+                if not config.has_section('LoginFields'):
+                    config.add_section('LoginFields')
+                    
+
+                self.hostCollections.appendleft(self.user.get()  + '@' + self.host.get())
+                    
+                config.set('LoginFields', 'hostList',pickle.dumps(self.hostCollections))
+                config.set('LoginFields', 'displaydimension',self.customDisplayDimension)
+                d = os.path.dirname(self.configFileName)
+                if not os.path.exists(d):
+                    os.makedirs(d)
+            
+                with open(self.configFileName, 'wb') as configfile:
+                    config.write(configfile)
+                
+                
+                
                 self.destroy()
                 self.quit()
                 return
@@ -367,11 +404,14 @@ class ConnectionWindow(Frame):
                     if t in labelList:
                         lab = Label(f1, text=el.hash[t])
                         if t == 'timeleft':
-                            timeleft = datetime.datetime.strptime(el.hash[t],"%H:%M:%S")
-                            endTime = timeleft.replace(hour=0,minute=0,second=0)
-                            limit = timeleft - endTime
-                            if limit < datetime.timedelta(hours=1):
-                                lab.configure(fg="red")                      
+                            try:
+                                timeleft = datetime.datetime.strptime(el.hash[t],"%H:%M:%S")
+                                endTime = timeleft.replace(hour=0,minute=0,second=0)
+                                limit = timeleft - endTime
+                                if limit < datetime.timedelta(hours=1):
+                                    lab.configure(fg="red")
+                            except:
+                                pass
                         lab.grid( row=line+1, column=i+2 )
                         i = i + 1
             

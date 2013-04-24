@@ -7,6 +7,7 @@ import getpass
 import subprocess
 import threading
 
+
 rcmVersion = ""
 
 
@@ -172,15 +173,10 @@ class rcm_client_connection:
             exit()
         self.session_thread=[]
 
-    def login_setup(self, cluster='', remoteuser='',password=''):
-       
-        if (cluster == "PLX"):
-            self.proxynode='login.plx.cineca.it'
-        elif (cluster == "FERMI"):
-            self.proxynode='login.fermi.cineca.it'
-        if(self.debug): print "Login cluster: " + self.proxynode
-
-            
+    def login_setup(self, host='', remoteuser='',password=''):
+        self.proxynode=host
+        if(self.debug): print "Login host: " + self.proxynode
+           
         
         if (remoteuser == ''):
             self.remoteuser=raw_input("Remote user: ")
@@ -263,7 +259,8 @@ class rcm_client_connection:
             index += len(serverOutputString)
             myout = myout[index:]
             myout = myout.replace('\n', '',1)
-
+        print myout
+        myerr = myout
         return (returncode,myout,myerr)     
 
     def list(self):
