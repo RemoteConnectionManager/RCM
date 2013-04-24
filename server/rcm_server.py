@@ -14,6 +14,8 @@ import datetime
 sys.path.append( sys.path[0] )
 import ConfigParser
 import rcm
+import socket
+import traceback
 
 config = ConfigParser.RawConfigParser()
 myPath =  os.path.dirname(os.path.abspath(__file__))
@@ -28,6 +30,8 @@ try:
 except Exception as e:
     raise Exception("Error in platform_config:{0}".format(e))
 exec("import "+importString+" as rcm_scheduler")
+
+hostname = socket.gethostname()
 
 #import rcm_server_ll as rcm_scheduler
 #import pickle
@@ -116,7 +120,10 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     self.par_u=self.username
     self.par_f='0'
     self.par_h=False
-    self.par_w=walltimelimit
+    if(importString == "rcm_server_ssh"):
+      self.par_w = "~"
+    else:
+      self.par_w=walltimelimit
 
     #read arguments
     try:
@@ -195,8 +202,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
   # - of user (if -R=false) 
   # - running
   # - with name matching: rcm-<alphanum>-<num>
-  def get_jobs(self,U=False):
-    return rcm_scheduler.get_jobs(self, U)
+  def get_jobs(self,sessions,U=False):
+    return rcm_scheduler.get_jobs(self, U, sessions)
     
 
   def get_rcmdirs(self,U=False):
@@ -229,21 +236,24 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
             sid=ro.group(1)
             try:
               self.sessions[sid]=rcm.rcm_session(fromfile=file)
-              try:
-                walltime = datetime.datetime.strptime(self.sessions[sid].hash['walltime'], "%H:%M:%S")
-                endtime=datetime.datetime.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S") + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
-                timedelta = endtime - datetime.datetime.now()
-                #check if timedelta is positive
-                if timedelta <= datetime.timedelta(0):
-                    timedelta = datetime.timedelta(0)
-                self.sessions[sid].hash['timeleft'] = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
-              except:
-                pass
+	      if (importString == "rcm_server_ssh"):
+	        self.sessions[sid].hash['timeleft'] = "~"
+	      else:
+                try:
+                  walltime = datetime.datetime.strptime(self.sessions[sid].hash['walltime'], "%H:%M:%S")
+                  endtime=datetime.datetime.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S") + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
+                  timedelta = endtime - datetime.datetime.now()
+                  #check if timedelta is positive
+                  if timedelta <= datetime.timedelta(0):
+                      timedelta = datetime.timedelta(0)
+                  self.sessions[sid].hash['timeleft'] = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
+                except:
+                  pass
             except Exception as e:
               raise Exception("WARNING: not valid session file %s: %s\n" % (file, e))
 
     #read sessions jobs
-    jobs=self.get_jobs(U=U)
+    jobs=self.get_jobs(self.sessions,U=U)
 
     #match jobs and files
     self.sids={'run':set([]),'err':set([]),'end':set([]),'ini':set([])}
@@ -471,9 +481,9 @@ if __name__ == '__main__':
     c = rcm_server(sys.argv)
     c.execute()
   except Exception as e:
-  #  #send the error to the client
-    sys.stderr.write("{0}RCM:EXCEPTION".format(e))
-    #print e, "RCM:EXCEPTION"
+    #send the error to the client
+    sys.stderr.write("{0}: {1}RCM:EXCEPTION".format(e, traceback.format_exc()))
+
     sys.exit(1)
 
 

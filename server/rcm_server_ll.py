@@ -106,7 +106,7 @@ def get_queue(self):
     return queueList
       
 # get running jobs
-def get_jobs(self, U=False):
+def get_jobs(self, sessions, U=False,):
     #(retval,stdout,stderr)=prex(['llq'])
     #get list of jobs: blank-delimited list of categories (job name, class, owner)
     (retval,stdout,stderr)=prex(['llq','-f','%id','%jn','%c','%o'])

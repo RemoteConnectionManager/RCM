@@ -82,12 +82,11 @@ def kill_job(self,jid):
     #cprex(['kill '+ jid])
     try:
       os.kill(int(jid), 9)
-      print "Running"
     except:
-      print "Not running"
+      pass
     
     
-# get available queues for the user (on Fermi class is visual?!)
+# get available queues for the user (ssh in no job scheduler)
 def get_queue(self):
     queueList = []
     queueList.append("ssh")
@@ -101,12 +100,6 @@ def get_jobs(self, sessions, U=False):
     
     p1 = subprocess.Popen(["ps","-u",self.par_u], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     stdout,stderr = p1.communicate()
-    #p2 = subprocess.Popen(["grep", "Xvnc"], stdin=p1.stdout, stdout=subprocess.PIPE)
-    #p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
-    #stdout,stderr = p2.communicate()
-    #if (p2.returncode != 0) :
-    #  raise Exception( 'ps returned non zero value: ' + stderr) 
-    #else:    
     row=stdout.split('\n')
     row = filter(None, row)
     for j in row:

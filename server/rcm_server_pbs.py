@@ -175,7 +175,7 @@ def get_queue(self):
     return queueList
       
 # get running jobs
-def get_jobs(self, U=False):
+def get_jobs(self, sessions, U=False,):
     (retval,stdout,stderr)=prex(['qstat'])
     if (retval != 0 ) :
       sys.write.stderr(stderr);
