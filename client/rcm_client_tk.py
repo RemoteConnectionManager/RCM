@@ -185,31 +185,24 @@ class Login(Frame):
            
         loginFrame = Frame(self, padx = 20, bd=8)
         
-                
-        Label(loginFrame, text="""Login to:""").grid(row=0)
+        self.host = StringVar()  
+        self.user = StringVar()
+        self.password = StringVar()
         
-        #OPTIONS = []
-        #OPTIONS = list(hostCollections)
-        if (len(list(self.hostCollections)) == 0):
-            self.hostCollections.append(" ")
-        print list(self.hostCollections)
-
-        self.variable = StringVar(loginFrame)
-        self.variable.set(list(self.hostCollections)[0]) # default value
-
-        OptionMenu(loginFrame, self.variable, *list(self.hostCollections), command=self.fillCredentials).grid(row=0, column=1, sticky=W)        
+        if (len(list(self.hostCollections)) > 0):
+            Label(loginFrame, text="""Sessions:""").grid(row=0)
+            self.variable = StringVar(loginFrame)
+            self.variable.set(list(self.hostCollections)[0]) # default value
+            self.fillCredentials(self.variable)
+            OptionMenu(loginFrame, self.variable, *list(self.hostCollections), command=self.fillCredentials).grid(row=0, column=1, sticky=W)        
         
         Label(loginFrame, text="Host: ",height=2).grid(row=1)
         Label(loginFrame, text="User: ",height=2).grid(row=2)
         Label(loginFrame, text="Password:",height=2).grid(row=3)
 
-        self.host = StringVar()
-        hostEntry = Entry(loginFrame, textvariable=self.host, width=16)
-
-        self.user = StringVar()
         
+        hostEntry = Entry(loginFrame, textvariable=self.host, width=16)
         userEntry = Entry(loginFrame, textvariable=self.user, width=16)
-        self.password = StringVar()
         passwordEntry = Entry(loginFrame, textvariable=self.password, show="*", width=16)
 
         hostEntry.grid(row=1, column=1)
@@ -247,8 +240,10 @@ class Login(Frame):
                 if not config.has_section('LoginFields'):
                     config.add_section('LoginFields')
                     
-
-                self.hostCollections.appendleft(self.user.get()  + '@' + self.host.get())
+                newSession = self.user.get()  + '@' + self.host.get()    
+                if (newSession in list(self.hostCollections)):
+                    self.hostCollections.remove(newSession)
+                self.hostCollections.appendleft(newSession)
                     
                 config.set('LoginFields', 'hostList',pickle.dumps(self.hostCollections))
                 config.set('LoginFields', 'displaydimension',self.customDisplayDimension)
@@ -258,8 +253,6 @@ class Login(Frame):
             
                 with open(self.configFileName, 'wb') as configfile:
                     config.write(configfile)
-                
-                
                 
                 self.destroy()
                 self.quit()
