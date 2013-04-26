@@ -136,15 +136,14 @@ class Login(Frame):
         #Read configuration file
         self.configFileName = os.path.join(os.path.expanduser('~'),'.rcm','RCM.cfg')
         userName=""
-        #self.customDisplayDimension=''
         self.hostCollections = collections.deque(maxlen=5)
+        self.config = ConfigParser.RawConfigParser()
         if(os.path.exists(self.configFileName)):
             try:
-                config = ConfigParser.RawConfigParser()
-                config.read(self.configFileName)    
-                hostList = config.get('LoginFields', 'hostList')
+                self.config.read(self.configFileName)    
+                hostList = self.config.get('LoginFields', 'hostList')
                 self.hostCollections=pickle.loads(hostList)
-                #self.customDisplayDimension = config.get('LoginFields', 'displaydimension')
+
             except:
                 os.remove(self.configFileName)
                     
@@ -229,28 +228,28 @@ class Login(Frame):
            
             #Start login only if all the entry are filled
             global checkCredential 
-            hostCollections = collections.deque(maxlen=5)
+            
+
             checkCredential = self.action(self.host.get(), self.user.get(), self.password.get())
             if checkCredential:
                 #Write configuration file
-                config = ConfigParser.RawConfigParser()
-                if not config.has_section('LoginFields'):
-                    config.add_section('LoginFields')
-                    config.set('LoginFields', 'displayDimensionsList',collections.deque(maxlen=5))
+                if not self.config.has_section('LoginFields'):
+                    self.config.add_section('LoginFields')
+                    displayDimensionsCollection = collections.deque(maxlen=5)
+                    self.config.set('LoginFields', 'displayDimensionsList',pickle.dumps(displayDimensionsCollection))
                     
                 newSession = self.user.get()  + '@' + self.host.get()    
                 if (newSession in list(self.hostCollections)):
                     self.hostCollections.remove(newSession)
                 self.hostCollections.appendleft(newSession)
                     
-                config.set('LoginFields', 'hostList',pickle.dumps(self.hostCollections))
-                #config.set('LoginFields', 'displaydimension',)
+                self.config.set('LoginFields', 'hostList',pickle.dumps(self.hostCollections))
                 d = os.path.dirname(self.configFileName)
                 if not os.path.exists(d):
                     os.makedirs(d)
             
                 with open(self.configFileName, 'wb') as configfile:
-                    config.write(configfile)
+                    self.config.write(configfile)
                 
                 self.destroy()
                 self.quit()
@@ -432,8 +431,7 @@ class ConnectionWindow(Frame):
             return
         
         dd = newDisplayDialog(self)
-                
-        if dd.displayDimension == NONE:
+        if dd.displayDimensions == NONE:
             self.stopBusy()
             return
         
@@ -503,95 +501,81 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
 
         #Read configuration file
         self.configFileName = os.path.join(os.path.expanduser('~'),'.rcm','RCM.cfg')
-        #self.userName=''
-        #self.customDisplayDimension=''
+        self.displayDimensions = NONE
         self.displayDimensionsList = collections.deque(maxlen=5)
+        self.config = ConfigParser.RawConfigParser()
         if(os.path.exists(self.configFileName)):
             try:
-                config = ConfigParser.RawConfigParser()
-                config.read(self.configFileName)
-                #self.userName = config.get('LoginFields', 'username')
-                displayDimensionsList = config.get('LoginFields', 'displayDimensionsList')
+                self.config.read(self.configFileName)
+
+                displayDimensionsList = self.config.get('LoginFields', 'displayDimensionsList')
                 self.displayDimensionsList = pickle.loads(displayDimensionsList)
             except:
+                print "remove .cfg"
                 os.remove(self.configFileName)        
         
         self.v = IntVar()
         self.displayDimension = NONE
-        optionFrame = Frame(master, padx = 20)
+        optionFrame = Frame(master, padx = 20, bd=5)
         
-        Label(optionFrame, text="""Use:""").pack(side=LEFT)        
+        Label(optionFrame, text="""Select queue:""").pack(side=LEFT)        
         self.queue = StringVar(master)
         self.queue.set(queueList[0]) # default value
         w = apply(OptionMenu, (optionFrame, self.queue) + tuple(queueList))
         w.pack(side=LEFT)
-        
         optionFrame.pack(anchor=W)
         
+        
+        displayFrame = Frame(master, padx = 20, bd=5)
+
         fullDisplayDimension = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight())
         
         #always set full display as last item
         if (len(list(self.displayDimensionsList)) > 0 and not "Full Screen" in list(self.displayDimensionsList)):
             self.displayDimensionsList.pop()
-        self.displayDimensionsList.append("Full Screen")     
-                
-        #if self.customDisplayDimension == '':
-        #    self.customDisplayDimension = self.fullDisplayDimension
-        self.e1 = Entry(master)
-        #self.e1.insert (0, self.customDisplayDimension)
-        #self.e1.config(state=DISABLED)
-    
-        #self.text = ['Full screen', 'custom']
-        Label(master, text="""Display dimensions:""", padx = 20).pack(anchor=W)
+            self.displayDimensionsList.append("Full Screen")     
+
+
+        self.e1String = StringVar()  
+        Label(displayFrame, text="""Display size:""").pack(side=LEFT)
         if (len(list(self.displayDimensionsList)) > 0):           
-            self.displayVariable = StringVar(master)
+            self.displayVariable = StringVar(displayFrame)
             self.displayVariable.set(list(self.displayDimensionsList)[0]) # default value
             self.fillEntry(self.displayVariable)
-            OptionMenu(master,self.displayVariable, *list(self.displayDimensionsList), command=self.fillEntry).pack(padx = 20,anchor=W)#.grid(row=0, column=1, sticky=W)        
-        #Radiobutton(master, text=self.text[0], padx = 20, variable=self.v, value=0, command=self.enableEntry).pack(anchor=W)
-        #Radiobutton(master, text=self.text[1], padx = 20,variable=self.v, value=1, command=self.enableEntry).pack(anchor=W)
-        self.e1.pack(padx = 20, anchor=W)
-        return self.e1
+            OptionMenu(displayFrame,self.displayVariable, *list(self.displayDimensionsList), command=self.fillEntry).pack(side=LEFT)        
+        displayFrame.pack(anchor=W) 
+
+        entryFrame = Frame(master, padx = 20, bd=2)        
+        e1 = Entry(entryFrame, textvariable=self.e1String, width=16).pack(side=LEFT)        
+        entryFrame.pack(anchor=W)
+        return e1
     
     def fillEntry(self,v):
-        #if  self.v.get() == 1:
-        #    self.e1.config(state=NORMAL)
-        #else:
-        #    self.e1.config(state=DISABLED)
-        self.displayDimensions = self.displayVariable.get()
-        if (self.displayDimensions == "Full Screen"):
-            self.displayDimensions = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight())
+        displayDimensions = self.displayVariable.get()
+        if (displayDimensions == "Full Screen"):
+            displayDimensions = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight())
 
-        self.e1.delete(0, END)
-        self.e1.insert(0, displayDimensions)
+        self.e1String.set(displayDimensions)
         
     
     def apply(self):
-        #if  self.v.get() == 0:
-        #    #Full screen
-        #    self.displayDimension = self.fullDisplayDimension
-        #if self.v.get() == 1:
-         #   self.displayDimension = self.e1.get()
-        if (self.e1.get() == "Full Screen"):
-            displayDimension = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight())
-        else:
-            displayDimension = self.e1.get()
+        self.displayDimensions = self.e1String.get()
         
-        #Write configuration file
-        config = ConfigParser.RawConfigParser()
-        config.add_section('LoginFields')
-        #config.set('LoginFields', 'username',self.userName)
-        
-        if (self.e1.get() in list(self.displayDimensionsList)):
-            self.displayDimensionsList.remove(self.e1.get())
-            self.displayDimensionsList.appendleft(self.e1.get())
-        config.set('LoginFields', 'displayDimensionsList',pickle.dumps(self.displayDimensionsList))
+        dimensions = self.e1String.get()
+        if (self.e1String.get() == str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight())):
+            dimensions = "Full Screen"
+            
+        if (dimensions in list(self.displayDimensionsList)):
+            self.displayDimensionsList.remove(dimensions)
+            
+        self.displayDimensionsList.appendleft(dimensions)
+        self.config.set('LoginFields', 'displayDimensionsList',pickle.dumps(self.displayDimensionsList))
             
         d = os.path.dirname(self.configFileName)
         if not os.path.exists(d):
             os.makedirs(d)
         with open(self.configFileName, 'wb') as configfile:
-            config.write(configfile)
+            self.config.write(configfile)
             
         self.destroy()
         return
