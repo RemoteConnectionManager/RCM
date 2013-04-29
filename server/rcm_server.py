@@ -23,15 +23,22 @@ config.read(os.path.join(myPath, 'platform.cfg'))
 nodepostfix = ''
 importString=''
 walltimelimit="06:00:00"
+
+
 try:
-    importString="rcm_server_"+config.get('platform','batchscheduler')
+    hostname = socket.gethostname()
+    if (config.has_option('platform',hostname)):
+      importString="rcm_server_"+config.get('platform',hostname)
+    else:
+      importString="rcm_server_ssh"
     nodepostfix=config.get('platform','nodepostfix')
     walltimelimit=config.get('platform','walltimelimit')
 except Exception as e:
     raise Exception("Error in platform_config:{0}".format(e))
+
 exec("import "+importString+" as rcm_scheduler")
 
-hostname = socket.gethostname()
+
 
 #import rcm_server_ll as rcm_scheduler
 #import pickle
