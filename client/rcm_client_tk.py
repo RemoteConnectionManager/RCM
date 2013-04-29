@@ -531,7 +531,10 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
         fullDisplayDimension = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight())
         
         #always set full display as last item
-        if (len(list(self.displayDimensionsList)) > 0 and not "Full Screen" in list(self.displayDimensionsList)):
+        if (not len(list(self.displayDimensionsList)) > 0):
+            self.displayDimensionsList.append("Full Screen")
+        
+        if (not "Full Screen" in list(self.displayDimensionsList)):
             self.displayDimensionsList.pop()
             self.displayDimensionsList.append("Full Screen")     
 

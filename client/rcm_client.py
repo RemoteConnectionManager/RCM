@@ -54,7 +54,7 @@ class SessionThread( threading.Thread ):
             #vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
             #vnc_process.wait()
             
-            child = pexpect.spawn(self.vnc_command) 
+            child = pexpect.spawn(self.vnc_command,timeout=40) 
             i = child.expect(['Password:', 'standard VNC authentication', 'password:', pexpect.TIMEOUT, pexpect.EOF])
             if i == 2:
                 #no certificate
@@ -133,7 +133,8 @@ class rcm_client_connection:
           self.config['remote_rcm_server']="module load profile/advanced; module load autoload RCM; python $RCM_HOME/bin/server/rcm_server.py"
         else:
           #
-          self.config['remote_rcm_server']="module load profile/advanced; module load autoload RCM 2>/dev/null; python $RCM_HOME/bin/server/rcm_server.py"
+          #self.config['remote_rcm_server']="module load profile/advanced; module load autoload RCM 2>/dev/null; python $RCM_HOME/bin/server/rcm_server.py"
+          self.config['remote_rcm_server']="module load profile/advanced; module load python/2.7.2; python /plx/userinternal/rmucci00/RCM/trunk/server/rcm_server.py"
         #finding out the basedir, it depends if we are running as executable pyinstaler or as script
         if('frozen' in dir(sys)):
           if(os.environ.has_key('_MEIPASS2')):
@@ -225,7 +226,7 @@ class rcm_client_connection:
             if(self.debug):
                 print "returned        -->",myprocess.returncode
         else:      
-            child = pexpect.spawn(fullcommand)
+            child = pexpect.spawn(fullcommand,timeout=40)
             i = child.expect(['password:', 'RCM:EXCEPTION', pexpect.EOF, pexpect.TIMEOUT])
             if i == 0:
                 #no PKI
@@ -380,7 +381,7 @@ class rcm_client_connection:
             else:      
                 ssh_newkey = 'Are you sure you want to continue connecting'
                 # my ssh command line
-                p=pexpect.spawn(self.ssh_remote_exec_command)
+                p=pexpect.spawn(self.ssh_remote_exec_command,timeout=40)
                 i=p.expect([ssh_newkey,'password:','Welcome to', pexpect.TIMEOUT])
                 if i==0:
                     if(self.debug): print "I say yes"
