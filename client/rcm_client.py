@@ -54,7 +54,7 @@ class SessionThread( threading.Thread ):
             #vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
             #vnc_process.wait()
             
-            child = pexpect.spawn(self.vnc_command,timeout=40) 
+            child = pexpect.spawn(self.vnc_command,timeout=50) 
             i = child.expect(['Password:', 'standard VNC authentication', 'password:', pexpect.TIMEOUT, pexpect.EOF])
             if i == 2:
                 #no certificate
@@ -226,7 +226,7 @@ class rcm_client_connection:
             if(self.debug):
                 print "returned        -->",myprocess.returncode
         else:      
-            child = pexpect.spawn(fullcommand,timeout=40)
+            child = pexpect.spawn(fullcommand,timeout=50)
             i = child.expect(['password:', 'RCM:EXCEPTION', pexpect.EOF, pexpect.TIMEOUT])
             if i == 0:
                 #no PKI
@@ -381,7 +381,7 @@ class rcm_client_connection:
             else:      
                 ssh_newkey = 'Are you sure you want to continue connecting'
                 # my ssh command line
-                p=pexpect.spawn(self.ssh_remote_exec_command,timeout=40)
+                p=pexpect.spawn(self.ssh_remote_exec_command,timeout=50)
                 i=p.expect([ssh_newkey,'password:','Welcome to', pexpect.TIMEOUT])
                 if i==0:
                     if(self.debug): print "I say yes"
@@ -408,7 +408,7 @@ class rcm_client_connection:
                     raise Exception("Timeout checking credential.")
                     
         except Exception as e:
-            raise Exception("Check credential failed.\n")
+            raise Exception("Authentication failed.\n")
             
     
 if __name__ == '__main__':

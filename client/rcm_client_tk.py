@@ -516,15 +516,14 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
         
         self.v = IntVar()
         self.displayDimension = NONE
-        optionFrame = Frame(master, padx = 20, bd=5)
-        
-        Label(optionFrame, text="""Select queue:""").pack(side=LEFT)        
         self.queue = StringVar(master)
-        self.queue.set(queueList[0]) # default value
-        w = apply(OptionMenu, (optionFrame, self.queue) + tuple(queueList))
-        w.pack(side=LEFT)
-        optionFrame.pack(anchor=W)
-        
+        self.queue.set(queueList[0])
+        if (len(queueList) > 1):
+            optionFrame = Frame(master, padx = 20, bd=5)
+            Label(optionFrame, text="""Select queue:""").pack(side=LEFT)        
+            w = apply(OptionMenu, (optionFrame, self.queue) + tuple(queueList))
+            w.pack(side=LEFT)
+            optionFrame.pack(anchor=W)
         
         displayFrame = Frame(master, padx = 20, bd=5)
 
