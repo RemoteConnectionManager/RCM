@@ -29,10 +29,10 @@ try:
     hostname = socket.gethostname()
     if (config.has_option('platform',hostname)):
       importString="rcm_server_"+config.get('platform',hostname)
+      nodepostfix=config.get('platform','nodepostfix')
+      walltimelimit=config.get('platform','walltimelimit')
     else:
       importString="rcm_server_ssh"
-    nodepostfix=config.get('platform','nodepostfix')
-    walltimelimit=config.get('platform','walltimelimit')
 except Exception as e:
     raise Exception("Error in platform_config:{0}".format(e))
 
