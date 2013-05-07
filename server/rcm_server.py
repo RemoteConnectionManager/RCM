@@ -35,6 +35,7 @@ try:
       session_tag = scheduler
     else:
       importString="rcm_server_ssh"
+      session_tag = hostname
     if (config.has_option('platform','nodepostfix')):
       nodepostfix=config.get('platform','nodepostfix')
     if (config.has_option('platform','walltimelimit')):
