@@ -13,6 +13,7 @@ def getQueueGroup(self,queue):
     if len(self.accountList) == 0:
       return ''
     else:
+      #cineca deployment dependencies
       if( 'cin' in self.par_u):
         group="cinstaff"
       else:
@@ -39,6 +40,7 @@ def cprex(cmd):
 # submit a LL job
 # stdout and stderr are separated in 2 files
 def submit_job(self,sid,rcm_dirs):
+    #cineca deployment dependencies
     self.ll_template="""
 #!/bin/bash
 # @ job_type = serial
@@ -103,6 +105,7 @@ def kill_job(self,jid):
 def get_queue(self):
     queueList = []
     #tutti gli utenti possono sottomettere nella cosa serial??
+    #cineca deployment dependencies
     queueList.append("visual")
     return queueList
       

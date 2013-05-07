@@ -13,6 +13,7 @@ def getQueueGroup(self,queue):
     if len(self.accountList) == 0:
       return ''
     else:
+      #cineca deployment dependencies
       if( 'cin' in self.par_u):
         group="cinstaff"
       else:
@@ -38,6 +39,7 @@ def cprex(cmd):
 
 # submit a PBS job
 def submit_job(self,sid,rcm_dirs):
+    #cineca deployment dependencies
     self.qsub_template="""#!/bin/bash
 #PBS -l walltime=$RCM_WALLTIME
 #PBS -N $RCM_SESSIONID
@@ -115,6 +117,7 @@ def get_queue(self):
     queueList = []
     
     p1 = subprocess.Popen(["qstat","-q"], stdout=subprocess.PIPE)
+    #cineca deployment dependencies
     p2 = subprocess.Popen(["grep", "visual"], stdin=p1.stdout, stdout=subprocess.PIPE)
     p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
     stdout,stderr = p2.communicate() 

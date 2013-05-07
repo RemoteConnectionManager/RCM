@@ -13,6 +13,7 @@ def getQueueGroup(self,queue):
     if len(self.accountList) == 0:
       return ''
     else:
+      #cineca deployment dependencies
       if( 'cin' in self.par_u):
         group="cinstaff"
       else:
@@ -41,13 +42,20 @@ def cprex(cmd):
 # submit a LL job
 # stdout and stderr are separated in 2 files
 def submit_job(self,sid,rcm_dirs):
+    #cineca deployment dependencies
     self.ssh_template="""
 #!/bin/bash
 
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
-module load profile/advanced
-module load TurboVNC
+#module load profile/advanced
+#module load TurboVNC
+
+module use /plx/userinternal/cin0118a/BA/modulefiles/advanced/tools
+module load turbovnc
+
+
+
 $RCM_CLEANPIDS
 
 $RCM_VNCSERVER -otp -novncauth > $RCM_JOBLOG.vnc 2>&1

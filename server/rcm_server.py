@@ -68,6 +68,7 @@ def short_jobid(long_jobid):
 class rcm_server:
 
   def getUserAccounts(self):
+    #cineca deployment dependencies
     p1 = subprocess.Popen(["saldo","-nb"], stdout=subprocess.PIPE)
     stdout,stderr = p1.communicate()
     if 'not existing' in stdout:
@@ -75,6 +76,7 @@ class rcm_server:
       return []
     else:
       #now return a fixed group for experimentation
+      #cineca deployment dependencies
       return ['cin_visual']
 
   def groupSubstitution(self, groupName, template):
@@ -88,6 +90,7 @@ class rcm_server:
     if len(self.accountList) == 0:
       return ''
     else:
+      #cineca deployment dependencies
       if( 'cin' in self.par_u):
         group="cinstaff"
       else:
@@ -218,8 +221,10 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
 
   def get_rcmdirs(self,U=False):
     if (U):
-      udirs=glob.glob("/plx/user*/*/.rcm")
+      #cineca deployment dependencies
+      udirs=glob.glob("/plx/user*/*/.rcm") 
     else:
+      #cineca deployment dependencies
       udirs=[os.path.expanduser("~%s/.rcm" % (self.par_u))]
     return(udirs)
 
