@@ -23,12 +23,16 @@ config.read(os.path.join(myPath, 'platform.cfg'))
 nodepostfix = ''
 importString=''
 walltimelimit="06:00:00"
+hostname = socket.gethostname()
+scheduler = ''
+session_tag = '' #added to the session file name to identify who the session belongs to
 
 
 try:
-    hostname = socket.gethostname()
     if (config.has_option('platform',hostname)):
-      importString="rcm_server_"+config.get('platform',hostname)
+      scheduler = config.get('platform',hostname)
+      importString="rcm_server_" + scheduler
+      session_tag = scheduler
     else:
       importString="rcm_server_ssh"
     if (config.has_option('platform','nodepostfix')):
@@ -40,10 +44,6 @@ except Exception as e:
 
 exec("import "+importString+" as rcm_scheduler")
 
-
-
-#import rcm_server_ll as rcm_scheduler
-#import pickle
 
 def prex(cmd):
   cmdstring=cmd[0]
@@ -233,7 +233,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       ure=self.par_u
 
     #read sessions files
-    r=re.compile(r'(?P<sid>rcm-(?P<user>%s)-\d+)\.session$' % ure) 
+    r=re.compile(r'(?P<sid>(?P<user>%s)-(?P<tag>\S+)-\d+)\.session$' % ure) 
     self.sessions={}
     for d in udirs:
       if os.path.isdir(d) and os.access(d, os.R_OK):
@@ -243,23 +243,25 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
             file= d + '/' + f
             user=ro.group(2)
             sid=ro.group(1)
-            try:
-              self.sessions[sid]=rcm.rcm_session(fromfile=file)
-	      if (importString == "rcm_server_ssh"):
-	        self.sessions[sid].hash['timeleft'] = "~"
-	      else:
-                try:
-                  walltime = datetime.datetime.strptime(self.sessions[sid].hash['walltime'], "%H:%M:%S")
-                  endtime=datetime.datetime.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S") + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
-                  timedelta = endtime - datetime.datetime.now()
-                  #check if timedelta is positive
-                  if timedelta <= datetime.timedelta(0):
-                      timedelta = datetime.timedelta(0)
-                  self.sessions[sid].hash['timeleft'] = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
-                except:
-                  pass
-            except Exception as e:
-              raise Exception("WARNING: not valid session file %s: %s\n" % (file, e))
+	    tag=ro.group(3)
+	    if (tag == session_tag):
+              try:
+                self.sessions[sid]=rcm.rcm_session(fromfile=file)
+	        if (importString == "rcm_server_ssh"):
+	          self.sessions[sid].hash['timeleft'] = "~"
+	        else:
+                  try:
+                    walltime = datetime.datetime.strptime(self.sessions[sid].hash['walltime'], "%H:%M:%S")
+                    endtime=datetime.datetime.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S") + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
+                    timedelta = endtime - datetime.datetime.now()
+                    #check if timedelta is positive
+                    if timedelta <= datetime.timedelta(0):
+                        timedelta = datetime.timedelta(0)
+                    self.sessions[sid].hash['timeleft'] = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
+                  except:
+                    pass
+              except Exception as e:
+                raise Exception("WARNING: not valid session file %s: %s\n" % (file, e))
 
     #read sessions jobs
     jobs=self.get_jobs(self.sessions,U=U)
@@ -292,7 +294,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
   def id2sid(self,id,user=''):
     if (not user):
       user=self.par_u
-    return "rcm-%s-%d" % (user,id)  
+    return "{0}-{1}-{2}".format(user,session_tag,id)
+    #return "rcm-%s-%t-%d" % (user,session_tag,id) #rcm-rmucci00-PBS-1
 
   #return
   def new_sid(self):

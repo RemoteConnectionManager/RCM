@@ -188,7 +188,7 @@ def get_jobs(self, sessions, U=False,):
         ure=self.par_u
       #258118.node351    rcm-cin0449a-10  cin0449a          00:00:06 R visual          
 #original..single queue      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>rcm-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ visual  ' % (ure,ure) ,re.VERBOSE)
-      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>rcm-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ ' % (ure,ure) ,re.VERBOSE)
+      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>%s-\S+-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ ' % (ure,ure) ,re.VERBOSE)
       jobs={}
       for j in raw:
         mo=r.match(j)
