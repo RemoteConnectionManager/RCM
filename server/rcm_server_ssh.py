@@ -46,15 +46,10 @@ def submit_job(self,sid,rcm_dirs):
 
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
-module load  /cineca/prod/modulefiles/advanced/tools/TurboVNC/1.0.90
-for d_p in $($RCM_VNCSERVER  -list | grep ^: | cut -d: -f2 | cut -f 1,3 --output-delimiter=@); do
-	i=$(echo $d_p | cut -d@ -f2)
-	d=$(echo $d_p | cut -d@ -f1)
-	a=$(ps -p $i -o comm=)
-	if [ "x$a" == "x" ] ; then 
-	  $RCM_VNCSERVER -kill  :$d
-	fi
-done
+module load profile/advanced
+module load TurboVNC
+$RCM_CLEANPIDS
+
 $RCM_VNCSERVER -otp -novncauth > $RCM_JOBLOG.vnc 2>&1
 cat `ls -tr ~/.vnc/*.pid | tail -1`
 """
@@ -67,7 +62,7 @@ cat `ls -tr ~/.vnc/*.pid | tail -1`
     file='%s/%s.job' % (rcm_dirs[0],sid)
     fileout='%s/%s.joblog' % (rcm_dirs[0],sid)
       
-    batch=s.safe_substitute(RCM_JOBLOG=fileout,RCM_VNCSERVER=self.vncserver_string)
+    batch=s.safe_substitute(RCM_JOBLOG=fileout,RCM_VNCSERVER=self.vncserver_string,RCM_CLEANPIDS=self.clean_pids_string)
 
     
     f=open(file,'w')

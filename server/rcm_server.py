@@ -381,6 +381,15 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       tmp=par.split('=')
       new_params[tmp[0]]=tmp[1]
     self.vncserver_string= 'vncserver'
+    self.clean_pids_string="""
+    for d_p in $($RCM_VNCSERVER  -list | grep ^: | cut -d: -f2 | cut -f 1,3 --output-delimiter=@); do
+	i=$(echo $d_p | cut -d@ -f2)
+	d=$(echo $d_p | cut -d@ -f1)
+	a=$(ps -p $i -o comm=)
+	if [ "x$a" == "x" ] ; then 
+	  $RCM_VNCSERVER -kill  :$d
+	fi
+    done"""
     if('geometry' in new_params):
       self.vncserver_string += ' -geometry ' + new_params['geometry']
     if('queue' in new_params):

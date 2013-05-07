@@ -61,16 +61,11 @@ $RCM_DIRECTIVE_W
 
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
-module load  /cineca/prod/modulefiles/advanced/tools/TurboVNC/1.0.90
+module load profile/advanced
+module load TurboVNC
+$RCM_CLEANPIDS
 
-for d_p in $($RCM_VNCSERVER  -list | grep ^: | cut -d: -f2 | cut -f 1,3 --output-delimiter=@); do
-	i=$(echo $d_p | cut -d@ -f2)
-	d=$(echo $d_p | cut -d@ -f1)
-	a=$(ps -p $i -o comm=)
-	if [ "x$a" == "x" ] ; then 
-	  $RCM_VNCSERVER -kill  :$d
-	fi
-done
+
 
 $RCM_VNCSERVER -otp -fg -novncauth > $RCM_JOBLOG.vnc 2>&1
 """
@@ -96,7 +91,7 @@ $RCM_VNCSERVER -otp -fg -novncauth > $RCM_JOBLOG.vnc 2>&1
     else:
       rcm_directive_W = self.groupSubstitution(group,'#PBS -W group_list=$RCM_GROUP')
 
-    batch=s.safe_substitute(RCM_WALLTIME=self.par_w,RCM_SESSIONID=sid,RCM_JOBLOG=fileout,RCM_DIRECTIVE_A=rcm_directive_A,RCM_DIRECTIVE_W=rcm_directive_W,RCM_QUEUE=self.queue,RCM_QUEUEPARAMETER=queueParameter,RCM_VNCSERVER=self.vncserver_string)
+    batch=s.safe_substitute(RCM_WALLTIME=self.par_w,RCM_SESSIONID=sid,RCM_JOBLOG=fileout,RCM_DIRECTIVE_A=rcm_directive_A,RCM_DIRECTIVE_W=rcm_directive_W,RCM_QUEUE=self.queue,RCM_QUEUEPARAMETER=queueParameter,RCM_VNCSERVER=self.vncserver_string,RCM_CLEANPIDS=self.clean_pids_string)
 
     f=open(file,'w')
     f.write(batch)
