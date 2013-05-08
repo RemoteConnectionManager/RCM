@@ -93,7 +93,7 @@ def kill_job(self,jid):
     try:
       os.kill(int(jid), 9)
     except:
-      pass
+      raise Exception("Can not kill Xvnc process with pid: {0}. {1}".format(jid, err))
     
     
 # get available queues for the user (ssh in no job scheduler)
