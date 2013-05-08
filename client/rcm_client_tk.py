@@ -374,7 +374,7 @@ class ConnectionWindow(Frame):
                             else:
                                 button.configure(state=ACTIVE)
                                 self.client_connection.activeConnectionsList.remove(sessionid)
-                        self.after(2000,self.refresh)
+                                self.refresh()
                                 
                     self.connection_buttons[sessionid]=(bc,disable_cmd)
                     
@@ -448,7 +448,7 @@ class ConnectionWindow(Frame):
         self.startBusy("Connecting to the remote display...")
         time.sleep(2)
         self.client_connection.vncsession(newconn, newconn.hash['otp'], self.connection_buttons[newconn.hash['sessionid']][1] )
-        self.after(4000,self.stopBusy)
+        self.after(2000,self.stopBusy)
  
     @safe_debug_off
     def refresh(self):       

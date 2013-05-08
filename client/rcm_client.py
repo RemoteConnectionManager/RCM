@@ -110,7 +110,8 @@ class SessionThread( threading.Thread ):
             self.vnc_process.stdin.close()
             self.vnc_process.wait()
             self.vnc_process=None
-        if(self.gui_cmd): self.gui_cmd(active=False)
+        if(self.gui_cmd):
+            self.gui_cmd(active=False)
 
 
 
