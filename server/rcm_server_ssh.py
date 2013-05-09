@@ -48,6 +48,7 @@ def submit_job(self,sid,rcm_dirs):
 
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
+module load profile/advanced
 module load turbovnc
 
 $RCM_CLEANPIDS

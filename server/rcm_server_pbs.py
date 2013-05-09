@@ -63,6 +63,7 @@ $RCM_DIRECTIVE_W
 
 . /cineca/prod/environment/module/3.1.6/none/init/bash
 module purge
+module load profile/advanced
 module load turbovnc
 $RCM_CLEANPIDS
 
