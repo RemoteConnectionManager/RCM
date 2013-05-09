@@ -2,10 +2,10 @@
 Comment=
 Comment[en_US]=
 Encoding=UTF-8
-Exec='/bin/bash' "/cineca/prod/tools/RCM/1.0/gnu--4.1.2/bin/server/Desktop_setup/paraview.sh" "--state=/cineca/prod/tools/ParaView/data/motorBike-VTK/motorBike.pvsm"
+Exec='/bin/bash' "@RCM_SERVER_DIR@/Desktop_setup/paraview.sh" "--state=/cineca/prod/tools/ParaView/data/motorBike-VTK/motorBike.pvsm"
 GenericName=
 GenericName[en_US]=
-Icon=/cineca/prod/tools/RCM/1.0/gnu--4.1.2/bin/server/Desktop_setup/motorbike.png
+Icon=@RCM_SERVER_DIR@/Desktop_setup/motorbike.png
 MimeType=
 Name=paraview motorbike
 Name[en_US]=paraview motorbike

@@ -2,7 +2,7 @@
 Comment=
 Comment[en_US]=
 Encoding=UTF-8
-Exec='/cineca/prod/tools/RCM/1.0/gnu--4.1.2/bin/server/Desktop_setup/tecplot.sh'
+Exec='@RCM_SERVER_DIR@/Desktop_setup/tecplot.sh'
 GenericName=
 GenericName[en_US]=
 Icon=/cineca/prod/tools/tecplot/2012R1/binary/tecplot-logo-200x129.png
