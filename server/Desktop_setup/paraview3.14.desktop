@@ -2,10 +2,10 @@
 Comment=
 Comment[en_US]=
 Encoding=UTF-8
-Exec='/fermi/home/userinternal/lcalori0/BA/install/tools/RCM/1.0/gnu--4.1.2/bin/server/Desktop_setup/paraview.sh'
+Exec='@RCM_SERVER_DIR@/Desktop_setup/paraview.sh'
 GenericName=
 GenericName[en_US]=
-Icon=/fermi/home/userinternal/lcalori0/BA/install/tools/RCM/1.0/gnu--4.1.2/bin/server/Desktop_setup/paraview.png
+Icon=@RCM_SERVER_DIR@/Desktop_setup/paraview.png
 MimeType=
 Name=paraview3.14
 Name[en_US]=paraview3.14
