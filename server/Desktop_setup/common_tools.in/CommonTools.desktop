@@ -151,6 +151,6 @@ GenericName[xh]=Iifayile Zobuqu
 GenericName[zh_CN]=个人文件
 GenericName[zh_TW]=個人檔案
 GenericName[zu]=Amafayela Omuntu siqu
-URL=/cineca/prod/tools/RCM/1.0/gnu--4.1.2/bin/server/Desktop_setup/common_tools
+URL=@RCM_SERVER_DIR@/Desktop_setup/common_tools
 Icon=/usr/share/pixmaps/redhat-tools.png
 Type=Link
