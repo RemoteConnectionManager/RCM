@@ -335,8 +335,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     desktop_source_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),'Desktop_setup')
     for f in glob.glob(desktop_source_dir + '/*.desktop' ):
       fDest = os.path.join(desktop_dest_dir, os.path.basename(f))
-      if (os.path.exists(fDest))
-      	if (open(f, 'r').read() == open(fDest, 'r').read()
+      if (os.path.exists(fDest)):
+      	if (open(f, 'r').read() == open(fDest, 'r').read()):
           return 
       shutil.copy(f,desktop_dest_dir)
       
@@ -345,7 +345,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
       if ( not os.path.isdir(d) ):
         os.mkdir(d)
         os.chmod(d,0755)
-	self.desktop_setup()
+      self.desktop_setup()
       for f in glob.glob("%s/%s.*" % (d,sid)):
         os.remove(f)
     
