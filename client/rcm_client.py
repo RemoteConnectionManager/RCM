@@ -129,13 +129,8 @@ class rcm_client_connection:
         self.config['vnc']['linux2']=("vncviewer","")
         self.config['ssh']['darwin']=("ssh")
         self.config['vnc']['darwin']=("vncviewer","")
+        self.config['remote_rcm_server']="module load profile/advanced; module load RCM/1.1; python $RCM_HOME/bin/server/rcm_server.py"
 
-        if(sys.platform == 'win32'):
-          self.config['remote_rcm_server']="module load profile/advanced; module load autoload RCM; python $RCM_HOME/bin/server/rcm_server.py"
-        else:
-          #
-          #self.config['remote_rcm_server']="module load profile/advanced; module load autoload RCM 2>/dev/null; python $RCM_HOME/bin/server/rcm_server.py"
-          self.config['remote_rcm_server']="module load profile/advanced; module load python/2.7.2; python /plx/userinternal/rmucci00/RCM/trunk/server/rcm_server.py"
         #finding out the basedir, it depends if we are running as executable pyinstaler or as script
         if('frozen' in dir(sys)):
           if(os.environ.has_key('_MEIPASS2')):
@@ -417,7 +412,7 @@ if __name__ == '__main__':
         
         c = rcm_client_connection()
         c.login_setup()
-        c.debug=True
+        c.debug=False
         res=c.list()
         res.write(2)
         newc=c.newconn()
