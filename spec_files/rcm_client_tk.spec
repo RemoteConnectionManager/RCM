@@ -53,12 +53,14 @@ data_files.append(('external/build_platform.txt',versionFileName, 'DATA'))
 data_files.append(('client/logo_cineca.gif',os.path.join(ROOTPATH,'client','logo_cineca.gif'), 'DATA'))
 
 print "------------->" , data_files
-a = Analysis([os.path.join(HOMEPATH,'support','_mountzlib.py'), os.path.join(HOMEPATH,'support','unpackTK.py'), os.path.join(HOMEPATH,'support','useTK.py'), os.path.join(HOMEPATH,'support','useUnicode.py'), os.path.join(ROOTPATH,'client','rcm_client_tk.py'), os.path.join(HOMEPATH,'support','removeTK.py')],
-             pathex=[os.path.join(ROOTPATH,'server'), os.path.join(ROOTPATH,'pyinstaller-1.5.1')])
+a = Analysis([    os.path.join(ROOTPATH,'client','rcm_client_tk.py')],
+             pathex=[os.path.join(ROOTPATH,'server'), os.path.join(ROOTPATH,'pyinstaller-2.0')])
+#             hiddenimports=[],
+#             hookspath=None)
 pyz = PYZ(a.pure)
 
 
-exe = EXE(TkPKG(), pyz,
+exe = EXE( pyz,
           a.scripts,
           a.binaries+ data_files,
           a.zipfiles,

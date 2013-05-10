@@ -131,7 +131,7 @@ def update_exe_file():
             os.system("sh "+batchfilename+ " &") 
                     
 class Login(Frame):
-    def __init__(self, master=None,action=None):
+    def __init__(self, master=None,action=None,basedir=None):
         
         #Read configuration file
         self.configFileName = os.path.join(os.path.expanduser('~'),'.rcm','RCM.cfg')
@@ -155,16 +155,8 @@ class Login(Frame):
         self.master.geometry("+200+200")
         
         #CINECA LOGO       
-        if('frozen' in dir(sys)):
-          if(os.environ.has_key('_MEIPASS2')):
-            self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
-          else:
-            self.basedir = os.path.dirname(os.path.abspath(sys.executable))
-          self.debug=False
-        else:
-          self.basedir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         
-        imagePath = os.path.join(self.basedir,'client','logo_cineca.gif')
+        imagePath = os.path.join(basedir,'client','logo_cineca.gif')
         
         im = PhotoImage(file=imagePath)
         lbl = Label(self, image=im, relief=GROOVE, border=2)
@@ -586,7 +578,7 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
 class rcm_client_connection_GUI(rcm_client.rcm_client_connection):
     def __init__(self):
         rcm_client.rcm_client_connection.__init__(self)
-        self.login = Login(action=self.login_setup)
+        self.login = Login(action=self.login_setup,basedir=self.basedir)
         self.login.mainloop()
         
         if(self.debug): print "Check credential returned: " + str(checkCredential)
@@ -598,7 +590,6 @@ class rcm_client_connection_GUI(rcm_client.rcm_client_connection):
 if __name__ == '__main__':
     #try:
 #        c.debug=True
-
     c=rcm_client_connection_GUI()
 ##	c.debug=True
 ##        gui = ConnectionWindow()

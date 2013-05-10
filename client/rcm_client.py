@@ -119,7 +119,7 @@ class SessionThread( threading.Thread ):
 class rcm_client_connection:
 
     def __init__(self,proxynode='login.plx.cineca.it', user_account='', remoteuser='',password=''):
-        self.debug=False
+        self.debug=True
         self.config=dict()
         self.config['ssh']=dict()
         self.config['vnc']=dict()
@@ -133,7 +133,10 @@ class rcm_client_connection:
 
         #finding out the basedir, it depends if we are running as executable pyinstaler or as script
         if('frozen' in dir(sys)):
-          if(os.environ.has_key('_MEIPASS2')):
+          if hasattr(sys, '_MEIPASS'):
+            # PyInstaller >= 1.6
+            self.basedir = os.path.abspath(sys._MEIPASS)
+          elif(os.environ.has_key('_MEIPASS2')):
             self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
           else:
             self.basedir = os.path.dirname(os.path.abspath(sys.executable))

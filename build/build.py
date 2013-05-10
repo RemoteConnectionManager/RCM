@@ -38,4 +38,4 @@ if(sys.platform == 'darwin'):
 	pythoncommand='arch -i386 python '
 else:
 	pythoncommand='python '
-os.system(pythoncommand + os.path.join(root,'PyInstaller','pyinstaller-1.5.1','Build.py') + ' ' + tmpFile)
+os.system(pythoncommand + os.path.join(root,'PyInstaller','pyinstaller-2.0','utils','Build.py') + ' ' + tmpFile)
