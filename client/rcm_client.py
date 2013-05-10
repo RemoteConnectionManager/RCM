@@ -259,7 +259,7 @@ class rcm_client_connection:
         myerr = myout
         return (returncode,myout,myerr)     
 
-
+    def list(self):
         (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'list')
         if (r != 0):
             if(self.debug): print e
