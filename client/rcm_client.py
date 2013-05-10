@@ -23,7 +23,7 @@ class SessionThread( threading.Thread ):
     
     threadscount = 0
     
-    def __init__ ( self, tunnel_cmd='', vnc_cmd='', passwd = '', otp = '', gui_cmd=None, debug = True ):
+    def __init__ ( self, tunnel_cmd='', vnc_cmd='', passwd = '', otp = '', gui_cmd=None, debug = False ):
         self.debug=debug
         self.tunnel_command = tunnel_cmd
         self.vnc_command = vnc_cmd
@@ -256,11 +256,10 @@ class rcm_client_connection:
             index += len(serverOutputString)
             myout = myout[index:]
             myout = myout.replace('\n', '',1)
-        print myout
         myerr = myout
         return (returncode,myout,myerr)     
 
-    def list(self):
+
         (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'list')
         if (r != 0):
             if(self.debug): print e
