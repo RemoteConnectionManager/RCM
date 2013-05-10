@@ -3,7 +3,7 @@ import platform
 import hashlib
 import subprocess
 
-rcmVersion = "1.0."
+rcmVersion = "1.1."
 customPlatform=''
 baseurl="https://hpc-forge.cineca.it/svn/RemoteGraph/trunk/build/dist/Releases/"
     
