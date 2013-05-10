@@ -334,6 +334,10 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     
     desktop_source_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),'Desktop_setup')
     for f in glob.glob(desktop_source_dir + '/*.desktop' ):
+      fDest = os.path.join(desktop_dest_dir, os.path.basename(f))
+      if (os.path.exists(fDest))
+      	if (open(f, 'r').read() == open(fDest, 'r').read()
+          return 
       shutil.copy(f,desktop_dest_dir)
       
   def clean_files(self,sid):
