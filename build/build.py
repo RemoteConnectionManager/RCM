@@ -33,9 +33,8 @@ else:
     
 
 os.chdir(tmpDir)
-if(sys.platform == 'darwin'):
-	os.environ['VERSIONER_PYTHON_PREFER_32_BIT']='1'
-	pythoncommand='arch -i386 python '
-else:
-	pythoncommand='python '
+pythoncommand='python '
+#disabledif(sys.platform == 'darwin'):
+#disabled	os.environ['VERSIONER_PYTHON_PREFER_32_BIT']='1'
+#disabled	pythoncommand='arch -i386 python '
 os.system(pythoncommand + os.path.join(root,'PyInstaller','pyinstaller-2.0','utils','Build.py') + ' ' + tmpFile)
