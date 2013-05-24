@@ -156,7 +156,7 @@ class Login(Frame):
         
         #CINECA LOGO       
         
-        imagePath = os.path.join(basedir,'client','logo_cineca.gif')
+        imagePath = os.path.join(basedir,'logo_cineca.gif')
         
         im = PhotoImage(file=imagePath)
         lbl = Label(self, image=im, relief=GROOVE, border=2)
