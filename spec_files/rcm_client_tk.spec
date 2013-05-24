@@ -50,7 +50,7 @@ versionfile.write(myplatform + '\n')
 versionfile.write(rcmVersion)
 versionfile.close()
 data_files.append(('external/build_platform.txt',versionFileName, 'DATA'))
-data_files.append(('client/logo_cineca.gif',os.path.join(ROOTPATH,'client','logo_cineca.gif'), 'DATA'))
+data_files.append(('logo_cineca.gif',os.path.join(ROOTPATH,'client','logo_cineca.gif'), 'DATA'))
 
 print "------------->" , data_files
 a = Analysis([    os.path.join(ROOTPATH,'client','rcm_client_tk.py')],
