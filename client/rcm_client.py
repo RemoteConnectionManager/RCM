@@ -169,8 +169,10 @@ class rcm_client_connection:
         if os.path.exists(vncexe):
             self.vncexe=vncexe
         else:
-            if(self.debug): print "VNC exec -->",vncexe,"<-- NOT FOUND !!!"
-            exit()
+            if(self.debug): 
+            	print "VNC exec -->",vncexe,"<-- NOT FOUND !!!"
+            	name=raw_input("VNC exec -->"+vncexe+"<-- NOT FOUND !!!")
+            sys.exit()
         self.session_thread=[]
 
     def login_setup(self, host='', remoteuser='',password=''):
