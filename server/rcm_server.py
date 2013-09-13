@@ -120,7 +120,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
        %s [-w WALLTIME] [-f FORMAT]  		new
        %s 					version CLIENT_PLATFORM 
        %s -h
-""" % (script,script,script,script,script)
+""" % (script,script,script,script,script,script,script)
     if (stderr):
       sys.stderr.write(help)
     else:
@@ -215,8 +215,8 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
   # - of user (if -R=false) 
   # - running
   # - with name matching: rcm-<alphanum>-<num>
-  def get_jobs(self,sessions,U=False):
-    return rcm_scheduler.get_jobs(self, U, sessions)
+  #def get_jobs(self,sessions,U=False):
+  #  return rcm_scheduler.get_jobs(self, sessions, U)
     
 
   def get_rcmdirs(self,U=False):
@@ -270,7 +270,7 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
                 raise Exception("WARNING: not valid session file %s: %s\n" % (file, e))
 
     #read sessions jobs
-    jobs=self.get_jobs(self.sessions,U=U)
+    jobs=rcm_scheduler.get_jobs(self,self.sessions,U)
 
     #match jobs and files
     self.sids={'run':set([]),'err':set([]),'end':set([]),'ini':set([])}
