@@ -22,6 +22,7 @@ myPath =  os.path.dirname(os.path.abspath(__file__))
 config.read(os.path.join(myPath, 'platform.cfg'))
 nodepostfix = ''
 importString=''
+jobscript=''
 walltimelimit="06:00:00"
 hostname = socket.gethostname()
 scheduler = ''
@@ -38,8 +39,24 @@ try:
       session_tag = hostname
     if (config.has_option('platform','nodepostfix')):
       nodepostfix=config.get('platform','nodepostfix')
-    if (config.has_option('platform','walltimelimit')):
-      walltimelimit=config.get('platform','walltimelimit')
+    #if (config.has_option('platform','walltimelimit')):
+    #  walltimelimit=config.get('platform','walltimelimit')
+
+    jobScriptDict = {}
+    options = config.options('jobscript')
+    for option in options:
+      jobScriptDict[option]=config.get('jobscript',option)
+
+    testJobScriptDict = {}
+    options = config.options('testjobscript')
+    for option in options:
+      testJobScriptDict[option]=config.get('testjobscript',option)
+    
+    wallTimeLimitDict = {}
+    options = config.options('walltimelimit')
+    for option in options:
+      wallTimeLimitDict[option]=config.get('walltimelimit',option)
+
 except Exception as e:
     raise Exception("Error in platform_config:{0}".format(e))
 
@@ -133,10 +150,10 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
     self.par_u=self.username
     self.par_f='0'
     self.par_h=False
-    if(importString == "rcm_server_ssh"):
-      self.par_w = "~"
-    else:
-      self.par_w=walltimelimit
+    #if(importString == "rcm_server_ssh"):
+    #  self.par_w = "~"
+    #else:
+    #  self.par_w=walltimelimit
 
     #read arguments
     try:
@@ -414,8 +431,12 @@ done"""
     c=rcm.rcm_session(state='init',sessionid=sid)
     c.serialize(file)
     jid='NOT_SUBMITTED'
+    if(importString == "rcm_server_ssh"):
+      self.par_w = "~"
+    else:
+      self.par_w = wallTimeLimitDict[self.queue] 
     try:
-      jid=rcm_scheduler.submit_job(self,sid,udirs)
+      jid=rcm_scheduler.submit_job(self,sid,udirs,jobScriptDict[self.queue])
       (n,d,otp)=self.wait_jobout(sid,40)
       #n+='ib0'
     except Exception as e:
@@ -424,6 +445,8 @@ done"""
       if (jid != 'NOT_SUBMITTED'):
         rcm_scheduler.kill_job(self, jid)   
       raise Exception("Error in execute_new:{0}".format(e))
+
+
     c=rcm.rcm_session(state='valid',walltime=self.par_w,node=n,display=d,jobid=jid,sessionid=sid,username=self.par_u,otp=otp)
     c.serialize(file)
     c.write(self.par_f)
@@ -461,7 +484,7 @@ done"""
     sys.exit(1)
 
   def execute_queue(self):
-    queueList = rcm_scheduler.get_queue(self)
+    queueList = rcm_scheduler.get_queue(testJobScriptDict)
     
     #return the list of avilable queue
     sys.stdout.write(self.serverOutputString)
