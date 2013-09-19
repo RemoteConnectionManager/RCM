@@ -436,7 +436,10 @@ done"""
     else:
       self.par_w = wallTimeLimitDict[self.queue] 
     try:
-      jid=rcm_scheduler.submit_job(self,sid,udirs,jobScriptDict[self.queue])
+      jobScript = ''
+      if self.queue in jobScriptDict.keys():
+	jobScript = jobScriptDict[self.queue]
+      jid=rcm_scheduler.submit_job(self,sid,udirs,jobScript)
       (n,d,otp)=self.wait_jobout(sid,40)
       #n+='ib0'
     except Exception as e:

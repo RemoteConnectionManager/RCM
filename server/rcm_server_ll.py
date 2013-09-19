@@ -39,7 +39,7 @@ def cprex(cmd):
 
 # submit a LL job
 # stdout and stderr are separated in 2 files
-def submit_job(self,sid,rcm_dirs):
+def submit_job(self,sid,rcm_dirs,jobScript):
     #cineca deployment dependencies
     self.ll_template="""
 #!/bin/bash
