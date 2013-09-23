@@ -341,8 +341,8 @@ class rcm_client_connection:
             else:
                 vnc_command = self.vncexe + " -medqual" + " -autopass -nounixlogin"
         if(sys.platform == 'win32'):
-            tunnel_command=self.ssh_command  + " -L " +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " echo 'pippo'; sleep 10"
-            vnc_command += " localhost:" +str(portnumber)
+            tunnel_command=self.ssh_command  + " -L 127.0.0.1:" +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " echo 'pippo'; sleep 10"
+            vnc_command += " 127.0.0.1:" +str(portnumber)
         else:
             tunnel_command=''
             vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
