@@ -265,29 +265,30 @@ class ConnectionWindow(Frame):
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
         self.master.title("Remote Connection Manager " + rcm_client.rcmVersion +" - CINECA")
-        self.master.geometry("800x115")
-        self.master.minsize(800,80)
+        self.master.minsize(800,120)
+        self.bind("<<list_refresh>>",self.list_refresh)
         
         self.f1=None
         self.f1 = Frame(self, width=500, height=100)
         self.f1.grid( row=0,column=0) 
+        self.f1.pack()
         w = Label(self.f1, text='Please wait...', height=2)
         w.grid( row=1,column=0)
         
-        self.f2 = Frame(self)
+        self.f2 = Frame(self, bd=10)
         self.f2.grid( row=1,column=0) 
         button = Button(self.f2, text="NEW DISPLAY", borderwidth=2, command=self.submit)
         button["font"]=boldfont
         button.grid( row=0,column=0 )
  
-        button = Button(self.f2, text="REFRESH", borderwidth=2, command=self.refresh)
+        button = Button(self.f2, text="REFRESH", borderwidth=2, command=self.list_refresh)
         button["font"]=boldfont
-        button.grid( row=0,column=1 )
-                
+        button.grid( row=0,column=1 )                
         self.statusBarText = StringVar()
         self.statusBarText.set("Idle")
         self.status = Label(self.master, textvariable=self.statusBarText, bd=1, relief=SUNKEN, anchor=W)
         self.status.pack(side=BOTTOM, fill=X)
+        self.f2.pack(side=BOTTOM)
         
         self.bind("<Destroy>", self.deathHandler)
         #check version after mainloop is started
@@ -311,7 +312,9 @@ class ConnectionWindow(Frame):
                     self.master.destroy()
                     return
         self.stopBusy()        
-        self.refresh()
+#        self.list_refresh()
+        self.update_idletasks()
+        self.event_generate("<<list_refresh>>")
 
        
     @safe_debug_off
@@ -319,13 +322,12 @@ class ConnectionWindow(Frame):
         buttonHeight = 0
         self.sessions=ss
         if(self.f1):
-            self.f1.destroy()
+            for child in self.f1.winfo_children():
+                child.destroy()
 
-        self.f1 = Frame(self, width=500, height=100)
-        self.f1.grid( row=0,column=0) 
         if len(self.sessions.array) == 0:
             w = Label(self.f1, text='No display available. Press \'NEW DISPLAY\' to create a new one.', height=2)
-            w.grid( row=1,column=0)
+            w.pack()
         else:
             f1 = self.f1
             labelList = ['created', 'display', 'node', 'state', 'username', 'walltime', 'timeleft']
@@ -366,7 +368,8 @@ class ConnectionWindow(Frame):
                             else:
                                 button.configure(state=ACTIVE)
                                 self.client_connection.activeConnectionsList.remove(sessionid)
-                                self.refresh()
+#                                self.list_refresh()
+                                self.event_generate("<<list_refresh>>") 
                                 
                     self.connection_buttons[sessionid]=(bc,disable_cmd)
                     
@@ -397,9 +400,6 @@ class ConnectionWindow(Frame):
                         lab.grid( row=line+1, column=i+2 )
                         i = i + 1
             
-        newHeight = 110 + buttonHeight * len(self.sessions.array)
-        geometryStr = "800x" + str(newHeight)
-        self.master.geometry(geometryStr)
 
     @safe_debug_off
     def kill(self, sessionid):  
@@ -409,6 +409,7 @@ class ConnectionWindow(Frame):
         refreshList = self.client_connection.list()
         self.update_sessions(refreshList)
         self.stopBusy()
+        self.after(2000,self.refresh_dimensions)            
   
 
     @safe_debug_off
@@ -441,14 +442,24 @@ class ConnectionWindow(Frame):
         time.sleep(2)
         self.client_connection.vncsession(newconn, newconn.hash['otp'], self.connection_buttons[newconn.hash['sessionid']][1] )
         self.after(2000,self.stopBusy)
- 
+        self.after(2000,self.refresh_dimensions)            
+
     @safe_debug_off
-    def refresh(self):       
+    def list_refresh(self,event=None):       
         self.startBusy("Refreshing display list...")
         refreshList = self.client_connection.list()
         self.update_sessions(refreshList)
         self.stopBusy()
-            
+        self.after(2000,self.refresh_dimensions)            
+    def refresh_dimensions(self):       
+        self.update_idletasks()
+#        newHeight = self.f1.winfo_reqheight() + self.f2.winfo_reqheight() + self.status.winfo_reqheight() + 10
+        print  "frame f1 ", self.f1.winfo_reqheight()   
+        print  "frame f2 ", self.f2.winfo_reqheight()," -- ", self.status.winfo_reqheight()    
+        print  "self ", self.winfo_reqheight()   
+#        geometryStr = "800x" + str(newHeight)
+        geometryStr = "800x" + str(self.winfo_reqheight()+ self.status.winfo_reqheight() + 20)
+        self.master.geometry(geometryStr)
 
     def startBusy(self, text):
         self.master.config(cursor="watch")
