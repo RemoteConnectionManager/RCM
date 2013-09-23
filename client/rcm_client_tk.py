@@ -409,7 +409,7 @@ class ConnectionWindow(Frame):
         refreshList = self.client_connection.list()
         self.update_sessions(refreshList)
         self.stopBusy()
-        self.after(2000,self.refresh_dimensions)            
+        self.delayed_refresh_dimensions()
   
 
     @safe_debug_off
@@ -442,7 +442,7 @@ class ConnectionWindow(Frame):
         time.sleep(2)
         self.client_connection.vncsession(newconn, newconn.hash['otp'], self.connection_buttons[newconn.hash['sessionid']][1] )
         self.after(2000,self.stopBusy)
-        self.after(2000,self.refresh_dimensions)            
+        self.delayed_refresh_dimensions()
 
     @safe_debug_off
     def list_refresh(self,event=None):       
@@ -450,7 +450,8 @@ class ConnectionWindow(Frame):
         refreshList = self.client_connection.list()
         self.update_sessions(refreshList)
         self.stopBusy()
-        self.after(2000,self.refresh_dimensions)            
+        self.delayed_refresh_dimensions()            
+
     def refresh_dimensions(self):       
         self.update_idletasks()
 #        newHeight = self.f1.winfo_reqheight() + self.f2.winfo_reqheight() + self.status.winfo_reqheight() + 10
@@ -460,6 +461,9 @@ class ConnectionWindow(Frame):
 #        geometryStr = "800x" + str(newHeight)
         geometryStr = "800x" + str(self.winfo_reqheight()+ self.status.winfo_reqheight() + 20)
         self.master.geometry(geometryStr)
+
+    def delayed_refresh_dimensions(self):       
+            self.after(2,self.refresh_dimensions)            
 
     def startBusy(self, text):
         self.master.config(cursor="watch")
