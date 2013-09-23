@@ -221,11 +221,12 @@ class rcm_client_connection:
             myerr=myerr.rsplit("RCM:",1)[0]
             returncode = myprocess.returncode
             if(self.debug):
-                print "returned error  -->",myerr
-                print "returned output -->",myout
+                print "returned error  -->",myerr,"<---------end of windows error"
+                print "returned output -->",myout,"<---------end of windows output"
             myprocess.wait()                        
             if(self.debug):
-                print "returned        -->",myprocess.returncode
+                print "returned        -->",myprocess.returncode,"<---------end of windows returncode"
+            
         else:      
             child = pexpect.spawn(fullcommand,timeout=50)
             i = child.expect(['password:', 'RCM:EXCEPTION', pexpect.EOF, pexpect.TIMEOUT])
@@ -261,7 +262,8 @@ class rcm_client_connection:
             index += len(serverOutputString)
             myout = myout[index:]
             myout = myout.replace('\n', '',1)
-        myerr = myout
+        if(sys.platform != 'win32'):
+            myerr = myout
         return (returncode,myout,myerr)     
 
     def list(self):
