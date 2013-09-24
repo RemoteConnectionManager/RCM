@@ -265,7 +265,7 @@ class ConnectionWindow(Frame):
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
         self.master.title("Remote Connection Manager " + rcm_client.rcmVersion +" - CINECA")
-        self.master.minsize(800,120)
+        self.master.minsize(800,130)
         self.bind("<<list_refresh>>",self.list_refresh)
         
         self.f1=None
@@ -438,11 +438,12 @@ class ConnectionWindow(Frame):
         
         refreshList = self.client_connection.list()
         self.update_sessions(refreshList)
+        self.delayed_refresh_dimensions()
         self.startBusy("Connecting to the remote display...")
         time.sleep(2)
         self.client_connection.vncsession(newconn, newconn.hash['otp'], self.connection_buttons[newconn.hash['sessionid']][1] )
         self.after(2000,self.stopBusy)
-        self.delayed_refresh_dimensions()
+        
 
     @safe_debug_off
     def list_refresh(self,event=None):       
@@ -455,9 +456,6 @@ class ConnectionWindow(Frame):
     def refresh_dimensions(self):       
         self.update_idletasks()
 #        newHeight = self.f1.winfo_reqheight() + self.f2.winfo_reqheight() + self.status.winfo_reqheight() + 10
-        print  "frame f1 ", self.f1.winfo_reqheight()   
-        print  "frame f2 ", self.f2.winfo_reqheight()," -- ", self.status.winfo_reqheight()    
-        print  "self ", self.winfo_reqheight()   
 #        geometryStr = "800x" + str(newHeight)
         geometryStr = "800x" + str(self.winfo_reqheight()+ self.status.winfo_reqheight() + 20)
         self.master.geometry(geometryStr)
