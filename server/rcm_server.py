@@ -383,11 +383,13 @@ USAGE: %s [-u USERNAME | -U ] [-f FORMAT] 	list
         x=r.search(jo)
         if (x):
           otp=otp_regex.search(jo)
-          return (x.group('node'),x.group('display'),otp.group('otp')) 
+          if (otp):
+            return (x.group('node'),x.group('display'),otp.group('otp')) 
         x=r2.search(jo)
         if (x):
           otp=otp_regex.search(jo)
-          return (x.group('node'),x.group('display'),otp.group('otp')) 
+          if (otp):
+            return (x.group('node'),x.group('display'),otp.group('otp')) 
       secs+=step
       ##FP sys.stderr.write('Waiting for job output, %d/%d\n' % (secs,timeout) )
       time.sleep(step)
