@@ -43,19 +43,22 @@ try:
     #  walltimelimit=config.get('platform','walltimelimit')
 
     jobScriptDict = {}
-    options = config.options('jobscript')
-    for option in options:
-      jobScriptDict[option]=config.get('jobscript',option)
+    if (config.has_section('jobscript')):
+      options = config.options('jobscript')
+      for option in options:
+        jobScriptDict[option]=config.get('jobscript',option)
 
     testJobScriptDict = {}
-    options = config.options('testjobscript')
-    for option in options:
-      testJobScriptDict[option]=config.get('testjobscript',option)
+    if (config.has_section('testjobscript')):
+      options = config.options('testjobscript')
+      for option in options:
+        testJobScriptDict[option]=config.get('testjobscript',option)
     
     wallTimeLimitDict = {}
-    options = config.options('walltimelimit')
-    for option in options:
-      wallTimeLimitDict[option]=config.get('walltimelimit',option)
+    if (config.has_section('walltimelimit')):
+      options = config.options('walltimelimit')
+      for option in options:
+        wallTimeLimitDict[option]=config.get('walltimelimit',option)
 
 except Exception as e:
     raise Exception("Error in platform_config:{0}".format(e))
