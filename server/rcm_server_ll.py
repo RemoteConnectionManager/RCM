@@ -51,6 +51,8 @@ def submit_job(self,sid,rcm_dirs,jobScript):
 # @ class = visual
 # @ queue
 
+export TMPDIR=/tmp
+
 module load profile/advanced
 module load turbovnc
 $RCM_CLEANPIDS
