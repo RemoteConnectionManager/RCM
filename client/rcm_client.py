@@ -49,10 +49,23 @@ class SessionThread( threading.Thread ):
         if(self.debug):
             print 'This is thread ' + str ( self.threadnum ) + ' run.'
         if(self.gui_cmd): self.gui_cmd(active=True)
-        if(self.tunnel_command == ''):
+        if ( sys.platform.startswith('darwin')):
             if(self.debug): print 'This is thread ' + str ( self.threadnum ) + " executing-->" , self.vnc_command.replace(self.password,"****") , "<--"
-            #vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, shell=True)
-            #vnc_process.wait()
+            child = pexpect.spawn(self.tunnel_command,timeout=50)
+            i = child.expect(['Password:', 'standard VNC authentication', 'password:', pexpect.TIMEOUT, pexpect.EOF])
+            if i == 2:
+                #no certificate
+                child.sendline(self.password)
+
+            commandlist=self.vnc_command.split()                
+            self.vnc_process=subprocess.Popen(commandlist , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False)
+            self.vnc_process.wait()
+            self.vnc_process=None
+        #if(self.gui_cmd):
+        #    self.gui_cmd(active=False)
+
+        elif(self.tunnel_command == ''): #linux
+            if(self.debug): print 'This is thread ' + str ( self.threadnum ) + " executing-->" , self.vnc_command.replace(self.password,"****") , "<--"
             
             child = pexpect.spawn(self.vnc_command,timeout=50) 
             i = child.expect(['Password:', 'standard VNC authentication', 'password:', pexpect.TIMEOUT, pexpect.EOF])
@@ -75,6 +88,7 @@ class SessionThread( threading.Thread ):
             child.expect(pexpect.EOF, timeout=None)           
             #if(self.gui_cmd): self.gui_cmd(active=False)
         else:
+        	
             if(self.debug): print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command.replace(self.password,"****") , "<--"
             self.tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
             self.tunnel_process.stdin.close()
@@ -128,7 +142,7 @@ class rcm_client_connection:
         self.config['ssh']['linux2']=("ssh")
         self.config['vnc']['linux2']=("vncviewer","")
         self.config['ssh']['darwin']=("ssh")
-        self.config['vnc']['darwin']=("vncviewer","")
+        self.config['vnc']['darwin']=("vncviewer_java/Contents/MacOS/JavaApplicationStub","")
         self.config['remote_rcm_server']="module load profile/advanced; module load RCM/1.1; python $RCM_HOME/bin/server/rcm_server.py"
 
         #finding out the basedir, it depends if we are running as executable pyinstaler or as script
@@ -206,8 +220,8 @@ class rcm_client_connection:
                 #    print "got passwd-->",self.passwd
                 else:
                     self.passwd=password
-                    self.login_options =  " " + self.remoteuser + "@" + self.proxynode
-        self.ssh_remote_exec_command = self.ssh_command + self.login_options   
+                    self.login_options =  self.remoteuser + "@" + self.proxynode
+        self.ssh_remote_exec_command = self.ssh_command + " " + self.login_options   
         return self.checkCredential() 
         
     def prex(self,cmd):
@@ -336,13 +350,19 @@ class rcm_client_connection:
         #if(self.autopass == ''):
             #self.autopass=self.get_otp(session.hash['sessionid'])
         if(self.autopass == ''):
-            vnc_command=self.vncexe + " -medqual" + " -user " + self.remoteuser
+            if sys.platform.startswith('darwin') :
+                vnc_command = self.vncexe + " -quality 80 -subsampling 2X" + " -user " + self.remoteuser + " -password " + self.passwd
+            else:
+                vnc_command=self.vncexe + " -medqual" + " -user " + self.remoteuser
         else:
+            print("sono qui.... platform -->"+sys.platform)
             if sys.platform == 'win32':
                 vnc_command="echo "+self.autopass + " | " + self.vncexe + " -medqual" + " -autopass -nounixlogin"
+            elif sys.platform.startswith('darwin') :
+                vnc_command = self.vncexe + " -quality 80 -subsampling 2X" + " -nounixlogin" + " -password " + self.autopass
             else:
                 vnc_command = self.vncexe + " -medqual" + " -autopass -nounixlogin"
-        if(sys.platform == 'win32'):
+        if(sys.platform == 'win32' or sys.platform.startswith('darwin')):
             tunnel_command=self.ssh_command  + " -L 127.0.0.1:" +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " echo 'pippo'; sleep 10"
             vnc_command += " 127.0.0.1:" +str(portnumber)
         else:
