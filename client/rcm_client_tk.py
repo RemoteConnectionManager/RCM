@@ -276,7 +276,7 @@ class ConnectionWindow(Frame):
         w.grid( row=1,column=0)
         
         self.f2 = Frame(self, bd=10)
-        self.f2.grid( row=1,column=0) 
+        #tryluigiself.f2.grid( row=1,column=0) 
         button = Button(self.f2, text="NEW DISPLAY", borderwidth=2, command=self.submit)
         button["font"]=boldfont
         button.grid( row=0,column=0 )
