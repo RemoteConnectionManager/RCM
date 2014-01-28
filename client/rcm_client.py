@@ -355,7 +355,7 @@ class rcm_client_connection:
             else:
                 vnc_command=self.vncexe + " -medqual" + " -user " + self.remoteuser
         else:
-            print("sono qui.... platform -->"+sys.platform)
+#            print("sono qui.... platform -->"+sys.platform)
             if sys.platform == 'win32':
                 vnc_command="echo "+self.autopass + " | " + self.vncexe + " -medqual" + " -autopass -nounixlogin"
             elif sys.platform.startswith('darwin') :
