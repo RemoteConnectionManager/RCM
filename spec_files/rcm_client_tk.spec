@@ -28,6 +28,8 @@ file_suffix=""
 if(sys.platform == 'win32'):
     data_files=[('external/'+sys.platform+'/'+platform.architecture()[0]+'/bin/vncviewer.exe', os.path.join(ROOTPATH,'client','external',sys.platform,platform.architecture()[0],'bin','vncviewer.exe'), 'DATA'),('external/'+sys.platform+'/'+platform.architecture()[0]+'/bin/PLINK.EXE', os.path.join(ROOTPATH,'client','external',sys.platform,platform.architecture()[0],'bin','PLINK.EXE'), 'DATA')]
     file_suffix=".exe"
+elif sys.platform.startswith('darwin'):
+    data_files=Tree(os.path.join(ROOTPATH,'client','external',sys.platform,platform.architecture()[0],'bin','vncviewer_java'), prefix='external/'+sys.platform+'/'+platform.architecture()[0]+'/bin/vncviewer_java')
 else:
     data_files=[('external/'+sys.platform+'/'+platform.architecture()[0]+'/bin/vncviewer', os.path.join(ROOTPATH,'client','external',sys.platform,platform.architecture()[0],'bin','vncviewer'), 'DATA')]
     if sys.platform.startswith('linux'):
@@ -54,18 +56,19 @@ data_files.append(('logo_cineca.gif',os.path.join(ROOTPATH,'client','logo_cineca
 
 print "------------->" , data_files
 a = Analysis([    os.path.join(ROOTPATH,'client','rcm_client_tk.py')],
-             pathex=[os.path.join(ROOTPATH,'server'), os.path.join(ROOTPATH,'pyinstaller-2.0')])
+             pathex=[os.path.join(ROOTPATH,'server'), os.path.join(ROOTPATH,'Pyinstaller-2.1')])
 #             hiddenimports=[],
 #             hookspath=None)
 pyz = PYZ(a.pure)
 
-
+print os.path.join(ROOTPATH, 'build','dist','Releases', outFile)
 exe = EXE( pyz,
           a.scripts,
           a.binaries+ data_files,
           a.zipfiles,
           a.datas,
-          name=os.path.join(ROOTPATH, 'build','dist','Releases', outFile),
+          #name=os.path.join(ROOTPATH, 'build','dist','Releases', outFile),
+          name=os.path.join(outFile),
           debug=False,
           strip=False,
           upx=True,
