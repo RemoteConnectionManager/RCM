@@ -5,6 +5,8 @@ import tempfile
 import shutil
 import sys
 
+DISTPATH=os.path.join(os.path.dirname(os.path.abspath(__file__)),'dist','Releases')
+print "---------------->",DISTPATH
 
 for arg in sys.argv: 
     print "args " + arg
@@ -37,4 +39,4 @@ pythoncommand='python '
 #disabledif(sys.platform == 'darwin'):
 #disabled	os.environ['VERSIONER_PYTHON_PREFER_32_BIT']='1'
 #disabled	pythoncommand='arch -i386 python '
-os.system(pythoncommand + os.path.join(root,'PyInstaller','pyinstaller-2.0','utils','Build.py') + ' ' + tmpFile)
+os.system(pythoncommand + os.path.join(root,'PyInstaller','Pyinstaller-2.1','utils','Build.py') + ' --distpath='+ DISTPATH + ' ' + tmpFile)
