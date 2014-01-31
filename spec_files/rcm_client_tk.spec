@@ -2,6 +2,7 @@
 import platform
 import hashlib
 import subprocess
+import zipfile
 
 rcmVersion = "1.1."
 customPlatform=''
@@ -90,6 +91,10 @@ with open(configurationFile, 'r') as inF:
     inF.close()
     
 rcmExe = os.path.join(ROOTPATH, 'build','dist','Releases', outFile)
+zf=zipfile.ZipFile(rcmExe + ".zip" ,"w")
+zf.write(rcmExe,outFile)
+zf.close()
+
 checksumWritten = False
 for idx, line in enumerate(fileContent):    
     if myplatform in line:
