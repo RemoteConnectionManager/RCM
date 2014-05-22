@@ -57,7 +57,8 @@ module load profile/advanced
 module load turbovnc
 $RCM_CLEANPIDS
 
-$RCM_VNCSERVER -otp -fg -novncauth > $RCM_JOBLOG.vnc 2>&1   
+echo -e $RCM_VNCPASSWD  | vncpasswd -f > $RCM_JOBLOG.pwd 
+$RCM_VNCSERVER -otp -fg -rfbauth $RCM_JOBLOG.pwd > $RCM_JOBLOG.vnc 2>&1
 """
 
     s=string.Template(self.ll_template)
@@ -68,7 +69,7 @@ $RCM_VNCSERVER -otp -fg -novncauth > $RCM_JOBLOG.vnc 2>&1
     file='%s/%s.job' % (rcm_dirs[0],sid)
     fileout='%s/%s.joblog' % (rcm_dirs[0],sid)
       
-    batch=s.safe_substitute(RCM_WALLTIME=self.par_w,RCM_SESSIONID=sid,RCM_JOBLOG=fileout,RCM_QUEUE=self.queue,RCM_VNCSERVER=self.vncserver_string,RCM_CLEANPIDS=self.clean_pids_string)
+    batch=s.safe_substitute(RCM_MODULE_SETUP=self.vnc_setup,RCM_WALLTIME=self.par_w,RCM_SESSIONID=sid,RCM_JOBLOG=fileout,RCM_QUEUE=self.queue,RCM_VNCSERVER=self.vncserver_string,RCM_CLEANPIDS=self.clean_pids_string, RCM_VNCPASSWD=self.vncpassword)
 
     
     f=open(file,'w')

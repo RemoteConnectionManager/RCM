@@ -4,194 +4,67 @@ import sys
 import platform
 import os 
 import getpass
-import subprocess
-import threading
+import socket
+import time
+import paramiko
+import string
 
 
-rcmVersion = ""
+
 
 
 if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
-	import pexpect
+    import pexpect
 
 
 sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "server"))
 import rcm
-
-
-class SessionThread( threading.Thread ):
-    
-    threadscount = 0
-    
-    def __init__ ( self, tunnel_cmd='', vnc_cmd='', passwd = '', otp = '', gui_cmd=None, debug = False ):
-        self.debug=debug
-        self.tunnel_command = tunnel_cmd
-        self.vnc_command = vnc_cmd
-        self.gui_cmd=gui_cmd
-        self.password = passwd
-        self.otp = otp
-        self.vnc_process = None
-        self.tunnel_process = None
-        threading.Thread.__init__ ( self )
-        self.threadnum = SessionThread.threadscount
-        SessionThread.threadscount += 1
-        if(self.debug): print 'This is thread ' + str ( self.threadnum ) + ' init.'
-
-    def terminate( self ):
-        self.gui_cmd=None
-        if(self.vnc_process):
-            if(self.debug): print "Killing vnc process-->",self.vnc_process
-            self.vnc_process.kill()
-            if(self.debug): print "Killing tunnel process-->",self.tunnel_process
-            self.tunnel_process.kill()
-            
-    def run ( self ):
-        if(self.debug):
-            print 'This is thread ' + str ( self.threadnum ) + ' run.'
-        if(self.gui_cmd): self.gui_cmd(active=True)
-        if ( sys.platform.startswith('darwin')):
-            if(self.debug): print 'This is thread ' + str ( self.threadnum ) + " executing-->" , self.vnc_command.replace(self.password,"****") , "<--"
-            child = pexpect.spawn(self.tunnel_command,timeout=50)
-            i = child.expect(['Password:', 'standard VNC authentication', 'password:', pexpect.TIMEOUT, pexpect.EOF])
-            if i == 2:
-                #no certificate
-                child.sendline(self.password)
-
-            commandlist=self.vnc_command.split()                
-            self.vnc_process=subprocess.Popen(commandlist , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False)
-            self.vnc_process.wait()
-            self.vnc_process=None
-        #if(self.gui_cmd):
-        #    self.gui_cmd(active=False)
-
-        elif(self.tunnel_command == ''): #linux
-            if(self.debug): print 'This is thread ' + str ( self.threadnum ) + " executing-->" , self.vnc_command.replace(self.password,"****") , "<--"
-            
-            child = pexpect.spawn(self.vnc_command,timeout=50) 
-            i = child.expect(['Password:', 'standard VNC authentication', 'password:', pexpect.TIMEOUT, pexpect.EOF])
-            if i == 2:
-                #no certificate
-                child.sendline(self.password)
-                i = child.expect(['Password:','standard VNC authentication'])
-                
-            if i == 0:
-                # Unix authentication
-                child.sendline(self.password)
-            elif i == 1:
-                # OTP authentication
-                child.sendline(self.otp)
-            elif i == 3 or i == 4:
-                if(self.debug): print "Timeout connecting to the display."
-                if(self.gui_cmd): self.gui_cmd(active=False)
-                raise Exception("Timeout connecting to the display.")
-               
-            child.expect(pexpect.EOF, timeout=None)           
-            #if(self.gui_cmd): self.gui_cmd(active=False)
-        else:
-        	
-            if(self.debug): print 'This is thread ' + str ( self.threadnum ) + "executing-->" , self.tunnel_command.replace(self.password,"****") , "<--"
-            self.tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
-            self.tunnel_process.stdin.close()
-            while True:
-                o = self.tunnel_process.stdout.readline()
-                #print "into the while!-->",o
-                if o == '' and tunnel_process.poll() != None: continue
-                if(self.debug):
-                    print "output from process---->"+o.strip()+"<---"
-                if o.strip() == 'pippo' : break
-            a=self.vnc_command.split("|")
-            if(self.debug):
-                print "starting vncviewer-->"+self.vnc_command.replace(self.password,"****")+"<--"
-                print "splitting-->",a,"<--"
-            if(len(a)>1):
-                tmppass=a[0].strip().split()[1].strip()
-                commandlist=a[1].strip()
-            else:
-                tmppass=None
-                commandlist=self.vnc_command.split()
-                if(self.debug):
-                    print "vncviewer tmp  pass-->",tmppass,"<--"
-            if(self.debug):
-                print "vncviewer command-->",commandlist,"<--"
-                
-            #self.vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
-            self.vnc_process=subprocess.Popen(commandlist , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False)
-            if(tmppass):
-                self.vnc_process.stdin.write(tmppass)
-                o=self.vnc_process.communicate()
-                if(self.debug):
-                    print "vnc res-->",o,"<--"
-            self.vnc_process.stdin.close()
-            self.vnc_process.wait()
-            self.vnc_process=None
-        if(self.gui_cmd):
-            self.gui_cmd(active=False)
-
-
-
+import rcm_utils
 
 class rcm_client_connection:
 
-    def __init__(self,proxynode='login.plx.cineca.it', user_account='', remoteuser='',password=''):
+    def __init__(self,proxynode='login.plx.cineca.it', user_account='', remoteuser='',password='', pack_info=None):
         self.debug=True
+        if(not pack_info):
+            self.pack_info=rcm_utils.pack_info()
+        else:
+            self.pack_info=pack_info 
+        self.basedir = self.pack_info.basedir
         self.config=dict()
         self.config['ssh']=dict()
         self.config['vnc']=dict()
-        self.config['ssh']['win32']=("PLINK.EXE"," -ssh")
+        self.config['ssh']['win32']=("PLINK.EXE"," -ssh","echo yes | ")
         self.config['vnc']['win32']=("vncviewer.exe","")
-        self.config['ssh']['linux2']=("ssh")
+        self.config['ssh']['linux2']=("ssh","","")
         self.config['vnc']['linux2']=("vncviewer","")
-        self.config['ssh']['darwin']=("ssh")
+        self.config['ssh']['darwin']=("ssh","","")
         self.config['vnc']['darwin']=("vncviewer_java/Contents/MacOS/JavaApplicationStub","")
-        self.config['remote_rcm_server']="module load profile/advanced; module load RCM/1.1; python $RCM_HOME/bin/server/rcm_server.py"
 
+        self.config['remote_rcm_server']="module load rcm; python $RCM_HOME/bin/server/rcm_server.py"
+        #self.config['remote_rcm_server']="module load python; /om/home/cibo19/RCM_Dev/bin/server/rcm_server.py"
         #finding out the basedir, it depends if we are running as executable pyinstaler or as script
-        if('frozen' in dir(sys)):
-          if hasattr(sys, '_MEIPASS'):
-            # PyInstaller >= 1.6
-            self.basedir = os.path.abspath(sys._MEIPASS)
-          elif(os.environ.has_key('_MEIPASS2')):
-            self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
-          else:
-            self.basedir = os.path.dirname(os.path.abspath(sys.executable))
-          self.debug=False
-        else:
-          self.basedir = os.path.dirname(os.path.abspath(__file__))
-            
-        #Read file containing the platform on which the client were build
-        buildPlatform = os.path.join(self.basedir,"external","build_platform.txt")
-        self.buildPlatformString = ""
-        global rcmVersion
-        if (os.path.exists(buildPlatform)):
-            in_file = open(buildPlatform,"r")
-            self.buildPlatformString = in_file.readline()
-            rcmVersion = in_file.readline()
-            in_file.close()
-        
         self.sshexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['ssh'][sys.platform][0])
         self.activeConnectionsList = []
-        if(self.debug):
-            print "uuu", self.sshexe
         if os.path.exists(self.sshexe) :
-            self.ssh_command = self.sshexe + self.config['ssh'][sys.platform][1]
+            self.ssh_command = self.config['ssh'][sys.platform][2] + self.sshexe + self.config['ssh'][sys.platform][1]
         else:
             self.ssh_command = "ssh"
         if(self.debug):
-            print "uuu", self.ssh_command
+            print "ssh command1: ", self.ssh_command
         
         vncexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['vnc'][sys.platform][0])
         if os.path.exists(vncexe):
             self.vncexe=vncexe
         else:
             if(self.debug): 
-            	print "VNC exec -->",vncexe,"<-- NOT FOUND !!!"
-            	name=raw_input("VNC exec -->"+vncexe+"<-- NOT FOUND !!!")
+                print "VNC exec -->",vncexe,"<-- NOT FOUND !!!"
+                name=raw_input("VNC exec -->"+vncexe+"<-- NOT FOUND !!!")
             sys.exit()
         self.session_thread=[]
 
+
     def login_setup(self, host='', remoteuser='',password=''):
         self.proxynode=host
-        if(self.debug): print "Login host: " + self.proxynode
            
         
         if (remoteuser == ''):
@@ -201,10 +74,11 @@ class rcm_client_connection:
         keyfile=os.path.join(self.basedir,'keys',self.remoteuser+'.ppk')
         if(os.path.exists(keyfile)):
             if(sys.platform == 'win32'):
-                self.login_options =  " -i " + keyfile + " " + self.remoteuser + "@" + self.proxynode
+                self.login_options =  " -i " + keyfile + " " + self.remoteuser               
+                
             else:
                 if(self.debug): print "PASSING PRIVATE KEY FILE NOT IMPLEMENTED ON PLATFORM -->"+sys.platform+"<--"
-                self.login_options =  " -i " + keyfile + " " + self.remoteuser + "@" + self.proxynode
+                self.login_options =  " -i " + keyfile + " " + self.remoteuser
                 
         else:
             if(sys.platform == 'win32'):
@@ -213,62 +87,40 @@ class rcm_client_connection:
                 #    print "got passwd-->",self.passwd
                 else:
                     self.passwd=password
-                    self.login_options =  " -pw "+self.passwd + " " + self.remoteuser + "@" + self.proxynode
+                    self.login_options =  " -pw "+self.passwd + " " + self.remoteuser
+
             else:
                 if (password == ''):
                     self.passwd=getpass.getpass("Get password for " + self.remoteuser + "@" + self.proxynode + " : ")
+                    
                 #    print "got passwd-->",self.passwd
                 else:
                     self.passwd=password
-                    self.login_options =  self.remoteuser + "@" + self.proxynode
-        self.ssh_remote_exec_command = self.ssh_command + " " + self.login_options   
-        return self.checkCredential() 
+                    self.login_options =  self.remoteuser
         
-    def prex(self,cmd):
-        fullcommand= self.ssh_remote_exec_command + ' ' + cmd
-        if(self.debug):
-            print "executing-->",fullcommand.replace(self.passwd,"****")
-        if(sys.platform == 'win32'):
-            myprocess=subprocess.Popen(fullcommand, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
-            myprocess.stdin.close()
-            (myout,myerr)=myprocess.communicate()
-            myerr=myerr.rsplit("RCM:",1)[0]
-            returncode = myprocess.returncode
-            if(self.debug):
-                print "returned error  -->",myerr,"<---------end of windows error"
-                print "returned output -->",myout,"<---------end of windows output"
-            myprocess.wait()                        
-            if(self.debug):
-                print "returned        -->",myprocess.returncode,"<---------end of windows returncode"
-            
-        else:      
-            child = pexpect.spawn(fullcommand,timeout=50)
-            i = child.expect(['password:', 'RCM:EXCEPTION', pexpect.EOF, pexpect.TIMEOUT])
-            if i == 0:
-                #no PKI
-                child.sendline(self.passwd)
-                i = child.expect([pexpect.EOF, 'RCM:EXCEPTION'])
-            elif i == 2:
-                #use PKI
-                pass
-            if i == 1: 
-                #manage error
-                myerr = child.before
-                myout =  ''
-                returncode = 1
-                return (returncode,myout,myerr)
-            if i==3:
-                raise Exception("Timeout contacting the server.")
+        self.login_options_withproxy =  self.login_options + "@" + self.proxynode
+        self.ssh_remote_exec_command = self.ssh_command + " " + self.login_options
+        self.ssh_remote_exec_command_withproxy = self.ssh_command + " " + self.login_options_withproxy 
+        check_cred=self.checkCredential()
+        if(check_cred):
+            self.subnet= '.'.join(socket.gethostbyname(self.proxynode).split('.')[0:-1])
+            if(self.debug): print "Login host: " + self.proxynode + " subnet: " + self.subnet
+        return check_cred 
+        
+    def prex(self, cmd, commandnode = ''):
+        
+        if (commandnode == ''):
+            commandnode = self.proxynode
+        fullcommand = self.ssh_remote_exec_command + "@" + commandnode + ' ' + cmd
+        
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(commandnode, username=self.remoteuser, password=self.passwd)
 
-            myout = child.before
-            myout = myout.lstrip()
-            myout = myout.replace('\r\n', '\n')        
-
-            child.close()
-            returncode = child.exitstatus
-            if(self.debug): print "returncode: " + str(returncode)
-            returncode = returncode
-            myerr = ''
+        stdin, stdout, stderr = ssh.exec_command(cmd)
+        myout = ''.join(stdout)
+        myerr = stderr.readlines()
+        
         #find where the real server output starts
         serverOutputString = "server output->"
         index = myout.find(serverOutputString)
@@ -276,45 +128,74 @@ class rcm_client_connection:
             index += len(serverOutputString)
             myout = myout[index:]
             myout = myout.replace('\n', '',1)
-        if(sys.platform != 'win32'):
-            myerr = myout
-        return (returncode,myout,myerr)     
+        return (myout,myerr)
+        
 
     def list(self):
-        (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'list')
-        if (r != 0):
+        
+        #get list of nodes to check of possible sessions
+        (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'loginlist' + ' ' + self.subnet)
+        if e:
             if(self.debug): print e
             raise Exception("Server error: {0}".format(e))
         sessions=rcm.rcm_sessions(o)
-        if(self.debug):
+        if(self.debug): 
             sessions.write(2)
-        return sessions 
+
+        a=[]
+        nodeloginList = []
+        proxynode = ''
+        state = ''
+        for ses in sessions.array:
+            proxynode = ses.hash.get('nodelogin', '')
+            state = ses.hash.get('state', 'killed')
+            if (proxynode != '' and not proxynode in nodeloginList and state != 'killed'):
+                nodeloginList.append(proxynode)
+                (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'list' + ' ' + self.subnet, proxynode)
+                if e:
+                    if(self.debug): print e
+                    raise Exception("Server error: {0}".format(e))
+                tmp=rcm.rcm_sessions(o)
+                a.extend(tmp.array)
+        ret=rcm.rcm_sessions()
+        ret.array=a
+        if(self.debug):
+            ret.write(2)
+        return ret 
+
         
-    def newconn(self, queue, geometry):
+
+    def newconn(self, queue, geometry, sessionname = ''):
         
-#       new_encoded_param=pickle.dumps({'geometry': geometry, 'user_account': self.user_account})
-        new_encoded_param='geometry='+ geometry + ' ' + 'queue='+ queue
-        (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'new' + ' ' + new_encoded_param )
+        #Create a random vncpassword and encrypt it
+        rcm_cipher = rcm_utils.rcm_cipher()
+        vncpassword = rcm_cipher.vncpassword
+        vncpassword_crypted=rcm_cipher.encrypt()
         
-        if (r != 0):
+        new_encoded_param='geometry='+ geometry + ' ' + 'queue='+ queue + ' ' +  'sessionname=' + '\'' + sessionname + '\'' + ' ' \
+         + 'subnet=' + self.subnet + ' ' + 'vncpassword=' + vncpassword + ' ' + 'vncpassword_crypted=' + '\'' + vncpassword_crypted + '\''
+        (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'new' + ' ' + new_encoded_param )
+        
+        if e:
             if(self.debug): print e
             raise Exception("Server error: {0}".format(e))
         session=rcm.rcm_session(o)
         return session 
 
-    def kill(self,sessionid):
-
-        (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'kill' + ' ' + sessionid)
+    def kill(self,session):
+        sessionid = session.hash['sessionid']
+        nodelogin = session.hash['nodelogin']
+        (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'kill' + ' ' + sessionid, nodelogin)
         
-        if (r != 0):
+        if e:
             if(self.debug): print e
             raise Exception("Killing session -> {0} <- failed with error: {1}".format(sessionid, e))
+
   
     def get_otp(self,sessionid):
+        (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'otp' + ' ' + sessionid)
 
-        (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'otp' + ' ' + sessionid)
-
-        if (r != 0):
+        if e:
             if(self.debug): print e
             raise Exception("Getting OTP passwd session -> {0} <- failed with error: {1}".format(sessionid, e))
             return ''
@@ -322,116 +203,120 @@ class rcm_client_connection:
             return o.strip()
 
     def get_version(self):
-        (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'version' + ' ' + self.buildPlatformString)
-        if (r != 0):
+        (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'version' + ' ' + self.pack_info.buildPlatformString)
+        if e:
             if(self.debug): print e
             raise Exception("Getting last client version failed with error: {0}".format(e))
             return ''
         else:
             return o.split(' ')
-        
+
 
     def get_queue(self):
+        (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'queue')
+        
 
-        (r,o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'queue')
-        if(self.debug): print "available queue: ", o
-
-        if (r != 0):
+        if e:
             if(self.debug): print e
             raise Exception("Getting available queue failed with error: {0}".format(e))
             return ''
         else:
+            if(self.debug): print "available queue: ", o
             return o.split(' ')
+
                 
-    def vncsession(self,session,otp='',gui_cmd=None):
-        self.autopass = otp
-        portnumber=5900 + int(session.hash['display'])
-        if(self.debug): print "portnumber-->",portnumber
-        #if(self.autopass == ''):
-            #self.autopass=self.get_otp(session.hash['sessionid'])
-        if(self.autopass == ''):
+    def vncsession(self, session=None, otp='', gui_cmd=None, configFile=None):
+        """
+
+        :rtype : object
+        """
+        tunnel_command = ''
+        vnc_command = ''
+        vncpassword_decrypted = ''
+
+        if session:
+
+            portnumber = 5900 + int(session.hash['display'])
+            node = session.hash['node']
+            nodelogin = session.hash['nodelogin']
+            tunnel = session.hash['tunnel']
+            vncpassword = session.hash.get('vncpassword','')
+
+            #Decrypt password
+            rcm_cipher = rcm_utils.rcm_cipher()
+            vncpassword_decrypted=rcm_cipher.decrypt(vncpassword)
+
+            if(self.debug):
+                print "portnumber --> ",portnumber
+                print "node --> ",node
+                print "nodelogin --> ",nodelogin
+                print "tunnel --> ",tunnel
+
+
             if sys.platform.startswith('darwin') :
-                vnc_command = self.vncexe + " -quality 80 -subsampling 2X" + " -user " + self.remoteuser + " -password " + self.passwd
+                vnc_command = self.vncexe + " -quality 80 -subsampling 2X" + " -password " + vncpassword_decrypted
+            elif(sys.platform == 'win32'):
+            #    vnc_command = self.vncexe + " -medqual " + "-password " + vncpassword_decrypted
+                vnc_command = "echo "+ vncpassword_decrypted+ " | " + self.vncexe + " -medqual " + "-autopass -nounixlogin"
             else:
-                vnc_command=self.vncexe + " -medqual" + " -user " + self.remoteuser
-        else:
-#            print("sono qui.... platform -->"+sys.platform)
-            if sys.platform == 'win32':
-                vnc_command="echo "+self.autopass + " | " + self.vncexe + " -medqual" + " -autopass -nounixlogin"
-            elif sys.platform.startswith('darwin') :
-                vnc_command = self.vncexe + " -quality 80 -subsampling 2X" + " -nounixlogin" + " -password " + self.autopass
+                vnc_command = self.vncexe + " -medqual "
+
+
+            if(sys.platform == 'win32' or sys.platform.startswith('darwin')):
+                if (tunnel == 'y'):
+                    tunnel_command = self.ssh_command  + " -L 127.0.0.1:" +str(portnumber) + ":" + node + ":" + str(portnumber) + " " + self.login_options + "@" + nodelogin + " echo 'rcm_tunnel'; sleep 10"
+                    vnc_command += " 127.0.0.1:" + str(portnumber)
+                else:
+                    #tunnel_command = self.ssh_command  + " -L 127.0.0.1:" +str(portnumber) + ":" + node + ":" + str(portnumber) + " " + self.login_options + "@" + nodelogin + " echo 'rcm_tunnel'; sleep 10"
+                    vnc_command += " " + nodelogin + ":" + str(portnumber)
             else:
-                vnc_command = self.vncexe + " -medqual" + " -autopass -nounixlogin"
-        if(sys.platform == 'win32' or sys.platform.startswith('darwin')):
-            tunnel_command=self.ssh_command  + " -L 127.0.0.1:" +str(portnumber) + ":"+session.hash['node']+":" + str(portnumber) + " " + self.login_options + " echo 'pippo'; sleep 10"
-            vnc_command += " 127.0.0.1:" +str(portnumber)
+                if (tunnel == 'y'):
+                    vnc_command += " -via '"  + self.login_options + "@" + nodelogin + "' " + node +":" + str(session.hash['display'])
+                else:
+                    vnc_command += ' ' + nodelogin + ":" + session.hash['display']
         else:
-            tunnel_command=''
-            vnc_command += " -via '"  + self.login_options + "' " + session.hash['node']+":" + session.hash['display']
-        st=SessionThread ( tunnel_command, vnc_command, self.passwd, self.autopass, gui_cmd, self.debug)
+
+            vnc_command = self.vncexe + " -config "
+
+                
+        
+
+        st=rcm_utils.SessionThread ( tunnel_command, vnc_command, self.passwd, vncpassword_decrypted,  otp, gui_cmd, configFile, self.debug)
+
         if(self.debug): print "!!!!!session thread--->",st,"\n"
         self.session_thread.append(st)
         st.start()
 
     def vncsession_kill(self):
         for t in self.session_thread:
-           t.terminate()
-    def checkCredential(self):
-        #check user credential 
-        #If user use PKI, I can not check password validity
-        if(self.debug): print "Checking credentials......"
-        try:
-            if(sys.platform == 'win32'):
-                myprocess=subprocess.Popen("echo yes | " + self.ssh_remote_exec_command, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
-                myprocess.stderr.close()
-                myprocess.stdin.close()
-                #myprocess=subprocess.Popen(self.ssh_remote_exec_command, bufsize=100000, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-                output= ''
-                result=None
-                while True:
-                    out = myprocess.stdout.read(1)
-                    if out == '' and process.poll() != None:
-                        break
-                    output += out
-                    if 'password' in output:
-                        result=False
-                    if 'Welcome to' in output:
-                        result=True 
-                    if(result != None):
-                        myprocess.kill()
-                        return result
-            else:      
-                ssh_newkey = 'Are you sure you want to continue connecting'
-                # my ssh command line
-                p=pexpect.spawn(self.ssh_remote_exec_command,timeout=50)
-                i=p.expect([ssh_newkey,'password:','Welcome to', pexpect.TIMEOUT])
-                if i==0:
-                    if(self.debug): print "I say yes"
-                    p.sendline('yes')
-                    p.expect('password')
-                    i = 1            
-                if i==1:
-                    #send password
-                    p.sendline(self.passwd)
-                    i=p.expect(['Permission denied', 'Welcome to'],20)
-                    if i==0:
-                        p.sendline('\r')
-                        if(self.debug): print "Permission denied"
-                        p.close()
-                        return False 
-                    elif i==1:
-                        p.close()
-                        return True
-                elif i==2: #use PKI
-                    p.close()
-                    return True
-                if i==3:
-                    p.close()
-                    raise Exception("Timeout checking credential.")
-                    
-        except Exception as e:
-            raise Exception("Authentication failed.\n")
+            t.terminate()
             
+    def checkCredential(self):
+        
+        #check if RCM_PATH env variable is set
+        start_string='_##start##_'
+        end_string='_##end##_'
+        get_rcm_server_command = ' echo ' + start_string + '${RCM_SERVER_COMMAND}'+end_string
+        
+        
+        #check paramiko
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        #ssh.load_system_host_keys()
+        ssh.connect(self.proxynode, username=self.remoteuser, password=self.passwd) 
+        stdin, stdout, stderr = ssh.exec_command(get_rcm_server_command)
+        output = stdout.readlines()
+        if output:
+            try:
+                rcm_server_command=output[0].split(end_string)[0].split(start_string)[1]
+                print "echo ${RCM_SERVER_COMMAND}: " + rcm_server_command + '.'
+                if(rcm_server_command != ''):
+                    self.config['remote_rcm_server'] = rcm_server_command
+            except:
+                if(self.debug): print "unrecognized env"
+        return True
+
+
     
 if __name__ == '__main__':
     try:

@@ -92,7 +92,7 @@ def submit_job(self,sid,rcm_dirs,jobScript):
     else:
       rcm_directive_W = self.groupSubstitution(group,'#PBS -W group_list=$RCM_GROUP')
 
-    batch=s.safe_substitute(RCM_WALLTIME=self.par_w,RCM_SESSIONID=sid,RCM_JOBLOG=fileout,RCM_DIRECTIVE_A=rcm_directive_A,RCM_DIRECTIVE_W=rcm_directive_W,RCM_QUEUE=self.queue,RCM_QUEUEPARAMETER=queueParameter,RCM_VNCSERVER=self.vncserver_string,RCM_CLEANPIDS=self.clean_pids_string)
+    batch=s.safe_substitute(RCM_MODULE_SETUP=self.vnc_setup,RCM_WALLTIME=self.par_w,RCM_SESSIONID=sid,RCM_JOBLOG=fileout,RCM_DIRECTIVE_A=rcm_directive_A,RCM_DIRECTIVE_W=rcm_directive_W,RCM_QUEUE=self.queue,RCM_QUEUEPARAMETER=queueParameter,RCM_VNCSERVER=self.vncserver_string,RCM_CLEANPIDS=self.clean_pids_string, RCM_VNCPASSWD=self.vncpassword)
 
     f=open(file,'w')
     f.write(batch)
@@ -209,7 +209,7 @@ def get_jobs(self, sessions, U=False):
         ure=self.par_u
       #258118.node351    rcm-cin0449a-10  cin0449a          00:00:06 R visual          
 #original..single queue      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>rcm-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ visual  ' % (ure,ure) ,re.VERBOSE)
-      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>%s-\S+-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ ' % (ure,ure) ,re.VERBOSE)
+      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>%s-\S+-\d+)  \s+ (%s) \s+ \S+ \s+ (R|Q) \s+ ' % (ure,ure) ,re.VERBOSE)
       jobs={}
       for j in raw:
         mo=r.match(j)

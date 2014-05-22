@@ -6,12 +6,22 @@ import zipfile
 
 rcmVersion = "1.1."
 customPlatform=''
-baseurl="https://hpc-forge.cineca.it/svn/RemoteGraph/trunk/build/dist/Releases/"
-    
 
 ROOTPATH=os.path.dirname(os.path.dirname(os.path.abspath(HOMEPATH)))
 print "---------------->", os.path.abspath(HOMEPATH)
 print "---------------->",ROOTPATH
+
+svninfo = ''
+myprocess = subprocess.Popen(["svn", "info", ROOTPATH],stdout=subprocess.PIPE)
+(myout,myerr)=myprocess.communicate()
+for line in myout.splitlines():
+	if "URL: " in line:
+		svninfo = line[5:]
+		break
+		
+print "SVN info URL: ", svninfo
+baseurl = svninfo + "/build/dist/Releases/"
+    
 
 #add revision to rcm version 
 myprocess = subprocess.Popen(["svnversion",ROOTPATH],stdout=subprocess.PIPE)
@@ -62,7 +72,12 @@ a = Analysis([    os.path.join(ROOTPATH,'client','rcm_client_tk.py')],
 #             hookspath=None)
 pyz = PYZ(a.pure)
 
+#remove from the binaries list all the X11 related dinamic libraries likelibX**
+
+a.binaries=[x for x in a.binaries if not x[0].startswith("libX")]
+
 print os.path.join(ROOTPATH, 'build','dist','Releases', outFile)
+
 exe = EXE( pyz,
           a.scripts,
           a.binaries+ data_files,
@@ -74,6 +89,27 @@ exe = EXE( pyz,
           strip=False,
           upx=True,
           console=False )
+
+build_collection_dir=False
+if build_collection_dir:
+	exe1 = EXE( pyz,
+          a.scripts,
+          name=os.path.join(outFile),
+          debug=False,
+          strip=False,
+          upx=True,
+          console=False,
+          exclude_binaries=1 
+        )
+
+	dist = COLLECT( exe1,
+          a.binaries+ data_files,
+          a.zipfiles,
+          a.datas,
+          #name=os.path.join(ROOTPATH, 'build','dist','Releases', outFile),
+          name=os.path.join(outFile+'_dir')
+        )
+
 
 fh = open(os.path.join(ROOTPATH, 'build','dist','Releases', outFile), 'rb')
 m = hashlib.md5()

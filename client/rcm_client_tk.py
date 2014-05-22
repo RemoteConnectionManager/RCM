@@ -2,11 +2,15 @@
 
 import os
 import tempfile
+import rcm_utils
 import rcm_client
 import rcm
 
-
+#from Tkinter import *
 from Tkinter import *
+from ttk import *
+
+import tkFileDialog
 import tkMessageBox
 import tkSimpleDialog
 import time
@@ -18,6 +22,7 @@ import urllib2
 import tempfile
 import pickle
 import collections
+import threading
 
 
 font = ("Helvetica",10, "grey")
@@ -63,7 +68,6 @@ def compute_checksum(filename):
    
 @safe_debug_off     
 def download_file(url,outfile):
-    file_name = url.split('/')[-1]
     u = urllib2.urlopen(url)
     meta = u.info()
     file_size = int(meta.getheaders("Content-Length")[0])
@@ -78,8 +82,7 @@ def download_file(url,outfile):
         file_size_dl += len(buffer)
         f.write(buffer)
         p = float(file_size_dl) / file_size
-        status = r"{0}  [{1:.2%}]".format(file_size_dl, p)
-        
+
     f.close()
 
 @safe_debug_off
@@ -131,11 +134,11 @@ def update_exe_file():
             os.system("sh "+batchfilename+ " &") 
                     
 class Login(Frame):
-    def __init__(self, master=None,action=None,basedir=None):
+    def __init__(self, master=None, guiaction=None, action=None):
         
         #Read configuration file
+        self.master = master
         self.configFileName = os.path.join(os.path.expanduser('~'),'.rcm','RCM.cfg')
-        userName=""
         self.hostCollections = collections.deque(maxlen=5)
         self.config = ConfigParser.RawConfigParser()
         if(os.path.exists(self.configFileName)):
@@ -146,50 +149,31 @@ class Login(Frame):
 
             except:
                 os.remove(self.configFileName)
-                    
 
-        Frame.__init__(self, master)
-        self.pack( padx=20, pady=30 )
-        self.master.title("RCM Login:")
+        self.guiaction=guiaction
         self.action=action
-        self.master.geometry("+200+200")
-        
-        #CINECA LOGO       
-        
-        imagePath = os.path.join(basedir,'logo_cineca.gif')
-        
-        im = PhotoImage(file=imagePath)
-        lbl = Label(self, image=im, relief=GROOVE, border=2)
-        lbl.image = im
-        lbl.pack(side=TOP)
-        
-        titleFrame = Frame(self, padx = 1, bd=10)
-        w = Label(titleFrame, text='REMOTE CONNECTION MANAGER', height=1)
-        w["font"]=boldfont
-        w.pack(side=TOP)
 
-        w = Label(titleFrame, text='version: '+ rcm_client.rcmVersion, height=1)
-        w.pack(side=TOP)
-        titleFrame.pack() 
-           
-        loginFrame = Frame(self, padx = 20, bd=8)
-        
+        loginFrame = Frame(self.master, padding=10)
+
+        loginLabel = Label(self.master, text='NEW LOGIN:', padding=5, font=boldfont)
+        loginLabel.pack(side=TOP)
+
         self.host = StringVar()  
         self.user = StringVar()
         self.password = StringVar()
-        
-        if (len(list(self.hostCollections)) > 0):
+
+
+        if (len(list(self.hostCollections)) > 0 ):
             Label(loginFrame, text="""Sessions:""").grid(row=0)
             self.variable = StringVar(loginFrame)
             self.variable.set(list(self.hostCollections)[0]) # default value
             self.fillCredentials(self.variable)
             OptionMenu(loginFrame, self.variable, *list(self.hostCollections), command=self.fillCredentials).grid(row=0, column=1, sticky=W)        
-        
-        Label(loginFrame, text="Host: ",height=2).grid(row=1)
-        Label(loginFrame, text="User: ",height=2).grid(row=2)
-        Label(loginFrame, text="Password:",height=2).grid(row=3)
 
-        
+        Label(loginFrame, text="Host: ", padding=5).grid(row=1)
+        Label(loginFrame, text="User: ", padding=5).grid(row=2)
+        Label(loginFrame, text="Password:", padding=5).grid(row=3)
+
         hostEntry = Entry(loginFrame, textvariable=self.host, width=16)
         userEntry = Entry(loginFrame, textvariable=self.user, width=16)
         passwordEntry = Entry(loginFrame, textvariable=self.password, show="*", width=16)
@@ -197,11 +181,10 @@ class Login(Frame):
         hostEntry.grid(row=1, column=1)
         userEntry.grid(row=2, column=1)
         passwordEntry.grid(row=3, column=1) 
-        loginFrame.pack()       
+        loginFrame.pack()
 
-        self.b = Button(self, borderwidth=2, text="LOGIN", width=10, pady=8, command=self.login)
-        self.b["font"]=boldfont
-        self.b.pack(side=BOTTOM)
+        b = Button(self.master, text="LOGIN", style='RCM.TButton',padding=5, command=self.login)
+        b.pack(side=BOTTOM, pady=15)
         passwordEntry.bind('<Return>', self.enter)
         hostEntry.focus_set()
 
@@ -242,9 +225,8 @@ class Login(Frame):
             
                 with open(self.configFileName, 'wb') as configfile:
                     self.config.write(configfile)
-                
-                self.destroy()
-                self.quit()
+
+                self.guiaction()
                 return
             else:
                 tkMessageBox.showwarning("Error","Authentication failed!")
@@ -259,41 +241,45 @@ class ConnectionWindow(Frame):
         self.client_connection.vncsession_kill()
         
     def __init__(self, master=None,rcm_client_connection=None):
-        self.debug=False
+        self.debug=True
+        self.sessions=None
+        self.do_list_refresh=False
+        self.do_update_gui=True
         Frame.__init__(self, master)
         self.client_connection=rcm_client_connection
         self.connection_buttons=dict()
         self.pack( padx=10, pady=10 )
-        self.master.title("Remote Connection Manager " + rcm_client.rcmVersion +" - CINECA")
-        self.master.minsize(800,130)
-        self.bind("<<list_refresh>>",self.list_refresh)
+        #self.bind("<<list_refresh>>",self.list_refresh)
+        self.pending_connections = []
+
         
         self.f1=None
-        self.f1 = Frame(self, width=500, height=100)
-        self.f1.grid( row=0,column=0) 
-        self.f1.pack()
-        w = Label(self.f1, text='Please wait...', height=2)
-        w.grid( row=1,column=0)
-        
-        self.f2 = Frame(self, bd=10)
-        #tryluigiself.f2.grid( row=1,column=0) 
-        button = Button(self.f2, text="NEW DISPLAY", borderwidth=2, command=self.submit)
-        button["font"]=boldfont
-        button.grid( row=0,column=0 )
- 
-        button = Button(self.f2, text="REFRESH", borderwidth=2, command=self.list_refresh)
-        button["font"]=boldfont
-        button.grid( row=0,column=1 )                
-        self.statusBarText = StringVar()
-        self.statusBarText.set("Idle")
-        self.status = Label(self.master, textvariable=self.statusBarText, bd=1, relief=SUNKEN, anchor=W)
-        self.status.pack(side=BOTTOM, fill=X)
-        self.f2.pack(side=BOTTOM)
+        self.f1 = Frame(self, padding=10)
+        self.f1.pack(expand=1, fill=Y)
+        w = Label(self.f1, text='Please wait...', padding=2)
+        w.pack(expand=1, fill=Y)
+
+        self.f2 = Frame(self, padding=10)
+        button = Button(self.f2, text="NEW DISPLAY", padding=5,  style='RCM.TButton', command=self.submit)
+        button.pack(expand=1)
+        button.grid( row=0,column=1 )
+
+        self.file_opt = options = {}
+        options['filetypes'] = [('vnc files', '.vnc'), ('all files', '.*')]
+
+        self.last_used_dir='.'
+
+        button = Button(self.f2, text="REFRESH", padding=5,  style='RCM.TButton', command=self.list_refresh)
+        button.grid( row=0,column=2 )
+        self.f2.pack()
         
         self.bind("<Destroy>", self.deathHandler)
         #check version after mainloop is started
         self.after(500,self.check_version)
-    
+        self.after(200,self.auto_list_refresh)
+        self.do_list_refresh = True
+
+
     @safe_debug_off   
     def check_version(self):       
         self.startBusy("Checking new client version...")
@@ -311,106 +297,143 @@ class ConnectionWindow(Frame):
                     self.stopBusy()
                     self.master.destroy()
                     return
-        self.stopBusy()        
-#        self.list_refresh()
+        self.stopBusy()
         self.update_idletasks()
-        self.event_generate("<<list_refresh>>")
+        #self.event_generate("<<list_refresh>>")
+        self.do_list_refresh = True
 
        
     @safe_debug_off
     def update_sessions(self,ss):
-        buttonHeight = 0
+        self.connection_buttons=dict()
         self.sessions=ss
         if(self.f1):
             for child in self.f1.winfo_children():
                 child.destroy()
 
         if len(self.sessions.array) == 0:
-            w = Label(self.f1, text='No display available. Press \'NEW DISPLAY\' to create a new one.', height=2)
+            w = Label(self.f1, text='No display available. Press \'NEW DISPLAY\' to create a new one.', padding=2)
             w.pack()
         else:
             f1 = self.f1
-            labelList = ['created', 'display', 'node', 'state', 'username', 'walltime', 'timeleft']
+            labelList = ['state', 'session name', 'created', 'node', 'display', 'username', 'timeleft']
             c=rcm.rcm_session()
             i = 0
-            for t in sorted(c.hash.keys()):
-                if t in labelList:
-                    w = Label(f1, text=t.upper(), relief=RIDGE, state=ACTIVE)
-                    w.grid( row=0,column=i+2, sticky="we")
+            for t in labelList:
+                if t in c.hash.keys():
+                    w = Label(f1, text=t.upper(), relief=RIDGE, state=ACTIVE, anchor=CENTER, padding=4, font=boldfont)
+                    w.grid( row=0,column=i+3, sticky="we")
+
                     f1.columnconfigure ( i, minsize=80 )
                     i = i + 1
             
             for line, el in  enumerate( self.sessions.array ):
                 if(self.client_connection):
                 
-                    def cmd(self=self, sessionid=el.hash['sessionid']):
+                    def cmd(self=self, session=el):
                         if(self.debug): print "killing session", sessionid
-                        self.kill(sessionid)
+                        self.kill(session)
                         
-                    if(el.hash['state'] == 'killed'):
-                        continue
-                    bk = Button( f1, text="KILL", borderwidth=2, command=cmd )
-                    bk["font"]=boldfont
-                    bk.grid( row=line+1, column=1 )
-                    
-                    bc = Button( f1, text="CONNECT", borderwidth=2)
-                    bc["font"]=boldfont
-                    bc.grid( row=line+1, column=0 )
-                    buttonHeight = bc.winfo_reqheight()
+                    #if(el.hash['state'] == 'killed'):
+                    #    continue
+
+                    bk = Button( f1, text="KILL", padding=4, command=cmd)
+                    bk.grid( row=line+1, column=2, pady=0)
+
+                    def cmd_share(self=self, session=el):
+                        self.asksaveasfilename(session)
+
+                    bs = Button( f1, text="SHARE", padding=4, command=cmd_share)
+                    bs.grid( row=line+1, column=1, pady=0)
+
+                    bc = Button( f1, text="CONNECT", padding=4)
+                    bc.grid( row=line+1, column=0, pady=0 )
                     sessionid = el.hash['sessionid']
-                    
+
+
                     def disable_cmd(self=self, sessionid=el.hash['sessionid'],active=True):
-                        button=self.connection_buttons[sessionid][0]
-                        if(button.winfo_exists()):
-                            if(active):
-                                self.client_connection.activeConnectionsList.append(sessionid)
-                                button.configure(state=DISABLED)
-                            else:
-                                button.configure(state=ACTIVE)
-                                self.client_connection.activeConnectionsList.remove(sessionid)
-#                                self.list_refresh()
-                                self.event_generate("<<list_refresh>>") 
-                                
+                        print "sessionid-->"+sessionid+"<--"
+
+                        if(active):
+                            self.client_connection.activeConnectionsList.append(sessionid)
+                        else:
+                            self.client_connection.activeConnectionsList.remove(sessionid)
+                            self.do_list_refresh=True
+                        self.do_update_gui=True
+
+                    #if el.hash['state'] == 'valid':
                     self.connection_buttons[sessionid]=(bc,disable_cmd)
+                    #    print "self.connection_buttons -------> " + str(self.connection_buttons)
+
                     
-                    
+                    def cmd_warn(self=self, session=el,disable_cmd=disable_cmd):
+                            tkMessageBox.showwarning("Warning!", "Display created with a previous RCM client version. Can not start the connection.")
                     def cmd(self=self, session=el,disable_cmd=disable_cmd):
-                        if(self.debug): print "connecting to session", session.hash['sessionid']
-                        self.startBusy("Connecting to the remote display...")
-                        self.client_connection.vncsession(session,gui_cmd=disable_cmd)
-                        self.after(4000,self.stopBusy)
-                        
-                    bc.configure( command=cmd )
+                        if(session.hash['sessionid'] in self.client_connection.activeConnectionsList):
+                            tkMessageBox.showwarning("Warning!", "Already connected to session " +session.hash['sessionid'])
+                        else:
+                            if(self.debug): print "connecting to session", session.hash['sessionid']
+                            self.startBusy("Connecting to the remote display...")
+                            self.client_connection.vncsession(session,gui_cmd=disable_cmd)
+                            self.after(4000,self.stopBusy)
+
+                    if (el.hash.get('vncpassword','') == ''):
+                        bc.configure( command=cmd_warn )
+                    else:
+                        bc.configure( command=cmd )
                     if sessionid in self.client_connection.activeConnectionsList:
                         bc.configure(state=DISABLED)
-            
+                    if (el.hash['state'] == 'pending'):
+                        bc.configure(state=DISABLED)
+                        bs.configure(state=DISABLED)
+
                 i = 0
-                for t in sorted(c.hash.keys()):
-                    if t in labelList:
-                        lab = Label(f1, text=el.hash[t])
+                for t in labelList:
+                    if t in c.hash.keys():
+                        lab = Label(f1, text=el.hash[t], relief=RIDGE, anchor=CENTER, padding=4)
                         if t == 'timeleft':
                             try:
                                 timeleft = datetime.datetime.strptime(el.hash[t],"%H:%M:%S")
                                 endTime = timeleft.replace(hour=0,minute=0,second=0)
                                 limit = timeleft - endTime
                                 if limit < datetime.timedelta(hours=1):
-                                    lab.configure(fg="red")
+                                    lab.configure(foreground="red")
                             except:
                                 pass
-                        lab.grid( row=line+1, column=i+2 )
+                        lab.grid( row=line+1, column=i+3,sticky="we" )
                         i = i + 1
             
+    @safe_debug_off
+    def kill(self, session):  
+        self.startBusy("Killing the remote display...")
+        self.client_connection.kill(session)
+        self.stopBusy()
+        if(not session.hash['sessionid'] in self.client_connection.activeConnectionsList): 
+            #self.event_generate("<<list_refresh>>")
+            self.do_list_refresh = True
+
+        #self.delayed_refresh_dimensions()
+        self.do_list_refresh = True
+
 
     @safe_debug_off
-    def kill(self, sessionid):  
-        self.startBusy("Killing the remote display...")
-        self.client_connection.kill(sessionid)
+    def asksaveasfilename(self, session=None):
+        file_suggested=session.hash['session name'].replace(' ','_')+'.vnc'
+        filename = tkFileDialog.asksaveasfilename(initialfile=file_suggested, initialdir=self.last_used_dir,**self.file_opt)
 
-        refreshList = self.client_connection.list()
-        self.update_sessions(refreshList)
-        self.stopBusy()
-        self.delayed_refresh_dimensions()
-  
+        if filename:
+            out_file = open(filename, 'w')
+            out_file.write("[Connection]\n")
+            if (session.hash['tunnel'] == 'y'):
+                #rcm_tunnel is a key word to know that I need to tunnel across that node
+                out_file.write("rcm_tunnel={0}\n".format(session.hash['nodelogin']))
+                out_file.write("host={0}\n".format(session.hash['node']))
+            else:
+                out_file.write("host={0}\n".format(session.hash['nodelogin']))
+            out_file.write("port={0}\n".format(5900 + int(session.hash['display'])))
+            out_file.write("password={0}\n".format(session.hash['vncpassword']))
+            out_file.close()
+            self.last_used_dir=os.path.dirname(filename)
 
     @safe_debug_off
     def submit(self):
@@ -430,20 +453,52 @@ class ConnectionWindow(Frame):
         
         self.displayDimension = dd.displayDimensions
         self.queue = dd.queue.get()
-        self.startBusy("Creating a new remote display...")
-        if(self.debug): print "Requesting new connection"
-        newconn=self.client_connection.newconn(self.queue, self.displayDimension)
+        self.sessionname = dd.sessionName
 
-        if(self.debug): print "New connection aquired"
+        t = threading.Thread(target=self.create_display)
+        t.start()
+
+        self.startBusy("Creating a new remote display...")
+        self.after(8000, self.set_do_list_refresh)
+
+    def set_do_list_refresh(self):
+        self.do_list_refresh = True
+
+
+    @safe_debug_off
+    def create_display(self):
+        newconn=self.client_connection.newconn(self.queue, self.displayDimension, self.sessionname)
+
+        lock = threading.Lock()
+        lock.acquire()
+        try:
+            self.pending_connections.append(newconn)
+        finally:
+            lock.release()
+
         
-        refreshList = self.client_connection.list()
-        self.update_sessions(refreshList)
-        self.delayed_refresh_dimensions()
-        self.startBusy("Connecting to the remote display...")
-        time.sleep(2)
-        self.client_connection.vncsession(newconn, newconn.hash['otp'], self.connection_buttons[newconn.hash['sessionid']][1] )
-        self.after(2000,self.stopBusy)
-        
+    @safe_debug_off
+    def auto_list_refresh(self):
+        if(self.do_list_refresh):
+            self.list_refresh()
+        if(self.do_update_gui):
+            if(self.sessions):
+                for line, el in  enumerate( self.sessions.array ):
+                    sessionid=el.hash['sessionid']
+                    (button,cmd)=self.connection_buttons.get(sessionid,(None,None))
+                    if(button):
+                        if(sessionid in self.client_connection.activeConnectionsList):
+                            button.configure(state=DISABLED)
+                        else:
+                            button.configure(state=ACTIVE)
+            self.do_update_gui=False
+
+        if (len(self.pending_connections) != 0):
+            conn = self.pending_connections.pop()
+            self.list_refresh()
+            self.client_connection.vncsession(conn, conn.hash['otp'], self.connection_buttons[conn.hash['sessionid']][1])
+
+        self.after(100,self.auto_list_refresh)
 
     @safe_debug_off
     def list_refresh(self,event=None):       
@@ -451,13 +506,13 @@ class ConnectionWindow(Frame):
         refreshList = self.client_connection.list()
         self.update_sessions(refreshList)
         self.stopBusy()
-        self.delayed_refresh_dimensions()            
+        #self.delayed_refresh_dimensions()
+        self.refresh_dimensions()
+        self.do_list_refresh = False
 
-    def refresh_dimensions(self):       
-        self.update_idletasks()
-#        newHeight = self.f1.winfo_reqheight() + self.f2.winfo_reqheight() + self.status.winfo_reqheight() + 10
-#        geometryStr = "800x" + str(newHeight)
-        geometryStr = "800x" + str(self.winfo_reqheight()+ self.status.winfo_reqheight() + 20)
+
+    def refresh_dimensions(self):
+        geometryStr = "1150x" + str(self.master.winfo_reqheight() )
         self.master.geometry(geometryStr)
 
     def delayed_refresh_dimensions(self):       
@@ -465,13 +520,13 @@ class ConnectionWindow(Frame):
 
     def startBusy(self, text):
         self.master.config(cursor="watch")
-        self.statusBarText.set(text)
+        self.master.statusBarText.set(text)
         self.update()
         self.update_idletasks()
         
     def stopBusy(self):
         self.master.config(cursor="")
-        self.statusBarText.set("Idle")
+        self.master.statusBarText.set("Idle")
         
         
 class newVersionDialog(tkSimpleDialog.Dialog):
@@ -480,25 +535,15 @@ class newVersionDialog(tkSimpleDialog.Dialog):
         url = lastClientVersion[1]
         self.result = False
 
-        Label(master, text="A new version of the \"Remote Connection Manager\" is avaiable at:").grid(row=0)
-        ent = Entry(master, state='readonly', fg='blue', width=len(url), justify=CENTER)
-        var = StringVar()
-        var.set(url)
-        ent.config(textvariable=var, relief='flat', highlightthickness=0)
-        ent.grid(row=1)
+        Label(master, text="A new version of the \"Remote Connection Manager\" is available at:").grid(row=0)
+        Label(master, text=url, underline = True, foreground='blue' ).grid(row=1)
         Label(master, text="It is highly recommended to install the new version to keep working properly.").grid(row=2)
         Label(master, text="Do you want to install it now?").grid(row=3)
-        
-        # clone the font, set the underline attribute,
-        # and assign it to our widget
-        f = tkFont.Font(ent, ent.cget("font"))
-        f.configure(underline = True)
-        ent.configure(font=f)
+
 
     def apply(self):
         self.result = True
                 
-        
 
 class newDisplayDialog(tkSimpleDialog.Dialog):
     
@@ -517,20 +562,28 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
                 self.displayDimensionsList = pickle.loads(displayDimensionsList)
             except:
                 print "remove .cfg"
-                os.remove(self.configFileName)        
+                os.remove(self.configFileName)    
+        
+        sessionNameFrame = Frame(master, padding = 5)
+        Label(sessionNameFrame, text="""Session name: """).pack(side=LEFT)  
+        self.SessionNameString = StringVar() 
+        e = Entry(sessionNameFrame, textvariable=self.SessionNameString, width=20).pack(side=LEFT)
+        
+        sessionNameFrame.pack(padx=15)
         
         self.v = IntVar()
         self.displayDimension = NONE
         self.queue = StringVar(master)
         self.queue.set(queueList[0])
         if (len(queueList) > 1):
-            optionFrame = Frame(master, padx = 20, bd=5)
+            #optionFrame = Frame(master, padx = 20, bd=5)
+            optionFrame = Frame(master, padding = 5)
             Label(optionFrame, text="""Select queue:""").pack(side=LEFT)        
             w = apply(OptionMenu, (optionFrame, self.queue) + tuple(queueList))
             w.pack(side=LEFT)
             optionFrame.pack(anchor=W)
         
-        displayFrame = Frame(master, padx = 20, bd=5)
+        displayFrame = Frame(master, padding = 5)
 
         fullDisplayDimension = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight())
         
@@ -540,21 +593,20 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
         
         if (not "Full Screen" in list(self.displayDimensionsList)):
             self.displayDimensionsList.pop()
-            self.displayDimensionsList.append("Full Screen")     
-
+            self.displayDimensionsList.append("Full Screen")
 
         self.e1String = StringVar()  
-        Label(displayFrame, text="""Display size:""").pack(side=LEFT)
+        Label(displayFrame, text="""Display size:    """).pack(side=LEFT)
         if (len(list(self.displayDimensionsList)) > 0):           
             self.displayVariable = StringVar(displayFrame)
             self.displayVariable.set(list(self.displayDimensionsList)[0]) # default value
             self.fillEntry(self.displayVariable)
             OptionMenu(displayFrame,self.displayVariable, *list(self.displayDimensionsList), command=self.fillEntry).pack(side=LEFT)        
-        displayFrame.pack(anchor=W) 
+        displayFrame.pack(padx=15)
 
-        entryFrame = Frame(master, padx = 20, bd=2)        
+        entryFrame = Frame(master, padding = 5)
         e1 = Entry(entryFrame, textvariable=self.e1String, width=16).pack(side=LEFT)        
-        entryFrame.pack(anchor=W)
+        entryFrame.pack(padx=15)
         return e1
     
     def fillEntry(self,v):
@@ -563,11 +615,21 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
             displayDimensions = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight())
 
         self.e1String.set(displayDimensions)
-        
+
+    def validate(self):
+        if not self.SessionNameString.get()[0:20]:
+            tkMessageBox.showwarning("Error","Please insert a valid session name!")
+            return False
+        else:
+            return True
+
+
     
     def apply(self):
         self.displayDimensions = self.e1String.get()
-        
+        #session name: get only first 20 char
+        self.sessionName = self.SessionNameString.get()[0:20]#.replace(' ', '\ ')
+                
         dimensions = self.e1String.get()
         if (self.e1String.get() == str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight())):
             dimensions = "Full Screen"
@@ -586,41 +648,166 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
             
         self.destroy()
         return
-            
+
+
+class LoginDialog:
+
+     def __init__(self, parent, guiaction=None, pack_info=None):
+        self.guiaction = guiaction
+        if(not pack_info):
+            self.pack_info=rcm_utils.pack_info()
+        else:
+            self.pack_info=pack_info 
+        self.parent = parent
+        self.top = Toplevel(self.parent)
+        geometry = '+' + str(self.parent.winfo_x()) + '+' + str(self.parent.winfo_y())
+        self.top.geometry(geometry)
+        self.my_rcm_client = rcm_client.rcm_client_connection(pack_info = self.pack_info)
+        self.frameLogin = Login(guiaction=self.ok, action=self.my_rcm_client.login_setup, master=self.top)
+        self.top.grab_set()
+
+
+     def ok(self):
+         self.guiaction(self.my_rcm_client)
+         self.top.destroy()
     
-class rcm_client_connection_GUI(rcm_client.rcm_client_connection):
+#class rcm_client_connection_GUI(rcm_client.rcm_client_connection):
+class rcm_client_connection_GUI():
     def __init__(self):
-        rcm_client.rcm_client_connection.__init__(self)
-        self.login = Login(action=self.login_setup,basedir=self.basedir)
-        self.login.mainloop()
-        
-        if(self.debug): print "Check credential returned: " + str(checkCredential)
-        if checkCredential:
-            gui = ConnectionWindow(rcm_client_connection=self)
-            gui.mainloop()
+        self.pack_info=rcm_utils.pack_info()
+        self.last_used_dir='.'
+
+    def show(self):
+        self.master = Tk()
+        self.master.geometry("1150x180+100+100")
+
+        self.gui = None
+
+        self.master.title('Remote Connection Manager ' + self.pack_info.rcmVersion + ' - CINECA')
+        self.frame1 = LabelFrame(self.master, padding=20, text='LOGIN MANAGER')
+
+        self.frame1.pack(side=LEFT, padx=10, pady=10, fill=Y)
+
+        self.LoginLabel = Label(self.master, padding=20, text='Press \'NEW LOGIN\' to start a session or \'OPEN\' to open a .vnc file')
+        self.LoginLabel.pack(padx=10, pady=10, fill=Y)
+
+        self.n = ConnectionWindowNotebook(self.master)
+
+        s = Style()
+        s.configure('RCM.TButton', font=('Helvetica', 10, 'bold'))
+        LoginButton = Button(self.frame1, text="NEW LOGIN", padding=5, style='RCM.TButton', command=self.newLogin)
+        LoginButton.pack()
+
+        OpenButton = Button(self.frame1, text="   OPEN   ", padding=5, style='RCM.TButton', command=self.askopenfilename)
+        OpenButton.pack(pady=10)
+
+        self.frameBottom = Frame(self.master, padding=1)
+        self.frameBottom.pack(side=BOTTOM, fill=X)
+
+        self.master.statusBarText = StringVar()
+        self.master.statusBarText.set("Idle")
+        self.status = Label(self.frameBottom, textvariable=self.master.statusBarText, padding=1, relief=SUNKEN, anchor=W)
+        self.status.pack(side=BOTTOM, fill=X)
+
+    def mainloop(self):
+        self.master.mainloop()
+
+
+    def newLogin(self):
+
+        myLoginDialog = LoginDialog(self.master, guiaction = self.createConnectionWindow, pack_info = self.pack_info)
+        myLoginDialog.top.grab_set()
+
+
+    def askopenfilename(self,filename=None):
+        if(not filename):
+            file_opt = options = {}
+            options['filetypes'] = [('vnc files', '.vnc'), ('all files', '.*')]
+            filename = tkFileDialog.askopenfilename(initialdir=self.last_used_dir,**file_opt)
+
+        if filename:
+            tunnel = False
+            my_rcm_client = rcm_client.rcm_client_connection(pack_info = self.pack_info)
+            my_rcm_client.passwd = ''
+
+            #check if session needs tunneling
+            file = open(filename, 'r')
+            if 'rcm_tunnel' in file.read():
+                file.seek(0)
+                lines = file.readlines()
+                for l in lines:
+                    if 'rcm_tunnel' in l:
+                        node = l.split('=')[1].rstrip()
+                        #check credential for the cluster, not for the specific node
+                        credential = self.n.getConnectionInfo(node.split('.',1)[1])
+                        if credential != None:
+                            user = credential['user']
+                            my_rcm_client.login_setup(host=node,remoteuser=user,password=credential['password'])
+                        else:
+                            tkMessageBox.showwarning("Warning!", "Please login to \"{0}\" to open this shared display.".format(node))
+                            return
+
+                    if 'host' in l:
+                        hostname = l.split('=')[1].rstrip()
+                    if 'port' in l:
+                        port = l.split('=')[1].rstrip()
+                        display = int(port) - 5900
+                    if 'password' in l:
+                        password = l.split('=')[1].rstrip()
+
+                c=rcm.rcm_session(node=hostname, tunnel='y', display=display, nodelogin=node, username=user, vncpassword=password)
+                my_rcm_client.vncsession(session = c)
+            else:
+                my_rcm_client.vncsession(configFile = filename)
+            self.last_used_dir=os.path.dirname(filename)
+
+
+    def createConnectionWindow(self, rcm_client = None):
+        exists = False
+        if (self.LoginLabel):
+            self.LoginLabel.destroy()
+        self.n.pack(expand=1, fill=BOTH)
+        self.rcm_client = rcm_client
+        self.n.myadd(self.rcm_client)
+
+
+
+class ConnectionWindowNotebook(Notebook):
+    @safe_debug_off
+    def __init__(self, master = None):
+        self.master = master
+        Notebook.__init__(self, master)
+        self.ConnectionWindows = dict()
+
+
+    def myadd(self, rcm_client = None):
+        if rcm_client:
+            notebookName = rcm_client.remoteuser + "@" + rcm_client.proxynode
+
+            if notebookName in self.ConnectionWindows:
+                self.select(self.ConnectionWindows[notebookName][0])
+            else:
+                child = ConnectionWindow(rcm_client_connection=rcm_client, master=self.master)
+                Notebook.add(self, child, text = notebookName)
+                index = self.index('end') - 1
+                self.ConnectionWindows[notebookName] = (index, child)
+                self.select(index)
+
+    def getConnectionInfo(self, tunnel_node = ''):
+        for i in self.ConnectionWindows:
+            if tunnel_node in i:
+                credential = dict()
+                credential['user'] = self.ConnectionWindows[i][1].client_connection.remoteuser
+                credential['password'] = self.ConnectionWindows[i][1].client_connection.passwd
+                return credential
 
 
 if __name__ == '__main__':
-    #try:
-#        c.debug=True
     c=rcm_client_connection_GUI()
-##	c.debug=True
-##        gui = ConnectionWindow()
-        
-##        res=c.list()
-##        res.write(2)
-##        newc=c.newconn()
-##        newsession = newc.hash['sessionid']
-##        print "created session -->",newsession,"<- display->",newc.hash['display'],"<-- node-->",newc.hash['node']
-##        c.vncsession(newc)
-##        res=c.list()
-##        res.write(2)
-##        c.kill(newsession)
-##        res=c.list()
-##        res.write(2)
-        
-        
-    #except Exception:
-    #    print "ERROR OCCURRED HERE"
-    #    raise
-  
+    if(1 < len(sys.argv)):
+        c.askopenfilename(sys.argv[1])
+    else:
+        c.show()
+        c.mainloop()
+
+

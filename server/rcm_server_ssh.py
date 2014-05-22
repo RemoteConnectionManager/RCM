@@ -43,19 +43,22 @@ def cprex(cmd):
 # stdout and stderr are separated in 2 files
 def submit_job(self,sid,rcm_dirs,jobScript):
     #cineca deployment dependencies
-    self.ssh_template="""
-#!/bin/bash
-
-. /cineca/prod/environment/module/3.1.6/none/init/bash
-module purge
-module load profile/advanced
-module load turbovnc
-
-$RCM_CLEANPIDS
-
-$RCM_VNCSERVER -otp -novncauth > $RCM_JOBLOG.vnc 2>&1
-cat `ls -tr ~/.vnc/*.pid | tail -1`
-"""
+    self.ssh_template=jobScript
+#"""
+##!/bin/bash
+#
+#. /cineca/prod/environment/module/3.1.6/none/init/bash
+#module purge
+#module load profile/advanced
+#module load turbovnc
+#
+#$RCM_CLEANPIDS
+#
+#echo -e $RCM_VNCPASSWD  | vncpasswd -f > $RCM_JOBLOG.pwd 
+#
+#$RCM_VNCSERVER -otp -rfbauth $RCM_JOBLOG.pwd > $RCM_JOBLOG.vnc 2>&1
+#cat `ls -tr ~/.vnc/*.pid | tail -1`
+#"""
 
     s=string.Template(self.ssh_template)
     print s
@@ -65,7 +68,7 @@ cat `ls -tr ~/.vnc/*.pid | tail -1`
     file='%s/%s.job' % (rcm_dirs[0],sid)
     fileout='%s/%s.joblog' % (rcm_dirs[0],sid)
       
-    batch=s.safe_substitute(RCM_JOBLOG=fileout,RCM_VNCSERVER=self.vncserver_string,RCM_CLEANPIDS=self.clean_pids_string)
+    batch=s.safe_substitute(RCM_MODULE_SETUP=self.vnc_setup,RCM_JOBLOG=fileout,RCM_VNCSERVER=self.vncserver_string,RCM_CLEANPIDS=self.clean_pids_string,RCM_VNCPASSWD=self.vncpassword)
 
     
     f=open(file,'w')
@@ -88,7 +91,7 @@ def kill_job(self,jid):
     try:
       os.kill(int(jid), 9)
     except:
-      raise Exception("Can not kill Xvnc process with pid: {0}. {1}".format(jid, err))
+      raise Exception("Can not kill Xvnc process with pid: {0}.".format(jid))
     
     
 # get available queues for the user (ssh in no job scheduler)
