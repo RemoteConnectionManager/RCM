@@ -38,10 +38,14 @@ def safe(debug=False):
             try:
                 return f(*l_args, **d_args)
             except Exception as e:
-                try:
-                    l_args[0].stopBusy()
-                except:
-                    pass
+                if(hasattr(l_args[0],'do_list_refresh')):
+                	l_args[0].do_list_refresh=False
+                if("stopBusy" in dir(l_args[0])):
+                	l_args[0].stopBusy()
+#                try:
+#                    l_args[0].stopBusy()
+#                except:
+#                    pass
                 if debug:
                     import traceback
                     tkMessageBox.showwarning("Error","in {0}: {1}\n{2}".format(f.__name__, e,traceback.format_exc()))
@@ -337,16 +341,16 @@ class ConnectionWindow(Frame):
                     #if(el.hash['state'] == 'killed'):
                     #    continue
 
-                    bk = Button( f1, text="KILL", padding=4, command=cmd)
+                    bk = Button( f1, text="KILL", padding=4,style='RCM.TButton', command=cmd)
                     bk.grid( row=line+1, column=2, pady=0)
 
                     def cmd_share(self=self, session=el):
                         self.asksaveasfilename(session)
 
-                    bs = Button( f1, text="SHARE", padding=4, command=cmd_share)
+                    bs = Button( f1, text="SHARE", padding=4,style='RCM.TButton', command=cmd_share)
                     bs.grid( row=line+1, column=1, pady=0)
 
-                    bc = Button( f1, text="CONNECT", padding=4)
+                    bc = Button( f1, text="CONNECT", padding=4,style='RCM.TButton')
                     bc.grid( row=line+1, column=0, pady=0 )
                     sessionid = el.hash['sessionid']
 
@@ -513,7 +517,7 @@ class ConnectionWindow(Frame):
 
     def refresh_dimensions(self):
         geometryStr = "1150x" + str(self.master.winfo_reqheight() )
-        self.master.geometry(geometryStr)
+        self.master.winfo_toplevel().geometry(geometryStr)
 
     def delayed_refresh_dimensions(self):       
             self.after(2,self.refresh_dimensions)            
@@ -546,7 +550,20 @@ class newVersionDialog(tkSimpleDialog.Dialog):
                 
 
 class newDisplayDialog(tkSimpleDialog.Dialog):
-    
+
+    def buttonbox(self):
+        box = Frame(self.topFrame)
+
+        w = Button(box, text="OK", width=10, command=self.ok, default=ACTIVE)
+        w.pack(side=LEFT, padx=5, pady=5)
+        w = Button(box, text="Cancel", width=10, command=self.cancel)
+        w.pack(side=LEFT, padx=5, pady=5)
+
+        self.bind("<Return>", self.ok)
+        self.bind("<Escape>", self.cancel)
+
+        box.pack()
+        
     def body(self, master):
 
         #Read configuration file
@@ -563,8 +580,12 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
             except:
                 print "remove .cfg"
                 os.remove(self.configFileName)    
-        
-        sessionNameFrame = Frame(master, padding = 5)
+                
+        #master.pack(fill=BOTH,expand=1)
+        #self.master=master
+        self.topFrame = Frame(master)
+        self.topFrame.pack(fill=BOTH,expand=1)
+        sessionNameFrame = Frame(self.topFrame, padding = 5)
         Label(sessionNameFrame, text="""Session name: """).pack(side=LEFT)  
         self.SessionNameString = StringVar() 
         e = Entry(sessionNameFrame, textvariable=self.SessionNameString, width=20).pack(side=LEFT)
@@ -576,14 +597,13 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
         self.queue = StringVar(master)
         self.queue.set(queueList[0])
         if (len(queueList) > 1):
-            #optionFrame = Frame(master, padx = 20, bd=5)
-            optionFrame = Frame(master, padding = 5)
+            optionFrame = Frame(self.topFrame, padding = 5)
             Label(optionFrame, text="""Select queue:""").pack(side=LEFT)        
             w = apply(OptionMenu, (optionFrame, self.queue) + tuple(queueList))
             w.pack(side=LEFT)
             optionFrame.pack(anchor=W)
         
-        displayFrame = Frame(master, padding = 5)
+        displayFrame = Frame(self.topFrame, padding = 5)
 
         fullDisplayDimension = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight())
         
@@ -604,7 +624,7 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
             OptionMenu(displayFrame,self.displayVariable, *list(self.displayDimensionsList), command=self.fillEntry).pack(side=LEFT)        
         displayFrame.pack(padx=15)
 
-        entryFrame = Frame(master, padding = 5)
+        entryFrame = Frame(self.topFrame, padding = 5)
         e1 = Entry(entryFrame, textvariable=self.e1String, width=16).pack(side=LEFT)        
         entryFrame.pack(padx=15)
         return e1
@@ -663,7 +683,9 @@ class LoginDialog:
         geometry = '+' + str(self.parent.winfo_x()) + '+' + str(self.parent.winfo_y())
         self.top.geometry(geometry)
         self.my_rcm_client = rcm_client.rcm_client_connection(pack_info = self.pack_info)
-        self.frameLogin = Login(guiaction=self.ok, action=self.my_rcm_client.login_setup, master=self.top)
+        self.topFrame= Frame(self.top)
+        self.topFrame.pack(fill=BOTH,expand=1)
+        self.frameLogin = Login(guiaction=self.ok, action=self.my_rcm_client.login_setup, master=self.topFrame)
         self.top.grab_set()
 
 
@@ -679,34 +701,46 @@ class rcm_client_connection_GUI():
 
     def show(self):
         self.master = Tk()
+        self.master.title('Remote Connection Manager ' + self.pack_info.rcmVersion + ' - CINECA')
         self.master.geometry("1150x180+100+100")
+        self.topFrame = Frame(self.master)
+        self.topFrame.pack(fill=BOTH,expand=1)
+        #mycolor='#%02x%02x%02x' % (240,240,237)
+        #self.master.configure(bg='gray')
 
         self.gui = None
+        
+        #s_color = Style()
+        #s_color.configure('RCM.Color', background='gray')
 
-        self.master.title('Remote Connection Manager ' + self.pack_info.rcmVersion + ' - CINECA')
-        self.frame1 = LabelFrame(self.master, padding=20, text='LOGIN MANAGER')
+        self.frame1 = LabelFrame(self.topFrame, padding=20, text='LOGIN MANAGER')
 
-        self.frame1.pack(side=LEFT, padx=10, pady=10, fill=Y)
+        self.frame1.pack(side=LEFT,  padx=10, pady=10, fill=Y)
+        #print self.frame1.configure(background='gray')
+        #print "in frame1 background--->"+str(self.frame1.cget('background'))+"<-- framecolor -->",str(self.frame1.cget('framecolor'))
 
-        self.LoginLabel = Label(self.master, padding=20, text='Press \'NEW LOGIN\' to start a session or \'OPEN\' to open a .vnc file')
+        self.LoginLabel = Label(self.topFrame, padding=20, text='Press \'NEW LOGIN\' to start a session or \'OPEN\' to open a .vnc file')
         self.LoginLabel.pack(padx=10, pady=10, fill=Y)
+        print "in show background--->"+str(self.LoginLabel.cget('background'))
 
-        self.n = ConnectionWindowNotebook(self.master)
+        self.n = ConnectionWindowNotebook(self.topFrame)
 
         s = Style()
         s.configure('RCM.TButton', font=('Helvetica', 10, 'bold'))
+        s.map('RCM.TButton',foreground=[('disabled','#909090')])
+       
         LoginButton = Button(self.frame1, text="NEW LOGIN", padding=5, style='RCM.TButton', command=self.newLogin)
         LoginButton.pack()
 
         OpenButton = Button(self.frame1, text="   OPEN   ", padding=5, style='RCM.TButton', command=self.askopenfilename)
         OpenButton.pack(pady=10)
 
-        self.frameBottom = Frame(self.master, padding=1)
+        self.frameBottom = Frame(self.topFrame, padding=1)
         self.frameBottom.pack(side=BOTTOM, fill=X)
 
-        self.master.statusBarText = StringVar()
-        self.master.statusBarText.set("Idle")
-        self.status = Label(self.frameBottom, textvariable=self.master.statusBarText, padding=1, relief=SUNKEN, anchor=W)
+        self.topFrame.statusBarText = StringVar()
+        self.topFrame.statusBarText.set("Idle")
+        self.status = Label(self.frameBottom, textvariable=self.topFrame.statusBarText, padding=1, relief=SUNKEN, anchor=W)
         self.status.pack(side=BOTTOM, fill=X)
 
     def mainloop(self):
