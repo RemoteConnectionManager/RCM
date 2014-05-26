@@ -601,7 +601,7 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
             Label(optionFrame, text="""Select queue:""").pack(side=LEFT)        
             w = apply(OptionMenu, (optionFrame, self.queue) + tuple(queueList))
             w.pack(side=LEFT)
-            optionFrame.pack(anchor=W)
+            optionFrame.pack(anchor=W, padx=15)
         
         displayFrame = Frame(self.topFrame, padding = 5)
 
