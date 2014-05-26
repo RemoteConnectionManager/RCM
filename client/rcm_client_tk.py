@@ -394,7 +394,7 @@ class ConnectionWindow(Frame):
                 i = 0
                 for t in labelList:
                     if t in c.hash.keys():
-                        lab = Label(f1, text=el.hash[t], relief=RIDGE, anchor=CENTER, padding=4)
+                        lab = Label(f1, text=el.hash[t], relief=RIDGE, anchor=CENTER, padding=6)
                         if t == 'timeleft':
                             try:
                                 timeleft = datetime.datetime.strptime(el.hash[t],"%H:%M:%S")
