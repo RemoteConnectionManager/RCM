@@ -4,7 +4,7 @@ import hashlib
 import subprocess
 import zipfile
 
-rcmVersion = "1.1."
+rcmVersion = "1.2."
 customPlatform=''
 
 ROOTPATH=os.path.dirname(os.path.dirname(os.path.abspath(HOMEPATH)))
