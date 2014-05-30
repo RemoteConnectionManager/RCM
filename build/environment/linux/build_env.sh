@@ -1,7 +1,7 @@
 #!/bin/bash
 
-
-export BASE_DIR=`pwd`
+curdir=`pwd`
+export BASE_DIR=${curdir}/_build
 export SRC_DIR=${BASE_DIR}/src
 export INSTALL_DIR=${BASE_DIR}/install
 export VENV_DIR=${BASE_DIR}/venv
@@ -90,10 +90,19 @@ pip_cmd=`which pip`
 
 if [ "${VENV_DIR}/bin/pip" == "${pip_cmd}" ]; then
 	echo "pip command seems correct"
-	pip install pycrypto
-	pip install paramiko
-	pip install pexpect
+        paramiko_ver=`python -c "import paramiko; print int(paramiko.__version__.split()[0].split('.')[0])*10000 + int(paramiko.__version__.split()[0].split('.')[1])*100 +int(paramiko.__version__.split()[0].split('.')[2])"`
+        if [ "0${paramiko_ver}" -lt "011400" ]; then
+		echo "old paramiko version -->${paramiko_ver}<-- pip install newer"
+		pip install pycrypto
+		pip install paramiko
+		pip install pexpect
+	else
+		echo "new paramiko version -->${paramiko_ver}<-- skip pip install"
+	fi
+
 else
 	echo "probably invalid pip command -->${pip_cmd}<--"
 fi
 
+
+python -c "import paramiko; print paramiko.__version__.split()[0]"
