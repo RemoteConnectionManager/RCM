@@ -4,6 +4,7 @@
 export BASE_DIR=`pwd`
 export SRC_DIR=${BASE_DIR}/src
 export INSTALL_DIR=${BASE_DIR}/install
+export VENV_DIR=${BASE_DIR}/venv
 
 mkdir -p $SRC_DIR
 mkdir -p $INSTALL_DIR
@@ -63,7 +64,7 @@ fi
 
 venv_cmd=`which virtualenv`
 if [ "${INSTALL_DIR}/bin/virtualenv" == "${venv_cmd}" ]; then
-	echo "skip virtualenv"
+	echo "skip virtualenv install"
 else
 	if [ -f ${SRC_DIR}/ez_setup.py ]; then
 		echo "Skip ${SRC_DIR}/ez_setup.py"
@@ -76,3 +77,23 @@ else
 	python ez_setup.py
 	easy_install virtualenv
 fi
+
+if [ -d ${VENV_DIR} ]; then
+	echo "skip virtualenv creation"
+else
+	virtualenv --system-site-packages ${VENV_DIR}	
+        echo 'export LD_LIBRARY_PATH=${INSTALL_DIR}/lib:${LD_LIBRARY_PATH}' >> ${VENV_DIR}/bin/activate
+fi
+
+source ${VENV_DIR}/bin/activate
+pip_cmd=`which pip`
+
+if [ "${VENV_DIR}/bin/pip" == "${pip_cmd}" ]; then
+	echo "pip command seems correct"
+	pip install pycrypto
+	pip install paramiko
+	pip install pexpect
+else
+	echo "probably invalid pip command -->${pip_cmd}<--"
+fi
+
