@@ -15,6 +15,7 @@ cd $SRC_DIR
 echo "Source dir ---> $SRC_DIR"
 echo "Base dir ----> $BASE_DIR"
 
+
 if [ -d ${SRC_DIR}/tcl8.5.15 ]; then
 	echo "Skip ${SRC_DIR}/tcl8.5.15"
 else
@@ -32,7 +33,8 @@ fi
 if [ -d ${SRC_DIR}/tk8.5.15 ]; then
 	echo "Skip ${SRC_DIR}/tk8.5.15"
 else
-	#doenload tk
+	#download tk
+        cd ${SRC_DIR}
 	wget http://prdownloads.sourceforge.net/tcl/tk8.5.15-src.tar.gz
 	tar xvzf  tk8.5.15-src.tar.gz
 	cd ${SRC_DIR}/tk8.5.15/unix
@@ -44,6 +46,7 @@ fi
 if [ -d ${SRC_DIR}/Python-2.7.6 ]; then
 	echo "Skip ${SRC_DIR}/Python-2.7.6"
 else
+        cd ${SRC_DIR}
         if [ -s ${SRC_DIR}/Python-2.7.6.tgz ]; then
 	     echo "Skip download of ${SRC_DIR}/Python-2.7.6.tgz"
         else
@@ -52,9 +55,9 @@ else
         fi
 	tar -xzf Python-2.7.6.tgz
 	cd ${SRC_DIR}/Python-2.7.6
-        ./configure  --with-tcltk-includes=${INSTALL_DIR}/include --with-tcltk-libs=${INSTALL_DIR}/lib
+        ./configure --prefix=$INSTALL_DIR --exec-prefix=$INSTALL_DIR --with-tcltk-includes=${INSTALL_DIR}/include --with-tcltk-libs=${INSTALL_DIR}/lib
 	make 
 	make install
 fi
-python -c "import Tkinter; a=Tkinter.Tk(); print 'fontsystem-->',a.call('::tk::pkgconfig'.'get','fontsystem'); import tkFont; printtkFont.families(); Tkinter._test()"
+python -c "import Tkinter; a=Tkinter.Tk(); print 'fontsystem-->',a.call('::tk::pkgconfig','get','fontsystem'); import tkFont; print tkFont.families(); Tkinter._test()"
 
