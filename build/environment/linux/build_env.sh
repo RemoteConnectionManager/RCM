@@ -56,7 +56,7 @@ else
         fi
 	tar -xzf Python-2.7.6.tgz
 	cd ${SRC_DIR}/Python-2.7.6
-        ./configure --prefix=$INSTALL_DIR --exec-prefix=$INSTALL_DIR --with-tcltk-includes=${INSTALL_DIR}/include --with-tcltk-libs=${INSTALL_DIR}/lib
+        ./configure --enable-shared --prefix=$INSTALL_DIR --exec-prefix=$INSTALL_DIR --with-tcltk-includes=${INSTALL_DIR}/include --with-tcltk-libs=${INSTALL_DIR}/lib
 	make 
 	make install
 fi
@@ -82,7 +82,7 @@ if [ -d ${VENV_DIR} ]; then
 	echo "skip virtualenv creation"
 else
 	virtualenv --system-site-packages ${VENV_DIR}	
-        echo 'export LD_LIBRARY_PATH=${INSTALL_DIR}/lib:${LD_LIBRARY_PATH}' >> ${VENV_DIR}/bin/activate
+        echo "export LD_LIBRARY_PATH=${INSTALL_DIR}/lib:\${LD_LIBRARY_PATH}" >> ${VENV_DIR}/bin/activate
 fi
 
 source ${VENV_DIR}/bin/activate
