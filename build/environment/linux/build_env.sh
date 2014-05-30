@@ -61,3 +61,17 @@ else
 fi
 python -c "import Tkinter; a=Tkinter.Tk(); print 'fontsystem-->',a.call('::tk::pkgconfig','get','fontsystem'); import tkFont; print tkFont.families(); Tkinter._test()"
 
+venv_cmd=`which virtualenv`
+if [ "${INSTALL_DIR}/bin/virtualenv" == "${venv_cmd}" ]; then
+	echo "skip virtualenv"
+	if [ -f ${SRC_DIR}/ez_setup.py ]; then
+		echo "Skip ${SRC_DIR}/ez_setup.py"
+	else
+		cd ${SRC_DIR}
+		wget wget http://peak.telecommunity.com/dist/ez_setup.py
+	fi
+else
+	cd ${SRC_DIR}
+	python ez_setup.py
+	easy_install virtualenv
+fi
