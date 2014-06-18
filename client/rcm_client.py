@@ -296,24 +296,27 @@ class rcm_client_connection:
         #check if RCM_PATH env variable is set
         start_string='_##start##_'
         end_string='_##end##_'
-        get_rcm_server_command = ' echo ' + start_string + '${RCM_SERVER_COMMAND}'+end_string
+        get_rcm_server_command = 'echo ' + start_string + '${RCM_SERVER_COMMAND}' + end_string + '\n'
         
         
         #check paramiko
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        #ssh.load_system_host_keys()
-        ssh.connect(self.proxynode, username=self.remoteuser, password=self.passwd) 
-        stdin, stdout, stderr = ssh.exec_command(get_rcm_server_command)
-        output = stdout.readlines()
+        ssh.connect(self.proxynode, username=self.remoteuser, password=self.passwd)
+        chan = ssh.invoke_shell()
+        chan.send(get_rcm_server_command)
+        output = ''
+        resp = chan.recv(9999)
+        output += resp
         if output:
             try:
-                rcm_server_command=output[0].split(end_string)[0].split(start_string)[1]
+                rcm_server_command=output.rsplit(end_string,1)[0].rsplit(start_string,1)[1]
                 print "echo ${RCM_SERVER_COMMAND}: " + rcm_server_command + '.'
                 if(rcm_server_command != ''):
                     self.config['remote_rcm_server'] = rcm_server_command
             except:
                 if(self.debug): print "unrecognized env"
+
         return True
 
 
