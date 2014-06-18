@@ -305,9 +305,12 @@ class rcm_client_connection:
         ssh.connect(self.proxynode, username=self.remoteuser, password=self.passwd)
         chan = ssh.invoke_shell()
         chan.send(get_rcm_server_command)
+
         output = ''
-        resp = chan.recv(9999)
-        output += resp
+        while not output.endswith('$ '):
+            resp = chan.recv(9999)
+            output += resp
+
         if output:
             try:
                 rcm_server_command=output.rsplit(end_string,1)[0].rsplit(start_string,1)[1]
