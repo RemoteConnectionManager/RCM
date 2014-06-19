@@ -721,7 +721,6 @@ class rcm_client_connection_GUI():
 
         self.LoginLabel = Label(self.topFrame, padding=20, text='Press \'NEW LOGIN\' to start a session or \'OPEN\' to open a .vnc file')
         self.LoginLabel.pack(padx=10, pady=10, fill=Y)
-        print "in show background--->"+str(self.LoginLabel.cget('background'))
 
         self.n = ConnectionWindowNotebook(self.topFrame)
 
