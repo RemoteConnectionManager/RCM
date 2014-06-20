@@ -516,13 +516,11 @@ class ConnectionWindow(Frame):
 
 
     def refresh_dimensions(self):
-        print "current toplevel geom",self.master.winfo_toplevel().winfo_geometry()
+        #print "current toplevel geom",self.master.winfo_toplevel().winfo_geometry()
         geometryStr = "1150x" + str(self.master.winfo_reqheight())+"+"+str(self.master.winfo_toplevel().winfo_x())+"+"+str(self.master.winfo_toplevel().winfo_y())
-        print "geometrystr---->"+geometryStr+"<--"
+        #print "geometrystr---->"+geometryStr+"<--"
         self.master.winfo_toplevel().geometry(geometryStr)
-        #self.master.winfo_toplevel().winfo_height(self.master.winfo_reqheight())
-        #self.master.winfo_toplevel().config(height=str(self.master.winfo_reqheight()))
-
+        
     def delayed_refresh_dimensions(self):       
             self.after(2,self.refresh_dimensions)            
 
