@@ -294,37 +294,15 @@ class rcm_client_connection:
     def checkCredential(self):
         
         #check if RCM_PATH env variable is set
-        start_string = '_##start##_'
-        end_string = '_##end##_'
-        evn_variable = '${RCM_SERVER_COMMAND}'
-        get_rcm_server_command = 'echo ' + start_string + evn_variable + end_string + '\n'
-        
-        
-        #check paramiko
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(self.proxynode, username=self.remoteuser, password=self.passwd)
-        #stdin, stdout, stderr = ssh.exec_command(get_rcm_server_command, get_pty=True)
-        #output = stdout.readlines()
-        chan = ssh.invoke_shell()
-        chan.send(get_rcm_server_command)
-
-        output = ''
-        while not output.endswith('$ '):
-            resp = chan.recv(9999)
-            output += resp
-
-        if output:
-            try:
-                rcm_server_command=output.rsplit(end_string,1)[0].rsplit(start_string,1)[1]
-                #rcm_server_command=output[0].split(end_string)[0].split(start_string)[1]
-                print "echo ${RCM_SERVER_COMMAND}: " + rcm_server_command + '.'
-                if(rcm_server_command != '' and rcm_server_command != evn_variable):
+        #try:
+            rcm_server_command=rcm_utils.get_server_command(self.proxynode, self.remoteuser, passwd=self.passwd)
+            if(rcm_server_command != '' ):
                     self.config['remote_rcm_server'] = rcm_server_command
-            except:
-                if(self.debug): print "unrecognized env"
+            return True
+        #except Exception as e:
+            #if(self.debug): print ""
 
-        return True
+        #return True
 
 
     
@@ -338,7 +316,7 @@ if __name__ == '__main__':
         res.write(2)
         newc=c.newconn()
         newsession = newc.hash['sessionid']
-        if(self.debug): print "created session -->",newsession,"<- display->",newc.hash['display'],"<-- node-->",newc.hash['node']
+        print "created session -->",newsession,"<- display->",newc.hash['display'],"<-- node-->",newc.hash['node']
         c.vncsession(newc)
         res=c.list()
         res.write(2)
@@ -348,6 +326,6 @@ if __name__ == '__main__':
         
         
     except Exception:
-        if(self.debug): print "ERROR OCCURRED HERE"
+        print "ERROR OCCURRED HERE"
         raise
   

@@ -86,6 +86,53 @@ class pack_info():
             self.buildPlatformString = in_file.readline()
             self.rcmVersion = in_file.readline()
             in_file.close()
+            
+
+import paramiko
+import socket
+
+def get_server_command(host,user,passwd=''):
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(host, username=user, password=passwd)
+    chan = ssh.get_transport().open_session()
+    chan.get_pty()
+    stdin = chan.makefile('wb')
+    stdout = chan.makefile('rb')
+
+    #stderr = chan.makefile_stderr('rb')
+    start_string = '_##start##_'
+    end_string = '_##end##_'
+    evn_variable = '${RCM_SERVER_COMMAND}'
+    get_rcm_server_command = 'echo ' + start_string + evn_variable + end_string + '\n'
+    chan.invoke_shell()
+    chan.sendall(get_rcm_server_command)
+    stdin.flush()
+
+    chan.settimeout(20)
+
+    loop = True
+    output = ''
+    rcm_server_command = ''
+
+    while(loop):
+        try:
+            line = stdout.readline()
+            # print line
+            if(end_string in line and start_string in line):
+                # print "line-->"+line
+                tmp_command = line.split(end_string)[0].split(start_string)[1]
+                if(not evn_variable in tmp_command):
+                    rcm_server_command=tmp_command
+                    loop = False
+        # print "rcm_server_command-->"+rcm_server_command+"<--"
+            output += line
+        except socket.timeout:
+            print "WARNING TIMEOUT: unable to grab output of -->"+get_rcm_server_command+"< on host:"+host
+            loop = False
+    # print host,"output-->"+output+"<--"
+    # print host,"rcm_server_command-->"+rcm_server_command+"<--"
+    return rcm_server_command
 
 
 class SessionThread( threading.Thread ):
@@ -249,3 +296,7 @@ if __name__ == '__main__':
     print "stored clear pass-->"+ar.vncpassword+"<--recrypt  -->"+ar.encrypt(ar.vncpassword)+"< clear->"+ar.decrypt(ar.encrypt(ar.vncpassword))
     print "clear-->"+ar.decrypt(ae)+" crypt->"+ae+" recrypt->"+ar.encrypt(ar.decrypt(ae))+" reclear->"+ar.decrypt(ar.encrypt(ar.decrypt(ae)))
 
+
+    print 'om10-->'+get_server_command('om10.eni.cineca.it','cibo19','')+'<--'
+    print 'aux6-->'+get_server_command('aux6.eni.cineca.it','cibo19','')+'<--'
+    print 'hpc1-->'+get_server_command('login-hpc1.eni.cineca.it','cibo19','')+'<--'
