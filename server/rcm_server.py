@@ -393,14 +393,13 @@ class rcm_server:
             self.desktop_setup()
             for f in glob.glob("%s/%s.*" % (d,sid)):
                 os.remove(f)
-    
-
+   
     def wait_jobout(self,sid,timeout):
         #Output depends on TurboVNC version!
         r=re.compile(r"""^New 'X' desktop is (?P<node>\w+):(?P<display>\d+)""",re.MULTILINE)
-        r2=re.compile(r"""^Desktop '(.*)' started on display (?P<node>\w+):(?P<display>\d+)""",re.MULTILINE)
-    
-        #commenetd line to retrive otp
+        r1=re.compile(r"""^Desktop '(.*)' started on display (?P<node>\w+):(?P<display>\d+)""",re.MULTILINE)
+        r2=re.compile(r"""^New '(.*)' desktop is (?P<node>\w+):(?P<display>\d+)""",re.MULTILINE)
+
         #otp_regex=re.compile(r"""^Full control one-time password: (?P<otp>\d+)""",re.MULTILINE)
         jobout='%s/%s.joblog.vnc' % (self.get_rcmdirs()[0],sid)
         secs=0
@@ -413,19 +412,25 @@ class rcm_server:
                 if (x):
                     #otp=otp_regex.search(jo)
                     #if (otp):
-                    #return (x.group('node'),x.group('display'),otp.group('otp')) 
-                    return (x.group('node'),x.group('display'), '')
+                    #    return (x.group('node'),x.group('display'),otp.group('otp')) 
+                    return (x.group('node'),x.group('display'),'')
+                x=r1.search(jo)
+                if (x):
+                    #otp=otp_regex.search(jo)
+                    #if (otp):
+                    #    return (x.group('node'),x.group('display'),otp.group('otp')) 
+                    return (x.group('node'),x.group('display'),'')
                 x=r2.search(jo)
                 if (x):
                     #otp=otp_regex.search(jo)
                     #if (otp):
                     #    return (x.group('node'),x.group('display'),otp.group('otp')) 
-                    return (x.group('node'),x.group('display'),'') 
+                    return (x.group('node'),x.group('display'),'')
             secs+=step
             ##FP sys.stderr.write('Waiting for job output, %d/%d\n' % (secs,timeout) )
             time.sleep(step)
         raise Exception("Timeouted (%d seconds) job not correcty running!!!" % (timeout) )
-
+ 
 
     def execute_loginlist(self):
         self.subnet = self.par_command_args[0]
