@@ -62,3 +62,61 @@ class rcm_sessions:
                 k.write(2)
 
  
+class rcm_config:
+
+    def __init__(self,fromstring='',fromfile=''):
+        if (fromfile != ''):
+            self.config=pickle.load(open(fromfile,"rb"))
+        elif (fromstring != ''):
+            self.config=pickle.loads(fromstring)
+        else:
+            self.config={'version':{'checksum':'','url':''},'queues':dict(),'vnc_commands':dict()}
+        
+    def set_version(self,check,url):
+        self.config['version']['checksum']=check
+        self.config['version']['url']=url
+
+    def add_queue(self,queue,info=''):
+        self.config['queues'][queue]=info
+        
+    def add_vnc(self,vnc,info=''):
+        self.config['vnc_commands'][vnc]=info
+        
+    def get_string(self):
+        return pickle.dumps(self.config)
+    def serialize(self,file=''):
+        if (file != ''):
+            pickle.dump(self.config, open( file, "wb" ) )
+        else:
+            print pickle.dumps(self.config)
+            
+    def pretty_print(self):
+        print "version: checksum->"+self.config['version']['checksum']+'<--url ->'+self.config['version']['url']
+        print
+        for queue in self.config['queues']:
+            print "queue "+queue+" info-->"+self.config['queues'][queue]+"<--"
+        print
+        for vnc in sorted(self.config['vnc_commands'].keys()):
+            print "vnc command "+vnc+" info-->"+self.config['vnc_commands'][vnc]+"<--"
+
+if __name__ == '__main__':
+    print "start testing.................................."
+    void_config=rcm_config()
+    print "void......-->"+void_config.get_string()+"<--"
+    void_config.pretty_print()
+
+    test_config=rcm_config()
+    test_config.set_version('my cheksum','my url')
+    test_config.add_queue('coda1','this is queue 1')
+    test_config.add_queue('coda2','this is queue 2')
+    test_config.add_vnc('vnc1','this is vnc 1')
+    test_config.add_vnc('vnc2','this is vnc 2')
+    test_config.add_vnc('vnc3')
+    print "test......-->"+test_config.get_string()+"<--"
+    test_config.pretty_print()
+    
+    print "test pack_unpack......-->"+test_config.get_string()+"<--"
+    test_config.add_vnc('vnc4','added before unpack')
+    derived=rcm_config(test_config.get_string())
+    derived.add_vnc('vnc5','added after unpack')
+    derived.pretty_print()
