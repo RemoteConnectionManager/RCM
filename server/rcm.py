@@ -98,6 +98,57 @@ class rcm_config:
         print
         for vnc in sorted(self.config['vnc_commands'].keys()):
             print "vnc command "+vnc+" info-->"+self.config['vnc_commands'][vnc]+"<--"
+            
+class rcm_protocol:
+    def __init__(self,clientfunc=None,server_func=None):
+        self.client_sendfunc=clientfunc
+        if (server_func):
+            self.server_func=server_func
+        else:
+            self.server_func=dict()
+
+    def config(self,build_platform=''):
+        print "get platform configuration"
+        if (self.client_sendfunc):
+            return self.client_sendfunc("config "+build_platform)
+
+    def version(self,build_platform=''):
+        print "get version"
+        if (self.client_sendfunc):
+            return self.client_sendfunc("version "+build_platform)
+
+    def queue(self):
+        print "get queues"
+        if (self.client_sendfunc):
+            return self.client_sendfunc("queue ")
+
+    def loginlist(self,subnet=''):
+        print "get login list "
+        if (self.client_sendfunc):
+            return self.client_sendfunc("loginlist "+subnet)
+
+    def list(self,subnet=''):
+        print "get display session list "
+        if (self.client_sendfunc):
+            return self.client_sendfunc("list "+subnet)
+    def new(self,geometry='',queue='',sessionname='',subnet='',vncpassword='',vncpassword_crypted='',vnc_command=''):
+        print "create new vnc display session"
+        if (self.client_sendfunc):
+            return self.client_sendfunc(
+                "new geometry="+geometry+
+                " queue="+queue+
+                " sessionname=" + '\'' + sessionname + '\'' +
+                " subnet="+subnet+
+                " vncpassword="+vncpassword+
+                " vncpassword_crypted="+'\'' + vncpassword_crypted + '\''+
+                " vnc_command="+vnc_command
+            )
+
+    def kill(self,session_id=''):
+        print "kill vnc display session"
+        if (self.client_sendfunc):
+            return self.client_sendfunc("kill "+session_id)
+
 
 if __name__ == '__main__':
     print "start testing.................................."
@@ -120,3 +171,12 @@ if __name__ == '__main__':
     derived=rcm_config(test_config.get_string())
     derived.add_vnc('vnc5','added after unpack')
     derived.pretty_print()
+    
+    def prex(command='',commandnode=''):
+        print "node "+commandnode+" "+ command
+        
+    for i in ['uno','due','tre']:
+      def myfunc(command):
+          prex(command,i)
+      r=rcm_protocol(clientfunc=myfunc)
+      r.config('mia build platform '+i)

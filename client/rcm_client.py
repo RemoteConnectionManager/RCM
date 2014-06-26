@@ -117,10 +117,13 @@ class rcm_client_connection:
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(commandnode, username=self.remoteuser, password=self.passwd)
 
-        stdin, stdout, stderr = ssh.exec_command(cmd)
+        stdin, stdout, stderr = ssh.exec_command(self.config['remote_rcm_server'] + ' ' +cmd)
         myout = ''.join(stdout)
         myerr = stderr.readlines()
-        
+        if myerr:
+            if(self.debug): print myerr
+            raise Exception("Server error: {0}".format(myerr))
+
         #find where the real server output starts
         serverOutputString = "server output->"
         index = myout.find(serverOutputString)
@@ -128,16 +131,13 @@ class rcm_client_connection:
             index += len(serverOutputString)
             myout = myout[index:]
             myout = myout.replace('\n', '',1)
-        return (myout,myerr)
+        return myout
         
 
     def list(self):
-        
         #get list of nodes to check of possible sessions
-        (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'loginlist' + ' ' + self.subnet)
-        if e:
-            if(self.debug): print e
-            raise Exception("Server error: {0}".format(e))
+        protocol=rcm.rcm_protocol(self.prex)
+        o=protocol.loginlist(self.subnet)
         sessions=rcm.rcm_sessions(o)
         if(self.debug): 
             sessions.write(2)
@@ -151,10 +151,11 @@ class rcm_client_connection:
             state = ses.hash.get('state', 'killed')
             if (proxynode != '' and not proxynode in nodeloginList and state != 'killed'):
                 nodeloginList.append(proxynode)
-                (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'list' + ' ' + self.subnet, proxynode)
-                if e:
-                    if(self.debug): print e
-                    raise Exception("Server error: {0}".format(e))
+#                (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'list' + ' ' + self.subnet, proxynode)
+                def mycall(command):
+                    return self.prex(command,proxynode)
+                protocol=rcm.rcm_protocol(mycall)
+                o=protocol.list(self.subnet)
                 tmp=rcm.rcm_sessions(o)
                 a.extend(tmp.array)
         ret=rcm.rcm_sessions()
@@ -172,57 +173,55 @@ class rcm_client_connection:
         vncpassword = rcm_cipher.vncpassword
         vncpassword_crypted=rcm_cipher.encrypt()
         
-        new_encoded_param='geometry='+ geometry + ' ' + 'queue='+ queue + ' ' +  'sessionname=' + '\'' + sessionname + '\'' + ' ' \
-         + 'subnet=' + self.subnet + ' ' + 'vncpassword=' + vncpassword + ' ' + 'vncpassword_crypted=' + '\'' + vncpassword_crypted + '\''
-        (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'new' + ' ' + new_encoded_param )
+        #new_encoded_param='geometry='+ geometry + ' ' + 'queue='+ queue + ' ' +  'sessionname=' + '\'' + sessionname + '\'' + ' ' \
+        # + 'subnet=' + self.subnet + ' ' + 'vncpassword=' + vncpassword + ' ' + 'vncpassword_crypted=' + '\'' + vncpassword_crypted + '\''
+        #o=self.prex('new' + ' ' + new_encoded_param )
+
+        protocol=rcm.rcm_protocol(self.prex)
+        o=protocol.new(geometry=geometry, queue=queue, sessionname=sessionname, subnet=self.subnet, vncpassword=vncpassword,
+        vncpassword_crypted=vncpassword_crypted, vnc_command='')
         
-        if e:
-            if(self.debug): print e
-            raise Exception("Server error: {0}".format(e))
         session=rcm.rcm_session(o)
         return session 
 
     def kill(self,session):
         sessionid = session.hash['sessionid']
         nodelogin = session.hash['nodelogin']
-        (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'kill' + ' ' + sessionid, nodelogin)
+        def mycall(command):
+            return self.prex(command,nodelogin)
+        protocol=rcm.rcm_protocol(mycall)
+        o=protocol.kill(sessionid)
         
-        if e:
-            if(self.debug): print e
-            raise Exception("Killing session -> {0} <- failed with error: {1}".format(sessionid, e))
 
   
-    def get_otp(self,sessionid):
-        (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'otp' + ' ' + sessionid)
+#    def get_otp(self,sessionid):
+#        (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'otp' + ' ' + sessionid)
 
-        if e:
-            if(self.debug): print e
-            raise Exception("Getting OTP passwd session -> {0} <- failed with error: {1}".format(sessionid, e))
-            return ''
-        else:
-            return o.strip()
+#        if e:
+#            if(self.debug): print e
+#            raise Exception("Getting OTP passwd session -> {0} <- failed with error: {1}".format(sessionid, e))
+#            return ''
+#        else:
+#            return o.strip()
 
     def get_version(self):
-        (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'version' + ' ' + self.pack_info.buildPlatformString)
-        if e:
-            if(self.debug): print e
-            raise Exception("Getting last client version failed with error: {0}".format(e))
-            return ''
-        else:
-            return o.split(' ')
+#        o=self.prex('version' + ' ' + self.pack_info.buildPlatformString)
+        def mycall(command):
+            return self.prex(command)
+        protocol=rcm.rcm_protocol(mycall)
+        o=protocol.version(self.pack_info.buildPlatformString)
+        return o.split(' ')
 
 
     def get_queue(self):
-        (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'queue')
-        
+#        o=self.prex('queue')
+        def mycall(command):
+            return self.prex(command)
+        protocol=rcm.rcm_protocol(mycall)
+        o=protocol.queue()
 
-        if e:
-            if(self.debug): print e
-            raise Exception("Getting available queue failed with error: {0}".format(e))
-            return ''
-        else:
-            if(self.debug): print "available queue: ", o
-            return o.split(' ')
+        if(self.debug): print "available queue: ", o
+        return o.split(' ')
 
                 
     def vncsession(self, session=None, otp='', gui_cmd=None, configFile=None):
