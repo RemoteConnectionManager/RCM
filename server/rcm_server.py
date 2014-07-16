@@ -133,7 +133,7 @@ class rcm_server:
         self.parameters=sys.argv[1:]
         self.username=pwd.getpwuid(os.geteuid())[0]
         self.available_formats=frozenset(['0','1','2'])
-        self.available_commands=frozenset(['loginlist','list','new','kill','otp','queue','version'])
+        self.available_commands=frozenset(['loginlist','list','new','kill','otp','queue','version','config'])
         self.parse_args()
         #self.accountList = self.getUserAccounts()
         self.serverOutputString = 'server output->'
@@ -237,6 +237,8 @@ class rcm_server:
             self.execute_queue()
         elif (self.par_command == 'version'):
             self.execute_version()
+        elif (self.par_command == 'config'):
+            self.execute_config()
 
   # return a dictionary { sessionid -> jobid }
   # jobid are the ones: 
@@ -613,6 +615,22 @@ done"""
         sys.stdout.write(' ')
         sys.stdout.write(downloadurl)
         sys.exit(0) 
+    
+    def execute_config(self):
+	conf=rcm.rcm_config()
+        if(len(self.par_command_args) >0):
+	  buildPlatformString = self.par_command_args[0]
+          config = ConfigParser.RawConfigParser()
+          myPath =  os.path.dirname(os.path.abspath(__file__))
+          config.read(os.path.join(myPath, 'versionRCM.cfg'))
+	
+          checksum = config.get('checksum', buildPlatformString)
+          downloadurl = config.get('url', buildPlatformString)
+	
+	  conf.set_version(checksum,downloadurl)
+	conf.serialize()
+        sys.exit(0) 
+    
     
     def execute_auto(self):
         pass
