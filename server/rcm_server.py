@@ -19,6 +19,7 @@ import socket
 import traceback
 
 import enumerate_interfaces
+import platformconfig
 
 config = ConfigParser.RawConfigParser()
 myPath =  os.path.dirname(os.path.abspath(__file__))
@@ -628,6 +629,9 @@ done"""
           downloadurl = config.get('url', buildPlatformString)
 	
 	  conf.set_version(checksum,downloadurl)
+	  queueList = rcm_scheduler.get_queue(testJobScriptDict)
+	  for q in queueList:
+            conf.add_queue(q)
 	conf.serialize()
         sys.exit(0) 
     
