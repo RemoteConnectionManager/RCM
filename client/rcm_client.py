@@ -204,6 +204,15 @@ class rcm_client_connection:
 #        else:
 #            return o.strip()
 
+    def get_config(self):
+#        o=self.prex('version' + ' ' + self.pack_info.buildPlatformString)
+        def mycall(command):
+            return self.prex(command)
+        protocol=rcm.rcm_protocol(mycall)
+        o=protocol.config(self.pack_info.buildPlatformString)
+        return rcm.rcm_config(o)
+
+
     def get_version(self):
 #        o=self.prex('version' + ' ' + self.pack_info.buildPlatformString)
         def mycall(command):
