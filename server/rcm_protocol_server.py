@@ -2,7 +2,7 @@ import os
 import rcm
 
 class rcm_protocol:
-    def __init__(self,rcm_server):
+    def __init__(self,rcm_server=None):
         self.rcm_server=rcm_server
     def config(self,build_platform=''):
         conf=rcm.rcm_config()

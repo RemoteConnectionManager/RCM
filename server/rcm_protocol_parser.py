@@ -62,14 +62,6 @@ if __name__ == '__main__':
 
     print "testing rcm_protocol_parser .................................."
 
-#    parser=optparse.OptionParser()
-#    parser.add_option("--foo",help="foo option")
-#    parser.add_option("--bar",help="bar option")
-#    (options,args)=parser.parse_args(["--foo=pippo", "--bar=papero"])
-#    print "options-->",options
-    (options,args)=CommandParser.parser.parse_args(["list"])
-    print "options->",options
-    print "args->",args
 
     import dummy_rcm_server
     import rcm_protocol_server
