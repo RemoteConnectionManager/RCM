@@ -11,7 +11,7 @@ class CommandParser:
     parameters=dict()
     for name,fn in inspect.getmembers(rcm_protocol_server.rcm_protocol):
         if isinstance(fn, types.UnboundMethodType) and name != '__init__':
-            f_args=inspect.getargspec(fn).args
+            f_args=inspect.getargspec(fn)[0]
             functions[str(name)]=(fn,f_args)
             help+="\n --command="+str(name)
             print "method:",name
