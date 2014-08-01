@@ -47,7 +47,9 @@ class rcm_sessions:
     def serialize(self,file):
         pickle.dump(self.array, open( file, "wb" ) )
 
-    def write(self,format):
+    def get_string(self):
+	return pickle.dumps(self.array)
+    def write(self,format=0):
         print "server output->"
         if ( format == 0):
             print pickle.dumps(self.array)
