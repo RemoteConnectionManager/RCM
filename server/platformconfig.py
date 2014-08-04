@@ -1,18 +1,19 @@
 import os
 import socket
+import ConfigParser
 
-class platformconfig:
+class baseconfig:
     def __init__(self):
         self.confdict=dict()
-        self.confdict[('platform','nodepostfix')]=''
 	self.sections=dict()
 	self.options=dict()
 
-    def parse(self):
-        import ConfigParser
+    def parse(self,configfile=''):
         config = ConfigParser.RawConfigParser()
-        myPath =  os.path.dirname(os.path.abspath(__file__))
-        configfile=os.path.join(myPath, 'platform.cfg')
+	if(not configfile):
+	    myPath =  os.path.dirname(os.path.abspath(__file__))
+            configfile=os.path.join(myPath, self.filename)
+
         if(not os.path.exists(configfile)):
             print "WARNING missing platform file -->"+configfile
             return(False)
@@ -22,6 +23,24 @@ class platformconfig:
                 self.confdict[(s,o)]=config.get(s, o)
 		self.sections[s]=self.sections.get(s,[])+[o]
 		self.options[o]=self.options.get(o,[])+[s]
+
+class versionconfig(baseconfig):
+    def __init__(self):
+	baseconfig.__init__(self)
+        self.filename='versionRCM.cfg'
+	self.parse()
+    
+    def get_checksum(self,buildPlatformString=''):
+        checksum = self.confdict.get(('checksum',buildPlatformString),'')
+        downloadurl = self.confdict.get(('url', buildPlatformString),'')
+	return(checksum,downloadurl)
+
+class platformconfig(baseconfig):
+    def __init__(self):
+	baseconfig.__init__(self)
+        self.confdict[('platform','nodepostfix')]=''
+        self.filename='platform.cfg'
+	self.parse()
         
     def scheduler(self):
         hostname = socket.gethostname()
@@ -60,11 +79,16 @@ class platformconfig:
 
 
 if __name__ == '__main__':
+    v=versionconfig()
+    #print v.sections
+    #print v.options
+    print "versions-->",v.get_checksum('linux_64bit')
+    
+    
     p=platformconfig()
-    p.parse()
     #print p.confdict
-    print p.sections
-    print p.options
+    #print p.sections
+    #print p.options
     print p.scheduler()
     print p.get_queues()
     print p.get_queue('visual')
@@ -79,3 +103,7 @@ if __name__ == '__main__':
     print "instance a server"
     s=sched.rcm_server()
     print "available queues-->"+str(s.get_queue(p.get_testjobs()))
+    
+    print "versions-->",v.get_checksum('linux_64bit')
+    
+    
