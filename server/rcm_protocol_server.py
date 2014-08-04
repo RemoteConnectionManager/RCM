@@ -1,15 +1,17 @@
 import os
+import sys
 import rcm
 
 class rcm_protocol:
     def __init__(self,rcm_server=None):
-        self.rcm_server=rcm_server
+	if(rcm_server):	self.rcm_server=rcm_server
+	
     def config(self,build_platform=''):
         conf=rcm.rcm_config()
         if(build_platform):
             (check,url)=self.rcm_server.get_checksum(build_platform)
             conf.set_version(check,url)
-        queueList = self.rcm_server.rcm_scheduler.get_queue(self.rcm_server.testJobScriptDict)
+        queueList = self.rcm_server.get_queue()
         for q in queueList:
             conf.add_queue(q)
         conf.serialize()
@@ -21,19 +23,38 @@ class rcm_protocol:
             return self.client_sendfunc("version "+build_platform)
 
     def queue(self):
-        print "get queues"
-        if (self.client_sendfunc):
-            return self.client_sendfunc("queue ")
+        queueList = self.rcm_server.get_queue()
+        #return the list of avilable queue
+
+#	print self.rcm_server.serverOutputString
+#	print ' '.join(queueList)
+        sys.stdout.write(self.rcm_server.serverOutputString)
+        sys.stdout.write(' '.join(queueList))
+	sys.stdout.flush()
 
     def loginlist(self,subnet=''):
-        print "get login list "
-        if (self.client_sendfunc):
-            return self.client_sendfunc("loginlist "+subnet)
+#	import socket
+        self.rcm_server.subnet = subnet
+#        fullhostname = socket.getfqdn()
+        self.rcm_server.fill_sessions_hash()
+        s=rcm.rcm_sessions()
+        for sid, ses in self.rcm_server.sessions.items():
+            s.array.append(self.rcm_server.sessions[sid])
+        sys.stdout.write(self.rcm_server.serverOutputString)
+	sys.stdout.write(s.get_string())
+	sys.stdout.flush()
 
     def list(self,subnet=''):
-        print "get display session list "
-        if (self.client_sendfunc):
-            return self.client_sendfunc("list "+subnet)
+        self.rcm_server.subnet = subnet
+        
+        self.rcm_server.load_sessions()
+        s=rcm.rcm_sessions()
+        for sid in self.rcm_server.sids['run']:
+            s.array.append(self.rcm_server.sessions[sid])
+        sys.stdout.write(self.rcm_server.serverOutputString)
+	sys.stdout.write(s.get_string())
+	sys.stdout.flush()
+    
     def new(self,geometry='',queue='',sessionname='',subnet='',vncpassword='',vncpassword_crypted='',vnc_command=''):
         print "create new vnc display session"
         if (self.client_sendfunc):

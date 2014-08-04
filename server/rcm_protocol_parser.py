@@ -14,7 +14,7 @@ class CommandParser:
             f_args=inspect.getargspec(fn)[0]
             functions[str(name)]=(fn,f_args)
             help+="\n --command="+str(name)
-            print "method:",name
+#            print "method:",name
             for par in f_args :
                 if(par != 'self'):
                     parameters[par]= "--"+par
@@ -35,7 +35,7 @@ class CommandParser:
       else:
         (o,a)=CommandParser.parser.parse_args()
       options=o.__dict__
-      print "options-->",options
+#      print "options-->",options
 
  #      options=o.Values
       fname=options['command']
@@ -50,7 +50,7 @@ class CommandParser:
             for p in self.functions[fname][1]:
                 a=options.get(p,'')
                 if(a != ''): myargs[p]=a
-            sys.stdout.write("calling "+fname+"-->" + str(myargs))
+#            sys.stdout.write("calling "+fname+"-->" + str(myargs))
             myfunc(self.protocol,**myargs)
         else:
             sys.stdout.write("command "+fname+" undefined-->" + str(options))

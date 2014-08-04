@@ -7,9 +7,13 @@ import string
 import time
 import datetime
 
+import rcm_base_server
+class rcm_server(rcm_base_server.rcm_base_server):
 
+  def timeleft_string(self,sid):
+	return self.notimeleft_string
 # get group to be used submitting a job
-def getQueueGroup(self,queue):
+  def getQueueGroup(self,queue):
     if len(self.accountList) == 0:
       return ''
     else:
@@ -20,7 +24,7 @@ def getQueueGroup(self,queue):
         group="cin_visual"
       return group
 
-def prex(cmd):
+  def prex(self,cmd):
     cmdstring=cmd[0]
     for p in cmd[1:]:
       cmdstring+=" '%s'" % (p) 
@@ -32,8 +36,8 @@ def prex(cmd):
     print stdout
     return (myprocess.returncode,stdout,stderr)
   
-def cprex(cmd):
-    (r,o,e)=prex(cmd)
+  def cprex(self,cmd):
+    (r,o,e)=self.prex(cmd)
     if (r != 0):
       print e
       raise Exception("command {0} failed with error: {1}".format([cmd[0],cmd[-1]],e))
@@ -41,7 +45,7 @@ def cprex(cmd):
 
 # submit a LL job
 # stdout and stderr are separated in 2 files
-def submit_job(self,sid,rcm_dirs,jobScript):
+  def submit_job(self,sid,rcm_dirs,jobScript):
     #cineca deployment dependencies
     self.ssh_template=jobScript
 #"""
@@ -75,7 +79,7 @@ def submit_job(self,sid,rcm_dirs,jobScript):
     f.write(batch)
     f.close()
     os.chmod(file, stat.S_IRWXU)
-    (res,out,err)=cprex([file])
+    (res,out,err)=self.cprex([file])
     
     if (res != 0 ) :
       sys.write.stderr(err);
@@ -85,7 +89,7 @@ def submit_job(self,sid,rcm_dirs,jobScript):
 
 
 # kill a PBS job
-def kill_job(self,jid):
+  def kill_job(self,jid):
     #cprex(['qdel',jid])
     #cprex(['kill '+ jid])
     try:
@@ -95,18 +99,18 @@ def kill_job(self,jid):
     
     
 # get available queues for the user (ssh in no job scheduler)
-def get_queue(self):
+  def get_queue(self,testJobScriptDict=None):
     queueList = []
     queueList.append("ssh")
     return queueList
       
 # get running jobs
-def get_jobs(self, sessions, U=False):
+  def get_jobs(self, U=False):
     #(retval,stdout,stderr)=prex(['llq'])
     #get list of jobs: blank-delimited list of categories (job name, class, owner)
     pidList = []
     
-    p1 = subprocess.Popen(["ps","-u",self.par_u], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    p1 = subprocess.Popen(["ps","-u",self.username], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     stdout,stderr = p1.communicate()
     row=stdout.split('\n')
     row = filter(None, row)
@@ -121,3 +125,10 @@ def get_jobs(self, sessions, U=False):
         jobs[sid]=file_jid #check if jobid in session file is a running pid
     print jobs
     return (jobs)
+
+if __name__ == '__main__':
+	s=rcm_server()
+	print "accounts:",s.getUserAccounts()
+	print "rcmdirs:",s.get_rcmdirs()
+	print "fill_sessions_hash:",s.fill_sessions_hash()
+	print "load sessions:",s.load_sessions()
