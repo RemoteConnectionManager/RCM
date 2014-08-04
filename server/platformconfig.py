@@ -1,6 +1,7 @@
 import os
 import socket
 import ConfigParser
+import enumerate_interfaces
 
 class baseconfig:
     def __init__(self):
@@ -75,7 +76,16 @@ class platformconfig(baseconfig):
 	exec("import rcm_server_"+scheduler+" as rcm_scheduler")
 	return (rcm_scheduler,session_tag)
 	
-
+    def get_login(self,subnet=''):
+	nodelogin=''
+	if(subnet):
+	    nodelogin = enumerate_interfaces.external_name(subnet)
+	    print "enumerate_interface nodelogin---->",nodelogin
+            if(not nodelogin):
+                nodelogin = socket.getfqdn()
+	        print "socket.getfqdn nodelogin---->",nodelogin
+	    nodelogin=self.confdict.get((subnet,nodelogin),nodelogin)
+        return nodelogin
 
 
 if __name__ == '__main__':
@@ -93,11 +103,10 @@ if __name__ == '__main__':
     print p.get_queues()
     print p.get_queue('visual')
     print p.get_testjobs()
-    subnet='10.139.7'
     login='rvn03.plx.cineca.it'
-    print "hack login nameson subnet: ",subnet,login,"-->", p.confdict.get((subnet,login),login)
-    subnet='130.186.1'
-    print "hack login nameson subnet: ",subnet,login,"-->", p.confdict.get((subnet,login),login)
+    for subnet in ['10.139.7','130.186.1']:
+    	print "hack login nameson subnet: ",subnet,login,"-->", p.confdict.get((subnet,login),login)
+	print "get_login-->"+str(p.get_login(subnet))
     (sched,s_tag)=p.get_import_scheduler()
     print "session_tag-->",s_tag
     print "instance a server"
