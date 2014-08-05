@@ -43,21 +43,33 @@ class platformconfig(baseconfig):
         self.filename='platform.cfg'
 	self.parse()
         
+    def max_user_session(self):
+	return self.confdict.get(('platform','maxUserSessions'),2)
+    
     def scheduler(self):
         hostname = socket.gethostname()
         #print "hostname-->"+hostname+"<--"
         scheduler=self.confdict.get(('platform',hostname),'ssh')
         return scheduler
     
+    def get_vnc_setup(self,vnc=''):
+	return self.confdict.get(('module_setup',vnc),'')
+    
     def get_queues(self):
 	return self.sections['jobscript']
     
-    def get_testjobs(self):
-	tetst_job_scripts=dict()
+    def get_queue_par(self,parname=''):
+	pars=dict()
 	for q in self.get_queues():
-	  script=self.confdict.get(('testjobscript',q),None)
-	  if(script): tetst_job_scripts[q]=script
-	return tetst_job_scripts
+	  par=self.confdict.get((parname,q),None)
+	  if(par): pars[q]=par
+	return pars
+	
+    def get_testjobs(self):
+	return self.get_queue_par('testjobscript')
+	
+    def get_jobscript(self,queue):
+	return self.confdict.get(('jobscript',queue),self.confdict.get(('jobscript','ssh'),''))
 	
     def get_queue(self,queue):
 	q=dict()
@@ -76,15 +88,18 @@ class platformconfig(baseconfig):
 	exec("import rcm_server_"+scheduler+" as rcm_scheduler")
 	return (rcm_scheduler,session_tag)
 	
+    def hack_login(self,subnet,nodelogin):
+	return self.confdict.get((subnet,nodelogin),nodelogin)
+    
     def get_login(self,subnet=''):
 	nodelogin=''
 	if(subnet):
 	    nodelogin = enumerate_interfaces.external_name(subnet)
-	    print "enumerate_interface nodelogin---->",nodelogin
+#	    print "enumerate_interface nodelogin---->",nodelogin
             if(not nodelogin):
                 nodelogin = socket.getfqdn()
-	        print "socket.getfqdn nodelogin---->",nodelogin
-	    nodelogin=self.confdict.get((subnet,nodelogin),nodelogin)
+#	        print "socket.getfqdn nodelogin---->",nodelogin
+	    nodelogin=self.hack_login(subnet,nodelogin)
         return nodelogin
 
 
@@ -101,11 +116,13 @@ if __name__ == '__main__':
     #print p.options
     print p.scheduler()
     print p.get_queues()
-    print p.get_queue('visual')
+    for q in p.get_queues() +['inesistente']:
+        print "queue->"+q+"< has job\n--->"+p.get_jobscript(q)+"<------"
+    print "queue visual has:\n",p.get_queue('visual'),"\n---------------------------------"
     print p.get_testjobs()
     login='rvn03.plx.cineca.it'
     for subnet in ['10.139.7','130.186.1']:
-    	print "hack login nameson subnet: ",subnet,login,"-->", p.confdict.get((subnet,login),login)
+    	print "hack login nameson subnet: ",subnet,login,"-->", p.hack_login(subnet,login)
 	print "get_login-->"+str(p.get_login(subnet))
     (sched,s_tag)=p.get_import_scheduler()
     print "session_tag-->",s_tag
