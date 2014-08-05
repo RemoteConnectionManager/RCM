@@ -52,7 +52,7 @@ class CommandParser:
                 if(a != ''): myargs[p]=a
 #            sys.stdout.write("calling "+fname+"-->" + str(myargs))
             myfile=open('/plx/userinternal/lcalori0/RCM/log.txt',"a")
-	    myfile.write("calling "+fname+"-->" + str(myargs))
+	    myfile.write("calling "+fname+"-->" + str(myargs)+"\n")
 	    myfile.close()
             myfunc(self.protocol,**myargs)
         else:
