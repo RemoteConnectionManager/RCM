@@ -46,7 +46,7 @@ def safe(debug=False):
 #                    l_args[0].stopBusy()
 #                except:
 #                    pass
-                if debug:
+                if True:
                     import traceback
                     tkMessageBox.showwarning("Error","in {0}: {1}\n{2}".format(f.__name__, e,traceback.format_exc()))
                     traceback.print_exc()
