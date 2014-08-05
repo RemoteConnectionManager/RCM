@@ -16,7 +16,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
       return ''
     else:
       #cineca deployment dependencies
-      if( 'cin' in self.par_u):
+      if( 'cin' in self.username):
         group="cinstaff"
       else:
         group="cin_visual"
@@ -32,7 +32,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
     myprocess.wait()                        
     return (myprocess.returncode,stdout,stderr)     
   
- def cprex(cmd):
+ def cprex(self,cmd):
     (r,o,e)=self.prex(cmd)
     if (r != 0):
       print e
@@ -89,7 +89,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
     rcm_directive_A = self.groupSubstitution(group,'#PBS -A $RCM_GROUP')
 
     #Industrial users do not have to use -W group_list
-    if( self.par_u.startswith('a06',0,3) ):
+    if( self.username.startswith('a06',0,3) ):
       rcm_directive_W = ''
     else:
       rcm_directive_W = self.groupSubstitution(group,'#PBS -W group_list=$RCM_GROUP')

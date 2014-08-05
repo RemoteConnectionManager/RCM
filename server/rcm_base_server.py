@@ -1,8 +1,10 @@
 import os
 import sys
 import string
+import glob
 import re
 import subprocess
+import socket
 import pwd
 import traceback
 import datetime
@@ -12,18 +14,27 @@ import rcm
 import platformconfig
 
 class rcm_base_server:
-    def __init__(self,sched=None,stag=''):
+    def __init__(self):
 	self.subnet = ''
 	self.par_f='0'
-	self.serverOutputString = 'server output->'
 
 	self.notimeleft_string="~"
 	self.username=pwd.getpwuid(os.geteuid())[0]
 	self.pconfig=platformconfig.platformconfig()
+	self.max_user_session=self.pconfig.max_user_session()
 	(sched,s_tag)=self.pconfig.get_import_scheduler()
 	self.rcm_scheduler=sched
 	self.session_tag=s_tag
+	self.accountList = self.getUserAccounts()
 
+    def get_timelimit(self):
+	return self.pconfig.confdict.get(('walltimelimit',self.queue),self.notimeleft_string)
+    
+    def set_vnc_setup(self,vnc='turbovnc'):
+        self.vnc_setup = self.pconfig.get_vnc_setup(vnc)
+	print "set vnc_setup to-->"+self.vnc_setup
+
+    
     def get_checksum(self,buildPlatformString=''):
 	platformconfig.versionconfig().get_checksum(buildPlatformString)
 	return platformconfig.versionconfig().get_checksum(buildPlatformString)
@@ -165,8 +176,8 @@ class rcm_base_server:
     def id2sid(self,id,user=''):
         if (not user):
             user=self.username
-        return "{0}-{1}-{2}".format(user,session_tag,id)
-        #return "rcm-%s-%t-%d" % (user,session_tag,id) #rcm-rmucci00-PBS-1
+        #return "{0}-{1}-{2}".format(user,session_tag,id)
+        return "%s-%s-%d" % (user,self.session_tag,id)
 
 
     def new_sid(self):
@@ -250,6 +261,71 @@ class rcm_base_server:
             ##FP sys.stderr.write('Waiting for job output, %d/%d\n' % (secs,timeout) )
             time.sleep(step)
         raise Exception("Timeouted (%d seconds) job not correcty running!!!" % (timeout) )
+
+
+    def execute_new(self):
+        self.clean_pids_string="""
+for d_p in $(vncserver  -list | grep ^: | cut -d: -f2 | cut -f 1,3 --output-delimiter=@); do
+	i=$(echo $d_p | cut -d@ -f2)
+	d=$(echo $d_p | cut -d@ -f1)
+	a=$(ps -p $i -o comm=)
+	if [ "x$a" == "x" ] ; then 
+	  vncserver -kill  :$d 1>/dev/null
+ 	fi
+done"""
+        if(self.subnet): self.nodelogin = self.pconfig.get_login(self.subnet)
+        if(not self.nodelogin):
+                raise Exception("Error in finding nodelogin")
+
+
+
+        self.load_sessions() 
+        sid=self.new_sid()
+        self.clean_files(sid)
+        udirs=self.get_rcmdirs()
+        file='%s/%s.session' % (udirs[0],sid)
+    
+        #put the 'inactive' lock
+        c=rcm.rcm_session(state='init',sessionid=sid)
+        c.serialize(file)
+        jid='NOT_SUBMITTED'
+        self.par_w = self.get_timelimit()
+        try:
+            #set vncpasswd
+
+            fileout='%s/%s.joblog' % (udirs[0],sid) + '.pwd'
+            vncpasswd_command = self.vnc_setup +  "; echo -e " + self.vncpassword + " | vncpasswd -f > " + fileout
+	    myprocess = subprocess.Popen([vncpasswd_command],stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+            stdout,stderr = myprocess.communicate()
+            myprocess.wait()
+            jobScript = self.pconfig.get_jobscript(self.queue)
+
+            jid=self.submit_job(sid,udirs,jobScript)
+            c=rcm.rcm_session(state='pending', sessionname=self.sessionname, walltime=self.par_w, node='', tunnel='', sessiontype=self.session_tag, nodelogin=self.nodelogin, display='', jobid=jid, sessionid=sid, username=self.username, otp='', vncpassword=self.vncpassword_crypted)
+            c.serialize(file)
+            #c.write(self.par_f)
+            (n,d,otp)=self.wait_jobout(sid,400)
+            #here we test if hostname returned by jobout is the same host (ssh case)
+            if(n == socket.gethostname()): 
+                tunnel='n'
+            else:
+                tunnel='y'
+            #n+='ib0'
+#        except Exception as e:
+        except Exception,inst:
+	    sys.stderr.write("%s: %s RCM:EXCEPTION" % (inst, traceback.format_exc()))
+		    
+            c=rcm.rcm_session(state='invalid',sessionid=sid)
+            c.serialize(file)
+            if (jid != 'NOT_SUBMITTED'):
+                rcm_scheduler.kill_job(self, jid)   
+            raise Exception("Error in execute_new:%s" % inst)
+       
+        c=rcm.rcm_session(state='valid', sessionname=self.sessionname, walltime=self.par_w, node=n, tunnel=tunnel, sessiontype=self.session_tag, nodelogin=self.nodelogin, display=d, jobid=jid, sessionid=sid, username=self.username, otp=otp, vncpassword=self.vncpassword_crypted)
+        
+        c.serialize(file)
+        c.write(self.par_f)
+        sys.exit(0)
 
 if __name__ == '__main__':
 	s=rcm_base_server()

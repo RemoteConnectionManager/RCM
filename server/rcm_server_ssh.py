@@ -18,7 +18,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
       return ''
     else:
       #cineca deployment dependencies
-      if( 'cin' in self.par_u):
+      if( 'cin' in self.username):
         group="cinstaff"
       else:
         group="cin_visual"

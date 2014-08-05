@@ -1,7 +1,9 @@
 #!/bin/env python
 import pickle
 import datetime
+import sys
 
+serverOutputString = "server output->"
 
 class rcm_session:
 
@@ -17,11 +19,14 @@ class rcm_session:
             
     def serialize(self,file):
         pickle.dump(self.hash, open( file, "wb" ) )
+    
+    def get_string(self):
+	return pickle.dumps(self.hash)
 
     def write(self,format):
-        print "server output->"
+        #print "server output->"
         if ( format == 0):
-            print pickle.dumps(self.hash)
+            sys.stdout.write(serverOutputString+self.get_string())
         elif ( format == 1):
             for k in self.hash.keys():
                 print "%s;%s" % ( k , self.hash[k] )
@@ -50,9 +55,10 @@ class rcm_sessions:
     def get_string(self):
 	return pickle.dumps(self.array)
     def write(self,format=0):
-        print "server output->"
+        #print "server output->"
         if ( format == 0):
-            print pickle.dumps(self.array)
+            sys.stdout.write(serverOutputString+self.get_string())
+	    #print pickle.dumps(self.array)
         elif ( format == 1):
             for k in self.array:
                 print "---------------------"
@@ -90,7 +96,8 @@ class rcm_config:
         if (file != ''):
             pickle.dump(self.config, open( file, "wb" ) )
         else:
-            print pickle.dumps(self.config)
+            #print pickle.dumps(self.config)
+	    sys.stdout.write(serverOutputString+self.get_string())
             
     def pretty_print(self):
         print "version: checksum->"+self.config['version']['checksum']+'<--url ->'+self.config['version']['url']
@@ -101,56 +108,6 @@ class rcm_config:
         for vnc in sorted(self.config['vnc_commands'].keys()):
             print "vnc command "+vnc+" info-->"+self.config['vnc_commands'][vnc]+"<--"
             
-class rcm_protocol:
-    def __init__(self,clientfunc=None,server_func=None):
-        self.client_sendfunc=clientfunc
-        if (server_func):
-            self.server_func=server_func
-        else:
-            self.server_func=dict()
-
-    def config(self,build_platform=''):
-        print "get platform configuration"
-        if (self.client_sendfunc):
-            return self.client_sendfunc("config "+build_platform)
-
-    def version(self,build_platform=''):
-        print "get version"
-        if (self.client_sendfunc):
-            return self.client_sendfunc("version "+build_platform)
-
-    def queue(self):
-        print "get queues"
-        if (self.client_sendfunc):
-            return self.client_sendfunc("queue ")
-
-    def loginlist(self,subnet=''):
-        print "get login list "
-        if (self.client_sendfunc):
-            return self.client_sendfunc("loginlist "+subnet)
-
-    def list(self,subnet=''):
-        print "get display session list "
-        if (self.client_sendfunc):
-            return self.client_sendfunc("list "+subnet)
-    def new(self,geometry='',queue='',sessionname='',subnet='',vncpassword='',vncpassword_crypted='',vnc_command=''):
-        print "create new vnc display session"
-        if (self.client_sendfunc):
-            return self.client_sendfunc(
-                "new geometry="+geometry+
-                " queue="+queue+
-                " sessionname=" + '\'' + sessionname + '\'' +
-                " subnet="+subnet+
-                " vncpassword="+vncpassword+
-                " vncpassword_crypted="+'\'' + vncpassword_crypted + '\''+
-                " vnc_command="+vnc_command
-            )
-
-    def kill(self,session_id=''):
-        print "kill vnc display session"
-        if (self.client_sendfunc):
-            return self.client_sendfunc("kill "+session_id)
-
 
 if __name__ == '__main__':
     print "start testing.................................."
