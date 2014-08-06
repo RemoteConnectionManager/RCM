@@ -195,10 +195,9 @@ class rcm_client_connection:
     def kill(self,session):
         sessionid = session.hash['sessionid']
         nodelogin = session.hash['nodelogin']
-        def mycall(command):
-            return self.prex(command,nodelogin)
-        protocol=rcm.rcm_protocol(mycall)
-        o=protocol.kill(sessionid)
+
+        self.commandnode=nodelogin
+        o=self.protocol.kill(session_id=sessionid)
         
 
   
