@@ -14,17 +14,19 @@ import rcm
 import platformconfig
 
 class rcm_base_server:
-    def __init__(self):
+    def __init__(self,pconfig=None):
 	self.subnet = ''
 	self.par_f='0'
 
 	self.notimeleft_string="~"
 	self.username=pwd.getpwuid(os.geteuid())[0]
-	self.pconfig=platformconfig.platformconfig()
+	if(pconfig):
+            self.pconfig=pconfig
+	else:	 
+	    self.pconfig=platformconfig.platformconfig()
 	self.max_user_session=self.pconfig.max_user_session()
-	(sched,s_tag)=self.pconfig.get_import_scheduler()
-	self.rcm_scheduler=sched
-	self.session_tag=s_tag
+#	(sched,s_tag)=self.pconfig.get_import_scheduler()
+	self.session_tag=self.pconfig.session_tag
 	self.accountList = self.getUserAccounts()
 
     def get_timelimit(self):
@@ -318,7 +320,7 @@ done"""
             c=rcm.rcm_session(state='invalid',sessionid=sid)
             c.serialize(file)
             if (jid != 'NOT_SUBMITTED'):
-                rcm_scheduler.kill_job(self, jid)   
+                self.kill_job(jid)   
             raise Exception("Error in execute_new:%s" % inst)
        
         c=rcm.rcm_session(state='valid', sessionname=self.sessionname, walltime=self.par_w, node=n, tunnel=tunnel, sessiontype=self.session_tag, nodelogin=self.nodelogin, display=d, jobid=jid, sessionid=sid, username=self.username, otp=otp, vncpassword=self.vncpassword_crypted)

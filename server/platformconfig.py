@@ -18,6 +18,7 @@ class baseconfig:
         if(not os.path.exists(configfile)):
             print "WARNING missing platform file -->"+configfile
             return(False)
+	print "parsing configfile-->",configfile
         config.read(configfile)
         for s in config.sections():
             for o in config.options(s):
@@ -41,16 +42,18 @@ class platformconfig(baseconfig):
 	baseconfig.__init__(self)
         self.confdict[('platform','nodepostfix')]=''
         self.filename='platform.cfg'
+	self.default_scheduler_name='ssh'
 	self.parse()
+	self.find_scheduler()
+	self.import_scheduler()
         
     def max_user_session(self):
 	return self.confdict.get(('platform','maxUserSessions'),2)
     
-    def scheduler(self):
-        hostname = socket.gethostname()
+    def find_scheduler(self):
+        self.hostname = socket.gethostname()
         #print "hostname-->"+hostname+"<--"
-        scheduler=self.confdict.get(('platform',hostname),'ssh')
-        return scheduler
+        self.scheduler_name=self.confdict.get(('platform',self.hostname),self.default_scheduler_name)
     
     def get_vnc_setup(self,vnc=''):
 	return self.confdict.get(('module_setup',vnc),'')
@@ -69,7 +72,7 @@ class platformconfig(baseconfig):
 	return self.get_queue_par('testjobscript')
 	
     def get_jobscript(self,queue):
-	return self.confdict.get(('jobscript',queue),self.confdict.get(('jobscript','ssh'),''))
+	return self.confdict.get(('jobscript',queue),self.confdict.get(('jobscript',self.default_scheduler_name),''))
 	
     def get_queue(self,queue):
 	q=dict()
@@ -77,17 +80,18 @@ class platformconfig(baseconfig):
 	  q[tag]=self.confdict.get((tag,queue),None)
 	return q
 	
-    def get_import_scheduler(self):
-	def_sched="ssh"
-	hostname = socket.gethostname()
-	scheduler = self.confdict.get(('platform',hostname),def_sched)
-	if(def_sched == scheduler):
-		session_tag = hostname
+    def import_scheduler(self):
+	if(self.default_scheduler_name == self.scheduler_name):
+		self.session_tag = self.hostname
 	else:
-		session_tag = scheduler
-	exec("import rcm_server_"+scheduler+" as rcm_scheduler")
-	return (rcm_scheduler,session_tag)
+		self.session_tag = self.scheduler_name
+	exec("import rcm_server_"+self.scheduler_name+" as rcm_scheduler")
+	self.scheduler=rcm_scheduler
+#	return (rcm_scheduler,session_tag)
 	
+    def get_rcm_server(self):
+	return self.scheduler.rcm_server(self)
+    
     def hack_login(self,subnet,nodelogin):
 	return self.confdict.get((subnet,nodelogin),nodelogin)
     
@@ -114,7 +118,9 @@ if __name__ == '__main__':
     #print p.confdict
     #print p.sections
     #print p.options
-    print p.scheduler()
+    print "scheduler_name-->"+p.scheduler_name
+    print "session_tag-->"+p.session_tag
+    print "scheduler-->",p.scheduler
     print p.get_queues()
     for q in p.get_queues() +['inesistente']:
         print "queue->"+q+"< has job\n--->"+p.get_jobscript(q)+"<------"
@@ -124,10 +130,8 @@ if __name__ == '__main__':
     for subnet in ['10.139.7','130.186.1']:
     	print "hack login nameson subnet: ",subnet,login,"-->", p.hack_login(subnet,login)
 	print "get_login-->"+str(p.get_login(subnet))
-    (sched,s_tag)=p.get_import_scheduler()
-    print "session_tag-->",s_tag
     print "instance a server"
-    s=sched.rcm_server()
+    s=p.get_rcm_server()
     print "available queues-->"+str(s.get_queue(p.get_testjobs()))
     
     print "versions-->",v.get_checksum('linux_64bit')
