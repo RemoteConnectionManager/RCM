@@ -18,7 +18,7 @@ class baseconfig:
         if(not os.path.exists(configfile)):
             print "WARNING missing platform file -->"+configfile
             return(False)
-	print "parsing configfile-->",configfile
+#	print "parsing configfile-->",configfile
         config.read(configfile)
         for s in config.sections():
             for o in config.options(s):

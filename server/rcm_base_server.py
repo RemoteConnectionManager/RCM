@@ -118,7 +118,7 @@ class rcm_base_server:
                 if ( ses.hash['state'] ==  'init' ): #in initialization phase (probably locked)
                     type='ini'
                 else: 				   
-                    print jobs.keys()
+#                    print jobs.keys()
                     if sid in jobs.keys():
                         job_jid=jobs[sid].strip()
                         file_jid=ses.hash['jobid'].strip()
