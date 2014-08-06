@@ -74,6 +74,16 @@ class rcm_protocol:
     
     
     def kill(self,session_id=''):
-        print "kill vnc display session"
-        if (self.client_sendfunc):
-            return self.client_sendfunc("kill "+session_id)
+	self.rcm_server.load_sessions()
+	if(session_id):
+           if session_id in self.rcm_server.sids['run']:
+                jid=self.rcm_server.sessions[session_id].hash['jobid']
+                self.rcm_server.kill_job(jid)
+                file='%s/%s.session' % (self.rcm_server.get_rcmdirs()[0],session_id)
+                c=rcm.rcm_session(fromfile=file)
+                c.hash['state']='killing'
+                c.serialize(file)
+           else:
+		sys.stderr.write("Not running session: %s\n" % (session_id))
+		sys.stderr.flush()
+                sys.exit(1)
