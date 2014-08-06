@@ -40,7 +40,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
     (r,o,e)=self.prex(cmd)
     if (r != 0):
       print e
-      raise Exception("command {0} failed with error: {1}".format([cmd[0],cmd[-1]],e))
+      raise Exception("command %s failed with error: %s" % ([cmd[0],cmd[-1]],e))
     return (r,o,e)
 
 # submit a LL job
@@ -95,7 +95,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
     try:
       os.kill(int(jid), 9)
     except:
-      raise Exception("Can not kill Xvnc process with pid: {0}.".format(jid))
+      raise Exception("Can not kill Xvnc process with pid: %s." % (jid))
     
     
 # get available queues for the user (ssh in no job scheduler)

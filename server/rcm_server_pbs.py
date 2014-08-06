@@ -36,7 +36,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
     (r,o,e)=self.prex(cmd)
     if (r != 0):
       print e
-      raise Exception("command {0} failed with error: {1}".format([cmd[0],cmd[-1]],e))
+      raise Exception("command %s failed with error: %s" % ([cmd[0],cmd[-1]],e))
     return (r,o,e)
 
 # submit a PBS job

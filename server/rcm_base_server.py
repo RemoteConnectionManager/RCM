@@ -125,7 +125,7 @@ class rcm_base_server:
                         if ( job_jid == file_jid ):
                             type='run'
                         else:
-                            raise Exception("STRONG WARNING: session file# {0} contains wrong jobid: {1} (the running one is {2}".format(sid,file_jid,job_jid))
+                            raise Exception("STRONG WARNING: session file# %s contains wrong jobid: %s (the running one is %s" % (sid,file_jid,job_jid))
                         #type='err'
                         del(jobs[sid])
                     else:
