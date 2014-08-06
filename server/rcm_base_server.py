@@ -27,6 +27,7 @@ class rcm_base_server:
 	self.max_user_session=self.pconfig.max_user_session()
 #	(sched,s_tag)=self.pconfig.get_import_scheduler()
 	self.session_tag=self.pconfig.session_tag
+	self.no_timeleft= self.pconfig.default_scheduler_name == self.pconfig.scheduler_name
 	self.accountList = self.getUserAccounts()
 
     def get_timelimit(self):
@@ -84,9 +85,13 @@ class rcm_base_server:
         return(udirs)
 
     def timeleft_string(self,sid):
+	if(self.no_timeleft) : return self.notimeleft_string
 	try:
-		walltime = time.strptime(self.sessions[sid].hash['walltime'], "%H:%M:%S")
-		endtime=time.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S") + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
+		walltime_py24 = time.strptime(self.sessions[sid].hash['walltime'], "%H:%M:%S")
+		endtime_py24 = time.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S")
+		walltime = datetime.datetime(*walltime_py24[0:6])
+		endtime = datetime.datetime(*endtime_py24[0:6])
+		endtime= endtime + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
 		timedelta = endtime - datetime.datetime.now()
 	#check if timedelta is positive
 		if timedelta <= datetime.timedelta(0):
@@ -96,8 +101,8 @@ class rcm_base_server:
 	
 
 	except Exception,inst:
-		#sys.stderr.write("%s: %s RCM:EXCEPTION" % (inst, traceback.format_exc()))
-#               print("exception in getting time:",type(inst),inst.args,file=sys.stderr)
+		#sys.stderr.write("session->%s RCM:EXCEPTION %s: %s " % (sid,inst, traceback.format_exc()))
+                #print("exception in getting time:",type(inst),inst.args,file=sys.stderr)
 
    		return self.notimeleft_string
   
