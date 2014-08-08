@@ -24,15 +24,6 @@ class rcm_protocol:
         if (self.client_sendfunc):
             return self.client_sendfunc("version "+build_platform)
 
-    def queue(self):
-        queueList = self.rcm_server.get_queue()
-        #return the list of avilable queue
-
-#	print self.rcm_server.serverOutputString
-#	print ' '.join(queueList)
-        sys.stdout.write(rcm.serverOutputString)
-        sys.stdout.write(' '.join(queueList))
-	sys.stdout.flush()
 
     def loginlist(self,subnet=''):
 #	import socket
