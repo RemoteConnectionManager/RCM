@@ -87,8 +87,9 @@ class rcm_config:
     def add_queue(self,queue,info=''):
         self.config['queues'][queue]=info
         
-    def add_vnc(self,vnc,info=''):
-        self.config['vnc_commands'][vnc]=info
+    def add_vnc(self,vnc,entry=None):
+	if(not entry): entry=(vnc,'')
+        self.config['vnc_commands'][vnc]=entry
         
     def get_string(self):
         return pickle.dumps(self.config)

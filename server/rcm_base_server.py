@@ -33,9 +33,11 @@ class rcm_base_server:
     def get_timelimit(self):
 	return self.pconfig.confdict.get(('walltimelimit',self.queue),self.notimeleft_string)
     
-    def set_vnc_setup(self,vnc='turbovnc'):
-        self.vnc_setup = self.pconfig.get_vnc_setup(vnc)
-	print "set vnc_setup to-->"+self.vnc_setup
+    def set_vnc_setup(self,id):
+        self.vnc_setup = p.vnc_attribute(id,'module_setup')
+	self.vncserver_string = self.vnc_attribute(id,'vnc_command')
+
+	#print "set vnc_setup to-->"+self.vnc_setup
 
     
     def get_checksum(self,buildPlatformString=''):

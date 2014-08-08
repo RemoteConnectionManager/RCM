@@ -14,6 +14,8 @@ class rcm_protocol:
         queueList = self.rcm_server.get_queue()
         for q in queueList:
             conf.add_queue(q)
+	for vnc_id,menu_entry in self.rcm_server.pconfig.get_vnc_menu().iteritems():
+	    conf.add_vnc(vnc_id,menu_entry)
         conf.serialize()
 
 
@@ -55,7 +57,7 @@ class rcm_protocol:
 	sys.stdout.write(s.get_string())
 	sys.stdout.flush()
     
-    def new(self,geometry='',queue='',sessionname='',subnet='',vncpassword='',vncpassword_crypted='',vnc_command=''):
+    def new(self,geometry='',queue='',sessionname='',subnet='',vncpassword='',vncpassword_crypted='',vnc_id=''):
         print "create new vnc display session"
 	if(subnet): self.rcm_server.subnet = subnet
 	if(queue): self.rcm_server.queue = queue
@@ -66,10 +68,8 @@ class rcm_protocol:
 	vncserver_string= 'vncserver'
         if(geometry):
             vncserver_string += ' -geometry ' + geometry
-	
-	self.rcm_server.vncserver_string=vncserver_string
-	
-	self.rcm_server.set_vnc_setup('turbovnc')
+		
+	self.rcm_server.set_vnc_setup(vnc_id)
         self.rcm_server.execute_new()
     
     

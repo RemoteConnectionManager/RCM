@@ -2,6 +2,7 @@ import os
 import socket
 import ConfigParser
 import enumerate_interfaces
+import string
 
 class baseconfig:
     def __init__(self):
@@ -54,10 +55,33 @@ class platformconfig(baseconfig):
         self.hostname = socket.gethostname()
         #print "hostname-->"+hostname+"<--"
         self.scheduler_name=self.confdict.get(('platform',self.hostname),self.default_scheduler_name)
-    
-    def get_vnc_setup(self,vnc=''):
-	return self.confdict.get(('module_setup',vnc),'')
-    
+        
+    def get_vnc_menu(self):
+	menu=dict()
+	for vnc_id in self.sections['vnc_menu']:
+	  menu_item_string=self.confdict[('vnc_menu',vnc_id)]
+	  m=menu_item_string.split('|',1)
+	  if ( len(m) > 1 ) :
+	    item=m[0]
+	    info=m[1]
+	  else:
+            item=vnc_id
+	    info=menu_item_string
+	  menu[vnc_id]=(item,info)
+	return(menu)
+
+    def vnc_attribute(self,vnc_id,section):
+	names=vnc_id.split('_')
+	prev=names[0]
+	for name in [vnc_id]+names:
+	  found=self.confdict.get((section,name),None)
+	  if(found): 
+            ret=string.Template(found).safe_substitute(__VNC_ID__=vnc_id,__VNC_PREV_MATCH__=prev,__VNC_TOP_MATCH__=names[0])
+#	    print "found-->",found,"<-- ret-->",ret,"<--"
+            return ret
+	  prev=name
+	return ''
+	  
     def get_queues(self):
 	return self.sections['jobscript']
     
@@ -121,6 +145,9 @@ if __name__ == '__main__':
     print "scheduler_name-->"+p.scheduler_name
     print "session_tag-->"+p.session_tag
     print "scheduler-->",p.scheduler
+    for id,m in p.get_vnc_menu().iteritems():
+      print "item id ",id,m[0]," >>",m[1],"<< command>>",p.vnc_attribute(id,'vnc_command'),"<< setup>>",p.vnc_attribute(id,'module_setup')
+    
     print p.get_queues()
     for q in p.get_queues() +['inesistente']:
         print "queue->"+q+"< has job\n--->"+p.get_jobscript(q)+"<------"
@@ -135,5 +162,7 @@ if __name__ == '__main__':
     print "available queues-->"+str(s.get_queue(p.get_testjobs()))
     
     print "versions-->",v.get_checksum('linux_64bit')
+    
+    
     
     
