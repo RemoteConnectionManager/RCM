@@ -27,8 +27,8 @@ import threading
 
 font = ("Helvetica",10, "grey")
 boldfont = ("Helvetica",10,"bold")
-checkCredential = False 
-queueList = []
+checkCredential = False
+##bad_globals##queueList = []
 lastClientVersion = []
 
 
@@ -444,15 +444,18 @@ class ConnectionWindow(Frame):
     @safe_debug_off
     def submit(self):
         self.startBusy("Waiting for queue list...")
-        global queueList
-        queueList = self.client_connection.get_queue()
+##bad_globals##        global queueList
+        queues=self.client_connection.queues()
+        queueList = queues.keys()
+
         self.stopBusy()
         if(self.debug): print "Queue list: ", queueList
         if queueList == ['']:
             tkMessageBox.showwarning("Warning", "Queue not found...")
             return
         
-        dd = newDisplayDialog(self)
+        dd = newDisplayDialog(self,queues)
+
         if dd.displayDimensions == NONE:
             self.stopBusy()
             return
@@ -555,6 +558,10 @@ class newVersionDialog(tkSimpleDialog.Dialog):
 
 class newDisplayDialog(tkSimpleDialog.Dialog):
 
+    def __init__(self,master,queues):
+        self.queues=queues
+        tkSimpleDialog.Dialog.__init__(self,master)
+
     def buttonbox(self):
         box = Frame(self.topFrame)
 
@@ -599,6 +606,7 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
         self.v = IntVar()
         self.displayDimension = NONE
         self.queue = StringVar(master)
+        queueList = self.queues.keys()
         self.queue.set(queueList[0])
         if (len(queueList) > 1):
             optionFrame = Frame(self.topFrame, padding = 5)

@@ -171,11 +171,10 @@ class rcm_client_connection:
         ret.array=a
         if(self.debug):
             ret.write(2)
-        return ret 
-
+        return ret
         
 
-    def newconn(self, queue, geometry, sessionname = ''):
+    def newconn(self, queue, geometry, sessionname = '',vnc_id='turbovnc_vnc'):
         
         #Create a random vncpassword and encrypt it
         rcm_cipher = rcm_utils.rcm_cipher()
@@ -187,7 +186,7 @@ class rcm_client_connection:
         #o=self.prex('new' + ' ' + new_encoded_param )
 
         o=self.protocol.new(geometry=geometry, queue=queue, sessionname=sessionname, subnet=self.subnet, vncpassword=vncpassword,
-        vncpassword_crypted=vncpassword_crypted, vnc_command='')
+        vncpassword_crypted=vncpassword_crypted, vnc_id=vnc_id)
         
         session=rcm.rcm_session(o)
         return session 
@@ -214,10 +213,12 @@ class rcm_client_connection:
     def get_config(self):
 #        o=self.prex('version' + ' ' + self.pack_info.buildPlatformString)
         o=self.protocol.config(build_platform=self.pack_info.buildPlatformString)
-        c=rcm.rcm_config(o)
-        print "config---->", c
-        return c
+        self.server_config=rcm.rcm_config(o)
+        print "config---->", self.server_config
+#        return c
 
+    def queues(self):
+        return self.server_config.config.get('queues',[])
 
     def get_version(self):
 #        o=self.prex('version' + ' ' + self.pack_info.buildPlatformString)
@@ -228,13 +229,13 @@ class rcm_client_connection:
         return o.split(' ')
 
 
-    def get_queue(self):
+#removed    def get_queue(self):
 #        o=self.prex('queue')
 
-        o=self.protocol.queue()
+#removed        o=self.protocol.queue()
 
-        if(self.debug): print "available queue: ", o
-        return o.split(' ')
+#removed        if(self.debug): print "available queue: ", o
+#removed        return o.split(' ')
 
                 
     def vncsession(self, session=None, otp='', gui_cmd=None, configFile=None):
