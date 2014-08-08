@@ -34,8 +34,8 @@ class rcm_base_server:
 	return self.pconfig.confdict.get(('walltimelimit',self.queue),self.notimeleft_string)
     
     def set_vnc_setup(self,id):
-        self.vnc_setup = p.vnc_attribute(id,'module_setup')
-	self.vncserver_string = self.vnc_attribute(id,'vnc_command')
+        self.vnc_setup = self.pconfig.vnc_attribute(id,'module_setup')
+	self.vncserver_string = self.pconfig.vnc_attribute(id,'vnc_command')
 
 	#print "set vnc_setup to-->"+self.vnc_setup
 
