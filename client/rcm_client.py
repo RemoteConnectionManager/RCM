@@ -220,6 +220,10 @@ class rcm_client_connection:
     def queues(self):
         return self.server_config.config.get('queues',[])
 
+    def vncs(self):
+        vncs=self.server_config.config.get('vnc_commands',[])
+        return vncs
+
     def get_version(self):
 #        o=self.prex('version' + ' ' + self.pack_info.buildPlatformString)
         def mycall(command):

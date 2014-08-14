@@ -447,6 +447,8 @@ class ConnectionWindow(Frame):
 ##bad_globals##        global queueList
         queues=self.client_connection.queues()
         queueList = queues.keys()
+        vncs=self.client_connection.vncs()
+        vncList = vncs.keys()
 
         self.stopBusy()
         if(self.debug): print "Queue list: ", queueList
@@ -454,7 +456,7 @@ class ConnectionWindow(Frame):
             tkMessageBox.showwarning("Warning", "Queue not found...")
             return
         
-        dd = newDisplayDialog(self,queues)
+        dd = newDisplayDialog(self,queues,vncs)
 
         if dd.displayDimensions == NONE:
             self.stopBusy()
@@ -462,6 +464,7 @@ class ConnectionWindow(Frame):
         
         self.displayDimension = dd.displayDimensions
         self.queue = dd.queue.get()
+        self.vnc_id=dd.vnc.get()
         self.sessionname = dd.sessionName
 
         t = threading.Thread(target=self.create_display)
@@ -476,7 +479,7 @@ class ConnectionWindow(Frame):
 
     @safe_debug_off
     def create_display(self):
-        newconn=self.client_connection.newconn(self.queue, self.displayDimension, self.sessionname)
+        newconn=self.client_connection.newconn(self.queue, self.displayDimension, self.sessionname, vnc_id=self.vnc_id)
 
         lock = threading.Lock()
         lock.acquire()
@@ -505,7 +508,8 @@ class ConnectionWindow(Frame):
         if (len(self.pending_connections) != 0):
             conn = self.pending_connections.pop()
             self.list_refresh()
-            self.client_connection.vncsession(conn, conn.hash['otp'], self.connection_buttons[conn.hash['sessionid']][1])
+            (button,cmd)=self.connection_buttons.get(conn.hash['sessionid'], (None,None))
+            if(cmd): self.client_connection.vncsession(conn, conn.hash['otp'], cmd)
 
         self.after(100,self.auto_list_refresh)
 
@@ -558,8 +562,9 @@ class newVersionDialog(tkSimpleDialog.Dialog):
 
 class newDisplayDialog(tkSimpleDialog.Dialog):
 
-    def __init__(self,master,queues):
+    def __init__(self,master,queues,vnc_menu):
         self.queues=queues
+        self.vnc_menu=vnc_menu
         tkSimpleDialog.Dialog.__init__(self,master)
 
     def buttonbox(self):
@@ -606,15 +611,28 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
         self.v = IntVar()
         self.displayDimension = NONE
         self.queue = StringVar(master)
+        self.vnc = StringVar(master)
         queueList = self.queues.keys()
+        vncList=self.vnc_menu.keys()
         self.queue.set(queueList[0])
+        self.vnc.set(vncList[0])
         if (len(queueList) > 1):
             optionFrame = Frame(self.topFrame, padding = 5)
-            Label(optionFrame, text="""Select queue:""").pack(side=LEFT)        
-            w = apply(OptionMenu, (optionFrame, self.queue) + tuple(queueList))
+            Label(optionFrame, text="""Select queue:""").pack(side=LEFT)
+            def print_it(event):
+              print self.queue.get()
+            qq=tuple(queueList)
+
+            w = OptionMenu(optionFrame, self.queue, qq[0], *qq, command=print_it)
             w.pack(side=LEFT)
-            optionFrame.pack(anchor=W, padx=15)
-        
+            optionFrame.pack( padx=15)
+        if (len(vncList) > 1):
+            vncFrame = Frame(self.topFrame, padding = 5)
+            Label(vncFrame, text="""Select vnc:""").pack(side=LEFT)
+            w = apply(OptionMenu, (vncFrame, self.vnc,vncList[0]) + tuple(vncList))
+            w.pack(side=LEFT)
+            vncFrame.pack(anchor=W, padx=15)
+
         displayFrame = Frame(self.topFrame, padding = 5)
 
         fullDisplayDimension = str(self.winfo_screenwidth()) + 'x' + str(self.winfo_screenheight())
@@ -627,13 +645,13 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
             self.displayDimensionsList.pop()
             self.displayDimensionsList.append("Full Screen")
 
-        self.e1String = StringVar()  
+        self.e1String = StringVar()
         Label(displayFrame, text="""Display size:    """).pack(side=LEFT)
         if (len(list(self.displayDimensionsList)) > 0):           
             self.displayVariable = StringVar(displayFrame)
             self.displayVariable.set(list(self.displayDimensionsList)[0]) # default value
             self.fillEntry(self.displayVariable)
-            OptionMenu(displayFrame,self.displayVariable, *list(self.displayDimensionsList), command=self.fillEntry).pack(side=LEFT)        
+            OptionMenu(displayFrame,self.displayVariable, list(self.displayDimensionsList)[0],*list(self.displayDimensionsList), command=self.fillEntry).pack(side=LEFT)
         displayFrame.pack(padx=15)
 
         entryFrame = Frame(self.topFrame, padding = 5)
