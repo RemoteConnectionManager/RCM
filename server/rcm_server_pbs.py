@@ -10,6 +10,9 @@ import datetime
 import rcm_base_server
 class rcm_server(rcm_base_server.rcm_base_server):
 
+ def vnc_command_in_background(self):
+    return False
+
 # get group to be used submitting a job
  def getQueueGroup(self,queue):
     if len(self.accountList) == 0:
@@ -80,22 +83,37 @@ class rcm_server(rcm_base_server.rcm_base_server):
     file='%s/%s.job' % (rcm_dirs[0],sid)
     fileout='%s/%s.joblog' % (rcm_dirs[0],sid)
 
+    self.substitutions['RCM_JOBLOG'] = fileout
+    self.substitutions['RCM_VNCSERVER']=string.Template(self.substitutions['RCM_VNCSERVER']).safe_substitute(self.substitutions)
+    
+    self.substitutions['RCM_WALLTIME']=self.par_w
+    self.substitutions['RCM_SESSIONID']=sid
+    self.substitutions['RCM_QUEUE']=self.queue
+    self.substitutions['RCM_CLEANPIDS']=self.clean_pids_string
+    self.substitutions['RCM_VNCPASSWD']=self.vncpassword
+
+
     group = self.getQueueGroup(self.queue) 
       
     #For reserved queue set only "select=1"   
     queueParameter = "select=1"
     if(not self.queue.startswith('R')):
       queueParameter += ":Qlist=" + self.queue + ":viscons=1"
-    rcm_directive_A = self.groupSubstitution(group,'#PBS -A $RCM_GROUP')
+    self.substitutions['RCM_QUEUEPARAMETER']=queueParameter
+    
+    self.substitutions['RCM_DIRECTIVE_A'] = self.groupSubstitution(group,'#PBS -A $RCM_GROUP')
 
     #Industrial users do not have to use -W group_list
     if( self.username.startswith('a06',0,3) ):
-      rcm_directive_W = ''
+      self.substitutions['RCM_DIRECTIVE_W'] = ''
     else:
-      rcm_directive_W = self.groupSubstitution(group,'#PBS -W group_list=$RCM_GROUP')
+      self.substitutions['RCM_DIRECTIVE_W'] = self.groupSubstitution(group,'#PBS -W group_list=$RCM_GROUP')
 
-    batch=s.safe_substitute(RCM_MODULE_SETUP=self.vnc_setup,RCM_WALLTIME=self.par_w,RCM_SESSIONID=sid,RCM_JOBLOG=fileout,RCM_DIRECTIVE_A=rcm_directive_A,RCM_DIRECTIVE_W=rcm_directive_W,RCM_QUEUE=self.queue,RCM_QUEUEPARAMETER=queueParameter,RCM_VNCSERVER=self.vncserver_string,RCM_CLEANPIDS=self.clean_pids_string, RCM_VNCPASSWD=self.vncpassword)
+    #substitute RCM_AUTHFILE in
+    #batch=s.safe_substitute(RCM_MODULE_SETUP=self.vnc_setup,RCM_WALLTIME=self.par_w,RCM_SESSIONID=sid,RCM_JOBLOG=fileout,RCM_DIRECTIVE_A=rcm_directive_A,RCM_DIRECTIVE_W=rcm_directive_W,RCM_QUEUE=self.queue,RCM_QUEUEPARAMETER=queueParameter,RCM_VNCSERVER=self.vncserver_string,RCM_CLEANPIDS=self.clean_pids_string, RCM_VNCPASSWD=self.vncpassword)
 
+    batch=s.safe_substitute(self.substitutions)
+    print "batch------------------------\n",batch
     f=open(file,'w')
     f.write(batch)
     f.close()

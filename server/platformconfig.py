@@ -1,4 +1,5 @@
 import os
+import sys
 import socket
 import ConfigParser
 import enumerate_interfaces
@@ -81,7 +82,26 @@ class platformconfig(baseconfig):
             return ret
 	  prev=name
 	return ''
-	  
+  
+    def vnc_subst(self,vnc_id):
+	subst=dict()
+	for s in self.sections:
+	  if s.startswith('vnc_'): subst[s]=self.vnc_attribute(vnc_id,s)
+        return subst
+		  
+    def vnc_attrib_subst(self,vnc_id,section,subst=dict()):
+	if self.sections.has_key(section):
+	  v_subst=self.vnc_subst(vnc_id)
+	  found=v_subst.get(section,None)
+	  if(found):
+	    f1=string.Template(found).safe_substitute(subst)
+	    us=dict()
+	    for s in v_subst:
+	      us[s]=string.Template(v_subst[s]).safe_substitute(subst)
+	    ret=string.Template(f1).safe_substitute(us)
+	    return ret
+	return ''
+
     def get_queues(self):
 	return self.sections['jobscript']
     
@@ -105,6 +125,7 @@ class platformconfig(baseconfig):
 	return q
 	
     def import_scheduler(self):
+	#sys.stderr.write("####### importing scheduler####-->"+self.scheduler_name)
 	if(self.default_scheduler_name == self.scheduler_name):
 		self.session_tag = self.hostname
 	else:
@@ -145,8 +166,13 @@ if __name__ == '__main__':
     print "scheduler_name-->"+p.scheduler_name
     print "session_tag-->"+p.session_tag
     print "scheduler-->",p.scheduler
+    s=dict()
+    s['geometry']='100x100'
+    s['authfile']='$HOME/myauth'
+    print "\n\n#########################\n\n"
     for id,m in p.get_vnc_menu().iteritems():
-      print "item id ",id,m[0]," >>",m[1],"<< command>>",p.vnc_attribute(id,'vnc_command'),"<< setup>>",p.vnc_attribute(id,'module_setup')
+      print "item id ",id,m[0]," >>",m[1],"<< command>>",p.vnc_attrib_subst(id,'vnc_command',subst=s),"<< setup>>",p.vnc_attribute(id,'module_setup')
+    print "\n\n#########################\n\n"
     
     print p.get_queues()
     for q in p.get_queues() +['inesistente']:
@@ -162,6 +188,8 @@ if __name__ == '__main__':
     print "available queues-->"+str(s.get_queue(p.get_testjobs()))
     
     print "versions-->",v.get_checksum('linux_64bit')
+    
+    
     
     
     

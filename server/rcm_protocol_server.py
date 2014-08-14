@@ -56,10 +56,7 @@ class rcm_protocol:
 	if(vncpassword): self.rcm_server.vncpassword = vncpassword
 	if(vncpassword_crypted): self.rcm_server.vncpassword_crypted = vncpassword_crypted
 	
-	vncserver_string= 'vncserver'
-        if(geometry):
-            vncserver_string += ' -geometry ' + geometry
-		
+	self.rcm_server.substitutions['RCM_GEOMETRY'] = geometry	
 	self.rcm_server.set_vnc_setup(vnc_id)
         self.rcm_server.execute_new()
     

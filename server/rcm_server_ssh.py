@@ -10,6 +10,9 @@ import datetime
 import rcm_base_server
 class rcm_server(rcm_base_server.rcm_base_server):
 
+  def vnc_command_in_background(self):
+    return True
+
   def timeleft_string(self,sid):
 	return self.notimeleft_string
 # get group to be used submitting a job
@@ -71,8 +74,16 @@ class rcm_server(rcm_base_server.rcm_base_server):
       os.remove(otp)
     file='%s/%s.job' % (rcm_dirs[0],sid)
     fileout='%s/%s.joblog' % (rcm_dirs[0],sid)
+    
+    self.substitutions['RCM_JOBLOG'] = fileout
+    self.substitutions['RCM_VNCSERVER']=string.Template(self.substitutions['RCM_VNCSERVER']).safe_substitute(self.substitutions)
+    
+    self.substitutions['RCM_CLEANPIDS']=self.clean_pids_string
+    self.substitutions['RCM_VNCPASSWD']=self.vncpassword
       
-    batch=s.safe_substitute(RCM_MODULE_SETUP=self.vnc_setup,RCM_JOBLOG=fileout,RCM_VNCSERVER=self.vncserver_string,RCM_CLEANPIDS=self.clean_pids_string,RCM_VNCPASSWD=self.vncpassword)
+    batch=s.safe_substitute(self.substitutions)
+    print "batch------------------------\n",batch
+#    batch=s.safe_substitute(RCM_MODULE_SETUP=self.vnc_setup,RCM_JOBLOG=fileout,RCM_VNCSERVER=self.vncserver_string,RCM_CLEANPIDS=self.clean_pids_string,RCM_VNCPASSWD=self.vncpassword)
 
     
     f=open(file,'w')

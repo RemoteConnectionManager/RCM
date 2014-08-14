@@ -29,13 +29,16 @@ class rcm_base_server:
 	self.session_tag=self.pconfig.session_tag
 	self.no_timeleft= self.pconfig.default_scheduler_name == self.pconfig.scheduler_name
 	self.accountList = self.getUserAccounts()
+	self.substitutions=dict()
 
     def get_timelimit(self):
 	return self.pconfig.confdict.get(('walltimelimit',self.queue),self.notimeleft_string)
     
     def set_vnc_setup(self,id):
-        self.vnc_setup = self.pconfig.vnc_attribute(id,'module_setup')
-	self.vncserver_string = self.pconfig.vnc_attribute(id,'vnc_command')
+	if self.vnc_command_in_background(): self.substitutions['vnc_foreground']=''
+        self.vnc_setup = self.pconfig.vnc_attrib_subst(id,'vnc_setup',subst=self.substitutions)
+	self.substitutions['RCM_MODULE_SETUP']= self.vnc_setup
+	self.substitutions['RCM_VNCSERVER'] = self.pconfig.vnc_attrib_subst(id,'vnc_command',subst=self.substitutions)
 
 	#print "set vnc_setup to-->"+self.vnc_setup
 
