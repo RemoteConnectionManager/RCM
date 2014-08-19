@@ -261,6 +261,7 @@ class SessionThread( threading.Thread ):
                     i = child.expect(['continue connecting', 'password','standard VNC authentication', pexpect.TIMEOUT, pexpect.EOF])
                 if i == 2:
                     # Standard VNC authentication
+                    i = child.expect(['dummy0','dummy1','Password:', pexpect.TIMEOUT, pexpect.EOF])
                     child.sendline(self.vncpassword)
 
                 if i == 3 or i == 4:
