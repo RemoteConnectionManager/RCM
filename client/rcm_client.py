@@ -47,7 +47,7 @@ class rcm_client_connection:
         self.config['ssh']['darwin']=("ssh","","")
         self.config['vnc']['darwin']=("vncviewer_java/Contents/MacOS/JavaApplicationStub","")
 
-        self.config['remote_rcm_server']="module load rcm; python /plx/userinternal/lcalori0/RCM/multivnc/server/rcm_new_server.py"
+        self.config['remote_rcm_server']="module load rcm; python $RCM_HOME/bin/server/rcm_new_server.py"
         #self.config['remote_rcm_server']="module load python; /om/home/cibo19/RCM_Dev/bin/server/rcm_server.py"
         #finding out the basedir, it depends if we are running as executable pyinstaler or as script
         self.sshexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['ssh'][sys.platform][0])
