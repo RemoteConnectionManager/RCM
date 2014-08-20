@@ -215,7 +215,7 @@ class rcm_client_connection:
         o=self.protocol.config(build_platform=self.pack_info.buildPlatformString)
         self.server_config=rcm.rcm_config(o)
         print "config---->", self.server_config
-#        return c
+        return self.server_config
 
     def queues(self):
         return self.server_config.config.get('queues',[])
