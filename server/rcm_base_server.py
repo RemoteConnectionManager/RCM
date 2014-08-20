@@ -28,7 +28,6 @@ class rcm_base_server:
 #	(sched,s_tag)=self.pconfig.get_import_scheduler()
 	self.session_tag=self.pconfig.session_tag
 	self.no_timeleft= self.pconfig.default_scheduler_name == self.pconfig.scheduler_name
-	self.accountList = self.getUserAccounts()
 	self.substitutions=dict()
 
     def get_timelimit(self):
