@@ -16,16 +16,16 @@ class rcm_server(rcm_base_server.rcm_base_server):
   def timeleft_string(self,sid):
 	return self.notimeleft_string
 # get group to be used submitting a job
-  def getQueueGroup(self,queue):
-    if len(self.accountList) == 0:
-      return ''
-    else:
-      #cineca deployment dependencies
-      if( 'cin' in self.username):
-        group="cinstaff"
-      else:
-        group="cin_visual"
-      return group
+  #def getQueueGroup(self,queue):
+    #if len(self.accountList) == 0:
+      #return ''
+    #else:
+      ##cineca deployment dependencies
+      #if( 'cin' in self.username):
+        #group="cinstaff"
+      #else:
+        #group="cin_visual"
+      #return group
 
   def prex(self,cmd):
     cmdstring=cmd[0]

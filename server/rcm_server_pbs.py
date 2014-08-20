@@ -15,6 +15,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
 
 # get group to be used submitting a job
  def getQueueGroup(self,queue):
+    self.accountList = self.getUserAccounts()
     if len(self.accountList) == 0:
       return ''
     else:
