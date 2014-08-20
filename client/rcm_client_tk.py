@@ -287,12 +287,12 @@ class ConnectionWindow(Frame):
     @safe_debug_off   
     def check_version(self):
         self.startBusy("Getting config info")
-        self.config=self.client_connection.get_config()
+        self.platform_config=self.client_connection.get_config()
         self.startBusy("Checking new client version...")
         if('frozen' in dir(sys)):
             currentChecksum = compute_checksum(sys.executable)
             global lastClientVersion
-            lastClientVersion = self.client_connection.get_version()
+            lastClientVersion = self.platform_config.get_version()
             
             if(currentChecksum != lastClientVersion[0]):
                 self.stopBusy()

@@ -224,13 +224,13 @@ class rcm_client_connection:
         vncs=self.server_config.config.get('vnc_commands',[])
         return vncs
 
-    def get_version(self):
+    #def get_version(self):
 #        o=self.prex('version' + ' ' + self.pack_info.buildPlatformString)
-        def mycall(command):
-            return self.prex(command)
-        protocol=rcm.rcm_protocol(mycall)
-        o=protocol.version(self.pack_info.buildPlatformString)
-        return o.split(' ')
+        #def mycall(command):
+        #    return self.prex(command)
+        #protocol=rcm.rcm_protocol(mycall)
+        #o=protocol.version(self.pack_info.buildPlatformString)
+        #return o.split(' ')
 
 
 #removed    def get_queue(self):

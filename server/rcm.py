@@ -83,6 +83,9 @@ class rcm_config:
     def set_version(self,check,url):
         self.config['version']['checksum']=check
         self.config['version']['url']=url
+        
+    def get_version(self):
+        return (self.config.get('version',dict()).get('checksum',''),self.config.get('version',dict()).get('url',''))
 
     def add_queue(self,queue,info=''):
         self.config['queues'][queue]=info
