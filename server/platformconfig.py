@@ -24,6 +24,7 @@ class baseconfig:
         config.read(configfile)
         for s in config.sections():
             for o in config.options(s):
+		#print "confdict ",s,o,"-->",config.get(s, o)
                 self.confdict[(s,o)]=config.get(s, o)
 		self.sections[s]=self.sections.get(s,[])+[o]
 		self.options[o]=self.options.get(o,[])+[s]
@@ -50,7 +51,8 @@ class platformconfig(baseconfig):
 	self.import_scheduler()
         
     def max_user_session(self):
-	return self.confdict.get(('platform','maxUserSessions'),2)
+	#print "maxUserSessions-->",self.confdict.get(('platform','maxusersessions'),2)
+	return int(self.confdict.get(('platform','maxusersessions'),2))
     
     def find_scheduler(self):
         self.hostname = socket.gethostname()
