@@ -249,6 +249,7 @@ class ConnectionWindow(Frame):
         self.sessions=None
         self.do_list_refresh=False
         self.do_update_gui=True
+        self.master=master
         Frame.__init__(self, master)
         self.client_connection=rcm_client_connection
         self.connection_buttons=dict()
