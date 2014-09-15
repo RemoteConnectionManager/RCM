@@ -735,27 +735,13 @@ class rcm_client_connection_GUI():
         self.topFrame.destroy()
 
     def show(self):
-        #self.master = Tk()
         self.topFrame = Tk()
-        #self.master.title('Remote Connection Manager ' + self.pack_info.rcmVersion + ' - CINECA')
-        #self.master.geometry("1150x180+100+100")
         self.topFrame.title('Remote Connection Manager ' + self.pack_info.rcmVersion + ' - CINECA')
         self.topFrame.geometry("1150x180+100+100")
-        #self.topFrame = Frame(self.master)
-        #self.topFrame.pack(fill=BOTH,expand=1)
-        #mycolor='#%02x%02x%02x' % (240,240,237)
-        #self.master.configure(bg='gray')
-
         self.gui = None
-        
-        #s_color = Style()
-        #s_color.configure('RCM.Color', background='gray')
 
         self.frame1 = LabelFrame(self.topFrame, padding=20, text='LOGIN MANAGER')
-
         self.frame1.pack(side=LEFT,  padx=10, pady=10, fill=Y)
-        #print self.frame1.configure(background='gray')
-        #print "in frame1 background--->"+str(self.frame1.cget('background'))+"<-- framecolor -->",str(self.frame1.cget('framecolor'))
 
         self.LoginLabel = Label(self.topFrame, padding=20, text='Press \'NEW LOGIN\' to start a session or \'OPEN\' to open a .vnc file')
         self.LoginLabel.pack(padx=10, pady=10, fill=Y)
