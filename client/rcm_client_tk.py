@@ -731,12 +731,18 @@ class rcm_client_connection_GUI():
         self.pack_info=rcm_utils.pack_info()
         self.last_used_dir='.'
 
+    def quit(self):
+        self.topFrame.destroy()
+
     def show(self):
-        self.master = Tk()
-        self.master.title('Remote Connection Manager ' + self.pack_info.rcmVersion + ' - CINECA')
-        self.master.geometry("1150x180+100+100")
-        self.topFrame = Frame(self.master)
-        self.topFrame.pack(fill=BOTH,expand=1)
+        #self.master = Tk()
+        self.topFrame = Tk()
+        #self.master.title('Remote Connection Manager ' + self.pack_info.rcmVersion + ' - CINECA')
+        #self.master.geometry("1150x180+100+100")
+        self.topFrame.title('Remote Connection Manager ' + self.pack_info.rcmVersion + ' - CINECA')
+        self.topFrame.geometry("1150x180+100+100")
+        #self.topFrame = Frame(self.master)
+        #self.topFrame.pack(fill=BOTH,expand=1)
         #mycolor='#%02x%02x%02x' % (240,240,237)
         #self.master.configure(bg='gray')
 
@@ -775,12 +781,12 @@ class rcm_client_connection_GUI():
         self.status.pack(side=BOTTOM, fill=X)
 
     def mainloop(self):
-        self.master.mainloop()
+        self.topFrame.mainloop()
 
 
     def newLogin(self):
 
-        myLoginDialog = LoginDialog(self.master, guiaction = self.createConnectionWindow, pack_info = self.pack_info)
+        myLoginDialog = LoginDialog(self.topFrame, guiaction = self.createConnectionWindow, pack_info = self.pack_info)
         myLoginDialog.top.grab_set()
 
 
