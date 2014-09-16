@@ -24,6 +24,7 @@ import pickle
 import collections
 #luigi_disable_thread#import threading
 
+import subprocess
 
 font = ("Helvetica",10, "grey")
 boldfont = ("Helvetica",10,"bold")
@@ -132,10 +133,14 @@ def update_exe_file():
             batchfile.write("rm "+os.path.basename(sys.executable)+"\n")
             batchfile.write("cp "+newfile+" .\n")
             batchfile.write("chmod a+x "+os.path.basename(sys.executable)+"\n")
+            batchfile.write("sleep 2 \n")
             batchfile.write("./"+os.path.basename(sys.executable)+"\n")
             batchfile.close()
             tkMessageBox.showinfo("Client Update", "The application will be closed and the new one will start in a while!")
-            os.system("sh "+batchfilename+ " &") 
+            #os.spawnl(os.P_NOWAIT,"sh "+batchfilename+ " ") 
+            print "prima di subprocess "+batchfilename
+            subprocess.Popen(["sh", batchfilename]) 
+            print "dopo di subprocess "+batchfilename
                     
 class Login(Frame):
     def __init__(self, master=None, guiaction=None, action=None):
