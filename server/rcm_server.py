@@ -20,7 +20,6 @@ import traceback
 
 import enumerate_interfaces
 import platformconfig
-
 config = ConfigParser.RawConfigParser()
 myPath =  os.path.dirname(os.path.abspath(__file__))
 config.read(os.path.join(myPath, 'platform.cfg'))
@@ -436,6 +435,9 @@ class rcm_server:
  
 
     def execute_loginlist(self):
+        sys.stderr.write("Sorry but the update feature is not functioning (on window platforms), please proceed with manual download from  http://www.hpc.cineca.it/content/remote-visualization")
+        exit(1)
+
         self.subnet = self.par_command_args[0]
         fullhostname = socket.getfqdn()
         self.fill_sessions_hash()
@@ -448,6 +450,8 @@ class rcm_server:
 
     
     def execute_list(self):
+        sys.stderr.write("Sorry but the update feature is not functioning (on window platforms), please proceed with manual download from  http://www.hpc.cineca.it/content/remote-visualization")
+        exit(1)
         self.subnet = self.par_command_args[0]
         self.load_sessions()
         s=rcm.rcm_sessions()
@@ -457,6 +461,8 @@ class rcm_server:
         sys.exit(0)
 
     def execute_new(self):
+        sys.stderr.write("Sorry but the update feature is not functioning (on window platforms), please proceed with manual download from  http://www.hpc.cineca.it/content/remote-visualization")
+        exit(1)
         new_params=dict()
         for par in self.par_command_args :
             tmp=par.split('=',1)
@@ -581,6 +587,8 @@ done"""
         sys.exit(1)
 
     def execute_queue(self):
+        sys.stderr.write("Sorry but the update feature is not functioning (on window platforms), please proceed with manual download from  http://www.hpc.cineca.it/content/remote-visualization")
+        exit(1)
         queueList = rcm_scheduler.get_queue(testJobScriptDict)
     
         #return the list of avilable queue
