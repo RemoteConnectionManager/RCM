@@ -307,7 +307,7 @@ class ConnectionWindow(Frame):
                     self.startBusy("Downloading new version client...")
                     update_exe_file()
                     self.stopBusy()
-                    self.master.destroy()
+                    self.master._root().destroy()
                     return
         self.stopBusy()
         self.update_idletasks()
@@ -737,13 +737,15 @@ class rcm_client_connection_GUI():
         self.last_used_dir='.'
 
     def quit(self):
-        self.topFrame.destroy()
+        self.master.destroy()
 
     def show(self):
-        self.topFrame = Tk()
-        self.topFrame.title('Remote Connection Manager ' + self.pack_info.rcmVersion + ' - CINECA')
-        self.topFrame.geometry("1150x180+100+100")
-        self.gui = None
+        self.master = Tk()
+        self.master.title('Remote Connection Manager ' + self.pack_info.rcmVersion + ' - CINECA')
+        self.master.geometry("1150x180+100+100")
+        self.topFrame = Frame(self.master) 
+	self.topFrame.pack(fill=BOTH,expand=1)        
+	self.gui = None
 
         self.frame1 = LabelFrame(self.topFrame, padding=20, text='LOGIN MANAGER')
         self.frame1.pack(side=LEFT,  padx=10, pady=10, fill=Y)
@@ -772,7 +774,7 @@ class rcm_client_connection_GUI():
         self.status.pack(side=BOTTOM, fill=X)
 
     def mainloop(self):
-        self.topFrame.mainloop()
+        self.master.mainloop()
 
 
     def newLogin(self):
@@ -820,7 +822,7 @@ class rcm_client_connection_GUI():
                 c=rcm.rcm_session(node=hostname, tunnel='y', display=display, nodelogin=node, username=user, vncpassword=password)
                 my_rcm_client.vncsession(session = c)
             else:
-                my_rcm_client.vncsession(configFile = filename)
+                my_rcm_cLoginDialoglient.vncsession(configFile = filename)
             self.last_used_dir=os.path.dirname(filename)
 
 
