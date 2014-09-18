@@ -307,7 +307,7 @@ class ConnectionWindow(Frame):
                     self.startBusy("Downloading new version client...")
                     update_exe_file()
                     self.stopBusy()
-                    self.master._root().destroy()
+                    self.master.winfo_toplevel().destroy()
                     return
         self.stopBusy()
         self.update_idletasks()
