@@ -164,7 +164,7 @@ class rcm_client_connection:
                 nodeloginList.append(proxynode)
 #                (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'list' + ' ' + self.subnet, proxynode)
                 self.commandnode=proxynode
-                o=self.protocol.list(self.subnet)
+                o=self.protocol.list(subnet=self.subnet)
                 tmp=rcm.rcm_sessions(o)
                 a.extend(tmp.array)
         ret=rcm.rcm_sessions()
