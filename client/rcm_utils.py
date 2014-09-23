@@ -157,12 +157,15 @@ class SessionThread( threading.Thread ):
 
     def terminate( self ):
         self.gui_cmd=None
+        if(self.debug): print 'This is thread ' + str ( self.threadnum ) + ' TERMINATE.'
         if(self.vnc_process):
             if(self.debug): print "Killing vnc process-->",self.vnc_process
-            self.vnc_process.kill()
+            self.vnc_process.terminate()
+            self.vnc_process=None
         if(self.tunnel_process):
             if(self.debug): print "Killing tunnel process-->",self.tunnel_process
-            self.tunnel_process.kill()
+            self.tunnel_process.terminate()
+            self.tunnel_process=None
 
     def run ( self ):
         if(self.debug):
@@ -175,7 +178,7 @@ class SessionThread( threading.Thread ):
             self.vnc_process=subprocess.Popen(commandlist , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False
             )
             self.vnc_process.wait()
-            self.vnc_process=None
+            #self.vnc_process=None
 
         else:
             if(sys.platform == 'win32'):
@@ -215,7 +218,7 @@ class SessionThread( threading.Thread ):
                         print "vnc res-->",o,"<--"
                 self.vnc_process.stdin.close()
                 self.vnc_process.wait()
-                self.vnc_process=None
+                #self.vnc_process=None
             elif ( sys.platform.startswith('darwin')):
 
                 #-#####################   OSX
@@ -243,13 +246,14 @@ class SessionThread( threading.Thread ):
                 commandlist=self.vnc_command.split()
                 self.vnc_process=subprocess.Popen(commandlist , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False)
                 self.vnc_process.wait()
-                self.vnc_process=None
+                #self.vnc_process=None
 
             else:
                 #-#####################   linux
                 if(self.debug): print 'This is thread ' + str ( self.threadnum ) + " executing-->" , self.vnc_command.replace(self.password,"****") , "<--"
 
                 child = pexpect.spawn(self.vnc_command,timeout=50)
+                self.vnc_process=child
                 i = child.expect(['continue connecting', 'password','standard VNC authentication', pexpect.TIMEOUT, pexpect.EOF])
 
                 if i == 0:
@@ -279,7 +283,6 @@ class SessionThread( threading.Thread ):
 
 
                 child.expect(pexpect.EOF, timeout=None)
-
             if(self.gui_cmd):
                 self.gui_cmd(active=False)
 
