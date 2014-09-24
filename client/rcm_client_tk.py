@@ -780,7 +780,10 @@ class rcm_client_connection_GUI():
         LoginButton.pack()
 
         OpenButton = Button(self.frame1, text="   OPEN   ", padding=5, style='RCM.TButton', command=self.askopenfilename)
-        OpenButton.pack(pady=10)
+        OpenButton.pack(pady=5)
+
+        self.RemoveButton = Button(self.frame1, text="   LOGOUT  ", padding=5, style='RCM.TButton', command=self.removeLogin)
+        
 
         self.frameBottom = Frame(self.topFrame, padding=1)
         self.frameBottom.pack(side=BOTTOM, fill=X)
@@ -799,6 +802,11 @@ class rcm_client_connection_GUI():
         myLoginDialog = LoginDialog(self.topFrame, guiaction = self.createConnectionWindow, pack_info = self.pack_info)
         myLoginDialog.top.grab_set()
 
+
+    def removeLogin(self):
+        self.n.myremove()
+        if len(self.n.tabs()) <= 1 :
+            self.RemoveButton.pack_forget()
 
     def askopenfilename(self,filename=None):
         if(not filename):
@@ -851,7 +859,8 @@ class rcm_client_connection_GUI():
         self.n.pack(expand=1, fill=BOTH)
         self.rcm_client = rcm_client
         self.n.myadd(self.rcm_client)
-
+        if len(self.n.tabs()) > 1 :
+            self.RemoveButton.pack(pady=5)
 
 
 class ConnectionWindowNotebook(Notebook):
@@ -860,6 +869,7 @@ class ConnectionWindowNotebook(Notebook):
         self.master = master
         Notebook.__init__(self, master)
         self.ConnectionWindows = dict()
+        self.WindowsNames = dict()
 
 
     def myadd(self, rcm_client = None):
@@ -871,10 +881,23 @@ class ConnectionWindowNotebook(Notebook):
             else:
                 child = ConnectionWindow(rcm_client_connection=rcm_client, master=self.master)
                 Notebook.add(self, child, text = notebookName)
-                index = self.index('end') - 1
-                self.ConnectionWindows[notebookName] = (index, child)
-                self.select(index)
+                self.select(self.index('end') - 1)
+                self.ConnectionWindows[notebookName] = (self.select(), child)
+                #self.select(index)
+                self.WindowsNames[self.select()]=(child,notebookName)
+    
+    def myremove(self):
+        win_name=self.select()
+        
+        (child,name)=self.WindowsNames[win_name]
+        print "sono qui", child
+        self.forget('current')
+        child.destroy()
+        del self.WindowsNames[win_name]
+        del self.ConnectionWindows[name]
+        
 
+        
     def getConnectionInfo(self, tunnel_node = ''):
         for i in self.ConnectionWindows:
             if tunnel_node in i:
