@@ -720,6 +720,7 @@ class LoginDialog:
         geometry = '+' + str(self.parent.winfo_x()) + '+' + str(self.parent.winfo_y())
         self.top.geometry(geometry)
         self.my_rcm_client = rcm_client.rcm_client_connection(pack_info = self.pack_info)
+        parent.connections.append(self.my_rcm_client)
         self.topFrame= Frame(self.top)
         self.topFrame.pack(fill=BOTH,expand=1)
         self.frameLogin = Login(guiaction=self.ok, action=self.my_rcm_client.login_setup, master=self.topFrame)
@@ -730,6 +731,22 @@ class LoginDialog:
          self.guiaction(self.my_rcm_client)
          self.top.destroy()
     
+
+class MyTopFrame(Frame):
+       
+    @safe_debug_off
+    def deathHandler(self, event):
+        if(self.debug): print self, " in main MyTopFrame win has been closed . killing vnc connections"
+        for cc in self.connections:
+            cc.vncsession_kill()
+        
+    def __init__(self, master=None):
+        self.debug=True
+        self.connections=[]
+        Frame.__init__(self, master)
+        self.bind("<Destroy>", self.deathHandler)
+
+
 #class rcm_client_connection_GUI(rcm_client.rcm_client_connection):
 class rcm_client_connection_GUI():
     def __init__(self):
@@ -743,9 +760,9 @@ class rcm_client_connection_GUI():
         self.master = Tk()
         self.master.title('Remote Connection Manager ' + self.pack_info.rcmVersion + ' - CINECA')
         self.master.geometry("1150x180+100+100")
-        self.topFrame = Frame(self.master) 
-	self.topFrame.pack(fill=BOTH,expand=1)        
-	self.gui = None
+        self.topFrame = MyTopFrame(self.master) 
+        self.topFrame.pack(fill=BOTH,expand=1)        
+        self.gui = None
 
         self.frame1 = LabelFrame(self.topFrame, padding=20, text='LOGIN MANAGER')
         self.frame1.pack(side=LEFT,  padx=10, pady=10, fill=Y)
@@ -823,6 +840,7 @@ class rcm_client_connection_GUI():
                 my_rcm_client.vncsession(session = c)
             else:
                 my_rcm_client.vncsession(configFile = filename)
+            self.topFrame.connections.append(my_rcm_client)
             self.last_used_dir=os.path.dirname(filename)
 
 

@@ -178,7 +178,7 @@ class SessionThread( threading.Thread ):
             self.vnc_process=subprocess.Popen(commandlist , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False
             )
             self.vnc_process.wait()
-            #self.vnc_process=None
+            self.vnc_process=None
 
         else:
             if(sys.platform == 'win32'):
@@ -218,7 +218,7 @@ class SessionThread( threading.Thread ):
                         print "vnc res-->",o,"<--"
                 self.vnc_process.stdin.close()
                 self.vnc_process.wait()
-                #self.vnc_process=None
+                self.vnc_process=None
             elif ( sys.platform.startswith('darwin')):
 
                 #-#####################   OSX
@@ -246,7 +246,7 @@ class SessionThread( threading.Thread ):
                 commandlist=self.vnc_command.split()
                 self.vnc_process=subprocess.Popen(commandlist , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False)
                 self.vnc_process.wait()
-                #self.vnc_process=None
+                self.vnc_process=None
 
             else:
                 #-#####################   linux
@@ -283,6 +283,7 @@ class SessionThread( threading.Thread ):
 
 
                 child.expect(pexpect.EOF, timeout=None)
+            self.vnc_process = None
             if(self.gui_cmd):
                 self.gui_cmd(active=False)
 

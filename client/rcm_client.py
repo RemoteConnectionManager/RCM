@@ -297,14 +297,16 @@ class rcm_client_connection:
 
                 
         
+        if(self.debug): print "tunnel:",tunnel_command," vnc: ",vnc_command,"conffile:",configFile
 
         st=rcm_utils.SessionThread ( tunnel_command, vnc_command, self.passwd, vncpassword_decrypted,  otp, gui_cmd, configFile, self.debug)
 
-        if(self.debug): print "!!!!!session thread--->",st,"\n"
+        if(self.debug): print "!!!!!session  thread--->",st,"\n num thread:",len(self.session_thread)
         self.session_thread.append(st)
         st.start()
 
     def vncsession_kill(self):
+        if(self.debug): print "here in vncsession_kill"
         for t in self.session_thread:
             t.terminate()
             
