@@ -767,7 +767,7 @@ class rcm_client_connection_GUI():
         self.frame1 = LabelFrame(self.topFrame, padding=20, text='LOGIN MANAGER')
         self.frame1.pack(side=LEFT,  padx=10, pady=10, fill=Y)
 
-        self.LoginLabel = Label(self.topFrame, padding=20, text='Press \'NEW LOGIN\' to start a session or \'OPEN\' to open a .vnc file')
+        self.LoginLabel = Label(self.topFrame, padding=20, text='Press \'LOGIN\' to start a session or \'OPEN\' to open a .vnc file')
         self.LoginLabel.pack(padx=10, pady=10, fill=Y)
 
         self.n = ConnectionWindowNotebook(self.topFrame)
@@ -776,7 +776,7 @@ class rcm_client_connection_GUI():
         s.configure('RCM.TButton', font=('Helvetica', 10, 'bold'))
         s.map('RCM.TButton',foreground=[('disabled','#909090')])
        
-        LoginButton = Button(self.frame1, text="NEW LOGIN", padding=5, style='RCM.TButton', command=self.newLogin)
+        LoginButton = Button(self.frame1, text="LOGIN", padding=5, style='RCM.TButton', command=self.newLogin)
         LoginButton.pack()
 
         OpenButton = Button(self.frame1, text="   OPEN   ", padding=5, style='RCM.TButton', command=self.askopenfilename)
