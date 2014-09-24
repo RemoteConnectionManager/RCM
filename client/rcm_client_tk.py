@@ -822,7 +822,7 @@ class rcm_client_connection_GUI():
                 c=rcm.rcm_session(node=hostname, tunnel='y', display=display, nodelogin=node, username=user, vncpassword=password)
                 my_rcm_client.vncsession(session = c)
             else:
-                my_rcm_cLoginDialoglient.vncsession(configFile = filename)
+                my_rcm_client.vncsession(configFile = filename)
             self.last_used_dir=os.path.dirname(filename)
 
 
