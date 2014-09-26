@@ -22,6 +22,10 @@ import rcm
 import rcm_utils
 import rcm_protocol_client
 
+import logging
+module_logger = logging.getLogger('RCM.client')
+
+
 class rcm_client_connection:
 
     def __init__(self,proxynode='login.plx.cineca.it', user_account='', remoteuser='',password='', pack_info=None):
@@ -57,14 +61,14 @@ class rcm_client_connection:
         else:
             self.ssh_command = "ssh"
         if(self.debug):
-            print "ssh command1: ", self.ssh_command
+             module_logger.debug( "ssh command1: "+ self.ssh_command)
         
         vncexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['vnc'][sys.platform][0])
         if os.path.exists(vncexe):
             self.vncexe=vncexe
         else:
             if(self.debug): 
-                print "VNC exec -->",vncexe,"<-- NOT FOUND !!!"
+                module_logger.debug( "VNC exec -->"+vncexe+"<-- NOT FOUND !!!")
                 name=raw_input("VNC exec -->"+vncexe+"<-- NOT FOUND !!!")
             sys.exit()
         self.session_thread=[]
@@ -84,7 +88,7 @@ class rcm_client_connection:
                 self.login_options =  " -i " + keyfile + " " + self.remoteuser               
                 
             else:
-                if(self.debug): print "PASSING PRIVATE KEY FILE NOT IMPLEMENTED ON PLATFORM -->"+sys.platform+"<--"
+                if(self.debug): module_logger.warning( "PASSING PRIVATE KEY FILE NOT IMPLEMENTED ON PLATFORM -->"+sys.platform+"<--")
                 self.login_options =  " -i " + keyfile + " " + self.remoteuser
                 
         else:
@@ -111,7 +115,7 @@ class rcm_client_connection:
         check_cred=self.checkCredential()
         if(check_cred):
             self.subnet= '.'.join(socket.gethostbyname(self.proxynode).split('.')[0:-1])
-            if(self.debug): print "Login host: " + self.proxynode + " subnet: " + self.subnet
+            if(self.debug): module_logger.debug( "Login host: " + self.proxynode + " subnet: " + self.subnet)
         return check_cred 
         
     def prex(self, cmd, commandnode = ''):
@@ -127,12 +131,14 @@ class rcm_client_connection:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(commandnode, username=self.remoteuser, password=self.passwd)
-        print "\n################### commandnode",commandnode," command-->",cmd
+        
+        module_logger.debug( "################### commandnode "+commandnode+" command-->"+cmd)
+        
         stdin, stdout, stderr = ssh.exec_command(self.config['remote_rcm_server'] + ' ' +cmd)
         myout = ''.join(stdout)
         myerr = stderr.readlines()
         if myerr:
-            if(self.debug): print myerr
+            if(self.debug): module_logger.error( myerr )
             raise Exception("Server error: {0}".format(myerr))
 
         #find where the real server output starts
@@ -150,8 +156,8 @@ class rcm_client_connection:
 
         o=self.protocol.loginlist(subnet=self.subnet)
         sessions=rcm.rcm_sessions(o)
-        if(self.debug): 
-            sessions.write(2)
+        #if(self.debug): 
+        #    sessions.write(2)
 
         a=[]
         nodeloginList = []
@@ -169,8 +175,8 @@ class rcm_client_connection:
                 a.extend(tmp.array)
         ret=rcm.rcm_sessions()
         ret.array=a
-        if(self.debug):
-            ret.write(2)
+        #if(self.debug):
+        #    ret.write(2)
         return ret
         
 
@@ -214,7 +220,7 @@ class rcm_client_connection:
 #        o=self.prex('version' + ' ' + self.pack_info.buildPlatformString)
         o=self.protocol.config(build_platform=self.pack_info.buildPlatformString)
         self.server_config=rcm.rcm_config(o)
-        print "config---->", self.server_config
+        module_logger.debug( "config---->"+ str(self.server_config))
         return self.server_config
 
     def queues(self):
@@ -264,10 +270,7 @@ class rcm_client_connection:
             vncpassword_decrypted=rcm_cipher.decrypt(vncpassword)
 
             if(self.debug):
-                print "portnumber --> ",portnumber
-                print "node --> ",node
-                print "nodelogin --> ",nodelogin
-                print "tunnel --> ",tunnel
+                module_logger.debug( "portnumber --> "+ str(portnumber) +" node --> " + str(node) + " nodelogin --> " + str(nodelogin)+ " tunnel --> "+str(tunnel))
 
 
             if sys.platform.startswith('darwin') :
@@ -297,16 +300,16 @@ class rcm_client_connection:
 
                 
         
-        if(self.debug): print "tunnel:",tunnel_command," vnc: ",vnc_command,"conffile:",configFile
+        if(self.debug): module_logger.debug( "tunnel:"+tunnel_command+" vnc: "+vnc_command+"conffile:"+str(configFile))
 
         st=rcm_utils.SessionThread ( tunnel_command, vnc_command, self.passwd, vncpassword_decrypted,  otp, gui_cmd, configFile, self.debug)
 
-        if(self.debug): print "!!!!!session  thread--->",st,"\n num thread:",len(self.session_thread)
+        if(self.debug): module_logger.debug( "!!!!!session  thread--->"+str(st)+"\n num thread:"+str(len(self.session_thread)))
         self.session_thread.append(st)
         st.start()
 
     def vncsession_kill(self):
-        if(self.debug): print "here in vncsession_kill"
+        if(self.debug): module_logger.debug( "here in vncsession_kill")
         for t in self.session_thread:
             t.terminate()
             

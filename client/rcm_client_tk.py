@@ -26,6 +26,10 @@ import collections
 
 import subprocess
 
+import logging
+module_logger = logging.getLogger('RCM.client_tk')
+
+
 font = ("Helvetica",10, "grey")
 boldfont = ("Helvetica",10,"bold")
 checkCredential = False
@@ -138,9 +142,9 @@ def update_exe_file():
             batchfile.close()
             tkMessageBox.showinfo("Client Update", "The application will be closed and the new one will start in a while!")
             #os.spawnl(os.P_NOWAIT,"sh "+batchfilename+ " ") 
-            print "prima di subprocess "+batchfilename
+            module_logger.debug( "prima di subprocess "+batchfilename)
             subprocess.Popen(["sh", batchfilename]) 
-            print "dopo di subprocess "+batchfilename
+            module_logger.debug( "dopo di subprocess "+batchfilename)
                     
 class Login(Frame):
     def __init__(self, master=None, guiaction=None, action=None):
@@ -246,7 +250,7 @@ class ConnectionWindow(Frame):
        
     @safe_debug_off
     def deathHandler(self, event):
-        if(self.debug): print self, " main app win has been closed . killing vnc connections"
+        if(self.debug): module_logger.debug(" main app win has been closed . killing vnc connections")
         self.client_connection.vncsession_kill()
         
     def __init__(self, master=None,rcm_client_connection=None):
@@ -343,7 +347,7 @@ class ConnectionWindow(Frame):
                 if(self.client_connection):
                 
                     def cmd(self=self, session=el):
-                        if(self.debug): print "killing session", sessionid
+                        if(self.debug): module_logger.debug( "killing session "+ str(sessionid))
                         self.kill(session)
                         
                     #if(el.hash['state'] == 'killed'):
@@ -364,7 +368,7 @@ class ConnectionWindow(Frame):
 
 
                     def disable_cmd(self=self, sessionid=el.hash['sessionid'],active=True):
-                        print "sessionid-->"+sessionid+"<--"
+                        module_logger.debug( "sessionid-->"+sessionid+"<--")
 
                         if(active):
                             self.client_connection.activeConnectionsList.append(sessionid)
@@ -384,7 +388,7 @@ class ConnectionWindow(Frame):
                         if(session.hash['sessionid'] in self.client_connection.activeConnectionsList):
                             tkMessageBox.showwarning("Warning!", "Already connected to session " +session.hash['sessionid'])
                         else:
-                            if(self.debug): print "connecting to session", session.hash['sessionid']
+                            if(self.debug): module_logger.debug( "connecting to session "+ str(session.hash['sessionid']))
                             self.startBusy("Connecting to the remote display...")
                             self.client_connection.vncsession(session,gui_cmd=disable_cmd)
                             self.after(4000,self.stopBusy)
@@ -457,7 +461,7 @@ class ConnectionWindow(Frame):
         vncList = vncs.keys()
 
         self.stopBusy()
-        if(self.debug): print "Queue list: ", queueList
+        if(self.debug): module_logger.debug( "Queue list: "+ str(queueList))
         if queueList == ['']:
             tkMessageBox.showwarning("Warning", "Queue not found...")
             return
@@ -601,7 +605,7 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
                 displayDimensionsList = self.config.get('LoginFields', 'displayDimensionsList')
                 self.displayDimensionsList = pickle.loads(displayDimensionsList)
             except:
-                print "remove .cfg"
+                module_logger.debug( "remove .cfg")
                 os.remove(self.configFileName)    
                 
         #master.pack(fill=BOTH,expand=1)
@@ -627,7 +631,7 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
             optionFrame = Frame(self.topFrame, padding = 5)
             Label(optionFrame, text="""Select queue:""").pack(side=LEFT)
             def print_it(event):
-              print self.queue.get()
+              module_logger.debug( self.queue.get())
             qq=tuple(queueList)
 
             w = OptionMenu(optionFrame, self.queue, qq[0], *qq, command=print_it)
@@ -736,7 +740,7 @@ class MyTopFrame(Frame):
        
     @safe_debug_off
     def deathHandler(self, event):
-        if(self.debug): print self, " in main MyTopFrame win has been closed . killing vnc connections"
+        if(self.debug):  module_logger.debug( " in main MyTopFrame win has been closed . killing vnc connections")
         for cc in self.connections:
             cc.vncsession_kill()
         
@@ -890,7 +894,7 @@ class ConnectionWindowNotebook(Notebook):
         win_name=self.select()
         
         (child,name)=self.WindowsNames[win_name]
-        print "sono qui", child
+        module_logger.debug( "sono qui"+ str(child))
         self.forget('current')
         child.destroy()
         del self.WindowsNames[win_name]
@@ -908,6 +912,7 @@ class ConnectionWindowNotebook(Notebook):
 
 
 if __name__ == '__main__':
+    rcm_utils.configure_logging()
     c=rcm_client_connection_GUI()
     if(1 < len(sys.argv)):
         c.askopenfilename(sys.argv[1])
