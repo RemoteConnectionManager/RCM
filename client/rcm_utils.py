@@ -215,7 +215,7 @@ class SessionThread( threading.Thread ):
                 a=self.vnc_command.split("|")
                 if(self.debug):
                     module_logger.debug( "starting vncviewer-->"+self.vnc_command.replace(self.password,"****")+"<--")
-                    module_logger.debug("splitting-->"+a+"<--")
+                    module_logger.debug("splitting-->"+str(a)+"<--")
                 if(len(a)>1):
                     tmppass=a[0].strip().split()[1].strip()
                     commandlist=a[1].strip()
@@ -234,8 +234,8 @@ class SessionThread( threading.Thread ):
                     o=self.vnc_process.communicate()
                     if(self.debug):
                         module_logger.debug( "vnc res-->"+str(o)+"<--")
-                self.vnc_process.stdin.close()
-                self.vnc_process.wait()
+                if(self.vnc_process): self.vnc_process.stdin.close()
+                if(self.vnc_process): self.vnc_process.wait()
                 self.vnc_process=None
             elif ( sys.platform.startswith('darwin')):
 
@@ -332,3 +332,4 @@ if __name__ == '__main__':
     print 'om10-->'+get_server_command('om10.eni.cineca.it','cibo19','')+'<--'
     print 'aux6-->'+get_server_command('aux6.eni.cineca.it','cibo19','')+'<--'
     print 'hpc1-->'+get_server_command('login-hpc1.eni.cineca.it','cibo19','')+'<--'
+
