@@ -13,6 +13,7 @@ import AESCipher
 import d3des
 
 import logging
+import logging.handlers
 module_logger = logging.getLogger('RCM.utils')
 
 if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
@@ -23,17 +24,38 @@ rootLogger.setLevel(logging.INFO)
 consoleHandler = logging.StreamHandler()
 rootLogger.addHandler(consoleHandler)
 
-def configure_logging():
+def configure_logging(verbose=False):
 #    rootLogger = logging.getLogger()
-    logFormatter = logging.Formatter('%(asctime)s [%(levelname)s:%(name)s] [%(threadName)-12.12s] [%(filename)s:%(funcName)s:%(lineno)d]-->%(message)s')
+    consoleFormatter = logging.Formatter('%(threadName)-12.12s: [%(filename)-30.30s %(lineno)-4d]-->%(message)s')
 #    consoleHandler = logging.StreamHandler()
-    consoleHandler.setFormatter(logFormatter)
-    logging.getLogger('paramiko').setLevel(logging.INFO)
-    logging.getLogger('RCM').setLevel(logging.DEBUG)
-    logging.getLogger('RCM.protocol').setLevel(logging.INFO)
-    
- #   rootLogger.addHandler(consoleHandler)
-    
+    consoleHandler.setFormatter(consoleFormatter)
+    if(verbose):
+        logging.getLogger('paramiko').setLevel(logging.DEBUG)
+        logging.getLogger('paramiko.transport').setLevel(logging.INFO)
+        rcmLogger=logging.getLogger('RCM')
+        rcmLogger.setLevel(logging.DEBUG)
+        logging.getLogger('RCM.protocol').setLevel(logging.INFO)
+        
+        rotatehandler = logging.handlers.RotatingFileHandler(
+                        os.path.join(client_folder(),'logfile.txt'), maxBytes=100000, backupCount=5)
+        logFormatter = logging.Formatter('%(asctime)s [%(levelname)s:%(name)s] [%(threadName)-12.12s] [%(filename)s:%(funcName)s:%(lineno)d]-->%(message)s')
+        rotatehandler.setFormatter(logFormatter)
+                
+        consoleHandler.setLevel(logging.INFO)
+        rootLogger.addHandler(rotatehandler)  
+        rootLogger.removeHandler(consoleHandler)
+        rcmLogger.addHandler(consoleHandler)
+        
+    else:
+        logging.getLogger('paramiko').setLevel(logging.ERROR)
+        logging.getLogger('RCM').setLevel(logging.ERROR)
+
+
+#   rootLogger.addHandler(consoleHandler)
+
+def client_folder():    
+    return os.path.join(os.path.expanduser('~'),'.rcm')
+
 def vnc_crypt(vncpass,decrypt=False):
     if(decrypt):
         try:
@@ -177,6 +199,7 @@ class SessionThread( threading.Thread ):
         self.gui_cmd=None
         if(self.debug): module_logger.debug( 'This is thread ' + str ( self.threadnum ) + ' TERMINATE.')
         if(self.vnc_process):
+            module_logger.info( "Killing vnc process "+ str(self.vnc_process.pid)+" args->"+str(self.vnc_process.args)+"<")
             if(self.debug): module_logger.debug( "Killing vnc process-->"+ str(self.vnc_process))
             self.vnc_process.terminate()
             self.vnc_process=None
@@ -268,7 +291,7 @@ class SessionThread( threading.Thread ):
 
             else:
                 #-#####################   linux
-                if(self.debug): module_logger.debug( 'This is thread ' + str ( self.threadnum ) + " executing-->" + self.vnc_command.replace(self.password,"****") + "<--")
+                if(self.debug): module_logger.info( 'This is thread ' + str ( self.threadnum ) + " executing-->" + self.vnc_command.replace(self.password,"****") + "<--")
 
                 child = pexpect.spawn(self.vnc_command,timeout=50)
                 self.vnc_process=child

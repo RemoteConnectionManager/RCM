@@ -132,7 +132,7 @@ class rcm_client_connection:
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(commandnode, username=self.remoteuser, password=self.passwd)
         
-        module_logger.debug( "################### commandnode "+commandnode+" command-->"+cmd)
+        module_logger.info( "on "+commandnode+" run-->"+self.config['remote_rcm_server'] + ' '+cmd+"<")
         
         stdin, stdout, stderr = ssh.exec_command(self.config['remote_rcm_server'] + ' ' +cmd)
         myout = ''.join(stdout)
@@ -300,11 +300,11 @@ class rcm_client_connection:
 
                 
         
-        if(self.debug): module_logger.debug( "tunnel:"+tunnel_command+" vnc: "+vnc_command+"conffile:"+str(configFile))
+        if(self.debug): module_logger.info( "tunnel->"+tunnel_command+"< vnc->"+vnc_command+"< conffile->"+str(configFile)+"<")
 
         st=rcm_utils.SessionThread ( tunnel_command, vnc_command, self.passwd, vncpassword_decrypted,  otp, gui_cmd, configFile, self.debug)
 
-        if(self.debug): module_logger.debug( "!!!!!session  thread--->"+str(st)+"\n num thread:"+str(len(self.session_thread)))
+        if(self.debug): module_logger.debug( "!!!!!session  thread--->"+str(st)+"<- num thread:"+str(len(self.session_thread)))
         self.session_thread.append(st)
         st.start()
 

@@ -250,7 +250,7 @@ class ConnectionWindow(Frame):
        
     @safe_debug_off
     def deathHandler(self, event):
-        if(self.debug): module_logger.debug(" main app win has been closed . killing vnc connections")
+        if(self.debug): module_logger.info(" main app win has been closed . killing vnc connections")
         self.client_connection.vncsession_kill()
         
     def __init__(self, master=None,rcm_client_connection=None):
@@ -368,7 +368,7 @@ class ConnectionWindow(Frame):
 
 
                     def disable_cmd(self=self, sessionid=el.hash['sessionid'],active=True):
-                        module_logger.debug( "sessionid-->"+sessionid+"<--")
+                        module_logger.info( "changing sessionid->"+sessionid+"< button to "+str(active))
 
                         if(active):
                             self.client_connection.activeConnectionsList.append(sessionid)
@@ -388,7 +388,7 @@ class ConnectionWindow(Frame):
                         if(session.hash['sessionid'] in self.client_connection.activeConnectionsList):
                             tkMessageBox.showwarning("Warning!", "Already connected to session " +session.hash['sessionid'])
                         else:
-                            if(self.debug): module_logger.debug( "connecting to session "+ str(session.hash['sessionid']))
+                            if(self.debug): module_logger.info( "connecting to sessionid-->"+ str(session.hash['sessionid'])+"<")
                             self.startBusy("Connecting to the remote display...")
                             self.client_connection.vncsession(session,gui_cmd=disable_cmd)
                             self.after(4000,self.stopBusy)
@@ -594,7 +594,7 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
     def body(self, master):
 
         #Read configuration file
-        self.configFileName = os.path.join(os.path.expanduser('~'),'.rcm','RCM.cfg')
+        self.configFileName = os.path.join(rcm_utils.client_folder(),'RCM.cfg')
         self.displayDimensions = NONE
         self.displayDimensionsList = collections.deque(maxlen=5)
         self.config = ConfigParser.RawConfigParser()
@@ -740,7 +740,7 @@ class MyTopFrame(Frame):
        
     @safe_debug_off
     def deathHandler(self, event):
-        if(self.debug):  module_logger.debug( " in main MyTopFrame win has been closed . killing vnc connections")
+        module_logger.info( " MyTopFrame  has been closed . killing vnc connections")
         for cc in self.connections:
             cc.vncsession_kill()
         
@@ -912,7 +912,7 @@ class ConnectionWindowNotebook(Notebook):
 
 
 if __name__ == '__main__':
-    rcm_utils.configure_logging()
+    rcm_utils.configure_logging(verbose=True)
     c=rcm_client_connection_GUI()
     if(1 < len(sys.argv)):
         c.askopenfilename(sys.argv[1])
