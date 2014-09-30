@@ -27,7 +27,7 @@ def rcm_decorate(fn):
         #ret=fn(*args, **kw)
         module_logger.debug( str(kw)+" -- "+ str(args))
         module_logger.debug( "self-->"+str(args[0]))
-        module_logger.info("running remote:"+command)
+        module_logger.debug("running remote:"+command)
         ret=args[0].mycall(command)
         #print "returning-->"+ret
         return ret
