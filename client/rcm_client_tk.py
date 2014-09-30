@@ -53,7 +53,7 @@ def safe(debug=False):
 #                    pass
                 if True:
                     import traceback
-                    tkMessageBox.showwarning("Error","in {0}: {1}\n{2}".format(f.__name__, e,traceback.format_exc()))
+                    tkMessageBox.showwarning("Error",rcm_utils.exceptionformat.format(f.__name__, e,traceback.format_exc()))
                     traceback.print_exc()
                 else:
                     tkMessageBox.showwarning("Error", e)
@@ -373,7 +373,7 @@ class ConnectionWindow(Frame):
                         if(active):
                             self.client_connection.activeConnectionsList.append(sessionid)
                         else:
-                            self.client_connection.activeConnectionsList.remove(sessionid)
+                            if sessionid in self.client_connection.activeConnectionsList : self.client_connection.activeConnectionsList.remove(sessionid)
                             self.do_list_refresh=True
                         self.do_update_gui=True
 

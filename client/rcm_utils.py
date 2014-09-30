@@ -24,6 +24,8 @@ rootLogger.setLevel(logging.INFO)
 consoleHandler = logging.StreamHandler()
 rootLogger.addHandler(consoleHandler)
 
+exceptionformat=" {1}"
+
 def configure_logging(verbose=False):
 #    rootLogger = logging.getLogger()
     consoleFormatter = logging.Formatter('%(threadName)-12.12s: [%(filename)-30.30s %(lineno)-4d]-->%(message)s')
@@ -46,9 +48,13 @@ def configure_logging(verbose=False):
         rootLogger.removeHandler(consoleHandler)
         rcmLogger.addHandler(consoleHandler)
         
+        exceptionformat="in {0}: {1}\n{2}"
+        
     else:
         logging.getLogger('paramiko').setLevel(logging.ERROR)
         logging.getLogger('RCM').setLevel(logging.ERROR)
+        
+        exceptionformat="in {0}: {1}"
 
 
 #   rootLogger.addHandler(consoleHandler)
@@ -132,6 +138,22 @@ class pack_info():
 import paramiko
 import socket
 
+import Queue
+threads_exception_queue=Queue.Queue()
+
+def get_threads_exceptions():
+    go=True
+    exc=None
+    while go:
+        try:
+            exc = threads_exception_queue.get(block=False)
+        except Queue.Empty:
+            go=False
+        else:
+            module_logger.error( "one thread raised ->"+exc)
+    if(exc):
+        raise Exception("ERROR: "+exc+" in thread")
+        
 def get_server_command(host,user,passwd=''):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -211,7 +233,7 @@ class SessionThread( threading.Thread ):
 
     def run ( self ):
         if(self.debug):
-             module_logger.debug('This is thread ' + str ( self.threadnum ) + ' run.')
+            module_logger.debug('This is thread ' + str ( self.threadnum ) + ' run.')
         if(self.gui_cmd): self.gui_cmd(active=True)
 
         if self.configFile:
@@ -313,7 +335,8 @@ class SessionThread( threading.Thread ):
                 if i == 3 or i == 4:
                     if(self.debug): module_logger.error( "Timeout connecting to the display.")
                     if(self.gui_cmd): self.gui_cmd(active=False)
-                    raise Exception("Timeout connecting to the display.")
+                    #raise Exception("Timeout connecting to the display.")
+                    threads_exception_queue.put("Timeout connecting to the display.")
 		  
 		i = child.expect(['Authentication successful', pexpect.TIMEOUT, pexpect.EOF])
 		if i > 0:
@@ -321,7 +344,8 @@ class SessionThread( threading.Thread ):
                     if(self.gui_cmd): self.gui_cmd(active=False)
 		    for line in child:
 		      module_logger.debug( "child expect-->"+line)
-                    raise Exception("Authentication problems.")
+                    #raise Exception("Authentication problems.")
+                    threads_exception_queue.put("Authentication problems.")
 
 
                 child.expect(pexpect.EOF, timeout=None)

@@ -158,7 +158,8 @@ class rcm_client_connection:
 
     def list(self):
         #get list of nodes to check of possible sessions
-
+        rcm_utils.get_threads_exceptions()
+        
         o=self.protocol.loginlist(subnet=self.subnet)
         sessions=rcm.rcm_sessions(o)
         #if(self.debug): 
