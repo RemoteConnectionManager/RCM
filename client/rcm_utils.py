@@ -135,6 +135,7 @@ import socket
 def get_server_command(host,user,passwd=''):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    module_logger.info("getting server command host->"+host+"< user->"+user+"<")
     ssh.connect(host, username=user, password=passwd)
     chan = ssh.get_transport().open_session()
     chan.get_pty()

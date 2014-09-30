@@ -130,10 +130,15 @@ class rcm_client_connection:
         
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(commandnode, username=self.remoteuser, password=self.passwd)
         
         module_logger.info( "on "+commandnode+" run-->"+self.config['remote_rcm_server'] + ' '+cmd+"<")
+
         
+        try:
+            ssh.connect(commandnode, username=self.remoteuser, password=self.passwd)
+        except Exception as e: 
+            module_logger.warning("ERROR {0}: ".format( e)+"in ssh.connect to node->"+ commandnode +"< user->"+self.remoteuser+"<" )  
+            return('') 
         stdin, stdout, stderr = ssh.exec_command(self.config['remote_rcm_server'] + ' ' +cmd)
         myout = ''.join(stdout)
         myerr = stderr.readlines()
@@ -171,8 +176,9 @@ class rcm_client_connection:
 #                (o,e)=self.prex(self.config['remote_rcm_server'] + ' ' + 'list' + ' ' + self.subnet, proxynode)
                 self.commandnode=proxynode
                 o=self.protocol.list(subnet=self.subnet)
-                tmp=rcm.rcm_sessions(o)
-                a.extend(tmp.array)
+                if(o):
+                    tmp=rcm.rcm_sessions(o)
+                    a.extend(tmp.array)
         ret=rcm.rcm_sessions()
         ret.array=a
         #if(self.debug):
