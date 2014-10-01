@@ -25,6 +25,7 @@ import collections
 #luigi_disable_thread#import threading
 
 import subprocess
+import argparse
 
 import logging
 module_logger = logging.getLogger('RCM.client_tk')
@@ -756,6 +757,7 @@ class rcm_client_connection_GUI():
     def __init__(self):
         self.pack_info=rcm_utils.pack_info()
         self.last_used_dir='.'
+        self.n=None
 
     def quit(self):
         self.master.destroy()
@@ -832,14 +834,18 @@ class rcm_client_connection_GUI():
                     if 'rcm_tunnel' in l:
                         node = l.split('=')[1].rstrip()
                         #check credential for the cluster, not for the specific node
-                        credential = self.n.getConnectionInfo(node.split('.',1)[1])
-                        if credential != None:
-                            user = credential['user']
-                            my_rcm_client.login_setup(host=node,remoteuser=user,password=credential['password'])
+                        if(self.n):
+                            credential = self.n.getConnectionInfo(node.split('.',1)[1])
+                            if credential != None:
+                                user = credential['user']
+                                my_rcm_client.login_setup(host=node,remoteuser=user,password=credential['password'])
+                            else:
+                                tkMessageBox.showwarning("Warning!", "Please login to \"{0}\" to open this shared display.".format(node))
+                                return
                         else:
-                            tkMessageBox.showwarning("Warning!", "Please login to \"{0}\" to open this shared display.".format(node))
+                            module_logger.error("connections with tunnel need to be in GUI mode with a proper connection to login node")
                             return
-
+                        
                     if 'host' in l:
                         hostname = l.split('=')[1].rstrip()
                     if 'port' in l:
@@ -912,10 +918,17 @@ class ConnectionWindowNotebook(Notebook):
 
 
 if __name__ == '__main__':
-    rcm_utils.configure_logging(verbose=True)
+    
+    parser = argparse.ArgumentParser(description='RCM client.')
+    parser.add_argument('-d','--debug',default=0,type=int,
+                   help='define %(prog)s verbosity')
+    parser.add_argument('infile',nargs='?')
+    p=parser.parse_args()
+    
+    rcm_utils.configure_logging(verbose=p.debug)
     c=rcm_client_connection_GUI()
-    if(1 < len(sys.argv)):
-        c.askopenfilename(sys.argv[1])
+    if(p.infile):
+        c.askopenfilename(p.infile)
     else:
         c.show()
         c.mainloop()

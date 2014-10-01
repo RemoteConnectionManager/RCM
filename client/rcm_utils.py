@@ -26,27 +26,44 @@ rootLogger.addHandler(consoleHandler)
 
 exceptionformat=" {1}"
 
-def configure_logging(verbose=False):
+def configure_logging(verbose=0):
 #    rootLogger = logging.getLogger()
+    module_logger.error( "setting verbosity to: "+str(verbose))
     consoleFormatter = logging.Formatter('%(threadName)-12.12s: [%(filename)-30.30s %(lineno)-4d]-->%(message)s')
 #    consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(consoleFormatter)
-    if(verbose):
+    if( verbose > 0):
         logging.getLogger('paramiko').setLevel(logging.DEBUG)
-        logging.getLogger('paramiko.transport').setLevel(logging.INFO)
+        if( verbose > 2):
+            logging.getLogger('paramiko.transport').setLevel(logging.DEBUG)
+        else:
+            logging.getLogger('paramiko.transport').setLevel(logging.INFO)
         rcmLogger=logging.getLogger('RCM')
         rcmLogger.setLevel(logging.DEBUG)
-        logging.getLogger('RCM.protocol').setLevel(logging.INFO)
+        if( verbose > 2):
+            logging.getLogger('RCM.protocol').setLevel(logging.DEBUG)
+        else:
+            logging.getLogger('RCM.protocol').setLevel(logging.INFO)
         
         rotatehandler = logging.handlers.RotatingFileHandler(
                         os.path.join(client_folder(),'logfile.txt'), maxBytes=100000, backupCount=5)
         logFormatter = logging.Formatter('%(asctime)s [%(levelname)s:%(name)s] [%(threadName)-12.12s] [%(filename)s:%(funcName)s:%(lineno)d]-->%(message)s')
         rotatehandler.setFormatter(logFormatter)
                 
-        consoleHandler.setLevel(logging.INFO)
-        rootLogger.addHandler(rotatehandler)  
+        if( verbose > 2):
+            consoleHandler.setLevel(logging.DEBUG)
+        else:
+            consoleHandler.setLevel(logging.INFO)
+        if( verbose > 1):
+            consoleHandler.setFormatter(logFormatter)
+            
+        rootLogger.addHandler(rotatehandler) 
+ 
         rootLogger.removeHandler(consoleHandler)
         rcmLogger.addHandler(consoleHandler)
+        if( verbose > 2): 
+            rootLogger.addHandler(consoleHandler)
+            rcmLogger.removeHandler(consoleHandler)
         
         exceptionformat="in {0}: {1}\n{2}"
         
