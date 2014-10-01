@@ -307,7 +307,7 @@ class rcm_client_connection:
 
                 
         
-        if(self.debug): module_logger.info( "tunnel->"+tunnel_command+"< vnc->"+vnc_command+"< conffile->"+str(configFile)+"<")
+        if(self.debug): module_logger.info( "tunnel->"+tunnel_command.replace(self.passwd,"****")+"< vnc->"+vnc_command+"< conffile->"+str(configFile)+"<")
 
         st=rcm_utils.SessionThread ( tunnel_command, vnc_command, self.passwd, vncpassword_decrypted,  otp, gui_cmd, configFile, self.debug)
 

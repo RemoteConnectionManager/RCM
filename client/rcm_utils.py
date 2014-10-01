@@ -239,12 +239,14 @@ class SessionThread( threading.Thread ):
         self.gui_cmd=None
         if(self.debug): module_logger.debug( 'This is thread ' + str ( self.threadnum ) + ' TERMINATE.')
         if(self.vnc_process):
-            module_logger.info( "Killing vnc process "+ str(self.vnc_process.pid)+" args->"+str(self.vnc_process.args)+"<")
-            if(self.debug): module_logger.debug( "Killing vnc process-->"+ str(self.vnc_process))
+            arguments='Args not available on Popen'
+            if(hasattr(self.vnc_process,'args')): arguments=str(self.vnc_process.args) 
+            module_logger.info( "Killing vnc process "+ str(self.vnc_process.pid)+" args->"+arguments+"<")
+            if(self.debug): module_logger.debug( "Killing vnc process-->"+ str(self.vnc_process.pid))
             self.vnc_process.terminate()
             self.vnc_process=None
         if(self.tunnel_process):
-            if(self.debug):  module_logger.debug("Killing tunnel process-->"+str(self.tunnel_process))
+            module_logger.debug("Killing tunnel process-->"+str(self.tunnel_process.pid))
             self.tunnel_process.terminate()
             self.tunnel_process=None
 
