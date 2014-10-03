@@ -157,12 +157,17 @@ class Login(Frame):
         self.config = ConfigParser.RawConfigParser()
         if(os.path.exists(self.configFileName)):
             try:
-                self.config.read(self.configFileName)    
+                fp = open(self.configFileName)
+                self.config.readfp(fp)    
                 hostList = self.config.get('LoginFields', 'hostList')
                 self.hostCollections=pickle.loads(hostList)
 
             except:
-                os.remove(self.configFileName)
+                fp.close()
+                try:
+                    os.remove(self.configFileName)
+                except:
+                    tkMessageBox.showwarning("Error", "the client config file->"+ self.configFileName +"< is invalid andcannot be removed, please remove it manually")
 
         self.guiaction=guiaction
         self.action=action
