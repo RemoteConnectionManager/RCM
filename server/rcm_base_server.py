@@ -48,15 +48,19 @@ class rcm_base_server:
 
     def getUserAccounts(self):
         #cineca deployment dependencies
-        p1 = subprocess.Popen(["saldo","-nb"], stdout=subprocess.PIPE)
-        stdout,stderr = p1.communicate()
-        if 'not existing' in stdout:
-            #old type user
+        try:
+            p1 = subprocess.Popen(["saldo","-nb"], stdout=subprocess.PIPE)
+            stdout,stderr = p1.communicate()
+            if 'not existing' in stdout:
+                #old type user
+                return []
+            else:
+                #now return a fixed group for experimentation
+                #cineca deployment dependencies
+                return ['cin_visual']
+        except Exception,inst:
+            #sys.stderr.write("session->%s RCM:EXCEPTION %s: %s " % (sid,inst, traceback.format_exc()))
             return []
-        else:
-            #now return a fixed group for experimentation
-            #cineca deployment dependencies
-            return ['cin_visual']
 
     def groupSubstitution(self, groupName, template):
         #print "groupName : ", groupName , "template: ", template
