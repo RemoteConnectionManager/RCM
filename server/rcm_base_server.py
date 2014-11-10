@@ -9,6 +9,7 @@ import pwd
 import traceback
 import datetime
 import time
+import shutil
 
 import rcm
 import platformconfig
