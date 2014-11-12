@@ -22,7 +22,8 @@ import urllib2
 import tempfile
 import pickle
 import collections
-#luigi_disable_thread#import threading
+#luigi_disable_thread####
+import threading
 
 import subprocess
 import argparse
@@ -485,7 +486,9 @@ class ConnectionWindow(Frame):
 
         #luigi_disable_thread#t = threading.Thread(target=self.create_display)
         #luigi_disable_thread#t.start()
-        target=self.create_display()
+        #target=self.create_display()
+        t = threading.Thread(target=self.create_display)
+        t.start()
 
         self.startBusy("Creating a new remote display...")
         self.after(8000, self.set_do_list_refresh)
@@ -498,12 +501,17 @@ class ConnectionWindow(Frame):
     def create_display(self):
         newconn=self.client_connection.newconn(self.queue, self.displayDimension, self.sessionname, vnc_id=self.vnc_id)
 
-        #luigi_disable_thread#lock = threading.Lock()
-        #luigi_disable_thread#lock.acquire()
-        #luigi_disable_thread#try:
-        self.pending_connections.append(newconn)
-        #luigi_disable_thread#finally:
-        #luigi_disable_thread#    lock.release()
+        #luigi_disable_thread#
+        lock = threading.Lock()
+        #luigi_disable_thread#
+        lock.acquire()
+        #luigi_disable_thread#
+        try:
+            self.pending_connections.append(newconn)
+        #luigi_disable_thread#
+        finally:
+        #luigi_disable_thread#
+            lock.release()
 
         
     @safe_debug_off
