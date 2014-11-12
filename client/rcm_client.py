@@ -198,7 +198,7 @@ class rcm_client_connection:
         # + 'subnet=' + self.subnet + ' ' + 'vncpassword=' + vncpassword + ' ' + 'vncpassword_crypted=' + '\'' + vncpassword_crypted + '\''
         #o=self.prex('new' + ' ' + new_encoded_param )
 
-        o=self.protocol.new(geometry=geometry, queue=queue, sessionname=sessionname, subnet=self.subnet, vncpassword=vncpassword,
+        o=self.protocol.new(geometry=geometry, queue=queue, sessionname='\'' + sessionname + '\'', subnet=self.subnet, vncpassword=vncpassword,
         vncpassword_crypted=vncpassword_crypted, vnc_id=vnc_id)
         
         session=rcm.rcm_session(o)
