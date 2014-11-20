@@ -37,7 +37,7 @@ class baseconfig:
 class versionconfig(baseconfig):
     def __init__(self):
 	baseconfig.__init__(self)
-        self.filename='versionRCM.cfg'
+        self.filename=os.path.join(os.path.dirname(os.path.abspath(__file__)),'versionRCM.cfg')
 	self.parse()
     
     def get_checksum(self,buildPlatformString=''):

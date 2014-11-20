@@ -224,13 +224,18 @@ class rcm_base_server:
         if (not os.path.exists(desktop_dest_dir)):
             os.makedirs(desktop_dest_dir)
     
-        desktop_source_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),'Desktop_setup')
+        desktop_source_dir =   os.path.join(
+                                os.path.dirname(
+                                 os.path.dirname(
+                                  os.path.abspath(__file__)
+                                 )
+                                ),'config','Desktop_setup')
+
         for f in glob.glob(desktop_source_dir + '/*.desktop' ):
             fDest = os.path.join(desktop_dest_dir, os.path.basename(f))
-            if (os.path.exists(fDest)):
-                if (open(f, 'r').read() == open(fDest, 'r').read()):
-                    return 
-            shutil.copy(f,desktop_dest_dir)
+            if (not os.path.exists(fDest)):
+                 os.symlink(f,fDest)
+             
       
     def clean_files(self,sid):
         for d in self.get_rcmdirs():
