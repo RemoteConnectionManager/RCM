@@ -14,7 +14,12 @@ class baseconfig:
     def parse(self,configfile=''):
         config = ConfigParser.RawConfigParser()
 	if(not configfile):
-	    myPath =  os.path.dirname(os.path.abspath(__file__))
+	    myPath =   os.path.join(
+                        os.path.dirname(
+                         os.path.dirname(
+                          os.path.abspath(__file__)
+                         )
+                        ),'config')
             configfile=os.path.join(myPath, self.filename)
 
         if(not os.path.exists(configfile)):
