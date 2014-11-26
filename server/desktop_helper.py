@@ -134,7 +134,7 @@ class desktop_helper():
                 command_string='vglrun '+command_string
 
             shell_file_content+='module load autoload '+ module_name +'\n'
-            shell_file_content+=options.env_string
+            shell_file_content+=options.env_string+'\n'
             shell_file_content+= command_string + ' $@'
 
             print "#### shell file content;\n"+  shell_file_content
