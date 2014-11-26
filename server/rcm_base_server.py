@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import sys
 import string
@@ -234,6 +235,7 @@ class rcm_base_server:
         for f in glob.glob(desktop_source_dir + '/*.desktop' ):
             fDest = os.path.join(desktop_dest_dir, os.path.basename(f))
             if (not os.path.exists(fDest)):
+                 os.remove(fDest)
                  os.symlink(f,fDest)
              
       

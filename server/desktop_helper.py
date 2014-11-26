@@ -57,6 +57,7 @@ class desktop_helper():
         self.op.add_option("--desktop_folder",action="store",type="string", dest="desktop_folder",default='',help='define  desktop folder where the it creates the desktop folder')
         self.op.add_option("--desktop_name",action="store",type="string", dest="desktop_name",default='',help='define  desktop name of the icon')
         self.op.add_option("--command_string",action="store",type="string", dest="command_string",default='',help='define  command string to use, defaults to module name')
+        self.op.add_option("--env_string",action="store",type="string", dest="env_string",default='',help='define  setup env string to use in shell, defaults to void')
         self.op.add_option("--copy_icon",action="store_true", dest="copy_icon",default=False,help='flag to copy the icon file into desktop_folder')
         self.op.add_option("--vglrun",action="store_true", dest="vglrun",default=False,help='flag to set vglrun usage')
         #self.op.add_option("--clean_links",action="store_true", dest="clean_links",default=False,help='clean dangling links fron removed modules')
@@ -133,6 +134,7 @@ class desktop_helper():
                 command_string='vglrun '+command_string
 
             shell_file_content+='module load autoload '+ module_name +'\n'
+            shell_file_content+=options.env_string
             shell_file_content+= command_string + ' $@'
 
             print "#### shell file content;\n"+  shell_file_content
