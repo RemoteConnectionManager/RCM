@@ -311,6 +311,8 @@ class SessionThread( threading.Thread ):
                     if(self.debug): module_logger.debug( 'Tunnel commands: '+ str( self.tunnel_command))
                     child = pexpect.spawn(self.tunnel_command,timeout=50)
                     i = child.expect([ssh_newkey, 'password:', pexpect.TIMEOUT, pexpect.EOF])
+                    
+                    if(self.debug): module_logger.debug( 'Tunnel return: '+ str( i))
                     if i == 0:
                         #no certificate
                         child.sendline('yes')
@@ -320,7 +322,7 @@ class SessionThread( threading.Thread ):
                         #no certificate
                         child.sendline(self.password)
 
-                    if i == 0 or i == 3 or i == 4:
+                    if i == 0 or i == 2:
                         if(self.debug): module_logger.debug( "Timeout connecting to the display.")
                         if(self.gui_cmd): self.gui_cmd(active=False)
                         raise Exception("Timeout connecting to the display.")
@@ -328,7 +330,8 @@ class SessionThread( threading.Thread ):
 
                 commandlist=self.vnc_command.split()
                 self.vnc_process=subprocess.Popen(commandlist , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False)
-                self.vnc_process.wait()
+                if(self.vnc_process): self.vnc_process.stdin.close()
+                if(self.vnc_process): self.vnc_process.wait()
                 self.vnc_process=None
 
             else:
