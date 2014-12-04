@@ -1,5 +1,6 @@
 #import os.path
 import os
+import sys
 import shlex, subprocess
 import re
 import glob
@@ -220,7 +221,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
  def get_jobs(self, sessions, U=False):
     (retval,stdout,stderr)=self.prex(['qstat'])
     if (retval != 0 ) :
-      sys.write.stderr(stderr);
+      sys.stderr.write(stderr);
       raise Exception( 'qstat returned non zero value: ' + str(retval) )
     else:
       raw=stdout.split('\n')
