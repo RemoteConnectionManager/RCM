@@ -51,7 +51,7 @@ class rcm_base_server:
     def getUserAccounts(self):
         #cineca deployment dependencies
         try:
-            p1 = subprocess.Popen(["saldo","-nb"], stdout=subprocess.PIPE)
+            p1 = subprocess.Popen(["saldo","-nb"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout,stderr = p1.communicate()
             if 'not existing' in stdout:
                 #old type user
