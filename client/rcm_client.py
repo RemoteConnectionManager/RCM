@@ -291,7 +291,11 @@ class rcm_client_connection:
 
             if(sys.platform == 'win32' or sys.platform.startswith('darwin')):
                 if (tunnel == 'y'):
-                    tunnel_command = self.ssh_command  + " -L 127.0.0.1:" +str(portnumber) + ":" + node + ":" + str(portnumber) + " " + self.login_options + "@" + nodelogin + " echo 'rcm_tunnel'; sleep 10"
+                    tunnel_command = self.ssh_command  + " -L 127.0.0.1:" +str(portnumber) + ":" + node + ":" + str(portnumber) + " " + self.login_options + "@" + nodelogin 
+                    if sys.platform.startswith('darwin'): 
+                        tunnel_command +=  " echo 'rcm_tunnel'; sleep 100000000"
+                    else: 
+                        tunnel_command +=  " echo 'rcm_tunnel'; sleep 10"
                     vnc_command += " 127.0.0.1:" + str(portnumber)
                 else:
                     #tunnel_command = self.ssh_command  + " -L 127.0.0.1:" +str(portnumber) + ":" + node + ":" + str(portnumber) + " " + self.login_options + "@" + nodelogin + " echo 'rcm_tunnel'; sleep 10"

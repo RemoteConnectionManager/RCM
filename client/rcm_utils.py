@@ -310,19 +310,19 @@ class SessionThread( threading.Thread ):
                     ssh_newkey = 'Are you sure you want to continue connecting'
                     if(self.debug): module_logger.debug( 'Tunnel commands: '+ str( self.tunnel_command))
                     child = pexpect.spawn(self.tunnel_command,timeout=50)
-                    i = child.expect([ssh_newkey, 'password:', pexpect.TIMEOUT, pexpect.EOF])
+                    i = child.expect([ssh_newkey, 'password:','rcm_tunnel', pexpect.TIMEOUT, pexpect.EOF])
                     
-                    if(self.debug): module_logger.debug( 'Tunnel return: '+ str( i))
+                    if(self.debug): module_logger.info( 'Tunnel return: '+ str( i))
                     if i == 0:
                         #no certificate
                         child.sendline('yes')
-                        i = child.expect(['password','standard VNC authentication', pexpect.TIMEOUT, pexpect.EOF])
+                        i = child.expect(['password','standard VNC authentication','rcm_tunnel', pexpect.TIMEOUT, pexpect.EOF])
 
                     if i == 1:
                         #no certificate
                         child.sendline(self.password)
 
-                    if i == 0 or i == 2:
+                    if i == 0 or i == 3:
                         if(self.debug): module_logger.debug( "Timeout connecting to the display.")
                         if(self.gui_cmd): self.gui_cmd(active=False)
                         raise Exception("Timeout connecting to the display.")
