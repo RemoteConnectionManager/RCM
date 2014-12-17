@@ -155,6 +155,13 @@ class pack_info():
 import paramiko
 import socket
 
+def get_unused_portnumber():
+    sock=socket.socket()
+    sock.bind(('',0))
+    sn=sock.getsockname()[1]
+    sock.close()
+    return sn
+
 import Queue
 threads_exception_queue=Queue.Queue()
 
