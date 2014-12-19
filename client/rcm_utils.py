@@ -46,7 +46,7 @@ def configure_logging(verbose=0):
             logging.getLogger('RCM.protocol').setLevel(logging.INFO)
         
         rotatehandler = logging.handlers.RotatingFileHandler(
-                        os.path.join(client_folder(),'logfile.txt'), maxBytes=100000, backupCount=5)
+                        os.path.join(client_folder(),'rcm_logfile.txt'), maxBytes=100000, backupCount=5)
         logFormatter = logging.Formatter('%(asctime)s [%(levelname)s:%(name)s] [%(threadName)-12.12s] [%(filename)s:%(funcName)s:%(lineno)d]-->%(message)s')
         rotatehandler.setFormatter(logFormatter)
                 
