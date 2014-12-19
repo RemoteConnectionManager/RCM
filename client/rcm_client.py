@@ -286,10 +286,12 @@ class rcm_client_connection:
             elif(sys.platform == 'win32'):
             #    vnc_command = self.vncexe + " -medqual " + "-password " + vncpassword_decrypted
                 vnc_command = "echo "+ vncpassword_decrypted+ " | " + self.vncexe + " -medqual " + "-autopass -nounixlogin"
+                vnc_command += " -logfile "+os.path.join(rcm_utils.log_folder(),'vncviewer_'+nodelogin+'_'+session.hash.get('sessionid','')+'.log')
             else:
                 vnc_command = self.vncexe + " -medqual "
+                vnc_command += " -logfile "+os.path.join(rcm_utils.log_folder(),'vncviewer_'+nodelogin+'_'+session.hash.get('sessionid','')+'.log')
 
-            vnc_command += " -loglevel "+str(rcm_utils.vnc_loglevel)+" -logfile "+os.path.join(rcm_utils.log_folder(),'vncviewer_'+nodelogin+'_'+session.hash.get('sessionid','')+'.log')
+            vnc_command += " -loglevel "+str(rcm_utils.vnc_loglevel)
 
             if(sys.platform == 'win32' or sys.platform.startswith('darwin')):
                 if (tunnel == 'y'):
