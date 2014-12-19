@@ -957,10 +957,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='RCM client.')
     parser.add_argument('-d','--debug',default=0,type=int,
                    help='define %(prog)s verbosity')
+    parser.add_argument('-l','--vncloglev',default=0,type=int,
+                   help='pass  this to vnc loglevel')
     parser.add_argument('infile',nargs='?')
     p=parser.parse_args()
     
-    rcm_utils.configure_logging(verbose=p.debug)
+    rcm_utils.configure_logging(verbose=p.debug,vnclv=p.vncloglev)
     c=rcm_client_connection_GUI()
     if(p.infile):
         c.askopenfilename(p.infile)

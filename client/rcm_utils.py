@@ -25,10 +25,28 @@ consoleHandler = logging.StreamHandler()
 rootLogger.addHandler(consoleHandler)
 
 exceptionformat=" {1}"
+vnc_loglevel=0
 
-def configure_logging(verbose=0):
+def configure_logging(verbose=0,vnclv=0):
 #    rootLogger = logging.getLogger()
+    global vnc_loglevel
+    vnc_loglevel=vnclv
     module_logger.error( "setting verbosity to: "+str(verbose))
+    logf=log_folder()
+    try: 
+        os.makedirs(logf)
+    except OSError:
+        if not os.path.isdir(logf):
+            raise
+    for f in os.listdir(logf):
+        print "deleting "+f
+        file_path = os.path.join(logf, f)
+        try: 
+            if os.path.isfile(file_path): os.unlink(file_path)
+        except OSError:
+            print "failed to remove "+file_path
+    os.chdir(logf)
+    module_logger.error( "log file folder: "+logf)
     consoleFormatter = logging.Formatter('%(threadName)-12.12s: [%(filename)-30.30s %(lineno)-4d]-->%(message)s')
 #    consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(consoleFormatter)
@@ -46,7 +64,7 @@ def configure_logging(verbose=0):
             logging.getLogger('RCM.protocol').setLevel(logging.INFO)
         
         rotatehandler = logging.handlers.RotatingFileHandler(
-                        os.path.join(client_folder(),'rcm_logfile.txt'), maxBytes=100000, backupCount=5)
+                        os.path.join(log_folder(),'rcm_logfile.txt'), maxBytes=100000, backupCount=5)
         logFormatter = logging.Formatter('%(asctime)s [%(levelname)s:%(name)s] [%(threadName)-12.12s] [%(filename)s:%(funcName)s:%(lineno)d]-->%(message)s')
         rotatehandler.setFormatter(logFormatter)
                 
@@ -78,6 +96,9 @@ def configure_logging(verbose=0):
 
 def client_folder():    
     return os.path.join(os.path.expanduser('~'),'.rcm')
+
+def log_folder():    
+    return os.path.join(client_folder(),'logs')
 
 def vnc_crypt(vncpass,decrypt=False):
     if(decrypt):

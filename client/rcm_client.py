@@ -289,6 +289,7 @@ class rcm_client_connection:
             else:
                 vnc_command = self.vncexe + " -medqual "
 
+            vnc_command += " -loglevel "+str(rcm_utils.vnc_loglevel)+" -logfile "+os.path.join(rcm_utils.log_folder(),'vncviewer_'+nodelogin+'_'+session.hash.get('sessionid','')+'.log')
 
             if(sys.platform == 'win32' or sys.platform.startswith('darwin')):
                 if (tunnel == 'y'):
