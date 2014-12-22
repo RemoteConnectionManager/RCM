@@ -653,26 +653,21 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
             def print_it(event):
               module_logger.debug( self.queue.get())
 
-
-            #w = OptionMenu(optionFrame, self.queue, queueList[0], *queueList, command=print_it)
-            #w.pack(side=LEFT)
-
             combo = Combobox(optionFrame, state="readonly", textvariable=self.queue )
             combo['values'] = queueList
             combo.pack()
 
-            optionFrame.pack(padx=15, anchor=W)
+            optionFrame.pack(padx=15, fill=X)
+
         if (len(vncList) > 1):
             vncFrame = Frame(self.topFrame, padding = 5)
             Label(vncFrame, text="""Select vnc: """, ).pack(side=LEFT)
-            #w = apply(OptionMenu, (vncFrame, self.vnc,vncList[0]) + tuple(vncList))
-            #w.pack(side=LEFT)
 
             combo = Combobox(vncFrame, state="readonly", textvariable=self.vnc )
             combo['values'] = vncList
             combo.pack()
 
-            vncFrame.pack(anchor=W, padx=15)
+            vncFrame.pack(padx=15, fill=X)
 
         displayFrame = Frame(self.topFrame, padding = 5)
 
@@ -699,7 +694,8 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
             combo.bind("<<ComboboxSelected>>", self.fillEntry)
             combo.pack()
 
-        displayFrame.pack(padx=15, anchor=W)
+        displayFrame.pack(padx=15, fill=X)
+
 
         entryFrame = Frame(self.topFrame, padding = 5)
         e1 = Entry(entryFrame, textvariable=self.e1String, width=16).pack(side=LEFT)
