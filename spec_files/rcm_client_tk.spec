@@ -120,16 +120,29 @@ while True:
   m.update(data)
 currentChecksum = m.hexdigest()
 
+
+rcmExe = os.path.join(ROOTPATH, 'build','dist','Releases', outFile)
+zf=zipfile.ZipFile(rcmExe + ".zip" ,"w")
+zf.write(rcmExe,outFile)
+zf.close()
+
+
+#write configuratin line
+line = myplatform + " " + currentChecksum + " " + baseurl + os.path.basename(rcmExe) + '\n'
+outFile = os.path.join(ROOTPATH,"build","dist", "checksum.txt")
+with open(outFile, 'w') as outF:
+    outF.write(myplatform+"\n")
+    outF.write(currentChecksum+"\n")
+    outF.write(os.path.basename(rcmExe)+"\n")
+    outF.close()
+
+exit()
 #update versionRCM.cfg
 configurationFile = os.path.join(ROOTPATH,"server", "versionRCM.cfg")
 with open(configurationFile, 'r') as inF:
     fileContent = inF.readlines()
     inF.close()
     
-rcmExe = os.path.join(ROOTPATH, 'build','dist','Releases', outFile)
-zf=zipfile.ZipFile(rcmExe + ".zip" ,"w")
-zf.write(rcmExe,outFile)
-zf.close()
 
 checksumWritten = False
 for idx, line in enumerate(fileContent):    
