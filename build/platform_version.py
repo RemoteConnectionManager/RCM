@@ -33,13 +33,14 @@ class platform_version:
         sv=self.svn_version()
         try :
             self.svint=int(sv)
-            self.baseurl=baseurl()
-            print "svn version:" + str(self.svint)+" base_url: "+self.base_url
             
         except :
             print "svn version not synced:" + sv
             return False
 
+        self.baseurl=self.baseurl()
+        print "svn version:" + str(self.svint)+" base_url: "+self.baseurl
+        return True
 
 
     def checksum(self,fname=''):
@@ -103,17 +104,18 @@ class platform_version:
                     fileContent[idx] = line
                     break
         if not checksumWritten:
-            with open(configurationFile, 'w') as outF:
+            with open(self.configurationFile, 'w') as outF:
                 for idx, line in enumerate(fileContent):    
                     if '[checksum]' in line:
                         fileContent.insert(idx+1, myplatform + " = " + currentChecksum + '\n')
                     if '[url]' in line:
                         fileContent.insert(idx+1, myplatform + " = " + url  + '\n')
 
-        with open(configurationFile, 'w') as outF:
+        with open(self.configurationFile, 'w') as outF:
             for line in fileContent:
                 outF.write(line)
             outF.close()
+        print "updated version file: "+self.configurationFile
 
 
 
