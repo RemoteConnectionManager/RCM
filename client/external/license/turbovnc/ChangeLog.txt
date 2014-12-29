@@ -1,0 +1,1285 @@
+===============================================================================
+1.2.2
+===============================================================================
+[1]
+The Xvnc build system has been completely refactored and now uses CMake, just
+like the rest of TurboVNC.  This makes the build somewhat more intuitive (for
+instance, 'make xserver' is no longer necessary when building Xvnc), and it
+fixes various problems with cross-compiling.
+-------------------------------------------------------------------------------
+[2]
+Xvnc can now be built and run successfully on OS X and PowerPC platforms.
+-------------------------------------------------------------------------------
+[3]
+The default DPI of the X server has been changed to 96, to match that of recent
+X.org releases and other VNC implementations.  This may make fonts appear
+larger than in previous TurboVNC releases.  Passing an argument of -dpi 75 to
+vncserver restores the old behavior.
+-------------------------------------------------------------------------------
+[4]
+When the server is run with a depth of 8, PseudoColor visuals now work properly
+(previously, the correct colormap was not always used.)  The server now uses
+a PseudoColor visual as the default for depth=8, which matches the behavior of
+other VNC solutions.
+-------------------------------------------------------------------------------
+[5]
+Added a security option to the Java TurboVNC Viewer that, when enabled, will
+prevent the user from opening any new VNC connections from within the same
+viewer instance.  In listen mode, this will further cause the viewer to exit
+after the first connection is closed.
+-------------------------------------------------------------------------------
+[6]
+Added a profiling feature to the Java TurboVNC Viewer.
+-------------------------------------------------------------------------------
+[7]
+The libjpeg-turbo JNI libraries are now deployed with the Java TurboVNC Viewer
+on Un*x and Windows, so it is no longer necessary to install the libjpeg-turbo
+SDK on those platforms in order to get accelerated JPEG decompression.
+-------------------------------------------------------------------------------
+[8]
+Fixed a couple of cosmetic issues with the automatic lossless refresh feature:
+-- If the source of a CopyRect operation was affected by lossy compression
+(meaning that the destination of the operation will become lossy as well), then
+the destination region is now ALR-eligible.  This can be overridden by
+setting the environment variable TVNC_ALRCOPYRECT to 0.
+-- Previously, if TVNC_ALRALL=0, a PutImage operation would trigger an ALR on
+all lossy regions of the display, even those that weren't drawn using a
+PutImage operation.  This has been fixed.
+-------------------------------------------------------------------------------
+[9]
+The Mac packaging system now uses pkgbuild and productbuild rather than
+PackageMaker (which is obsolete and no longer supported.)  This means that
+OS X 10.6 "Snow Leopard" or later must be used when packaging TurboVNC,
+although the packages produced can be installed on OS X 10.5 "Leopard" or
+later.  OS X 10.4 "Tiger" is no longer supported.
+-------------------------------------------------------------------------------
+[10]
+Fixed various usability issues related to the display of dialogs in the Java
+TurboVNC Viewer:
+-- The ability to control the Options dialog with the keyboard was lost after
+   the first time the dialog was popped up and dismissed.
+-- When running as an applet, clicking away from some of the dialogs would, in
+   some cases, send the dialog to the back of the window stack, making it
+   difficult to recover.
+-- When running under Java 7 on Linux, dialogs that are not attached to a
+   window (including the New Connection, Authentication, and SSH dialogs) were
+   not showing up in the task switcher, so accidentally clicking away from one
+   of those dialogs would send it to the back of the window stack, and Alt-Tab
+   could not be used to recover it.
+-- When running in full-screen mode on Linux/Gnome, popping up the Options or
+   Clipboard dialogs would cause the viewer to temporarily exit full-screen
+   mode.
+-------------------------------------------------------------------------------
+[11]
+Fixed an issue in the Java TurboVNC Viewer whereby, when running as an applet,
+it would not read the applet parameters if an SSH connection error was
+encountered and the applet was reloaded in the browser.
+-------------------------------------------------------------------------------
+[12]
+The AlwaysShowConnectionDialog parameter is now automatically disabled in the
+Java TurboVNC Viewer whenever SSH tunneling is enabled.  This prevents an issue
+whereby the "New TurboVNC Connection" dialog would pop up and display
+"localhost:{some random port}" after SSH authentication was completed, thus
+causing confusion.
+-------------------------------------------------------------------------------
+[13]
+The Java TurboVNC Viewer was not displaying dialogs from its built-in SSH
+client, which caused the SSH client to fail if the server was not in the known
+hosts file.  This has been fixed.
+-------------------------------------------------------------------------------
+[14]
+If the TurboVNC Server receives a clipboard update larger than 1 MB from a
+connected viewer, it will now ignore the update instead of disconnecting the
+viewer.
+-------------------------------------------------------------------------------
+[15]
+The Java TurboVNC Viewer can now be used to connect to UltraVNC Repeater
+instances.  Refer to the documentation for the Via parameter for more details.
+-------------------------------------------------------------------------------
+[16]
+Fixed an issue in the Java TurboVNC Viewer whereby, if a connection was
+established using SSH tunneling and another connection was then opened, the
+viewer would fail to exit after all of these connections were subsequently
+closed.
+-------------------------------------------------------------------------------
+[17]
+Fixed an issue in the vncserver script whereby the TurboVNC Server would give
+an "Unrecognized option" error and fail to launch if the server was built
+without the optional Java viewer.
+-------------------------------------------------------------------------------
+[18]
+Fixed a regression in the "automatic" spanning mode of the Windows TurboVNC
+Viewer introduced in TurboVNC 1.2.  Ever since that release, "automatic"
+spanning mode has been behaving just like "primary" mode.
+-------------------------------------------------------------------------------
+[19]
+Fixed a segfault in Xvnc that would occur whenever a viewer that was using ZRLE
+encoding disconnected.
+-------------------------------------------------------------------------------
+[20]
+The following improvements have been made to The TurboVNC Server init script:
+-- The script now looks for the tvncservers file under @TVNC_CONFDIR@/sysconfig
+   (where @TVNC_CONFDIR@ is the directory specified in the TVNC_CONFDIR CMake
+   variable) in addition to under /etc/sysconfig.  This allows the script to
+   work properly when installed in an arbitrary directory.
+-- When invoked with the "start" argument, the script now attempts to start
+   only those TurboVNC sessions specified in the tvncservers file that have not
+   yet been started.  If all sessions in the tvncservers file have been
+   started, then the script does nothing.  To be consistent with other init
+   scripts, a success message is not printed/logged unless one or more TurboVNC
+   sessions is actually started successfully, and a failure message is not
+   printed/logged unless one or more TurboVNC sessions fails to start.
+-- When invoked with the "start" argument, the script will no longer abort if
+   a TurboVNC session fails to start.  It will attempt to start the other
+   sessions.
+-- When invoked with the "reload" argument", the script will now stop any
+   running TurboVNC sessions not specified in the tvncservers file and start
+   any sessions specified in the tvncservers file that aren't running.
+-- Fixed a bug whereby, if an error occurred when starting a TurboVNC session,
+   the error was not properly logged to the system error log.
+-- The script should now work on Red Hat Enterprise/CentOS 7 and recent Fedora
+   releases.
+-------------------------------------------------------------------------------
+[21]
+The "restricted", "nounixlogin", and "user" options in the Windows TurboVNC
+Viewer are no longer persistent from one session to the next.  Because those
+options can only be specified on the command line or in a connection info file,
+automatically restoring their previous values for subsequent connections to the
+same host and display number led to confusing behavior.  The viewer would apply
+the previous value of the option, thus changing the viewer's behavior, but
+there was no way to visually confirm why the behavior had been changed or to
+change it back (unless you knew the corresponding command-line counter-curse,
+but "restricted" actually didn't have one.  Oops.)  The "encoding" and "8bit"
+options have been non-persistent for quite some time, for this same reason.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+1.2.1
+===============================================================================
+[1]
+Fixed two regressions introduced in TurboVNC 1.0, one of which prevented older
+(RFB <= 3.3) VNC clients from connecting successfully to the TurboVNC Server
+and the other of which prevented clients other than TurboVNC and TightVNC from
+connecting to the TurboVNC Server using no authentication.
+-------------------------------------------------------------------------------
+[2]
+Added a new parameter (EncPassword) to the Java TurboVNC Viewer that allows
+the password to be specified in encrypted ASCII hex.
+-------------------------------------------------------------------------------
+[3]
+The toolbar buttons in the Java TurboVNC Viewer that send keystrokes are now
+disabled when view-only mode is selected.
+-------------------------------------------------------------------------------
+[4]
+Enabled the MIT-SCREEN-SAVER X extension in the TurboVNC Server.  Modern screen
+savers don't actually use this extension, but it provides an easy way for
+applications to query the idle time of the X server.
+-------------------------------------------------------------------------------
+[5]
+Fixed a regression introduced in 1.2 beta1 whereby the TurboVNC Viewer desktop
+shortcut installed with the Linux RPM did not work properly.
+-------------------------------------------------------------------------------
+[6]
+Fixed a bug in the Java TurboVNC Viewer's RRE decoder that was causing pixels
+to be displayed incorrectly.
+-------------------------------------------------------------------------------
+[7]
+Pressing F8 (or the chosen menu key) twice in the Java TurboVNC Viewer now
+sends that keystroke to the VNC server.  This emulates the behavior of the X11
+viewer.
+-------------------------------------------------------------------------------
+[8]
+Added an option to vncserver that allows the output of Xvnc to be redirected
+to an arbitrary file.
+-------------------------------------------------------------------------------
+[9]
+Implemented the X RANDR extension in the TurboVNC Server.  The main purpose of
+this at the moment is to placate applications that check for the extension and
+refuse to start without it.  The extension currently can't be used to change
+the screen size (that feature will be in TurboVNC 1.3.)
+-------------------------------------------------------------------------------
+[10]
+Fixed an issue in the Java TurboVNC Viewer whereby, when a mouse button was
+pressed, pressing another button or activating the scroll wheel would cause the
+viewer to send a release event for the first button.
+-------------------------------------------------------------------------------
+[11]
+Fixed an issue whereby the X11 TurboVNC Viewer would fail to authenticate if
+the encrypted password stored in the connection info file started with "00".
+-------------------------------------------------------------------------------
+[12]
+Fixed an invalid memory access that occurred in the TurboVNC Server after a
+client disconnected.  This had the visible effect of causing an error
+("Could not disable TCP corking: Bad file descriptor") to be printed to the
+TurboVNC Server's log, but it was not known to cause any other issues.
+-------------------------------------------------------------------------------
+[13]
+Fixed an issue that prevented clipboard transfer from working properly with
+applications that request the clipboard selection in a non-ASCII format.  This
+was specifically known to affect rxvt-unicode.
+-------------------------------------------------------------------------------
+[14]
+The Windows TurboVNC Viewer should now build properly with Visual Studio 2012.
+-------------------------------------------------------------------------------
+[15]
+The "Uninstall TurboVNC" app should once again work on OS X 10.5.
+-------------------------------------------------------------------------------
+[16]
+Added two new command-line options to PuTTY, -L4 and -L6.  These work just like
+-L, except that -L4 forces PuTTY to use an IPv4 interface for the client side
+of the SSH tunnel, and -L6 forces PuTTY to use an IPv6 interface for the client
+side of the SSH tunnel.
+-------------------------------------------------------------------------------
+[17]
+Worked around an issue whereby the Java/Mac TurboVNC Viewer would abort with
+"InStream max string length exceeded" when connecting to recent versions of the
+RealVNC Server.  This was due to a protocol conflict.  Apparently, RealVNC
+uses pseudo-encoding number -311 for their CursorWithAlpha extension, but
+TigerVNC uses -311 for ClientRedirect.  At least for now, ClientRedirect has
+been disabled in the Java TurboVNC Viewer by default, but there is a new hidden
+parameter (ClientRedirect) that can be set to 1 to re-enable it.
+-------------------------------------------------------------------------------
+[18]
+Due to an oversight, the 3-button mouse emulation feature in the Windows
+TurboVNC Viewer was being enabled by default.  This has been fixed.  3-button
+mouse emulation is largely unnecessary with modern systems, and the feature is
+known to cause issues with certain applications.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+1.2
+===============================================================================
+[1]
+The Mac TurboVNC Viewer no longer has a separate menu for the "About" and
+"Preferences" options.  As is the case with most Mac applications, these
+options are now accessed from the application menu.
+-------------------------------------------------------------------------------
+[2]
+Opening VNC viewer config (.vnc) files in the OS X Finder or dragging and
+dropping them onto the Mac TurboVNC Viewer icon now works properly.
+Additionally, if a connection is already open, dragging and dropping a .vnc
+file onto the Mac TurboVNC Viewer icon will now open a new connection.
+-------------------------------------------------------------------------------
+[3]
+VNC viewer config (.vnc) files can now be opened in Windows by dragging and
+dropping them onto the Windows TurboVNC Viewer icon.
+-------------------------------------------------------------------------------
+[4]
+The Java TurboVNC Viewer can now be built and run with Java 1.5.  Consequently,
+the Mac TurboVNC Viewer now works with the version of Java shipped with OS X
+10.4 and 10.5.
+-------------------------------------------------------------------------------
+[5]
+Previously, when using the Java TurboVNC Viewer on Mac platforms, the menu bar
+was still visible in full-screen mode, and the dock was still visible if it was
+not set to auto-hide.  The Java/Mac TurboVNC Viewer now takes advantage of the
+OS X Lion full-screen feature, if available, to provide a "true" full-screen
+mode on OS X 10.7 and later.  On OS X 10.6 and earlier, the behavior is
+unchanged.
+-------------------------------------------------------------------------------
+[6]
+Fixed a regression in the new Java TurboVNC Viewer whereby, when used as an
+applet, specifying a host other than the VNC server in the "Server" parameter
+had no effect.
+-------------------------------------------------------------------------------
+[7]
+Fixed various key mapping issues in the Java TurboVNC Viewer:
+-- The viewer now differentiates between the numeric keypad versions of the
+   navigation keys (Home, End, etc.) and their equivalents on the main
+   keyboard.
+-- The viewer now differentiates between the left and right versions of the
+   modifier keys (Alt, Ctrl, etc.)
+-- The viewer now properly handles the AltGr key on international keyboards.
+-- Left Alt key sequences on Mac clients can now be used to activate pull-down
+   menus on Linux/Windows servers.
+-- The Apple keys on Macintosh keyboards can now be used as Windows keys when
+   connecting to Linux and Windows servers.
+-------------------------------------------------------------------------------
+[8]
+The Windows TurboVNC Viewer now properly differentiates between the numeric
+keypad versions of the navigation keys (Home, End, etc.) and their equivalents
+on the main keyboard.
+-------------------------------------------------------------------------------
+[9]
+Fixed a minor issue in the Windows TurboVNC Viewer whereby it would trigger an
+Alt keypress on the remote desktop whenever an AltGr key symbol was typed
+repeatedly.
+-------------------------------------------------------------------------------
+[10]
+Added LSB headers to the TurboVNC Server init.d script (tvncserver) in order
+to avoid insserv errors/warnings with recent Debian releases.
+-------------------------------------------------------------------------------
+[11]
+The TurboVNC Server can now build its font path from a font catalogue, on
+systems that support them (such as RHEL 6.)  vncserver will now check for the
+existence of a font catalogue at /etc/X11/fontpath.d and use it if it exists.
+For systems that do not support font catalogues, vncserver will now check for
+the existence of the Liberation fonts (used by LibreOffice) and the Ghostscript
+fonts and add them to the fontpath.
+-------------------------------------------------------------------------------
+[12]
+Fixed an error that occurred when running '/etc/init.d/tvncserver stop' with
+an empty /etc/sysconfig/tvncservers file.
+-------------------------------------------------------------------------------
+[13]
+Fixed an issue whereby the X11 TurboVNC Viewer would fail with an error message
+of "Password stored in connection info file is invalid" when loading a
+connection info file in which the encrypted password contained "00".
+-------------------------------------------------------------------------------
+[14]
+Fixed an issue with the multi-monitor spanning feature in the Mac/Java TurboVNC
+Viewer whereby the remote desktop would appear on the secondary monitor instead
+of the primary monitor when the span mode was set to "Primary" (or when the
+span mode was set to "Auto" and the remote desktop area was less than the
+primary monitor area.)
+-------------------------------------------------------------------------------
+[15]
+Fixed Xvnc build errors on Solaris and FreeBSD.
+-------------------------------------------------------------------------------
+[16]
+The X11 TurboVNC Viewer will now temporarily ungrab the keyboard if the viewer
+window loses focus while the keyboard is grabbed (when not in full-screen mode,
+this can happen if the user clicks on another window, or if a notification
+dialog from the window manager pops up.)
+-------------------------------------------------------------------------------
+[17]
+Fixed TurboVNC Server build issues that occurred under Ubuntu 13.04 (and
+possibly other new Linux distros.)
+-------------------------------------------------------------------------------
+[18]
+The default xstartup.turbovnc script that the TurboVNC Server creates will now
+use the Gnome fallback window manager on Ubuntu 12.10 and later, assuming that
+the "gnome-session-fallback" package is installed.  TurboVNC cannot use Unity
+3D (yet), and Unity 2D was removed in Ubuntu 12.10 and later.
+-------------------------------------------------------------------------------
+[19]
+Fixed a segfault that occurred when starting the TurboVNC Server on Ubuntu
+13.04 and Fedora 18 (and possibly other new Linux distros.)
+-------------------------------------------------------------------------------
+[20]
+The X11 TurboVNC Viewer will now automatically release the modifier keys if
+the viewer window loses focus.  This fixes an issue whereby using Alt-Tab to
+switch windows would leave the Alt key in a pressed state on the server.
+-------------------------------------------------------------------------------
+[21]
+The Java TurboVNC Viewer was ignoring the PORT parameter when SSH tunneling was
+enabled.  This has been fixed.
+-------------------------------------------------------------------------------
+[22]
+Fixed an issue whereby the Java TurboVNC Viewer window would not close if the
+server disconnected and the viewer was either running in listen mode or it had
+more than one connection open.
+-------------------------------------------------------------------------------
+[23]
+Since there is no way to see the console output in a Java Web Start environment
+or when starting the Java TurboVNC Viewer from an icon, it is difficult or
+impossible in such cases to debug errors that are only displayed to the
+console.  Thus, the Java TurboVNC Viewer now displays all errors both to the
+console and in an error dialog.
+-------------------------------------------------------------------------------
+[24]
+Fixed an issue in the Java TurboVNC Viewer whereby pressing Alt-Tab would
+change the keyboard focus to another window but would not bring the other
+window to the top.  This was originally a feature, not a bug, and was meant to
+be a stopgap substitute for a proper keyboard grabbing feature, but the
+behavior causes confusion and does not achieve the primary goal that a keyboard
+grabber should achieve (sending special keystrokes to the server.)
+-------------------------------------------------------------------------------
+[25]
+Fixed an issue in the TurboVNC Server whereby the value of $desktopName was
+being ignored if it was present in the TurboVNC config file.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+1.2 beta1
+===============================================================================
+[1]
+Modified the default xstartup.turbovnc script so that it loads the 2D rather
+than the 3D version of the window manager on recent Ubuntu systems.  This
+specifically fixes an issue whereby the Unity window manager in Ubuntu 12.04
+would not display its menus.
+-------------------------------------------------------------------------------
+[2]
+Added a command-line switch (-norender) to Xvnc that can be used to disable the
+X RENDER extension.
+-------------------------------------------------------------------------------
+[3]
+Added a command-line option (-xstartup) to vncserver that allows a custom
+startup script to be specified.  This is useful along with the -fg switch,
+because it allows a full-screen application to be launched without a window
+manager and causes the TurboVNC session to terminate when the application
+exits.
+-------------------------------------------------------------------------------
+[4]
+The Java TurboVNC Viewer has been completely rewritten and now supports most of
+the features of the TurboVNC native viewers, as well as all of the features of,
+and a rich GUI inspired by, the TigerVNC 1.2 Java viewer.  In addition, the new
+Java TurboVNC Viewer has the ability to use libjpeg-turbo via JNI to decompress
+JPEG images, giving it levels of performance approaching the native viewers.
+It also has an embedded SSH client and fully-integrated support for SSH
+tunneling.  The new Java viewer now replaces the X11 TurboVNC Viewer on Mac
+systems, since it has higher overall performance on that platform (due to
+performance limitations of XQuartz) and much better usability.
+-------------------------------------------------------------------------------
+[5]
+IPv6 support
+-------------------------------------------------------------------------------
+[6]
+Implemented v0.10 of the X RENDER extension, to address compatibility problems
+with newer applications that assumed v0.10 functionality was available without
+checking for it.
+-------------------------------------------------------------------------------
+[7]
+Overhauled the build and packaging system.  All platforms now use CMake, and
+the Java code can be built either as part of a Unix or Windows build or as
+a stand-alone project.
+-------------------------------------------------------------------------------
+[8]
+Renamed the resource file for the X11 TurboVNC Viewer to "Tvncviewer" to avoid
+conflicts with TightVNC.  This specifically fixes an issue whereby the TurboVNC
+Viewer would display its menus and titlebar incorrectly when running on a
+system that had the TightVNC Viewer installed.
+-------------------------------------------------------------------------------
+[9]
+The Windows TurboVNC Viewer now accepts a scaling factor of "fixedratio" when
+using the /scale switch on the command line.  This was previously called "Auto"
+in the GUI, but the name was changed to match the Java TurboVNC Viewer.
+-------------------------------------------------------------------------------
+[10]
+All default options in the X11 TurboVNC Viewer now have a command-line
+equivalent, which is useful in case the defaults are overridden using a
+resource file.
+-------------------------------------------------------------------------------
+[11]
+Added a keyboard grabbing feature to the Windows TurboVNC Viewer so that it can
+optionally send special keystrokes (Alt-Tab, Ctrl-Esc, Menu key, etc.) to the
+VNC server.  The default behavior of this option is to enable grabbing only in
+full-screen mode (as the X11 TurboVNC Viewer already did), but a command-line
+option (-grabkeyboard) can be used to configure keyboard grabbing to be always
+on or always off.  Additionally, grabbing can always be turned on/off by
+pressing CTRL-ALT-SHIFT-G.  The X11 TurboVNC Viewer has been extended to
+support the same functionality.
+-------------------------------------------------------------------------------
+[12]
+Where possible, the naming of command-line options, resources, menu options,
+and parameters has been reconciled among the Windows, X11, and Java TurboVNC
+Viewers.
+-------------------------------------------------------------------------------
+[13]
+The multi-screen window spanning feature in the Windows TurboVNC Viewer should
+now behave properly when fixed-ratio scaling is used.
+-------------------------------------------------------------------------------
+[14]
+Fixed a logic error in the "automatic" spanning mode of the Windows TurboVNC
+Viewer, whereby it would try to extend the remote desktop window horizontally
+across multiple screens if the remote desktop height was taller than the local
+screen but the width was the same.
+-------------------------------------------------------------------------------
+[15]
+The Windows TurboVNC Viewer will now return a non-zero exit status if it
+encounters an error.  This allows batch scripts to start the viewer with
+'start /wait' and check its exit status.
+-------------------------------------------------------------------------------
+[16]
+The /password option in the Windows TurboVNC Viewer should now work again.
+-------------------------------------------------------------------------------
+[17]
+Fixed an intermittent failure with the idle timeout feature in the TurboVNC
+Server.  This failure was caused by the fact that the X server used a 32-bit
+value to store the number of milliseconds since 1970, and this value was
+wrapping around to 0 every 49 days.  If a TurboVNC Server session was started
+near the end of one of these 49-day cycles and the idle timeout was set for
+several days into the future, the expiration value for the timer would wrap
+around and become lower than the current time, thus causing the TurboVNC Server
+to exit.
+-------------------------------------------------------------------------------
+[18]
+Worked around a bug in the version of TigerVNC Server that ships with
+Red Hat/CentOS 6, whereby dragging links from Firefox (running on the remote
+desktop) to the remote desktop would cause the X11 TurboVNC Viewer to crash.
+-------------------------------------------------------------------------------
+[19]
+Added support for the RFB flow control extensions developed by the TigerVNC
+Project.  Clients that support these extensions (including TurboVNC 1.2 and
+later and TigerVNC 1.2 and later) can receive updates from the server without
+having to explicitly request them, which improves performance on high-latency
+networks.
+-------------------------------------------------------------------------------
+[20]
+The titlebar of all flavors of the TurboVNC Viewer now displays the last
+encoding received from the server rather than the requested encoding.  This is
+useful when connecting to RealVNC and other servers that do not support Tight
+encoding.
+-------------------------------------------------------------------------------
+[21]
+Implemented an interframe comparison engine (ICE) in the TurboVNC Server,
+which prevents duplicate framebuffer updates from being sent as a result of
+an application drawing the same thing over and over again.  The ICE will
+normally be enabled when Compression Level 5 or above is requested by a VNC
+viewer, but you can also enable/disable it manually by passing command-line
+arguments to Xvnc.
+-------------------------------------------------------------------------------
+[22]
+Added experimental (and currently undocumented) support for the -via and
+-tunnel command-line options to the Windows TurboVNC Viewer.  These work the
+same way as the equivalent options in the X11 TurboVNC Viewer.  Currently, they
+require Cygwin SSH, since PLink does not have the ability to detach its process
+after authentication.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+1.1
+===============================================================================
+[1]
+Improved the behavior of the automatic lossless refresh feature so that it
+doesn't send an ALR for screen regions that were sent using JPEG but then
+re-sent using a lossless subencoding (such as color index) prior to the ALR
+being triggered.
+-------------------------------------------------------------------------------
+[2]
+Previously, empty cursors were not encoded correctly by the TurboVNC Server,
+and this caused some VNC viewers (notably, TigerVNC) to render a system default
+cursor instead of the empty cursor.  This has been fixed.
+-------------------------------------------------------------------------------
+[3]
+Fixed the rendering of empty cursors in the X11 TurboVNC Viewer.  This also
+fixed an issue whereby the viewer would crash when opening recent versions of
+xterm in the TurboVNC Server session.
+-------------------------------------------------------------------------------
+[4]
+Fixed a crash (xcb_io.c:507: _XReply: Assertion `!dpy->xcb->reply_data' failed)
+that occurred when running recent versions of twm in a TurboVNC Server session.
+Fixing this also fixed an issue in openSUSE 12 whereby Xvnc would abort with
+"could not open default font 'fixed'".
+-------------------------------------------------------------------------------
+[5]
+The Windows TurboVNC Viewer will now properly switch into/out of full-screen
+mode whenever the "Full-screen mode" check box is selected or de-selected in
+the TurboVNC Viewer Options dialog and a connection is active.
+-------------------------------------------------------------------------------
+[6]
+Fixed an issue whereby the Windows TurboVNC Viewer window would remain on top
+of other windows and dialogs (including dialogs raised by the TurboVNC Viewer
+itself) when exiting full-screen mode.
+-------------------------------------------------------------------------------
+[7]
+Beginning with 1.1 beta, whenever the Windows TurboVNC Viewer left full-screen
+mode, it would set the window size and position to default values.  It now
+restores the window's size and position to the values they had before the
+viewer was placed in full-screen mode.  An option has been added to the system
+menu to manually resize and reposition the window to default values (taking
+into account the spanning option.)
+-------------------------------------------------------------------------------
+[8]
+Added Ctrl-Alt-Shift-F and Ctrl-Alt-Shift-R hotkeys to the X11 TurboVNC
+Viewer to toggle full-screen mode and request a refresh (respectively.)  These
+emulate the behavior of the Windows TurboVNC Viewer.
+-------------------------------------------------------------------------------
+[9]
+Fixed several invalid reads/writes reported by valgrind.  These occurred under
+certain circumstances when a Tight-compatible client disconnected from a
+TurboVNC session, and the issues were known to cause one rare segfault when
+disconnecting from a TurboVNC session that had multithreading and ALR enabled.
+-------------------------------------------------------------------------------
+[10]
+Fixed an issue whereby selecting text in xterm would sometimes cause the
+Windows TurboVNC Viewer to abort with "Failed to open clipboard."
+-------------------------------------------------------------------------------
+[11]
+Fixed an issue whereby clipboard changes were being immediately sent back to
+the viewer as soon as they were received by the server.  This specifically
+caused copy/paste operations in some Windows applications to behave
+incorrectly, since the clipboard contents were being converted from Unicode to
+ASCII when they were bounced back.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+1.1 beta1
+===============================================================================
+[1]
+autocutsel has been replaced with a more robust and configurable clipboard
+transfer mechanism based on the VNC X11 extension and the vncconfig utility
+used by RealVNC.
+-------------------------------------------------------------------------------
+[2]
+The Unix TurboVNC Server now implements the X RENDER extension, which enables
+font anti-aliasing and animated cursors and fixes various issues with KDE 4.
+Additionally, the server now embeds the FreeType library for improved font
+display and compatibility.
+-------------------------------------------------------------------------------
+[3]
+Replaced the broken "software cursor" implementation of rich (full-color)
+cursor rendering in the X11 TurboVNC Viewer with a proper implementation that
+uses the Xcursor library.  This specifically fixes pointer issues that occurred
+when connecting to the Unix TigerVNC 1.2 Server.
+-------------------------------------------------------------------------------
+[4]
+The Unix TurboVNC Server now implements rich (full-color) cursor encoding, so
+viewers that support this RFB extension (including TigerVNC 1.2 and later and
+TurboVNC 1.1 and later) can display full-color animated cursors when connecting
+to the TurboVNC Server.
+-------------------------------------------------------------------------------
+[5]
+Enhanced the screen scaling feature in the Java TurboVNC Viewer and added a GUI
+option to control it.
+-------------------------------------------------------------------------------
+[6]
+Added an idle timeout feature to the Unix TurboVNC Server which, when enabled,
+will cause it to exit automatically whenever a certain number of seconds have
+elapsed since the last active VNC viewer connection.
+-------------------------------------------------------------------------------
+[7]
+Added a '-noxstartup' option to vncserver, which prevents it from executing
+the xstartup.turbovnc script.  This is useful for those who may want to
+occasionally run TurboVNC without a window manager.
+-------------------------------------------------------------------------------
+[8]
+Fixed image corruption that occurred when using the Lossless Tight or Lossless
+Tight + Zlib protocols with the X11 TurboVNC Viewer running on a
+16-bit-per-pixel X server.
+-------------------------------------------------------------------------------
+[9]
+Fixed TurboVNC Server build on ARM-based Linux systems
+-------------------------------------------------------------------------------
+[10]
+Added Xvnc command-line options and authentication configuration file
+directives for disabling clipboard transfer.
+-------------------------------------------------------------------------------
+[11]
+Added two options (-alrqual and -alrsamp) to Xvnc that allow for sending
+automatic lossless refreshes using JPEG rather than mathematically lossless
+images.
+-------------------------------------------------------------------------------
+[12]
+Fixed an issue whereby the Windows TurboVNC Viewer, when running on Windows 7,
+would display an all-white image on one of the monitors in a multi-monitor
+configuration the first time the viewer was switched to full-screen mode.
+-------------------------------------------------------------------------------
+[13]
+Changed the default full-screen behavior in the Windows TurboVNC Viewer such
+that the window only spans multiple monitors if the remote desktop will not
+fit on a single monitor.  Added options to the command line, GUI, and .vnc
+file to allow users to override this behavior and force full-screen windows to
+always occupy one monitor or all monitors.
+-------------------------------------------------------------------------------
+[14]
+Fixed numerous issues with full-screen mode in the X11 TurboVNC Viewer.
+-------------------------------------------------------------------------------
+[15]
+Implemented -autopass option in the Windows TurboVNC Viewer, which works the
+same as the equivalent option in the X11 TurboVNC Viewer.  In both viewers,
+-autopass can now be used with Unix Login Authentication as well.
+-------------------------------------------------------------------------------
+[16]
+Added an option to the F8 menu in the X11 TurboVNC Viewer that allows
+view-only mode to be enabled/disabled on an active VNC connection.
+-------------------------------------------------------------------------------
+[17]
+The TurboVNC Server should now build and run properly on FreeBSD.
+-------------------------------------------------------------------------------
+[18]
+Added ZRLE encoding to the Unix TurboVNC Server, which may improve performance
+with the RealVNC Viewer under certain circumstances.
+-------------------------------------------------------------------------------
+[19]
+The Windows TurboVNC Server (WinVNC) is no longer provided, as it was badly
+broken, and the only way to fix it would have involved a complete
+re-architecture.
+-------------------------------------------------------------------------------
+[20]
+The TurboVNC Server now includes a non-functional implementation of the X Input
+extension, primarily to avoid crashes in recent versions of Gnome that aren't
+smart enough to check for that extension's existence before using it.
+-------------------------------------------------------------------------------
+[21]
+Implemented an authentication plugin mechanism for the Java TurboVNC Viewer,
+which allows sites to write their own external class for obtaining Unix login
+authentication credentials.
+-------------------------------------------------------------------------------
+[22]
+Although there were no known issues with the implementation of the automatic
+lossless refresh feature in TurboVNC 1.0.x, the feature was re-implemented
+without the use of threads, in order to make it easier to maintain.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+1.0.2
+===============================================================================
+[1]
+Fixed seg fault in the Unix TurboVNC Server which occurred under certain rare
+circumstances when disconnecting a viewer from a server that was using multi-
+threaded compression.
+-------------------------------------------------------------------------------
+[2]
+If the user overrides the location of the password file (by passing
+-rfbauth {file} to vncserver), then vncserver will no longer prompt the user to
+create a new VNC password if ~/.vnc/passwd does not exist.
+-------------------------------------------------------------------------------
+[3]
+Fixed seg fault in the Unix TurboVNC Server which occurred under certain rare
+circumstances when shutting down a server that was using multi-threaded
+compression.
+-------------------------------------------------------------------------------
+[4]
+Fixed an issue in the Java TurboVNC Viewer whereby it was sending spurious
+KeyPress/KeyRelease events in conjunction with certain mouse events.
+-------------------------------------------------------------------------------
+[5]
+Numerous build system changes, including the use of CMake for Windows builds
+and support for out-of-tree Xvnc builds.
+-------------------------------------------------------------------------------
+[6]
+Added a '-config' option to the X11 TurboVNC Viewer which allows it to read
+.vnc connection info files saved by the Windows TurboVNC Viewer.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+1.0.1
+===============================================================================
+[1]
+Fixed seg fault in the Unix TurboVNC Server which occurred in the
+miRegionDestroy() function under certain rare circumstances.
+-------------------------------------------------------------------------------
+[2]
+Fixed seg fault in the Unix TurboVNC Server which occurred in the
+cfb32ClippedLineCopy() function under certain rare circumstances.
+-------------------------------------------------------------------------------
+[3]
+vncserver arguments can now be specified in the /etc/sysconfig/tvncservers file
+using an array called VNCSERVERARGS.  This works the same as in RealVNC 4.
+-------------------------------------------------------------------------------
+[4]
+The -via option in the X11 TurboVNC Viewer now uses ephemeral ports to bind
+the client side of the SSH tunnel.  This should prevent port conflicts that
+could occur when multiple vncviewer instances tried to use the -via option
+simultaneously.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+1.0
+===============================================================================
+[1]
+The Windows TurboVNC Viewer should now work properly with displays that use a
+24-bit (as opposed to a 32-bit) pixel format (this includes Remote Desktop and
+Citrix sessions.)
+-------------------------------------------------------------------------------
+[2]
+Eliminated the use of the dangerous alloca() (stack-based allocation) function
+in Xvnc and replaced it with heap-based allocation (malloc() and free().)
+-------------------------------------------------------------------------------
+[3]
+Eliminated a segfault in pthread_join() which would occur under certain
+circumstances when using multithreading in the TurboVNC Server.
+-------------------------------------------------------------------------------
+[4]
+To maintain consistency with other versions of VNC, added -nohttpd option to
+vncserver as an alias for -nohttp.
+-------------------------------------------------------------------------------
+[5]
+Fixed an issue whereby certain applications which draw hundreds of
+thousands of tiny lines or points on the screen would cause the TurboVNC Viewer
+to abort with an "unhandled message type" error or would cause the viewer to
+freeze for several minutes.
+-------------------------------------------------------------------------------
+[6]
+Fixed a security loophole whereby RealVNC clients were able to connect with a
+blank password if PAM and OTP authentication were enabled on the TurboVNC
+Server and the OTP was not set.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+1.0 beta1
+===============================================================================
+[1]
+Multi-threaded the Tight encoder in the Unix/Linux TurboVNC Server so that it
+can take advantage of multi-core systems.  See documentation for further
+details.
+-------------------------------------------------------------------------------
+[2]
+Added authentication extensions which allow clients to authenticate using
+one-time passwords and Unix login credentials.  See documentation and man pages
+for details.
+-------------------------------------------------------------------------------
+[3]
+Added scroll wheel support to the Java TurboVNC viewer (requires JRE 1.4 or
+later.)
+-------------------------------------------------------------------------------
+[4]
+Added automatic lossless refresh (ALR) feature, which sends a mathematically
+lossless copy of the screen during periods of inactivity.  See documentation
+for details.
+-------------------------------------------------------------------------------
+[5]
+For Linux, Mac/Intel, Solaris/x86, and Windows systems, the default build of
+TurboVNC no longer uses TurboJPEG/IPP (which was based on the proprietary
+Intel Performance Primitives) or Sun mediaLib.  Instead, TurboVNC now uses
+libjpeg-turbo, a fully open source vector-accelerated JPEG codec developed in
+conjunction with the TigerVNC Project (and based on libjpeg/SIMD.)
+
+As a result of this, the TurboVNC RPMs and DEBs are now self-contained.
+-------------------------------------------------------------------------------
+[6]
+The uninstall script in the Mac distribution package should now work on OS X
+10.6.
+-------------------------------------------------------------------------------
+[7]
+Added 64-bit Solaris and Windows binary packages, as well as a universal
+32/64-bit binary package for OS X.
+-------------------------------------------------------------------------------
+[8]
+Fixed a number of interaction issues between turbovncserver.conf and the
+vncserver script, and added configuration file options for the new TurboVNC
+features, such as ALR.
+-------------------------------------------------------------------------------
+[9]
+Performance of the OS X viewer should generally be better (prior versions were
+not being built with compiler optimizations, due to the use of the antiquated
+imake build system.)
+-------------------------------------------------------------------------------
+[10]
+Generally robustified 'vncserver -kill'.  In this release, if Xvnc aborts
+unexpectedly for any reason, then attempting to run 'vncserver -kill :N' for
+the session will print a warning message about the process aborting and will
+then try to clean up the orphaned X socket files.  If Xvnc deadlocks, then
+attempting to run 'vncserver -kill :N' will warn about the deadlock and forego
+deleting the PID file (so you can kill -9 the process yourself and then re-run
+vncserver -kill to clean up the orphaned files.)
+-------------------------------------------------------------------------------
+[11]
+Integrated autocutsel into the TurboVNC Server distribution for Unix/Linux in
+order to work around issues with the clipboard transfer feature.
+-------------------------------------------------------------------------------
+[12]
+In the Windows TurboVNC Viewer, full-screen mode will now span all monitors in
+a multi-monitor configuration, not just the primary monitor.
+-------------------------------------------------------------------------------
+[13]
+Added automatic clipboard transfer to the Java TurboVNC Viewer.
+-------------------------------------------------------------------------------
+[14]
+Removed the warning dialog in the Windows viewer if full screen mode is
+activated via a hotkey (the reasoning being that if the user knows the hotkey
+to activate full screen mode, then they know how to deactivate it as well.)
+-------------------------------------------------------------------------------
+[15]
+Fixed an issue whereby the TurboVNC Server would crash when a VirtualGL window
+was resized to larger than 2.75 megapixels.
+-------------------------------------------------------------------------------
+[16]
+Added double buffering option to Java TurboVNC Viewer.
+-------------------------------------------------------------------------------
+[17]
+"Login again" button now works when running the Java TurboVNC Viewer as a
+standalone application.
+-------------------------------------------------------------------------------
+[18]
+Fix a couple of potential buffer overruns in Xvnc's embedded HTTP server.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+0.6
+===============================================================================
+[1]
+Integrated TightVNC 1.3.10 enhancements and fixes, including 64-bit support
+for Linux and Solaris.  See the TightVNC Change Log (WhatsNew or WhatsNew.txt)
+for more details.
+-------------------------------------------------------------------------------
+[2]
+When connecting a TigerVNC or TightVNC Viewer to a TurboVNC server, the
+TurboVNC server will now translate JPEG quality levels into actual JPEG
+quality and subsampling using the same translation table used by the TigerVNC
+Server.  See the TurboVNC User's Guide for more details.
+-------------------------------------------------------------------------------
+[3]
+Created the TurboVNC User's Guide, which mostly consists of the TurboVNC
+chapters that were formerly in the VirtualGL User's Guide.
+-------------------------------------------------------------------------------
+[4]
+Fixed an issue on OpenSolaris whereby a TurboVNC session would start but would
+display a blank X Windows screen with no window manager.  This was due to the
+vncserver script passing an argument of "-nolisten local" to Xvnc on all Sun
+platforms, and this doesn't work on OpenSolaris.  The "-nolisten local" option
+was necessary to get Xvnc to work on earlier versions of Solaris, but it is no
+longer necessary with Solaris 10.  If you are running TurboVNC on an older
+Solaris release, then you can pass "-nolisten local" to
+/opt/TurboVNC/bin/vncserver to get back the behavior of TurboVNC 0.5.x (or
+uncomment that line in the vncserver script.)
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+0.5.1
+===============================================================================
+[1]
+Fixed a buffer overrun issue in TurboJPEG/mediaLib that may have caused
+problems on Solaris/x86 TurboVNC servers.
+-------------------------------------------------------------------------------
+[2]
+Developed a proper uninstaller app for the Mac OS X TurboVNC package.
+-------------------------------------------------------------------------------
+[3]
+Modified MAXINST variable in SUNWtvnc Solaris package to prevent multiple
+instances of this package from being installed simultaneously.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+0.5
+===============================================================================
+[1]
+The Windows TurboVNC Server now works properly (albeit more slowly) when the
+server's graphics card is configured for a 16-bit pixel depth.
+-------------------------------------------------------------------------------
+[2]
+0.4 [12] was supposed to allow vncserver to work even if xauth was not in the
+PATH, but unfortunately there was a bug in that patch.  This bug has been
+fixed, so vncserver should now really work if xauth is not in the PATH.
+-------------------------------------------------------------------------------
+[3]
+It was discovered that pure JPEG encoding was not the most efficient method of
+compression for all 3D image workloads.  Particularly, CAD applications and
+other types of applications that generate images with sharp edges and reduced
+color palettes compress much better with traditional Tight encoding.  However,
+traditional Tight encoding is too slow to stream real-time full-screen 3D
+images.  Thus, a hybrid scheme was developed which uses the fastest elements
+of Tight encoding with minimal Zlib compression for low-color-depth image tiles
+and continues to use TurboJPEG for high-color-depth image tiles.  The
+resulting compression scheme should be both tighter and faster than the pure
+TurboJPEG protocol used by previous versions of TurboVNC.
+-------------------------------------------------------------------------------
+[4]
+The Unix TurboVNC Server now executes ~/.vnc/xstartup.turbovnc instead of
+~/.vnc/xstartup.  This is to avoid conflicts with other VNC flavors.
+-------------------------------------------------------------------------------
+[5]
+Shift-Click and Control-Click now work properly when using the X11 TurboVNC
+Viewer.
+-------------------------------------------------------------------------------
+[6]
+Further optimized the Huffman encoder in the mediaLib implementation of
+TurboJPEG.  This should decrease the CPU usage when running TurboVNC on
+Solaris servers, particularly Solaris/x86 servers.
+-------------------------------------------------------------------------------
+[7]
+When running in OpenSolaris, the default xstartup.turbovnc file did not launch
+JDS, since the JDS launch script is in a different location on that platform.
+This resulted in a TurboVNC session that had no window manager.  This has been
+fixed.
+-------------------------------------------------------------------------------
+[8]
+Increased TCP send buffer size to 64k in the Windows TurboVNC Server.  This
+should improve performance significantly.
+-------------------------------------------------------------------------------
+[9]
+Generally improved compatibility with TightVNC and RealVNC.  This included
+adding back in the Hextile decoder to the TurboVNC Viewer and adding back in
+support for 8-bit and 16-bit color depths (in both the viewer and the server.)
+See the TurboVNC Compatibility Guide for more information.
+-------------------------------------------------------------------------------
+[10]
+Changed default pixel format for Solaris TurboVNC servers to ARGB/BGRA.  This
+should improve performance by a bit on SPARC servers.
+-------------------------------------------------------------------------------
+[11]
+Added 200% scaling option to the Windows TurboVNC Viewer GUI.
+-------------------------------------------------------------------------------
+[12]
+The TurboVNC server script now tries to figure out an appropriate font path for
+the system rather than using the X Font Server, since xfs is not universally
+available.  If the script fails to figure out an appropriate font path, then
+it will fall back to using xfs.
+-------------------------------------------------------------------------------
+[13]
+Changed the scrollbar behavior in the X11 TurboVNC Viewer to more closely
+match that of "modern" windowing systems, in which the left mouse button is
+used to scroll in both directions.
+-------------------------------------------------------------------------------
+[14]
+Fixed an issue whereby Gnome would fail to start on SuSE 10 machines if CSh
+was the default shell.  The issue was that /opt/gnome/bin was not being added
+to the PATH by /etc/csh.cshrc.  This was worked around by adding it to the
+PATH in ~/.vnc/xstartup.turbovnc.
+-------------------------------------------------------------------------------
+[15]
+On Solaris machines, TurboVNC will attempt to load the window manager startup
+script specified in ~/.dt/sessions/lastsession.  This caused problems if the
+home directory was shared among multiple machines and the startup script did
+not exist on some of the machines (for instance, if the user's default
+windowing environment was JDS but they attempted to start TurboVNC on an older
+Solaris machine that had only CDE.)  This has been fixed by adding a line to
+xstartup.turbovnc which checks to make sure that the script specified in
+~/.dt/sessions/lastsession exists and is executable before executing it.
+-------------------------------------------------------------------------------
+[16]
+Fixed a bug in the color conversion routines of TurboJPEG/mediaLib which
+caused the Solaris TurboVNC Viewer to display spurious multi-colored vertical
+lines when 2X or 4X subsampling was used.
+-------------------------------------------------------------------------------
+[17]
+When requesting a Lossless Refresh using the TurboVNC Viewer on a Linux or
+Solaris/x86 client, the pixels obscured by the F8 dialog will be regenerated
+using lossy compression after the lossless refresh has occurred.  This makes
+the lossless refresh somewhat ineffective.  We were not able to find a fix
+for this in 0.5, but as a workaround, you can now use the hotkey sequence
+CTRL-ALT-SHIFT-L to request a Lossless Refresh without popping up the F8
+dialog.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+0.4
+===============================================================================
+[1]
+Added relevant patches from TightVNC 1.3.9
+-------------------------------------------------------------------------------
+[2]
+Added lossless refresh feature, which instructs the server to send a
+mathematically lossless (Zlib-encoded RGB) copy of the current screen.  This
+feature does not currently work with the Windows TurboVNC Server, because the
+Windows TurboVNC Server processes framebuffer update requests asynchronously.
+-------------------------------------------------------------------------------
+[3]
+Modified /opt/TurboVNC/bin/vncserver so that it invokes Xvnc with the arguments
+'-deferupdate 1'.  This sets the deferred update timer to 1 ms rather than its
+default value of 40 ms, which has two effects:
+
+(a) It improves the performance of Solaris TurboVNC servers dramatically when
+connecting to them over a high-speed network.
+
+(b) It eliminates the need for the "High-Latency Network" switch in the
+TurboVNC Viewer.  In prior versions of TurboVNC, leaving this switch on when
+connecting over a high-speed network incurred a severe performance penalty.
+Since this is no longer the case, the switch is left on all the time and is no
+longer configurable.
+
+NOTE:  The performance penalty described in (b) will still be incurred when
+connecting a TurboVNC 0.4 viewer to an older (pre-0.4) TurboVNC server over a
+high-speed network.  Start the server with
+'/opt/TurboVNC/bin/vncserver -deferupdate 1' to avoid this, or simply upgrade
+the server to 0.4.
+-------------------------------------------------------------------------------
+[4]
+Added an option for lossless (uncompressed RGB) image encoding.  This is useful
+for reducing CPU usage on the server and client (at the expense of increased
+network usage) when connecting over a gigabit (or faster) network.
+-------------------------------------------------------------------------------
+[5]
+Added a "Medium Quality" connection profile to the Windows, X11, and Java
+TurboVNC Viewers (and subsequently removed the "Broadband (favor image
+quality)" profile, which is no longer necessary due to [3].)  The "Medium
+Quality" profile sets the JPEG quality to 80 with 2X chrominance subsampling,
+which (on average) should use about half the bandwidth of the "High Quality"
+profile (quality=95, no subsampling) and twice the bandwidth of the "Low
+Quality" profile (quality=30, 4x subsampling.)
+-------------------------------------------------------------------------------
+[6]
+Added an additional subsampling option to enable grayscale JPEG encoding.
+This provides additional bandwidth savings over and above chrominance
+subsampling, since grayscale throws away all chrominance pixels.  It is
+potentially useful when working with applications that already render grayscale
+images (medical imaging, etc.)
+-------------------------------------------------------------------------------
+[7]
+Fixed embedded Java viewer on Windows TurboVNC servers (.jar file did not
+include all of the necessary classes)
+-------------------------------------------------------------------------------
+[8]
+Created symlink from /opt/TurboVNC to /opt/SUNWtvnc in the Solaris packages so
+that Solaris and Linux would have a consistent interface.
+-------------------------------------------------------------------------------
+[9]
+Removed unnecessary pixel format translation when sending JPEG from a big
+endian server to a little endian client (or vice versa.)  This improves
+performance a bit when connecting x86 clients to Sparc servers or vice versa.
+-------------------------------------------------------------------------------
+[10]
+Included mediaLib Huffman encoding optimizations contributed by Sun.  This
+boosts the performance of the Solaris TurboVNC server and client by as much as
+30%.
+-------------------------------------------------------------------------------
+[11]
+Changed default geometry to 1240x900, an appropriate size for most 1280x1024
+displays.
+-------------------------------------------------------------------------------
+[12]
+vncserver now looks for xauth in /usr/X11R6/bin and /usr/openwin/bin before
+searching the PATH.  Those directories are sometimes not in the PATH on Linux
+and Solaris systems.
+-------------------------------------------------------------------------------
+[13]
+Modified Mac package such that /opt/TurboVNC/bin/vncviewer links to
+/opt/TurboVNC/lib/libturbojpeg.dylib rather than to
+/opt/VirtualGL/lib/libturbojpeg.dylib (oops.)  This was causing the Mac
+TurboVNC Viewer to fail unless VirtualGL was also installed.
+-------------------------------------------------------------------------------
+[14]
+Included an optimized version of PuTTY 0.60 in the Windows build (and viewer
+package.)  It is recommended that this version be used when tunneling
+TurboVNC connections over SSH, as it will perform as much as 4X as fast as
+the stock version of PuTTY 0.60.
+-------------------------------------------------------------------------------
+[15]
+Fixed bug in vncserver script which was uncovered by running it with recent
+versions of Perl.
+-------------------------------------------------------------------------------
+[16]
+Changed name of options registry key to avoid conflict with TightVNC
+-------------------------------------------------------------------------------
+[17]
+Open Java viewer in a new window (edit /opt/TurboVNC/vnc/classes/index.vnc to
+change this back.)
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+0.3.3
+===============================================================================
+[1]
+Added a new preset to all VNC viewers which allows the user to select both the
+WAN protocol optimizations and perceptually lossless image quality.
+-------------------------------------------------------------------------------
+[2]
+Added '-list' option to vncserver which lists all VNC sessions (not just
+TurboVNC sessions) running under the current user account on the current
+machine.  This new option is documented in the VGL/TVNC docs as well as the
+TurboVNC man pages.
+-------------------------------------------------------------------------------
+[3]
+vncserver will no longer fail if the USER environment variable is unset.  That
+environment variable is unused in the script, so checking for its presence was
+apparently a vestigial feature.
+-------------------------------------------------------------------------------
+[4]
+Modified Windows build to embed a proper version number in TurboVNC.exe.
+-------------------------------------------------------------------------------
+[5]
+Changed the fallback logic in the default ~/.vnc/xstartup file so that Gnome is
+used as the window manager on Solaris if it is available and if
+~/.dt/sessions/lastsession doesn't exist.  Otherwise, CDE is used.
+-------------------------------------------------------------------------------
+[6]
+Fixed an issue whereby Gnome would fail to start in TurboVNC if TurboVNC was
+launched from within another X session.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+0.3.2
+===============================================================================
+[1]
+Incorporated TightVNC 1.3.8 patches (where applicable)
+-------------------------------------------------------------------------------
+[2]
+Now using a single RPM to support multiple Linux distributions.
+-------------------------------------------------------------------------------
+[3]
+Fixed a couple of issues in the fallback logic of the default ~/.vnc/xstartup
+script.  It should now properly run fvwm2 or twm if KDE, CDE, or Gnome are not
+available.
+-------------------------------------------------------------------------------
+[4]
+First pass at a Mac build of the TurboVNC Viewer.  The Mac version is an X11
+Unix app and thus needs to be run inside an xterm.  It should otherwise behave
+and perform identically to the Linux version.
+-------------------------------------------------------------------------------
+[5]
+Increased the size of the TurboJPEG compression holding buffer to account for
+rare cases in which compressing very high-frequency image tiles (specifically
+parts of the 3D Studio MAX Viewperf test) with high quality levels
+(specifically Q99 or above) would produce JPEG images that are larger than the
+uncompressed input.
+
+Linux users will need to upgrade to the TurboJPEG 1.04 RPM to get this fix.
+For other platforms, the fix is included in the TurboVNC 0.3.2 packages.
+-------------------------------------------------------------------------------
+[6]
+Added '-fg' switch to vncserver to make it (optionally) run in the foreground.
+This allows you to kill the VNC server by pressing CTRL-C in the shell you used
+to start it.  When in foreground mode, you can also kill the VNC server by
+logging out of the window manager inside the VNC session.
+-------------------------------------------------------------------------------
+[7]
+The /etc/init.d/tvncserver script, which can be used to launch multiple
+TurboVNC servers at boot time, should now work properly on SuSE systems.
+-------------------------------------------------------------------------------
+[8]
+Added TurboVNC protocol optimizations to the Java viewer and made its
+configuration options match the other TurboVNC viewers.  The Java viewer still
+uses a slower codec, so it is about 3X slower in a LAN environment than the
+native viewer.  The Java viewer also lacks double buffering support.  But with
+these new optimizations, the native and Java viewers should now perform
+similarly over a wide-area network.
+-------------------------------------------------------------------------------
+[9]
+Added a '-password' option to the Windows TurboVNC Viewer to allow one to pass
+the VNC password as plain text.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+0.3.1
+===============================================================================
+[1]
+Automatically start Xvnc with '-nolisten local' on Solaris servers.  On
+Solaris, /tmp/.X11-unix is not world writable by default, so it is necessary to
+either start Xvnc with '-nolisten local' (which forces Xvnc to listen on a tcp
+port rather than a local pipe) or to make /tmp/.X11-unix world writable.  The
+former approach seemed like the lesser of two evils.
+-------------------------------------------------------------------------------
+[2]
+The vncserver startup script now sets VGL_COMPRESS to 0 automatically, so it is
+no longer necessary to supply a '-c 0' argument to vglrun when running inside a
+TurboVNC session.
+-------------------------------------------------------------------------------
+[3]
+The JPEG quality slider in the Unix client's F8 popup menu will now respond to
+any mouse button, not just the middle one.
+-------------------------------------------------------------------------------
+[4]
+The WAN protocol optimizations can now be switched on and off.  It has been
+discovered that these optimizations produce slower performance on a LAN, so it
+is preferable only to use them on high-latency networks.
+
+On the Windows client, the "Broadband/T1" preset now enables the WAN protocol
+optimizations in addition to setting quality=30 and subsampling=4:1:1.
+Similarly, the "High-speed Network" preset disables WAN optimizations in
+addition to setting quality=95 and subsampling=4:4:4.  WAN optimizations can
+also be configured via. an additional check box ("High-Latency Network") in the
+Options dialog or through two new command line switches: /lan and /wan.
+
+On the Linux/Unix client (vncviewer), the default is no WAN optimizations,
+quality=95, and subsampling=4:4:4.  You can specify an argument of '-wan' to
+enable WAN optimizations or '-broadband' to enable WAN optimizations,
+quality=30, and subsampling=4:1:1.  The F8 popup menu also contains a new
+button for enabling/disabling WAN optimizations, and the Broadband and LAN
+presets in this window will enable and disable WAN optimizations
+(respectively.)
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+0.3
+===============================================================================
+[1]
+Solaris/x86 support
+-------------------------------------------------------------------------------
+[2]
+Added a JPEG quality slider to the Unix/Linux F8 popup menu in vncviewer
+-------------------------------------------------------------------------------
+[3]
+Patches from TightVNC 1.3dev7, including a great many usability improvements on
+the Windows client
+-------------------------------------------------------------------------------
+[4]
+Improved performance on broadband connections
+-------------------------------------------------------------------------------
