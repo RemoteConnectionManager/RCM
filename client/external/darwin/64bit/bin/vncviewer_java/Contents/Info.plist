@@ -3,15 +3,15 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleGetInfoString</key>
-	<string>1.2.1, The VirtualGL Project</string>
+	<string>1.2.2, The VirtualGL Project</string>
 	<key>CFBundleName</key>
 	<string>TurboVNC Viewer</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.turbovnc.vncviewer.VncViewer</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.2.1</string>
+	<string>1.2.2</string>
 	<key>CFBundleVersion</key>
-	<string>20131122</string>
+	<string>20141030</string>
 	<key>CFBundleExecutable</key>
 	<string>JavaApplicationStub</string>
 	<key>CFBundlePackageType</key>
