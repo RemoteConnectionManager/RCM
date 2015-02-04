@@ -34,6 +34,9 @@ class rcm_base_server:
 
     def get_timelimit(self):
 	return self.pconfig.confdict.get(('walltimelimit',self.queue),self.notimeleft_string)
+
+    def get_use_tunnel(self):
+	return self.pconfig.confdict.get(('platform','usetunnel'),'n')
     
     def set_vnc_setup(self,id):
 	if self.vnc_command_in_background(): self.substitutions['vnc_foreground']=''
@@ -333,7 +336,8 @@ done"""
             (n,d,otp)=self.wait_jobout(sid,400)
             #here we test if hostname returned by jobout is the same host (ssh case)
             if(n == socket.gethostname()): 
-                tunnel='n'
+		print "setto il tunnel a ", self.get_use_tunnel()
+                tunnel=self.get_use_tunnel()
             else:
                 tunnel='y'
             #n+='ib0'
