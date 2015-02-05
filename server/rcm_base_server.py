@@ -336,7 +336,7 @@ done"""
             (n,d,otp)=self.wait_jobout(sid,400)
             #here we test if hostname returned by jobout is the same host (ssh case)
             if(n == socket.gethostname()): 
-		print "setto il tunnel a ", self.get_use_tunnel()
+		#print "setto il tunnel a ", self.get_use_tunnel()
                 tunnel=self.get_use_tunnel()
             else:
                 tunnel='y'
