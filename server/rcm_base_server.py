@@ -38,9 +38,10 @@ class rcm_base_server:
     def get_use_tunnel(self):
 	return self.pconfig.confdict.get(('platform','usetunnel'),'n')
     
-    def set_vnc_setup(self,id):
+    def set_vnc_setup(self, id):
 	if self.vnc_command_in_background(): self.substitutions['vnc_foreground']=''
-        self.vnc_setup = self.pconfig.vnc_attrib_subst(id,'vnc_setup',subst=self.substitutions)
+
+	self.vnc_setup = self.pconfig.vnc_attrib_subst(id,'vnc_setup',subst=self.substitutions)
 	self.substitutions['RCM_MODULE_SETUP']= self.vnc_setup
 	self.substitutions['RCM_VNCSERVER'] = self.pconfig.vnc_attrib_subst(id,'vnc_command',subst=self.substitutions)
 
@@ -364,3 +365,4 @@ if __name__ == '__main__':
 	print "rcmdirs:",s.get_rcmdirs()
 	print "fill_sessions_hash:",s.fill_sessions_hash()
 	print "load sessions:",s.load_sessions()
+	print "vnc_setup for turbovnc:",s.set_vnc_setup('kde_turbovnc_vnc')
