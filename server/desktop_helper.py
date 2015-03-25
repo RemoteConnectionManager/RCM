@@ -42,7 +42,7 @@ class desktop_helper():
      @{icon}
      Name=@{name}
      StartupNotify=false
-     Terminal=false
+     Terminal=@{terminal}
      TerminalOptions=
      Type=Application
 '''   
@@ -62,6 +62,7 @@ class desktop_helper():
         self.op.add_option("--vglrun",action="store_true", dest="vglrun",default=False,help='flag to set vglrun usage')
         #self.op.add_option("--clean_links",action="store_true", dest="clean_links",default=False,help='clean dangling links fron removed modules')
         self.op.add_option("--add_link",action="store_true", dest="add_link",default=False,help='add link in common tools')
+        self.op.add_option("--terminal",action="store_true", dest="terminal",default=False,help='open desktop terminal')
        
 
     def parse(self,argv=None):
@@ -119,6 +120,11 @@ class desktop_helper():
                 else:
                     print "WARNING: icon file "+ options.icon_file +" not exists"
 
+            if options.terminal :
+                self.desk_subst['terminal']="true"
+            else:
+                self.desk_subst['terminal']="false"
+
 
             shell_file_content='#!/bin/bash\n'
 #######  handling of command_string        
@@ -133,7 +139,7 @@ class desktop_helper():
                 shell_file_content+='shopt -s expand_aliases\n'
                 command_string='vglrun '+command_string
 
-            shell_file_content+='module load autoload '+ module_name +'\n'
+            shell_file_content+='module load autoload virtualgl '+ module_name +'\n'
             shell_file_content+=options.env_string+'\n'
             shell_file_content+= command_string + ' $@'
 
