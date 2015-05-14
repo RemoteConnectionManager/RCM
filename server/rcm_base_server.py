@@ -243,7 +243,8 @@ class rcm_base_server:
                      os.remove(fDest)
                  except:
                      pass
-                 os.link(f,fDest)
+                 #os.link(f,fDest)
+                 shutil.copy2(f,fDest)
              
       
     def clean_files(self,sid):
