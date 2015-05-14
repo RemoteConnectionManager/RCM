@@ -243,7 +243,7 @@ class rcm_base_server:
                      os.remove(fDest)
                  except:
                      pass
-                 os.symlink(f,fDest)
+                 os.link(f,fDest)
              
       
     def clean_files(self,sid):
