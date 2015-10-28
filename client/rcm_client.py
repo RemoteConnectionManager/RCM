@@ -135,7 +135,7 @@ class rcm_client_connection:
 
         
         try:
-            ssh.connect(commandnode, username=self.remoteuser, password=self.passwd)
+            ssh.connect(commandnode, username=self.remoteuser, password=self.passwd, timeout=10)
         except Exception as e: 
             module_logger.warning("ERROR {0}: ".format( e)+"in ssh.connect to node->"+ commandnode +"< user->"+self.remoteuser+"<" )  
             return('') 
