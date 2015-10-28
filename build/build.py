@@ -39,4 +39,4 @@ pythoncommand='python '
 #disabledif(sys.platform == 'darwin'):
 #disabled	os.environ['VERSIONER_PYTHON_PREFER_32_BIT']='1'
 #disabled	pythoncommand='arch -i386 python '
-os.system(pythoncommand + os.path.join(root,'PyInstaller','PyInstaller-2.1','utils','build.py') + ' --distpath='+ DISTPATH + ' ' + tmpFile)
+os.system(pythoncommand + os.path.join(root,'PyInstaller','PyInstaller-3.0','pyinstaller.py') + ' --distpath='+ DISTPATH + ' ' + tmpFile)

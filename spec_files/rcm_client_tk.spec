@@ -1,4 +1,5 @@
 # -*- mode: python -*-
+import sys
 import platform
 import hashlib
 import subprocess
