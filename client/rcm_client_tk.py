@@ -643,7 +643,7 @@ class newDisplayDialog(tkSimpleDialog.Dialog):
         self.displayDimension = NONE
         self.queue = StringVar()
         self.vnc = StringVar()
-        queueList = self.queues.keys()
+        queueList = sorted(self.queues.keys())
         vncList=self.vnc_menu.keys()
         self.queue.set(queueList[0])
         self.vnc.set(vncList[0])
