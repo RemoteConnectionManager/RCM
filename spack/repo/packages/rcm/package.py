@@ -54,6 +54,5 @@ class Rcm(Package):
     depends_on('turbovnc')
 
     def install(self, spec, prefix):
-        # FIXME: Unknown build system
-        make()
-        make('install')
+        # Sublime text comes as a pre-compiled binary.
+        copy_tree('.', prefix.bin)
