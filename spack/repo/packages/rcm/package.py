@@ -38,6 +38,9 @@
 # please first remove this boilerplate and all FIXME comments.
 #
 from spack import *
+from distutils.dir_util import copy_tree
+#from distutils.dir_util import mkpath
+import os
 
 
 class Rcm(Package):
@@ -49,10 +52,14 @@ class Rcm(Package):
     url      = "https://github.com/RemoteConnectionManager/RCM/archive/0.0.1.tar.gz"
 
     version('0.0.1', '658770296b4a1ccb5af28c9aa1545f7d')
+    version('develop', git='https://github.com/RemoteConnectionManager/RCM.git')
 
     # FIXME: Add dependencies if required.
     depends_on('turbovnc')
 
     def install(self, spec, prefix):
         # Sublime text comes as a pre-compiled binary.
-        copy_tree('.', prefix.bin)
+        #print("sono qui!!!! in "+os.path.abspath('server')+'<--->'+prefix.bin)
+#        mkpath(prefix.bin)
+        copy_tree('server', os.path.join(prefix.bin,'server'),verbose=1)
+        copy_tree('config/generic/ssh', os.path.join(prefix.bin,'config'),verbose=1)
