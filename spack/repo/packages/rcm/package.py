@@ -55,7 +55,9 @@ class Rcm(Package):
     version('develop', git='https://github.com/RemoteConnectionManager/RCM.git')
 
     # FIXME: Add dependencies if required.
-    depends_on('turbovnc')
+    depends_on('turbovnc', type=nolink)
+    depends_on('lxde-lxterminal', type=nolink)
+    depends_on('fluxbox', type=nolink)
 
     def install(self, spec, prefix):
         # Sublime text comes as a pre-compiled binary.
