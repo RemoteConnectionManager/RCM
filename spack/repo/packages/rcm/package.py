@@ -58,6 +58,7 @@ class Rcm(Package):
     depends_on('turbovnc', type='run')
     depends_on('lxde-lxterminal', type='run')
     depends_on('fluxbox', type='run')
+    depends_on('xdpyinfo', type='run')
 
     def install(self, spec, prefix):
         # Sublime text comes as a pre-compiled binary.
