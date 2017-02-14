@@ -40,6 +40,7 @@
 from spack import *
 from distutils.dir_util import copy_tree
 #from distutils.dir_util import mkpath
+import llnl.util.tty as tty
 import os
 
 
@@ -54,15 +55,30 @@ class Rcm(Package):
     version('0.0.1', '658770296b4a1ccb5af28c9aa1545f7d')
     version('develop', git='https://github.com/RemoteConnectionManager/RCM.git')
 
+    variant('linksource', default=False, description='link to source instead of coying scripts')
+    variant('client', default=False, description='install client part')
+    variant('server', default=True, description='install server part')
+
     # FIXME: Add dependencies if required.
     depends_on('turbovnc', type='run')
     depends_on('lxde-lxterminal', type='run')
     depends_on('fluxbox', type='run')
     depends_on('xdpyinfo', type='run')
+    depends_on('xedit', type='run')
 
     def install(self, spec, prefix):
         # Sublime text comes as a pre-compiled binary.
         #print("sono qui!!!! in "+os.path.abspath('server')+'<--->'+prefix.bin)
 #        mkpath(prefix.bin)
-        copy_tree('server', os.path.join(prefix.bin,'server'),verbose=1)
-        copy_tree('config/generic/ssh', os.path.join(prefix.bin,'config'),verbose=1)
+        if '+server' in self.spec:
+            mkdirp(prefix.bin)
+            if '+linksource' in self.spec:
+                server_source=os.path.abspath(self.stage.source_path)
+                tty.warn('linking to source->'+server_source)
+                os.symlink(os.path.join(server_source,'server'),
+                           os.path.join(prefix.bin,'server'))
+                os.symlink(os.path.join(server_source,'config/generic/ssh'),
+                           os.path.join(prefix.bin,'config'))
+            else:
+                copy_tree('server', os.path.join(prefix.bin,'server'),verbose=1)
+                copy_tree('config/generic/ssh', os.path.join(prefix.bin,'config'),verbose=1)
