@@ -21,7 +21,7 @@ class rcm_session:
         pickle.dump(self.hash, open( file, "wb" ) )
     
     def get_string(self):
-	return pickle.dumps(self.hash)
+        return pickle.dumps(self.hash)
 
     def write(self,format):
         #print "server output->"
