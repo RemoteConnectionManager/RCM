@@ -12,6 +12,7 @@ class baseconfig:
 	self.options=dict()
 
     def parse(self,configfile=''):
+        #print "WARNING __file__  -->"+os.path.abspath(__file__)
         config = ConfigParser.RawConfigParser()
 	if(not configfile):
 	    myPath =   os.path.join(

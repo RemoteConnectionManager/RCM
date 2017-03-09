@@ -94,8 +94,9 @@ class rcm_server(rcm_base_server.rcm_base_server):
     self.substitutions['RCM_CLEANPIDS']=self.clean_pids_string
     self.substitutions['RCM_VNCPASSWD']=self.vncpassword
 
+    group=os.environ.get('ACCOUNT_NUMBER',os.path.basename(os.environ.get('WORK','')))
 
-    group = self.getQueueGroup(self.queue) 
+    #group = self.getQueueGroup(self.queue) 
       
     #For reserved queue set only "select=1"   
     queueParameter = "select=1"
@@ -104,6 +105,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
     self.substitutions['RCM_QUEUEPARAMETER']=queueParameter
     
     self.substitutions['RCM_DIRECTIVE_A'] = self.groupSubstitution(group,'#PBS -A $RCM_GROUP')
+    self.substitutions['RCM_QSUBPAR_A'] = self.groupSubstitution(group,'-A $RCM_GROUP')
 
     #Industrial users do not have to use -W group_list
     if( self.username.startswith('a06',0,3) ):
@@ -134,13 +136,15 @@ class rcm_server(rcm_base_server.rcm_base_server):
     
 # get available queues for the user
  def get_queue(self,testJobScriptDict=None):
+    group=os.environ.get('ACCOUNT_NUMBER',os.path.basename(os.environ.get('WORK','')))
+    self.substitutions['RCM_QSUBPAR_A'] = self.groupSubstitution(group,'-A $RCM_GROUP')
     #get list of possible queue (named "visual")
     queueList = []
     if(not testJobScriptDict): testJobScriptDict=self.pconfig.get_testjobs()
     for key, value in testJobScriptDict.iteritems():
       #print value
       #print key
-      args = shlex.split(value)
+      args = shlex.split(string.Template(value).safe_substitute(self.substitutions))
       p1 = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       stdout,stderr=p1.communicate()
       if len(stderr) == 0:
