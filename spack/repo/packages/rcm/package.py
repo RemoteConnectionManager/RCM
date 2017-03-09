@@ -65,7 +65,15 @@ class Rcm(Package):
     depends_on('fluxbox', type='run')
     depends_on('xdpyinfo', type='run')
     depends_on('xedit', type='run')
-
+    depends_on('xfs', type='run')
+    depends_on('setxkbmap', type='run')
+    depends_on('xkbevd', type='run')
+    depends_on('xkbutils', type='run')
+    depends_on('xkbcomp', type='run')
+    depends_on('xlsfonts', type='run')
+    depends_on('xfontsel', type='run')
+    depends_on('font-adobe-75dpi', type='run')
+    depends_on('mesa+gallium', type='run')
     def install(self, spec, prefix):
         # Sublime text comes as a pre-compiled binary.
         #print("sono qui!!!! in "+os.path.abspath('server')+'<--->'+prefix.bin)
