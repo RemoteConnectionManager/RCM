@@ -325,9 +325,13 @@ done"""
             #set vncpasswd
 
             fileout='%s/%s.joblog' % (udirs[0],sid) + '.pwd'
-            vncpasswd_command = self.vnc_setup +  "; echo -e " + self.vncpassword + " | vncpasswd -f > " + fileout
+            #vncpasswd_command = self.vnc_setup +  "; echo -e " + self.vncpassword + " | vncpasswd -f > " + fileout
+            vncpasswd_command = "/bin/bash -c '" + self.vnc_setup +  "; echo -e " + self.vncpassword + " | vncpasswd -f > " + fileout +"'"
+            print vncpasswd_command
 	    myprocess = subprocess.Popen([vncpasswd_command],stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
             stdout,stderr = myprocess.communicate()
+            print "vncpasswd_command stdout" + stdout
+            print "vncpasswd_command stderr" + stderr
             myprocess.wait()
             jobScript = self.pconfig.get_jobscript(self.queue)
 
@@ -335,7 +339,7 @@ done"""
             c=rcm.rcm_session(state='pending', sessionname=self.sessionname, walltime=self.par_w, node='', tunnel='', sessiontype=self.session_tag, nodelogin=self.nodelogin, display='', jobid=jid, sessionid=sid, username=self.username, otp='', vncpassword=self.vncpassword_crypted)
             c.serialize(file)
             #c.write(self.par_f)
-            (n,d,otp)=self.wait_jobout(sid,400)
+            (n,d,otp)=self.wait_jobout(sid,120)
             #here we test if hostname returned by jobout is the same host (ssh case)
             if(n == socket.gethostname()): 
 		#print "setto il tunnel a ", self.get_use_tunnel()

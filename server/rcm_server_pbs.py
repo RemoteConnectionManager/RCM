@@ -149,6 +149,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
       stdout,stderr=p1.communicate()
       if len(stderr) == 0:
         queueList.append(key)
+        self.kill_job(stdout.strip().split('.')[0])
     return queueList
 
     
@@ -215,10 +216,12 @@ class rcm_server(rcm_base_server.rcm_base_server):
         queueParameter += ":Qlist=" + tmpQueue + ":viscons=1"
     
       #p1 = subprocess.Popen(["qsub", "-l", "walltime=0:00:01", "-l", "select=1", "-q",tmpQueue, "-o","/dev/null", "-e","/dev/null" ] + self.groupSubstitution(group, "-A $RCM_GROUP -W group_list=$RCM_GROUP").split() + [ "--","echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-      p1 = subprocess.Popen(["qsub", "-l", "walltime=0:00:01", "-l", "select=1", "-q",tmpQueue, "-o","/dev/null", "-e","/dev/null" ] + [ "--","echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      p1 = subprocess.Popen(["qsub", "-l", "walltime=0:00:01", "-l", "select=1:mem=100Mb", "-q",tmpQueue, "-o","/dev/null", "-e","/dev/null" ] + [ "--","echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       stdout,stderr=p1.communicate() 
       if len(stderr) > 0:
         queueList.remove(tmpQueue)
+      self.kill_job(stdout.strip().split('.')[0])
+
     return queueList
       
 # get running jobs
