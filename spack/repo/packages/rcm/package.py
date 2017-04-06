@@ -77,6 +77,7 @@ class Rcm(Package):
     
     depends_on('python+tk', when='+client', type='run')
     depends_on('py-paramiko', when='+client', type='run')
+    depends_on('py-pycrypto', when='+client', type='run')
     depends_on('py-pexpect', when='+client', type='run')
     def install(self, spec, prefix):
         # Sublime text comes as a pre-compiled binary.
@@ -94,3 +95,12 @@ class Rcm(Package):
             else:
                 copy_tree('server', os.path.join(prefix.bin,'server'),verbose=1)
                 copy_tree('config/generic/ssh', os.path.join(prefix.bin,'config'),verbose=1)
+        if '+client' in self.spec:
+            mkdirp(prefix.bin)
+            rcm_batch_file=os.path.join(prefix.bin,"rcm.sh")
+            with open(rcm_batch_file, "w") as text_file:
+                text_file.write("python %s" % os.path.join(os.path.abspath(self.stage.source_path),'client','rcm_client_tk.py'))
+                mode = os.stat(rcm_batch_file).st_mode
+                mode |= (mode & 0o444) >> 2
+                os.chmod(rcm_batch_file, mode)
+
