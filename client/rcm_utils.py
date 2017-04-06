@@ -364,7 +364,7 @@ class SessionThread( threading.Thread ):
 
             else:
                 #-#####################   linux
-                if(self.debug): module_logger.info( 'This is thread ' + str ( self.threadnum ) + " executing-->" + self.vnc_command.replace(self.password,"****") + "<--")
+                if(self.debug): module_logger.info( 'This is thread ' + str ( self.threadnum ) + " executing-->" + self.vnc_command.replace(self.password,"****") + "<-vncpass->"+self.vncpassword+"<--")
 
                 child = pexpect.spawn(self.vnc_command,timeout=50)
                 self.vnc_process=child
