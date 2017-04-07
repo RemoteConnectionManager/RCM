@@ -58,6 +58,7 @@ class Rcm(Package):
     variant('linksource', default=False, description='link to source instead of copying scripts')
     variant('client', default=False, description='install client part')
     variant('server', default=True, description='install server part')
+    variant('mesa', default=False, description='install mesa OpenGL sw emulation')
 
     # FIXME: Add dependencies if required.
     depends_on('turbovnc', when='+server', type='run')
@@ -73,7 +74,7 @@ class Rcm(Package):
     depends_on('xlsfonts', when='+server', type='run')
     depends_on('xfontsel', when='+server', type='run')
     depends_on('font-adobe-75dpi', when='+server', type='run')
-    depends_on('mesa+gallium', when='+server', type='run')
+    depends_on('mesa+gallium', when='+mesa', type='run')
     
     depends_on('python+tk', when='+client', type='run')
     depends_on('py-paramiko', when='+client', type='run')
