@@ -74,7 +74,7 @@ class Rcm(Package):
     depends_on('xlsfonts', when='+server', type='run')
     depends_on('xfontsel', when='+server', type='run')
     depends_on('font-adobe-75dpi', when='+server', type='run')
-    depends_on('mesa+gallium', when='+mesa', type='run')
+    depends_on('mesa+gallium^llvm@3.9.1', when='+mesa', type='run')
     
     depends_on('python+tk', when='+client', type='run')
     depends_on('py-paramiko', when='+client', type='run')
