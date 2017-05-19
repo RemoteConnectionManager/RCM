@@ -12,6 +12,14 @@ shopt -s expand_aliases
 #vglrun -d :0.0 paraview  -geometry 10000x10000
 #STARTKDE="$(type -p startkde)"
 #exec "$STARTKDE"
-exec lxterminal&
+#BINDIR=$(dirname $(which fluxbox))
+FLUXBOX=$(which fluxbox)
+LXTERMINAL=$(which lxterminal)
+module purge
+exec ${LXTERMINAL}&
 #pcmanfm --desktop &
-fluxbox 
+${FLUXBOX}
+
+#exec lxterminal&
+#pcmanfm --desktop &
+#fluxbox 
