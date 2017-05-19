@@ -59,6 +59,7 @@ class Rcm(Package):
     variant('client', default=False, description='install client part')
     variant('server', default=True, description='install server part')
     variant('mesa', default=False, description='install mesa OpenGL sw emulation')
+    variant('virtualgl', default=False, description='install virtualgl OpenGL interposer')
 
     # FIXME: Add dependencies if required.
     depends_on('turbovnc', when='+server', type='run')
@@ -75,6 +76,7 @@ class Rcm(Package):
     depends_on('xfontsel', when='+server', type='run')
     depends_on('font-adobe-75dpi', when='+server', type='run')
     depends_on('mesa+gallium^llvm@3.9.1', when='+mesa', type='run')
+    depends_on('virtualgl', when='+virtualgl', type='run')
     
     depends_on('python+tk', when='+client', type='run')
     depends_on('py-paramiko', when='+client', type='run')
