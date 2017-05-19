@@ -7,9 +7,6 @@ import threading
 import sys
 import subprocess
 
-import AESCipher
-
-#VNC password encription python implementation from https://github.com/trinitronx/vncpasswd.py
 import d3des
 
 import logging
@@ -131,6 +128,9 @@ class rcm_cipher():
         self.vncpassword = self.random_pwd_generator()
         self.acypher=None
         if(self.encryptpass):
+            import AESCipher
+#           VNC password encription python implementation 
+#           from https://github.com/trinitronx/vncpasswd.py
             self.acypher = AESCipher.AESCipher(self.encryptpass)
 
     def encrypt(self,vncpassword=None):
