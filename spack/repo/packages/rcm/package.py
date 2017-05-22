@@ -44,6 +44,10 @@ import llnl.util.tty as tty
 import os
 
 
+def file_ok(x):
+    """Any valid file """
+    return os.path.exists(x)
+
 class Rcm(Package):
     """Python client-server wrapper around TurboVNC to simplify 
     tunneled VNC connections to HPC clusters Remote Visualization resources,
@@ -60,6 +64,15 @@ class Rcm(Package):
     variant('server', default=True, description='install server part')
     variant('mesa', default=False, description='install mesa OpenGL sw emulation')
     variant('virtualgl', default=False, description='install virtualgl OpenGL interposer')
+
+
+
+    variant(
+        'configdir',
+        default='',
+        values=file_ok,  # Existing file here
+        description='configuration directory'
+    )
 
     # FIXME: Add dependencies if required.
     depends_on('turbovnc', when='+server', type='run')
@@ -88,16 +101,19 @@ class Rcm(Package):
 #        mkpath(prefix.bin)
         if '+server' in self.spec:
             mkdirp(prefix.bin)
+            server_source=os.path.abspath(self.stage.source_path)
+            configdir = spec.variants['configdir'].value
+            if not configdir :
+                configdir = os.path.join(server_source,
+                'config/generic/ssh')
             if '+linksource' in self.spec:
-                server_source=os.path.abspath(self.stage.source_path)
                 tty.warn('linking to source->'+server_source)
                 os.symlink(os.path.join(server_source,'server'),
                            os.path.join(prefix.bin,'server'))
-                os.symlink(os.path.join(server_source,'config/generic/ssh'),
-                           os.path.join(prefix.bin,'config'))
+                os.symlink(configdir, os.path.join(prefix.bin,'config'))
             else:
                 copy_tree('server', os.path.join(prefix.bin,'server'),verbose=1)
-                copy_tree('config/generic/ssh', os.path.join(prefix.bin,'config'),verbose=1)
+                copy_tree(configdir, os.path.join(prefix.bin,'config'),verbose=1)
         if '+client' in self.spec:
             mkdirp(prefix.bin)
             rcm_batch_file=os.path.join(prefix.bin,"rcm.sh")
