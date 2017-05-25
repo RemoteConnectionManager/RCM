@@ -45,8 +45,11 @@ import os
 
 
 def file_ok(x):
-    """Any valid file """
-    return os.path.exists(x)
+    """Any valid file, and also void value """
+    if x :
+        return os.path.exists(x)
+    else:
+        return True
 
 class Rcm(Package):
     """Python client-server wrapper around TurboVNC to simplify 
