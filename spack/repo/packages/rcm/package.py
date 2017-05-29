@@ -78,7 +78,7 @@ class Rcm(Package):
     )
 
     # FIXME: Add dependencies if required.
-    depends_on('turbovnc', when='+server', type='run')
+    depends_on('turbovnc+x11deps^xkbcomp^xkeyboard-config+xorg', when='+server', type='run')
     depends_on('lxde-lxterminal', when='+server', type='run')
     depends_on('fluxbox', when='+server', type='run')
     depends_on('xdpyinfo', when='+server', type='run')
@@ -87,7 +87,6 @@ class Rcm(Package):
     depends_on('setxkbmap', when='+server', type='run')
     depends_on('xkbevd', when='+server', type='run')
     depends_on('xkbutils', when='+server', type='run')
-    depends_on('xkbcomp', when='+server', type='run')
     depends_on('xlsfonts', when='+server', type='run')
     depends_on('xfontsel', when='+server', type='run')
     depends_on('font-adobe-75dpi', when='+server', type='run')
