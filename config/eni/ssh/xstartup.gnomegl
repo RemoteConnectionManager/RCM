@@ -3,7 +3,7 @@
 
 
 
-module  load autoload virtual-gl
+#module  load autoload virtual-gl
 unset SESSION_MANAGER
 OS=`uname -s`
 # Uncomment the following line if you experience keyboard mapping problems
@@ -24,16 +24,17 @@ if [ -f /usr/bin/gnome-session ]; then
     if [ -f /usr/share/gnome-session/sessions/$SESSION.session ]; then
       DESKTOP_SESSION=$SESSION; export DESKTOP_SESSION
       GDMSESSION=$SESSION; export GDMSESSION
-      STARTUP="vglrun -d :0.0 /usr/bin/gnome-session --session=$SESSION"; export STARTUP
+      STARTUP="vglrun -d :0.0  env LD_PRELOAD=$VIRTUALGL_HOME/lib64/libdlfaker.so:$VIRTUALGL_HOME/lib64/libvglfaker.so /usr/bin/gnome-session --session=$SESSION"; export STARTUP
       #STARTUP="vglrun -d :0.0  -c proxy /usr/bin/gnome-session --session=$SESSION"; export STARTUP
       #STARTUP="/usr/bin/gnome-session --session=$SESSION"; export STARTUP
-      echo "_____________${STARTUP}__________"
+      echo "_qui____________${STARTUP}__________"
     fi
   done
 fi
 if [ -x /etc/X11/xinit/xinitrc ]; then
       echo "_1___________${STARTUP}__________"
-  exec vglrun /etc/X11/xinit/xinitrc
+      ${STARTUP}
+#  exec vglrun /etc/X11/xinit/xinitrc
 fi
 if [ -f /etc/X11/xinit/xinitrc ]; then
       echo "_2___________${STARTUP}__________"
