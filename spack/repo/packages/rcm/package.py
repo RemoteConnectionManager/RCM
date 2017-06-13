@@ -78,7 +78,9 @@ class Rcm(Package):
     )
 
     # FIXME: Add dependencies if required.
-    depends_on('turbovnc+x11deps^xkbcomp^xkeyboard-config+xorg', when='+server', type='run')
+    depends_on('xkeyboard-config+xorg',  when='+server', type='run')
+    # depends_on('turbovnc+x11deps ^xkeyboard-config+xorg', when='+server', type='run')
+    depends_on('turbovnc+x11deps', when='+server', type='run')
     depends_on('lxde-lxterminal', when='+server', type='run')
     depends_on('fluxbox', when='+server', type='run')
     depends_on('xdpyinfo', when='+server', type='run')
