@@ -81,6 +81,7 @@ class Rcm(Package):
     depends_on('xkeyboard-config+xorg',  when='+server', type='run')
     # depends_on('turbovnc+x11deps ^xkeyboard-config+xorg', when='+server', type='run')
     depends_on('turbovnc+x11deps', when='+server', type='run')
+    depends_on('turbovnc+x11deps+java', when='+client', type='run')
     depends_on('lxde-lxterminal', when='+server', type='run')
     depends_on('fluxbox', when='+server', type='run')
     depends_on('xdpyinfo', when='+server', type='run')
@@ -97,8 +98,9 @@ class Rcm(Package):
     
     depends_on('python+tk', when='+client', type='run')
     depends_on('py-paramiko', when='+client', type='run')
-    # depends_on('py-pycrypto', when='+client', type='run')
+    depends_on('py-pycrypto', when='+client', type='run')
     depends_on('py-pexpect', when='+client', type='run')
+    depends_on('py-pyinstaller', when='+client', type='run')
     def install(self, spec, prefix):
         # Sublime text comes as a pre-compiled binary.
         #print("sono qui!!!! in "+os.path.abspath('server')+'<--->'+prefix.bin)
