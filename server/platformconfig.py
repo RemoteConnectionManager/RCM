@@ -4,6 +4,7 @@ import socket
 import ConfigParser
 import enumerate_interfaces
 import string
+import inspect
 
 class baseconfig:
     def __init__(self):
@@ -12,7 +13,6 @@ class baseconfig:
 	self.options=dict()
 
     def parse(self,configfile=''):
-        #print "WARNING __file__  -->"+os.path.abspath(__file__)
         config = ConfigParser.RawConfigParser()
 	if(not configfile):
 	    myPath =   os.path.join(
@@ -21,11 +21,18 @@ class baseconfig:
                           os.path.abspath(__file__)
                          )
                         ),'config')
+	    myPathOther =   os.path.join(
+                        os.path.dirname(
+                         os.path.dirname(sys.argv[0])
+                        ),'config')
             configfile=os.path.join(myPath, self.filename)
 
         if(not os.path.exists(configfile)):
-            print "WARNING missing platform file -->"+configfile
-            return(False)
+            print "WARNING FIRST TRY missing platform file -->"+configfile
+            configfile=os.path.join(myPathOther, self.filename)
+            if(not os.path.exists(configfile)):
+                print "WARNING NO WAY missing platform file -->"+configfile
+                return(False)
 #	print "parsing configfile-->",configfile
         config.read(configfile)
         for s in config.sections():
