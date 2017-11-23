@@ -383,19 +383,19 @@ class SessionThread( threading.Thread ):
                     child.sendline(self.vncpassword)
 
                 if i == 3 or i == 4:
-                    if(self.debug): module_logger.error( "Timeout connecting to the display.")
-                    if(self.gui_cmd): self.gui_cmd(active=False)
+                    if(self.debug): module_logger.error( "#REMOVE_FOR_JAVA#Timeout connecting to the display.")
+                    #REMOVE_FOR_JAVA#if(self.gui_cmd): self.gui_cmd(active=False)
                     #raise Exception("Timeout connecting to the display.")
-                    threads_exception_queue.put("Timeout connecting to the display.")
+                    #REMOVE_FOR_JAVA#threads_exception_queue.put("Timeout connecting to the display.")
 		  
 		i = child.expect(['Authentication successful', pexpect.TIMEOUT, pexpect.EOF])
 		if i > 0:
-                    if(self.debug): module_logger.error( "Authentication problems.")
-                    if(self.gui_cmd): self.gui_cmd(active=False)
+                    if(self.debug): module_logger.error( "#REMOVE_FOR_JAVA#Authentication problems.")
+                    #REMOVE_FOR_JAVA#if(self.gui_cmd): self.gui_cmd(active=False)
 		    for line in child:
-		      module_logger.debug( "child expect-->"+line)
+		      module_logger.debug( "#REMOVE_FOR_JAVA#child expect-->"+line)
                     #raise Exception("Authentication problems.")
-                    threads_exception_queue.put("Authentication problems.")
+                    #REMOVE_FOR_JAVA#threads_exception_queue.put("Authentication problems.")
 
 
                 child.expect(pexpect.EOF, timeout=None)
