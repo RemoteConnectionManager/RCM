@@ -225,8 +225,8 @@ class rcm_server(rcm_base_server.rcm_base_server):
     return queueList
       
 # get running jobs
- def get_jobs(self, sessions, U=False):
-    (retval,stdout,stderr)=self.prex(['qstat'])
+ def get_jobs(self, U=False):
+    (retval,stdout,stderr)=self.prex(['qstat', '-w'])
     if (retval != 0 ) :
       sys.stderr.write(stderr);
       raise Exception( 'qstat returned non zero value: ' + str(retval) )
@@ -238,7 +238,8 @@ class rcm_server(rcm_base_server.rcm_base_server):
         ure=self.username
       #258118.node351    rcm-cin0449a-10  cin0449a          00:00:06 R visual          
 #original..single queue      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>rcm-%s-\d+)  \s+ (%s) \s+ \S+ \s+ R \s+ visual  ' % (ure,ure) ,re.VERBOSE)
-      r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>%s-\S+-\d+)  \s+ (%s) \s+ \S+ \s+ (R|Q) \s+ ' % (ure,ure) ,re.VERBOSE)
+      #old qstat#r=re.compile(r'(?P<jid>\d+[\w\.]+) \s+ (?P<sid>%s-\S+-\d+)  \s+ (%s) \s+ \S+ \s+ (R|Q) \s+ ' % (ure,ure) ,re.VERBOSE)
+      r=re.compile(r'(?P<jid>[\d\w\.]+)\s{1,}(%s)\s{1,}(\S*)\s{1,}(?P<sid>%s\S*)[\s\w\d-]{1,}([RQ])' % (ure,ure) ,re.VERBOSE)
       jobs={}
       for j in raw:
         mo=r.match(j)
@@ -254,3 +255,4 @@ if __name__ == '__main__':
 	print "rcmdirs:",s.get_rcmdirs()
 	print "fill_sessions_hash:",s.fill_sessions_hash()
 	print "load sessions:",s.load_sessions()
+	print "get_jobs:",s.get_jobs()

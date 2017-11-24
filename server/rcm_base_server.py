@@ -128,7 +128,7 @@ class rcm_base_server:
         self.fill_sessions_hash()
 
         #read sessions jobs
-        jobs=self.get_jobs(U)
+        jobs=self.get_jobs(U=U)
         #print "jobs--->",jobs
         #match jobs and files
         self.sids={'run':set([]),'err':set([]),'end':set([]),'ini':set([])}
