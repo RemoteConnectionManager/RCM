@@ -42,6 +42,7 @@ from distutils.dir_util import copy_tree
 #from distutils.dir_util import mkpath
 import llnl.util.tty as tty
 import os
+import shutil
 
 
 def file_ok(x):
@@ -59,7 +60,7 @@ class Rcm(Package):
     homepage = "https://wiki.u-gov.it/confluence/pages/viewpage.action?pageId=68391634"
     url      = "https://github.com/RemoteConnectionManager/RCM/archive/0.0.1.tar.gz"
 
-    version('0.0.1', '658770296b4a1ccb5af28c9aa1545f7d')
+    version('v0.0.2', 'a9ee0ddfa533701a3a538011f9c2349c')
     version('develop', git='https://github.com/RemoteConnectionManager/RCM.git')
 
     variant('linksource', default=False, description='link to source instead of copying scripts')
@@ -106,6 +107,9 @@ class Rcm(Package):
         #print("sono qui!!!! in "+os.path.abspath('server')+'<--->'+prefix.bin)
 #        mkpath(prefix.bin)
         rcm_source=os.path.abspath(self.stage.source_path)
+        tty.warn('source->'+rcm_source)
+        tty.warn('stage->'+self.stage.path)
+
         if '+server' in self.spec:
             mkdirp(prefix.bin)
             configdir = spec.variants['configdir'].value
@@ -113,6 +117,11 @@ class Rcm(Package):
                 configdir = os.path.join(rcm_source,
                 'config/generic/ssh')
             if '+linksource' in self.spec:
+                if os.path.abspath(os.path.dirname(rcm_source)) == os.path.abspath(self.stage.path):
+                    dest=os.path.join(os.path.abspath(self.prefix),'src')
+                    tty.warn('copy RCM source tree in prefix: '+rcm_source + ' -->'+dest)
+                    shutil.copytree(rcm_source,dest)
+                    rcm_source=dest
                 tty.warn('linking to source->'+rcm_source)
                 os.symlink(os.path.join(rcm_source,'server'),
                            os.path.join(prefix.bin,'server'))
