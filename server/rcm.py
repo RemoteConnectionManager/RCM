@@ -2,6 +2,9 @@
 import pickle
 import datetime
 import sys
+import os
+
+sys.path.append( os.path.dirname(os.path.abspath(__file__))  )
 
 serverOutputString = "server output->"
 
@@ -9,10 +12,12 @@ class rcm_session:
 
     def __init__(self,fromstring='',fromfile='',file='',sessionname='',state='',node='',tunnel='',sessiontype='',nodelogin='',display='',jobid='',sessionid='',username='',walltime='',otp='', vncpassword=''):
         self.hash={'file':'','session name':'', 'state':'', 'node':'','tunnel':'','sessiontype':'', 'nodelogin':'', 'display':'', 'jobid':'', 'sessionid':'', 'username':'', 'walltime':'00:00:00','timeleft':'00:00:00', 'otp':'', 'vncpassword':''}
+        print "pikl init -----------------------------"
         if (fromfile != ''):
             self.hash=pickle.load(open(fromfile,"rb"))
         elif (fromstring != ''):
-            self.hash=pickle.loads(fromstring)
+            print "pikl fromstring-->"+fromstring
+            self.hash=pickle.loads('server.'+fromstring)
         else:
             self.hash={'file':file, 'session name':sessionname ,'state':state, 'node':node, 'tunnel':tunnel, 'sessiontype':sessiontype, 'nodelogin':nodelogin,  'display':display, 'jobid':jobid, 'sessionid':sessionid, 'username':username, 'walltime':walltime,'timeleft':walltime, 'otp':otp, 'vncpassword':vncpassword}
             self.hash['created']=datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
