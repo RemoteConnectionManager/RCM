@@ -17,47 +17,14 @@ if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
     import pexpect
 
 
-sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "server"))
-import rcm
+sys.path.append( os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) )
+from server import rcm
 import rcm_utils
 import rcm_protocol_client
 
 import logging
 module_logger = logging.getLogger('RCM.client')
 
-def which(*args, **kwargs):
-    """Finds an executable in the path like command-line which.
-
-    If given multiple executables, returns the first one that is found.
-    If no executables are found, returns None.
-
-    Parameters:
-        *args (str): One or more executables to search for
-
-    Keyword Arguments:
-        path (:func:`list` or str): The path to search. Defaults to ``PATH``
-        required (bool): If set to True, raise an error if executable not found
-
-    Returns:
-        Executable: The first executable that is found in the path
-    """
-    from six import string_types
-    path = kwargs.get('path', os.environ.get('PATH', ''))
-    required = kwargs.get('required', False)
-
-    if isinstance(path, string_types):
-        path = path.split(os.pathsep)
-
-    for name in args:
-        for directory in path:
-            exe = os.path.join(directory, name)
-            if os.path.isfile(exe) and os.access(exe, os.X_OK):
-                return exe
-
-    if required:
-        tty.die("spack requires '%s'. Make sure it is in your path." % args[0])
-
-    return None
 
 
 
@@ -97,8 +64,9 @@ class rcm_client_connection:
             self.ssh_command = "ssh"
         if(self.debug):
              module_logger.debug( "ssh command1: "+ self.ssh_command)
-        vncexe=which('vncviewer') 
-        #vncexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['vnc'][sys.platform][0])
+        vncexe=rcm_utils.which('vncviewer') 
+        if not vncexe :
+            vncexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['vnc'][sys.platform][0])
         #vncexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['vnc'][sys.platform][0])
         if os.path.exists(vncexe):
             self.vncexe=vncexe
@@ -385,7 +353,7 @@ class rcm_client_connection:
     
 if __name__ == '__main__':
     try:
-        print "vncviewer-->"+which('vncviewer')
+        print "vncviewer-->"+rcm_utils.which('vncviewer')
         
         c = rcm_client_connection()
         c.login_setup()
