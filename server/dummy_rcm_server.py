@@ -1,8 +1,12 @@
+
 exec("import dummy_rcm_scheduler as rcm_scheduler")
 
 testJobScriptDict = {}
+import logging
 
-def get_checksum(build_platform):
+def get_checksum(build_platform): 
+    logger = logging.getLogger("basic")    
+    logger.debug("get_checksum")
     import ConfigParser
     config = ConfigParser.RawConfigParser()
     myPath =  os.path.dirname(os.path.abspath(__file__))
@@ -12,5 +16,7 @@ def get_checksum(build_platform):
     downloadurl = config.get('url', build_platform)
     return ((checksum,downloadurl))
 
-def get_checksum(build_platform):
+def get_checksum(build_platform): 
+    logger = logging.getLogger("basic")    
+    logger.debug("get_checksum")
     return (('dummy','dummy'))

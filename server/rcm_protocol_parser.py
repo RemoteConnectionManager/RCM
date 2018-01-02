@@ -3,6 +3,7 @@ import types
 import rcm_protocol_server
 import optparse
 import sys
+import logging
 
 class CommandParser:
     args = ''
@@ -26,10 +27,14 @@ class CommandParser:
     for p in parameters.keys() :
       parser.add_option(parameters[p],default='',help='set the ' + p + ' parameter' )
 
-    def __init__(self,rcm_prot_instance):
+    def __init__(self,rcm_prot_instance): 
+        logger = logging.getLogger("basic")    
+         
         self.protocol=rcm_prot_instance
 
-    def handle(self,args=None):
+    def handle(self,args=None): 
+      logger = logging.getLogger("basic")    
+      logger.debug("handle")
       if(args):
         (o,a)=CommandParser.parser.parse_args(args)
       else:

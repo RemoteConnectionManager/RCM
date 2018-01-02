@@ -151,13 +151,10 @@ class rcm_server(rcm_base_server.rcm_base_server):
     logger = logging.getLogger("basic")    
     logger.debug("get_queue")
     group=os.environ.get('ACCOUNT_NUMBER',os.path.basename(os.environ.get('WORK','')))
-    logger.debug("account : "+group)
     self.substitutions['RCM_QSUBPAR_A'] = self.groupSubstitution(group,'-A $RCM_GROUP')
     #get list of possible queue (named "visual")
     queueList = []
-    if(not testJobScriptDict): 
-      testJobScriptDict=self.pconfig.get_testjobs()
-
+    if(not testJobScriptDict): testJobScriptDict=self.pconfig.get_testjobs()
     for key, value in testJobScriptDict.iteritems():
       #print value
       #print key
@@ -167,6 +164,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
       if len(stderr) == 0:
         queueList.append(key)
         self.kill_job(stdout.strip().split('.')[0])
+    
     return queueList
 
     
@@ -243,6 +241,8 @@ class rcm_server(rcm_base_server.rcm_base_server):
       
 # get running jobs
  def get_jobs(self, U=False):
+    logger = logging.getLogger("basic")    
+    logger.debug("get_jobs")
     (retval,stdout,stderr)=self.prex(['qstat', '-w'])
     if (retval != 0 ) :
       sys.stderr.write(stderr);
@@ -266,3 +266,11 @@ class rcm_server(rcm_base_server.rcm_base_server):
           jobs[sid]=jid
       return(jobs)
 
+if __name__ == '__main__':
+	s=rcm_server()
+  
+	print "accounts:",s.getUserAccounts()
+	print "rcmdirs:",s.get_rcmdirs()
+	print "fill_sessions_hash:",s.fill_sessions_hash()
+	print "load sessions:",s.load_sessions()
+	print "get_jobs:",s.get_jobs()

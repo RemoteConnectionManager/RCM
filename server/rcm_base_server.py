@@ -11,48 +11,58 @@ import traceback
 import datetime
 import time
 import shutil
-
+import logging
 import rcm
 import platformconfig
-
+from versionconfig import versionconfig
 class rcm_base_server:
-    def __init__(self,pconfig=None):
-	self.subnet = ''
-	self.par_f='0'
+    def __init__(self,pconfig=None): 
+        logger = logging.getLogger("basic")    
+         
+        self.subnet = ''
+        self.par_f='0'
 
-	self.notimeleft_string="~"
-	self.username=pwd.getpwuid(os.geteuid())[0]
-	if(pconfig):
-            self.pconfig=pconfig
-	else:	 
-	    self.pconfig=platformconfig.platformconfig()
-	self.max_user_session=self.pconfig.max_user_session()
-#	(sched,s_tag)=self.pconfig.get_import_scheduler()
-	self.session_tag=self.pconfig.session_tag
-	self.no_timeleft= self.pconfig.default_scheduler_name == self.pconfig.scheduler_name
-	self.substitutions=dict()
+        self.notimeleft_string="~"
+        self.username=pwd.getpwuid(os.geteuid())[0]
+        if(pconfig):
+                self.pconfig=pconfig
+        else:	 
+            self.pconfig=platformconfig.platformconfig()
+        self.max_user_session=self.pconfig.max_user_session()
+    #	(sched,s_tag)=self.pconfig.get_import_scheduler()
+        self.session_tag=self.pconfig.session_tag
+        self.no_timeleft= self.pconfig.default_scheduler_name == self.pconfig.scheduler_name
+        self.substitutions=dict()
 
-    def get_timelimit(self):
-	return self.pconfig.confdict.get(('walltimelimit',self.queue),self.notimeleft_string)
+    def get_timelimit(self): 
+        logger = logging.getLogger("basic")    
+        logger.debug("get_timelimit")
+        return self.pconfig.confdict.get(('walltimelimit',self.queue),self.notimeleft_string)
 
-    def get_use_tunnel(self):
-	return self.pconfig.confdict.get(('platform','usetunnel'),'n')
+    def get_use_tunnel(self): 
+        logger = logging.getLogger("basic")    
+        logger.debug("get_use_tunnel")
+        return self.pconfig.confdict.get(('platform','usetunnel'),'n')
     
     def set_vnc_setup(self, id):
-	if self.vnc_command_in_background(): self.substitutions['vnc_foreground']=''
+        if self.vnc_command_in_background(): self.substitutions['vnc_foreground']=''
 
-	self.vnc_setup = self.pconfig.vnc_attrib_subst(id,'vnc_setup',subst=self.substitutions)
-	self.substitutions['RCM_MODULE_SETUP']= self.vnc_setup
-	self.substitutions['RCM_VNCSERVER'] = self.pconfig.vnc_attrib_subst(id,'vnc_command',subst=self.substitutions)
+        self.vnc_setup = self.pconfig.vnc_attrib_subst(id,'vnc_setup',subst=self.substitutions)
+        self.substitutions['RCM_MODULE_SETUP']= self.vnc_setup
+        self.substitutions['RCM_VNCSERVER'] = self.pconfig.vnc_attrib_subst(id,'vnc_command',subst=self.substitutions)
 
 	#print "set vnc_setup to-->"+self.vnc_setup
 
     
-    def get_checksum(self,buildPlatformString=''):
-	platformconfig.versionconfig().get_checksum(buildPlatformString)
-	return platformconfig.versionconfig().get_checksum(buildPlatformString)
+    def get_checksum(self,buildPlatformString=''): 
+        logger = logging.getLogger("basic")    
+        logger.debug("get_checksum")
+        versionconfig().get_checksum(buildPlatformString)
+        return versionconfig().get_checksum(buildPlatformString)
 
-    def getUserAccounts(self):
+    def getUserAccounts(self): 
+        logger = logging.getLogger("basic")    
+        logger.debug("getUserAccounts")
         #cineca deployment dependencies
         try:
             p1 = subprocess.Popen(["saldo","-nb"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -75,7 +85,9 @@ class rcm_base_server:
         else:
             return string.Template(template).substitute(RCM_GROUP=groupName)
         
-    def getQueueGroup(self,queue):
+    def getQueueGroup(self,queue): 
+        logger = logging.getLogger("basic")    
+        logger.debug("getQueueGroup")
         self.accountList = self.getUserAccounts()
         if len(self.accountList) == 0:
             return ''
@@ -89,7 +101,10 @@ class rcm_base_server:
     def get_jobs(self, U=False):    
 	    sys.stderr.write( "\ncalled generic get_jobs: THIS SHOULD NEVER BE PRINTED!!!!!!")
 	    return dict()
-    def get_rcmdirs(self,U=False):
+
+    def get_rcmdirs(self,U=False): 
+        logger = logging.getLogger("basic")    
+        logger.debug("get_rcmdirs")
         if (U):
             #cineca deployment dependencies
             udirs=glob.glob("/plx/user*/*/.rcm") 
@@ -98,20 +113,22 @@ class rcm_base_server:
             udirs=[os.path.expanduser("~%s/.rcm" % (self.username))]
         return(udirs)
 
-    def timeleft_string(self,sid):
-	if(self.no_timeleft) : return self.notimeleft_string
-	try:
-		walltime_py24 = time.strptime(self.sessions[sid].hash['walltime'], "%H:%M:%S")
-		endtime_py24 = time.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S")
-		walltime = datetime.datetime(*walltime_py24[0:6])
-		endtime = datetime.datetime(*endtime_py24[0:6])
-		endtime= endtime + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
-		timedelta = endtime - datetime.datetime.now()
-	#check if timedelta is positive
-		if timedelta <= datetime.timedelta(0):
-			timedelta = datetime.timedelta(0)
-		timeleft = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
-		return timeleft
+    def timeleft_string(self,sid): 
+        logger = logging.getLogger("basic")    
+        logger.debug("timeleft_string")
+        if (self.no_timeleft) : return self.notimeleft_string
+        try:
+            walltime_py24 = time.strptime(self.sessions[sid].hash['walltime'], "%H:%M:%S")
+            endtime_py24 = time.strptime(self.sessions[sid].hash['created'], "%Y%m%d-%H:%M:%S")
+            walltime = datetime.datetime(*walltime_py24[0:6])
+            endtime = datetime.datetime(*endtime_py24[0:6])
+            endtime= endtime + datetime.timedelta(hours=walltime.hour,minutes=walltime.minute,seconds=walltime.second)      
+            timedelta = endtime - datetime.datetime.now()
+        #check if timedelta is positive
+            if timedelta <= datetime.timedelta(0):
+                timedelta = datetime.timedelta(0)
+            timeleft = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
+            return timeleft
 	
 
 	except Exception,inst:
@@ -124,7 +141,9 @@ class rcm_base_server:
   #fill
   # - self.sessions, a dict {sessionid -> { field -> value}}
   # - self.sids,  a dict  {statofsids -> [sid1,sid2,...] }
-    def load_sessions(self,U=False,sessionids=[]):
+    def load_sessions(self,U=False,sessionids=[]): 
+        logger = logging.getLogger("basic")    
+        logger.debug("load_sessions")
         self.fill_sessions_hash()
 
         #read sessions jobs
@@ -194,14 +213,18 @@ class rcm_base_server:
 
          
 
-    def id2sid(self,id,user=''):
+    def id2sid(self,id,user=''): 
+        logger = logging.getLogger("basic")    
+        logger.debug("id2sid")
         if (not user):
             user=self.username
         #return "{0}-{1}-{2}".format(user,session_tag,id)
         return "%s-%s-%d" % (user,self.session_tag,id)
 
 
-    def new_sid(self):
+    def new_sid(self): 
+        logger = logging.getLogger("basic")    
+        logger.debug("new_sid")
         n_err=len(self.sids['err'])
         n_run=len(self.sids['run'])
         n_end=len(self.sids['end'])
@@ -224,7 +247,9 @@ class rcm_base_server:
                         break
         return res        
 
-    def desktop_setup(self):
+    def desktop_setup(self): 
+        logger = logging.getLogger("basic")    
+        logger.debug("desktop_setup")
         desktop_dest_dir=os.path.expanduser("~%s/Desktop/" % (self.username))
         if (not os.path.exists(desktop_dest_dir)):
             os.makedirs(desktop_dest_dir)
@@ -247,7 +272,9 @@ class rcm_base_server:
                  shutil.copy2(f,fDest)
              
       
-    def clean_files(self,sid):
+    def clean_files(self,sid): 
+        logger = logging.getLogger("basic")    
+        logger.debug("clean_files")
         for d in self.get_rcmdirs():
             if ( not os.path.isdir(d) ):
                 os.mkdir(d)
@@ -256,7 +283,9 @@ class rcm_base_server:
             for f in glob.glob("%s/%s.*" % (d,sid)):
                 os.remove(f)
    
-    def wait_jobout(self,sid,timeout):
+    def wait_jobout(self,sid,timeout): 
+        logger = logging.getLogger("basic")    
+        logger.debug("wait_jobout")
         #Output depends on TurboVNC version!
         r=re.compile(r"""^New 'X' desktop is (?P<node>\w+):(?P<display>\d+)""",re.MULTILINE)
         r1=re.compile(r"""^Desktop '(.*)' started on display (?P<node>\w+):(?P<display>\d+)""",re.MULTILINE)
@@ -294,7 +323,9 @@ class rcm_base_server:
         raise Exception("Timeouted (%d seconds) job not correcty running!!!" % (timeout) )
 
 
-    def execute_new(self):
+    def execute_new(self): 
+        logger = logging.getLogger("basic")    
+        logger.debug("execute_new")
         self.clean_pids_string="""
 for d_p in $(vncserver  -list | grep ^: | cut -d: -f2 | cut -f 1,3 --output-delimiter=@); do
 	i=$(echo $d_p | cut -d@ -f2)

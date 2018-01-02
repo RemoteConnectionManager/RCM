@@ -2,7 +2,7 @@
 import pickle
 import datetime
 import sys
-
+import logging
 serverOutputString = "server output->"
 
 class rcm_session:
@@ -17,13 +17,19 @@ class rcm_session:
             self.hash={'file':file, 'session name':sessionname ,'state':state, 'node':node, 'tunnel':tunnel, 'sessiontype':sessiontype, 'nodelogin':nodelogin,  'display':display, 'jobid':jobid, 'sessionid':sessionid, 'username':username, 'walltime':walltime,'timeleft':walltime, 'otp':otp, 'vncpassword':vncpassword}
             self.hash['created']=datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
             
-    def serialize(self,file):
+    def serialize(self,file): 
+        logger = logging.getLogger("basic")    
+        logger.debug("serialize")
         pickle.dump(self.hash, open( file, "wb" ) )
     
-    def get_string(self):
+    def get_string(self): 
+        # logger = logging.getLogger("basic")    
+        # logger.debug("get_string")
         return pickle.dumps(self.hash)
 
-    def write(self,format):
+    def write(self,format): 
+        logger = logging.getLogger("basic")    
+        logger.debug("write")
         #print "server output->"
         if ( format == 0):
             sys.stdout.write(serverOutputString+self.get_string())
@@ -41,7 +47,9 @@ class rcm_session:
 
 class rcm_sessions:
 
-    def __init__(self,fromstring='',fromfile='',sessions=[]):
+    def __init__(self,fromstring='',fromfile='',sessions=[]): 
+        logger = logging.getLogger("basic")    
+         
         if (fromfile != ''):
             self.array=pickle.load(fromfile)
         elif (fromstring != ''):
@@ -49,12 +57,18 @@ class rcm_sessions:
         else:
             self.array=sessions
 
-    def serialize(self,file):
+    def serialize(self,file): 
+        logger = logging.getLogger("basic")    
+        logger.debug("serialize")
         pickle.dump(self.array, open( file, "wb" ) )
 
-    def get_string(self):
+    def get_string(self): 
+        logger = logging.getLogger("basic")    
+        logger.debug("get_string")
 	return pickle.dumps(self.array)
-    def write(self,format=0):
+    def write(self,format=0): 
+        logger = logging.getLogger("basic")    
+        logger.debug("write")
         #print "server output->"
         if ( format == 0):
             sys.stdout.write(serverOutputString+self.get_string())
@@ -72,7 +86,9 @@ class rcm_sessions:
  
 class rcm_config:
 
-    def __init__(self,fromstring='',fromfile=''):
+    def __init__(self,fromstring='',fromfile=''): 
+        logger = logging.getLogger("basic")    
+         
         if (fromfile != ''):
             self.config=pickle.load(open(fromfile,"rb"))
         elif (fromstring != ''):
@@ -80,30 +96,44 @@ class rcm_config:
         else:
             self.config={'version':{'checksum':'','url':''},'queues':dict(),'vnc_commands':dict()}
         
-    def set_version(self,check,url):
+    def set_version(self,check,url): 
+        logger = logging.getLogger("basic")    
+        logger.debug("set_version")
         self.config['version']['checksum']=check
         self.config['version']['url']=url
         
-    def get_version(self):
+    def get_version(self): 
+        logger = logging.getLogger("basic")    
+        logger.debug("get_version")
         return (self.config.get('version',dict()).get('checksum',''),self.config.get('version',dict()).get('url',''))
 
-    def add_queue(self,queue,info=''):
+    def add_queue(self,queue,info=''): 
+        logger = logging.getLogger("basic")    
+        logger.debug("add_queue")
         self.config['queues'][queue]=info
         
-    def add_vnc(self,vnc,entry=None):
+    def add_vnc(self,vnc,entry=None): 
+        logger = logging.getLogger("basic")    
+        logger.debug("add_vnc")
 	if(not entry): entry=(vnc,'')
         self.config['vnc_commands'][vnc]=entry
         
-    def get_string(self):
+    def get_string(self): 
+        logger = logging.getLogger("basic")    
+        logger.debug("get_string")
         return pickle.dumps(self.config)
-    def serialize(self,file=''):
+    def serialize(self,file=''): 
+        logger = logging.getLogger("basic")    
+        logger.debug("serialize")
         if (file != ''):
             pickle.dump(self.config, open( file, "wb" ) )
         else:
             #print pickle.dumps(self.config)
 	    sys.stdout.write(serverOutputString+self.get_string())
             
-    def pretty_print(self):
+    def pretty_print(self): 
+        logger = logging.getLogger("basic")    
+        logger.debug("pretty_print")
         print "version: checksum->"+self.config['version']['checksum']+'<--url ->'+self.config['version']['url']
         print
         for queue in self.config['queues']:
@@ -135,11 +165,15 @@ if __name__ == '__main__':
     derived.add_vnc('vnc5','added after unpack')
     derived.pretty_print()
     
-    def prex(command='',commandnode=''):
+    def prex(command='',commandnode=''): 
+        logger = logging.getLogger("basic")    
+        logger.debug("prex")
         print "node "+commandnode+" "+ command
         
     for i in ['uno','due','tre']:
-      def myfunc(command):
+      def myfunc(command): 
+          logger = logging.getLogger("basic")    
+          logger.debug("myfunc")
           prex(command,i)
       r=rcm_protocol(clientfunc=myfunc)
       r.config('mia build platform '+i)

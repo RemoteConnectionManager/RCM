@@ -6,9 +6,12 @@ import re
 import string
 import optparse
 import shutil
+import logging
 
 class mytemplate(string.Template):
-    def __init__(self,s=''):
+    def __init__(self,s=''): 
+        logger = logging.getLogger("basic")    
+         
         string.Template.__init__(self,s)
         rr="""
          \@(?:
@@ -21,12 +24,16 @@ class mytemplate(string.Template):
         self.pattern=re.compile(rr, re.VERBOSE | re.IGNORECASE)
         self.delimiter='@'
 
-    def templ_match(self,s=''):
+    def templ_match(self,s=''): 
+        logger = logging.getLogger("basic")    
+        logger.debug("templ_match")
         m=self.pattern.search(s)
         return m
 
 class desktop_helper():
-    def __init__(self):
+    def __init__(self): 
+        logger = logging.getLogger("basic")    
+         
 
         self.desk_subst={
             'icon':'',
@@ -65,7 +72,9 @@ class desktop_helper():
         self.op.add_option("--terminal",action="store_true", dest="terminal",default=False,help='open desktop terminal')
        
 
-    def parse(self,argv=None):
+    def parse(self,argv=None): 
+        logger = logging.getLogger("basic")    
+        logger.debug("parse")
         if not argv:
             (options,args) = self.op.parse_args(argv)
         else:

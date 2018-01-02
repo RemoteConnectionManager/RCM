@@ -6,8 +6,11 @@ import fcntl
 import struct
 import array
 import re
+import logging
 
-def all_interfaces():
+def all_interfaces(): 
+    logger = logging.getLogger("basic")    
+    logger.debug("all_interfaces")
     max_possible = 128  # arbitrary. raise if needed.
     bytes = max_possible * 32
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -25,13 +28,17 @@ def all_interfaces():
         lst.append((name, ip))
     return lst
 
-def format_ip(addr):
+def format_ip(addr): 
+    logger = logging.getLogger("basic")    
+    logger.debug("format_ip")
     return str(ord(addr[0])) + '.' + \
            str(ord(addr[1])) + '.' + \
            str(ord(addr[2])) + '.' + \
            str(ord(addr[3]))
 
-def external_name(subnet):
+def external_name(subnet): 
+  logger = logging.getLogger("basic")    
+  logger.debug("external_name")
   ifs = all_interfaces()
   for i in ifs:
     ip=format_ip(i[1])
