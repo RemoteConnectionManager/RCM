@@ -9,6 +9,7 @@ import time
 import datetime
 import logging
 import rcm_base_server
+import json
 class rcm_server(rcm_base_server.rcm_base_server):
       
       def vnc_command_in_background(self): 
@@ -102,7 +103,9 @@ class rcm_server(rcm_base_server.rcm_base_server):
           f=open(file,'w')
           f.write(batch)
           f.close()
-          (res,out,err)=self.cprex(['qsub','-v',"RCM_OTP_FILE="+otp,file])
+          logger.debug("----- sbatch args "+" "+otp+" "+file)
+          (res,out,err)=self.cprex(['sbatch','--export=RCM_OTP_FILE='+otp,file])
+          logger.debug("Popen submit : " + str(res)+" \n"+out+" \n"+err)
           r=re.match(r'(\d+\.\w+)(\.[\w\.]+)?$',out)
           if (r):
                 return r.group(1)
@@ -113,7 +116,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
       def kill_job(self,jid): 
           logger = logging.getLogger("basic")    
           logger.debug("kill_job")
-          self.cprex(['qdel',jid])
+          self.cprex(['scancel',jid])
           
           
       # get available queues for the user
@@ -121,19 +124,25 @@ class rcm_server(rcm_base_server.rcm_base_server):
           logger = logging.getLogger("basic")    
           logger.debug("get_queue")
           group=os.environ.get('ACCOUNT_NUMBER',os.path.basename(os.environ.get('WORK','')))
+          logger.debug("OOOOOOOO"+group)
           self.substitutions['RCM_QSUBPAR_A'] = self.groupSubstitution(group,'-A $RCM_GROUP')
           #get list of possible queue (named "visual")
           queueList = []
           if(not testJobScriptDict): testJobScriptDict=self.pconfig.get_testjobs()
+          logger.debug("OOOOOO TJD = "+json.dumps(testJobScriptDict))
           for key, value in testJobScriptDict.iteritems():
-                #print value
-                #print key
+                logger.debug(key)
+                logger.debug(value)
                 args = shlex.split(string.Template(value).safe_substitute(self.substitutions))
+                logger.debug("OOOOOOO TEST job = "+' '.join(str(p) for p in args))
                 p1 = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 stdout,stderr=p1.communicate()
-                if len(stderr) == 0:
+                logger.debug("OOOOOOO "+"\n stdout :"+stdout+"\n stderr"+stderr)
+                regex_string = r"Submitted batch job (\d*)"
+                m = re.search(regex_string, stdout)
+                if m:
                   queueList.append(key)
-                  self.kill_job(stdout.strip().split('.')[0])
+                  self.kill_job(m.group(1))
           
           return queueList
 
