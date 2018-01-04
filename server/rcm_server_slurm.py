@@ -106,7 +106,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
           logger.debug("----- sbatch args "+" "+otp+" "+file)
           (res,out,err)=self.cprex(['sbatch','--export=RCM_OTP_FILE='+otp,file])
           logger.debug("Popen submit : " + str(res)+" \n"+out+" \n"+err)
-          r=re.match(r'(\d+\.\w+)(\.[\w\.]+)?$',out)
+          r=re.match(r"Submitted batch job (\d*)",out)
           if (r):
                 return r.group(1)
           else:
