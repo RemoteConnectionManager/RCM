@@ -125,7 +125,8 @@ class rcm_server(rcm_base_server.rcm_base_server):
           logger.debug("get_queue")
           group=os.environ.get('ACCOUNT_NUMBER',os.path.basename(os.environ.get('WORK','')))
           logger.debug("OOOOOOOO"+group)
-          self.substitutions['RCM_QSUBPAR_A'] = self.groupSubstitution(group,'-A $RCM_GROUP')
+          self.substitutions['RCM_QSUBPAR_A'] = self.groupSubstitution(group,'--account=$RCM_GROUP')
+          logger.debug("SUB"+self.substitutions['RCM_QSUBPAR_A'])
           #get list of possible queue (named "visual")
           queueList = []
           if(not testJobScriptDict): testJobScriptDict=self.pconfig.get_testjobs()
