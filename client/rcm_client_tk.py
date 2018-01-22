@@ -4,7 +4,7 @@ import os
 import tempfile
 import rcm_utils
 import rcm_client
-import rcm
+from server import rcm
 
 #from Tkinter import *
 from Tkinter import *
@@ -948,8 +948,7 @@ class ConnectionWindowNotebook(Notebook):
                 return credential
 
 
-if __name__ == '__main__':
-    
+def client_main():    
     parser = argparse.ArgumentParser(description='RCM client.')
     parser.add_argument('-d','--debug',default=0,type=int,
                    help='define %(prog)s verbosity')
@@ -967,3 +966,5 @@ if __name__ == '__main__':
         c.mainloop()
 
 
+if __name__ == '__main__':
+    client_main()

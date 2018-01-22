@@ -24,6 +24,41 @@ rootLogger.addHandler(consoleHandler)
 exceptionformat=" {1}"
 vnc_loglevel=0
 
+def which(*args, **kwargs):
+    """Finds an executable in the path like command-line which.
+
+    If given multiple executables, returns the first one that is found.
+    If no executables are found, returns None.
+
+    Parameters:
+        *args (str): One or more executables to search for
+
+    Keyword Arguments:
+        path (:func:`list` or str): The path to search. Defaults to ``PATH``
+        required (bool): If set to True, raise an error if executable not found
+
+    Returns:
+        Executable: The first executable that is found in the path
+    """
+    from six import string_types
+    path = kwargs.get('path', os.environ.get('PATH', ''))
+    required = kwargs.get('required', False)
+
+    if isinstance(path, string_types):
+        path = path.split(os.pathsep)
+
+    for name in args:
+        for directory in path:
+            exe = os.path.join(directory, name)
+            if os.path.isfile(exe) and os.access(exe, os.X_OK):
+                return exe
+
+    if required:
+        tty.die("spack requires '%s'. Make sure it is in your path." % args[0])
+
+    return None
+
+
 def configure_logging(verbose=0,vnclv=0):
 #    rootLogger = logging.getLogger()
     global vnc_loglevel
