@@ -18,7 +18,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
   def timeleft_string(self,sid): 
     logger = logging.getLogger("basic")    
     logger.debug("timeleft_string")
-	return self.notimeleft_string
+    return self.notimeleft_string
 # get group to be used submitting a job
   #def getQueueGroup(self,queue): 
     logger = logging.getLogger("basic")    
