@@ -370,7 +370,7 @@ done"""
             c=rcm.rcm_session(state='pending', sessionname=self.sessionname, walltime=self.par_w, node='', tunnel='', sessiontype=self.session_tag, nodelogin=self.nodelogin, display='', jobid=jid, sessionid=sid, username=self.username, otp='', vncpassword=self.vncpassword_crypted)
             c.serialize(file)
             #c.write(self.par_f)
-            (n,d,otp)=self.wait_jobout(sid,120)
+            (n,d,otp)=self.wait_jobout(sid,240)
             #here we test if hostname returned by jobout is the same host (ssh case)
             if(n == socket.gethostname()): 
 		#print "setto il tunnel a ", self.get_use_tunnel()
