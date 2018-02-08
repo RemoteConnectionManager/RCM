@@ -47,7 +47,7 @@ class platformconfig(baseconfig):
             else:
                 item=vnc_id
                 info=menu_item_string
-        menu[vnc_id]=(item,info)
+            menu[vnc_id]=(item,info)
         return(menu)
 
     def vnc_attribute(self,vnc_id,section): 
