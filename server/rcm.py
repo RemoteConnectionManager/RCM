@@ -16,6 +16,7 @@ class rcm_session:
         print "pikl init -----------------------------"
         if (fromfile != ''):
             self.hash=pickle.load(open(fromfile,"rb"))
+            self.hash['file']=fromfile
         elif (fromstring != ''):
             print "pikl fromstring-->"+fromstring
             self.hash=pickle.loads('server.'+fromstring)
