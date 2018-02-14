@@ -177,6 +177,7 @@ class rcm_base_server:
             self.sids['err'].add(sid)   
 
     def fill_sessions_hash(self, U=False):
+        logger = logging.getLogger("basic")    
 
         udirs=self.get_rcmdirs(U)
         if (U):
@@ -199,6 +200,7 @@ class rcm_base_server:
                         #print "file-->",file
                         try:
                             self.sessions[sid]=rcm.rcm_session(fromfile=file)
+                            logger.debug("file:"+self.sessions[sid].hash['file'])
                             #need the following lines to map nodes with different hostname from different subnet
                             originalNodeLogin = self.sessions[sid].hash.get('nodelogin','')
                             if (self.subnet != '' and originalNodeLogin != ''):
@@ -221,8 +223,28 @@ class rcm_base_server:
         #return "{0}-{1}-{2}".format(user,session_tag,id)
         return "%s-%s-%d" % (user,self.session_tag,id)
 
-
+    def to_delete(self):
+        logger = logging.getLogger("basic")
+        rcmdir=self.get_rcmdirs()[0]
+        for s in self.sids['end']:
+            session_file=self.sessions[s].hash['file']
+            logger.debug("ask remove file: "+session_file)
+            if os.path.dirname(session_file) == rcmdir :
+                logger.debug(" ok to remove in: -->"+os.path.dirname(session_file)+"<--")
+                sess_prefix=os.path.splitext(os.path.basename(session_file))[0]
+                logger.debug("ask remove prefix: "+sess_prefix)
+                for e in ['session','joblog.pwd','joblog.vnc','job'] :
+                    logger.debug("ask remove file"+e)
+                    file_to_remove=os.path.join(rcmdir,sess_prefix+'.'+e)
+                    logger.info("remove file: "+file_to_remove)
+                    os.remove(file_to_remove)
+            else:
+                logger.debug("rcmdir->"+rcmdir+"<--basename-->"+os.path.basename(session_file)+"<--")
+                logger.warning("Blocked remove file: "+file_to_remove)
+        
+        
     def new_sid(self): 
+        self.to_delete() 
         logger = logging.getLogger("basic")    
         logger.debug("new_sid")
         n_err=len(self.sids['err'])
@@ -274,8 +296,9 @@ class rcm_base_server:
       
     def clean_files(self,sid): 
         logger = logging.getLogger("basic")    
-        logger.debug("clean_files")
+        logger.debug("clean_files sid:"+str(sid))
         for d in self.get_rcmdirs():
+            logger.debug("clean_files:"+d)
             if ( not os.path.isdir(d) ):
                 os.mkdir(d)
                 os.chmod(d,0755)
