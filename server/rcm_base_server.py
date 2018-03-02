@@ -233,11 +233,12 @@ class rcm_base_server:
                 logger.debug(" ok to remove in: -->"+os.path.dirname(session_file)+"<--")
                 sess_prefix=os.path.splitext(os.path.basename(session_file))[0]
                 logger.debug("ask remove prefix: "+sess_prefix)
-                for e in ['session','joblog.pwd','joblog.vnc','job'] :
+                for e in ['session', 'job', 'joblog.pwd', 'joblog.vnc', 'joblog'] :
                     logger.debug("ask remove file"+e)
                     file_to_remove=os.path.join(rcmdir,sess_prefix+'.'+e)
-                    logger.info("remove file: "+file_to_remove)
-                    os.remove(file_to_remove)
+                    if os.path.exists(file_to_remove):
+                        logger.info("remove file: "+file_to_remove)
+                        os.remove(file_to_remove)
             else:
                 logger.debug("rcmdir->"+rcmdir+"<--basename-->"+os.path.basename(session_file)+"<--")
                 logger.warning("Blocked remove file: "+file_to_remove)
