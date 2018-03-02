@@ -4,6 +4,7 @@ import os
 import pwd
 import re
 import logging
+import logging.handlers
 #from __future__ import print_function
 
 import rcm
@@ -21,7 +22,7 @@ if __name__ == '__main__':
     # init loggger
     logger_name = 'basic'
     logger = logging.getLogger(logger_name)
-    logger.setLevel( "DEBUG"  )
+    logger.setLevel( os.environ.get("RCM_DEBUG_LEVEL","info").upper())
     ch = logging.StreamHandler(sys.stdout)
     username=pwd.getpwuid(os.geteuid())[0]
     rcmdir=os.path.expanduser("~%s/.rcm" % username)
@@ -29,20 +30,31 @@ if __name__ == '__main__':
         os.mkdir(rcmdir)
         os.chmod(rcmdir,0755)
     rcmlog=os.path.join(rcmdir,'logfile')
-    fh = logging.FileHandler(rcmlog, mode='a')
-    formatter = logging.Formatter('[%(levelname)s] %(asctime)s (%(module)s %(funcName)s) : %(message)s')
+    #fh = logging.FileHandler(rcmlog, mode='a')
+    fh = logging.handlers.RotatingFileHandler(rcmlog, mode='a', maxBytes=50000, 
+                                 backupCount=2, encoding=None, delay=0)
+    formatter = logging.Formatter('[%(levelname)s] %(asctime)s (%(module)s:%(lineno)d %(funcName)s) : %(message)s')
     fh.setFormatter(formatter)
     ch.setFormatter(formatter)
 
 
     #logger.addHandler(ch)
     logger.addHandler(fh)
-
-    logger.debug("---------------------------------")
-    logger.debug("                                 ")
-    logger.debug("   RCM server command launched   ")
-    logger.debug("                                 ")
-    logger.debug("---------------------------------")
+    
+    num_loglevel_debug=getattr(logging, "debug".upper(), 0)
+    if num_loglevel_debug==logger.level:
+        string="--------new command-------------\n"
+        string+="python->"+sys.executable+"\n"
+        string+="script-->"+sys.argv[0]+"\nargs->"
+    else:
+        string="--->"+__file__+" "
+    for a in sys.argv[1:]:
+        string+=a+" "
+    if num_loglevel_debug==logger.level:
+        string+="\n--------------------------------\n"
+        logger.debug(string)
+    else:
+        logger.info(string)
 
     #launch rcm
     p=platformconfig.platformconfig()
