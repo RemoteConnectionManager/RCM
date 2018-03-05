@@ -1,6 +1,5 @@
 import paramiko
 
-
 def sshCommando(hostname, port, username, password, command):
     sshClient =paramiko.SSHClient()
 

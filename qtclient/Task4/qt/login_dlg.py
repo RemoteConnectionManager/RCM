@@ -1,13 +1,15 @@
-from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, QHBoxLayout, \
-    QVBoxLayout, QGroupBox, QGridLayout, QPushButton
-from ssh import sshCommando
+from PyQt5.QtWidgets import* #QLabel, QLineEdit, QDialog, QComboBox, QHBoxLayout, \
+    #QVBoxLayout, QGroupBox, QGridLayout, QPushButton
+from ssh import *
 
 
 class LoginWindow(QDialog):
+
     def __init__(self):
         QDialog.__init__(self)
         self.setWindowTitle("Login")
         self.init_ui()
+        print(self.user_line)
 
     def init_ui(self):
         grid_layout = QGridLayout()
@@ -20,6 +22,7 @@ class LoginWindow(QDialog):
         grid_layout.addWidget(host_label, 0, 0)
         grid_layout.addWidget(self.host_combo,0, 1)
 
+        self.use_label = QLabel(self)
         user_label = QLabel(self)
         user_label.setText('User:')
         self.user_line= QLineEdit(self)
@@ -39,6 +42,12 @@ class LoginWindow(QDialog):
         hor_layout.addStretch(1)
         hor_layout.addWidget(pybutton)
         hor_layout.addStretch(1)
+        self.use_label.setText("The password is wrong")
+        self.use_label.setStyleSheet("color:red")
+        grid_layout.addWidget(self.use_label, 3, 1)
+        self.use_label.hide()
+
+
 
         group_box = QGroupBox("Please enter your credentials: ")
         group_box.setLayout(grid_layout)
@@ -49,6 +58,14 @@ class LoginWindow(QDialog):
         dialog_layout.addLayout(hor_layout)
         self.setLayout(dialog_layout)
 
+
     def login(self):
-        sshCommando(self.host_combo.currentText(), 22,
-                    self.user_line.text(), self.pssw_line.text(),'ls')
+
+        try:
+            sshCommando(self.host_combo.currentText(), 22,
+                        self.user_line.text(), self.pssw_line.text(),'ls')
+        except paramiko.ssh_exception.AuthenticationException:
+           self.use_label.show()
+           return
+
+        self.close()
