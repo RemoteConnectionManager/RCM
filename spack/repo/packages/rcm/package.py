@@ -61,7 +61,9 @@ class Rcm(Package):
     url      = "https://github.com/RemoteConnectionManager/RCM/archive/0.0.1.tar.gz"
 
     version('v0.0.2', 'a9ee0ddfa533701a3a538011f9c2349c')
-    version('develop', git='https://github.com/RemoteConnectionManager/RCM.git')
+    version('v0.0.3', 'a9ee0ddfa533701a3a538011f9c2349c')
+    version('v0.0.4', '215537f33ce5e17c67ec901334404c79')
+    version('develop', git='https://github.com/RemoteConnectionManager/RCM.git', tag='dev')
 
     variant('linksource', default=False, description='link to source instead of copying scripts')
     variant('client', default=False, description='install client part')
@@ -81,7 +83,7 @@ class Rcm(Package):
     # FIXME: Add dependencies if required.
     depends_on('xkeyboard-config+xorg',  when='+server', type='run')
     # depends_on('turbovnc+x11deps ^xkeyboard-config+xorg', when='+server', type='run')
-    depends_on('turbovnc+x11deps', when='+server', type='run')
+    depends_on('turbovnc+x11deps+server', when='+server', type='run')
     depends_on('turbovnc+x11deps+java~server', when='+client platform=linux', type='run')
     depends_on('turbovnc+java~x11deps~server', when='+client platform=darwin', type='run')
     depends_on('lxde-lxterminal', when='+server', type='run')
