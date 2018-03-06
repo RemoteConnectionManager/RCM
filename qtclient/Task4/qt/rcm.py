@@ -1,15 +1,15 @@
 import sys
-from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QPushButton, QApplication
-from login_dlg import LoginWindow
+from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QApplication
+from main_widget import MainWidget
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
-
         self.setWindowTitle("Remote Connection Manager - CINECA")
-        width = 320
-        height = 160
+
+        width = 600
+        height = 200
 
         screen_width = QDesktopWidget().width()
         screen_height = QDesktopWidget().height()
@@ -18,15 +18,8 @@ class MainWindow(QMainWindow):
                          (screen_height/2) - (height/2),
                          width, height)
 
-        pybutton = QPushButton('Login', self)
-        pybutton.clicked.connect(self.login)
-        pybutton.resize(200, 32)
-        pybutton.move(80, 40)
-
-    def login(self):
-        logWin = LoginWindow()
-        logWin.setModal(True)
-        logWin.exec()
+        mainW = MainWidget()
+        self.setCentralWidget(mainW)
 
 
 if __name__ == "__main__":
