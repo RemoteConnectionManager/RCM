@@ -142,7 +142,7 @@ class Rcm(Package):
                     tty.warn('linking file :'+rcm_source_file+' -->'+rcm_target_file)
                     os.symlink(rcm_source_file, rcm_target_file)
                 else:
-                    copy_file(rcm_client_file, rcm_target_file, verbose=1)
+                    shutil.copyfile(rcm_source_file, rcm_target_file)
             rcm_batch_file=os.path.join(prefix.bin,"rcm.sh")
             with open(rcm_batch_file, "w") as text_file:
                 text_file.write("python %s" % os.path.join(prefix.bin,'rcm_client_tk.py'))
