@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import QPushButton, \
     QWidget, QLineEdit, QVBoxLayout, QHBoxLayout,\
-    QGridLayout, QLabel, QComboBox, QFileDialog
+    QGridLayout, QLabel, QComboBox, QFileDialog, QFrame
 
-from PyQt5.QtGui import QIcon
+import random
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import QSize
 
 from ssh import sshCommando
@@ -14,7 +15,7 @@ class QSessionWidget(QWidget):
         super(QWidget, self).__init__(parent)
         self.hosts = ["login.marconi.cineca.it", "login.pico.cineca.it"]
         self.user = ""
-        self.rows = []
+        self.rows = {}
     # Create first tab
         new_tab_main_layout = QVBoxLayout()
 
@@ -67,7 +68,7 @@ class QSessionWidget(QWidget):
         new_tab_main_layout.addWidget(self.containerLoginWidget)
 
     # Session Layout
-        plusbutton_layout = QHBoxLayout()
+        plusbutton_layout = QGridLayout()
         self.session_ver_layout = QVBoxLayout()
         self.rows_ver_layout = QVBoxLayout()
         self.rows_ver_layout.setContentsMargins(0,0,0,0)
@@ -86,29 +87,44 @@ class QSessionWidget(QWidget):
         self.share_ico = QIcon()
         self.share_ico.addFile('icons/share.png')
 
+        myFont = QFont()
+        myFont.setBold(True)
+
         name = QLabel()
         name.setText("Name")
-        plusbutton_layout.addWidget(name)
+        name.setFont(myFont)
+        plusbutton_layout.addWidget(name,0,0)
 
         status = QLabel()
         status.setText("Status")
-        plusbutton_layout.addWidget(status)
+        status.setFont(myFont)
+        plusbutton_layout.addWidget(status,0,1)
 
         time = QLabel()
         time.setText("Time")
-        plusbutton_layout.addWidget(time)
+        time.setFont(myFont)
+        plusbutton_layout.addWidget(time,0,2)
 
         resources = QLabel()
         resources.setText("Resources")
-        plusbutton_layout.addWidget(resources)
+        resources.setFont(myFont)
+        plusbutton_layout.addWidget(resources,0,3)
+
+        x = QLabel()
+        x.setText("")
+        plusbutton_layout.addWidget(x,0,4)
+        plusbutton_layout.addWidget(x, 0, 5)
 
         new_display_ico = QIcon()
         new_display_ico.addFile('icons/plus.png', QSize(16, 16))
         new_display = QPushButton()
         new_display.setIcon(new_display_ico)
         new_display.clicked.connect(self.addNewDisplay)
-        plusbutton_layout.addStretch(1)
-        plusbutton_layout.addWidget(new_display)
+        new_display_layout = QHBoxLayout()
+        new_display_layout.addSpacing(100)
+        new_display_layout.addWidget(new_display)
+
+        plusbutton_layout.addLayout(new_display_layout,0,6)
 
         self.containerSessionWidget = QWidget()
         self.containerSessionWidget.setLayout(self.session_ver_layout)
@@ -118,14 +134,13 @@ class QSessionWidget(QWidget):
         self.setLayout(new_tab_main_layout)
 
     def login(self):
-        try:
-            sshCommando(self.host_combo.currentText(), 22,
-                        self.user_line.text(),
-                        self.pssw_line.text(), 'ls')
-        except AuthenticationException:
-            self.error_label.show()
-            print(self.error_label)
-            return
+        #try:
+        #    sshCommando(self.host_combo.currentText(), 22,
+        #                self.user_line.text(),
+        #                self.pssw_line.text(), 'ls')
+        #except AuthenticationException:
+        #    self.error_label.show()
+        #    return
         self.user = self.user_line.text()
         self.containerLoginWidget.hide()
         self.containerSessionWidget.show()
@@ -144,11 +159,16 @@ class QSessionWidget(QWidget):
             return
 
         display_hor_layout = QHBoxLayout()
-        display_hor_layout.setContentsMargins(0,2,0,0)
+        display_hor_layout.setContentsMargins(0,2,0,2)
         display_hor_layout.setSpacing(2)
+        display_widget = QWidget()
+        display_widget.setLayout(display_hor_layout)
+
+        id = random.getrandbits(128)
+        print(id)
 
         name = QLabel()
-        name.setText("Carlo")
+        name.setText(str(id)[:16])
         display_hor_layout.addWidget(name)
 
         status = QLabel()
@@ -165,20 +185,35 @@ class QSessionWidget(QWidget):
 
         connect = QPushButton()
         connect.setIcon(self.connect_ico)
+        connect.clicked.connect(lambda: self.connectDisplay(id))
         display_hor_layout.addWidget(connect)
 
         share = QPushButton()
         share.setIcon(self.share_ico)
+        share.clicked.connect(lambda: self.shareDisplay(id))
         display_hor_layout.addWidget(share)
 
         kill = QPushButton()
         kill.setIcon(self.kill_ico)
+        kill.clicked.connect(lambda: self.killDisplay(id))
         display_hor_layout.addWidget(kill)
 
-        display_widget = QWidget()
-        display_widget.setLayout(display_hor_layout)
-
-        #self.rows_ver_layout.addLayout(display_hor_layout)
-
         self.rows_ver_layout.addWidget(display_widget)
-        self.rows.append(display_widget)
+
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        self.rows_ver_layout.addWidget(separator)
+
+        self.rows[id] = display_widget
+
+    def connectDisplay(self, id):
+        print(self.rows[id])
+
+    def shareDisplay(self, id):
+        print(self.rows[id])
+
+    def killDisplay(self, id):
+        self.rows[id].hide()
+        self.rows_ver_layout.removeWidget(self.rows[id])
+        del self.rows[id]

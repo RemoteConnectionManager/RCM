@@ -12,7 +12,7 @@ class RCM(QMainWindow):
         self.setWindowTitle("Remote Connection Manager - CINECA - v0.01_alpha")
 
         width = 1000
-        height = 275
+        height = 300
 
         screen_width = QDesktopWidget().width()
         screen_height = QDesktopWidget().height()
