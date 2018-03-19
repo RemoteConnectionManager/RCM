@@ -16,6 +16,7 @@ class QSessionWidget(QWidget):
         self.hosts = ["login.marconi.cineca.it", "login.pico.cineca.it"]
         self.user = ""
         self.rows = {}
+
     # Create first tab
         new_tab_main_layout = QVBoxLayout()
 
@@ -161,8 +162,15 @@ class QSessionWidget(QWidget):
         display_hor_layout = QHBoxLayout()
         display_hor_layout.setContentsMargins(0,2,0,2)
         display_hor_layout.setSpacing(2)
+
+        display_ver_layout = QVBoxLayout()
+        display_ver_layout.setContentsMargins(0, 0, 0, 0)
+        display_ver_layout.setSpacing(0)
+
+        display_ver_layout.addLayout(display_hor_layout)
+
         display_widget = QWidget()
-        display_widget.setLayout(display_hor_layout)
+        display_widget.setLayout(display_ver_layout)
 
         id = random.getrandbits(128)
         print(id)
@@ -198,12 +206,12 @@ class QSessionWidget(QWidget):
         kill.clicked.connect(lambda: self.killDisplay(id))
         display_hor_layout.addWidget(kill)
 
-        self.rows_ver_layout.addWidget(display_widget)
-
         separator = QFrame()
         separator.setFrameShape(QFrame.HLine)
         separator.setFrameShadow(QFrame.Sunken)
-        self.rows_ver_layout.addWidget(separator)
+        display_ver_layout.addWidget(separator)
+
+        self.rows_ver_layout.addWidget(display_widget)
 
         self.rows[id] = display_widget
 
