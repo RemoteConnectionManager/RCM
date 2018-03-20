@@ -1,10 +1,11 @@
 from PyQt5.QtWidgets import QPushButton, \
     QWidget, QLineEdit, QVBoxLayout, QHBoxLayout,\
     QGridLayout, QLabel, QComboBox, QFileDialog, QFrame
-
-import random
+from display_window import *
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import QSize
+
+from pyinstaller_utils import resource_path
 
 from ssh import sshCommando
 from paramiko.ssh_exception import AuthenticationException
@@ -47,6 +48,7 @@ class QSessionWidget(QWidget):
         login_hor_layout = QHBoxLayout()
         pybutton = QPushButton('Login', self)
         pybutton.clicked.connect(self.login)
+        pybutton.setShortcut("Return")
 
         openbtn = QPushButton('Open', self)
         openbtn.clicked.connect(self.open)
@@ -80,13 +82,13 @@ class QSessionWidget(QWidget):
         self.session_ver_layout.addStretch(1)
 
         self.connect_ico = QIcon()
-        self.connect_ico.addFile('icons/connect.png')
+        self.connect_ico.addFile(resource_path('icons/connect.png'))
 
         self.kill_ico = QIcon()
-        self.kill_ico.addFile('icons/kill.png')
+        self.kill_ico.addFile(resource_path('icons/kill.png'))
 
         self.share_ico = QIcon()
-        self.share_ico.addFile('icons/share.png')
+        self.share_ico.addFile(resource_path('icons/share.png'))
 
         myFont = QFont()
         myFont.setBold(True)
@@ -117,7 +119,7 @@ class QSessionWidget(QWidget):
         plusbutton_layout.addWidget(x, 0, 5)
 
         new_display_ico = QIcon()
-        new_display_ico.addFile('icons/plus.png', QSize(16, 16))
+        new_display_ico.addFile(resource_path('icons/plus.png'), QSize(16, 16))
         new_display = QPushButton()
         new_display.setIcon(new_display_ico)
         new_display.clicked.connect(self.addNewDisplay)
@@ -159,6 +161,12 @@ class QSessionWidget(QWidget):
         if len(self.rows) >= 5:
             return
 
+        displaywin = QDisplayDialog(list(self.rows.keys()))
+        displaywin.setModal(True)
+
+        if displaywin.exec() != 1:
+            return
+
         display_hor_layout = QHBoxLayout()
         display_hor_layout.setContentsMargins(0,2,0,2)
         display_hor_layout.setSpacing(2)
@@ -172,7 +180,7 @@ class QSessionWidget(QWidget):
         display_widget = QWidget()
         display_widget.setLayout(display_ver_layout)
 
-        id = random.getrandbits(128)
+        id = displaywin.display_name
         print(id)
 
         name = QLabel()
