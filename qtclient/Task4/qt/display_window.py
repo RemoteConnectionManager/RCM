@@ -1,4 +1,4 @@
-import random
+import uuid
 from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, \
     QPushButton, QApplication
 
@@ -67,7 +67,7 @@ class QDisplayDialog(QDialog):
         #se il nome è vuoto crea un id random
         #da sostituire random con uuid
         if session_name == "":
-            self.display_name = random.getrandbits(128)
+            self.display_name = uuid.uuid4().hex
 
         else:
             self.display_name = session_name
