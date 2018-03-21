@@ -12,8 +12,10 @@ class QDisplayDialog(QDialog):
 
     def init_ui(self):
 
+        #create the grid layout
         grid_layout = QGridLayout()
 
+        #Create session layout
         session_name = QLabel(self)
         session_name.setText('session name:')
         self.session_line= QLineEdit(self)
@@ -27,23 +29,22 @@ class QDisplayDialog(QDialog):
         grid_layout.addWidget(session_queue, 2, 0)
         grid_layout.addWidget(self.session_combo, 2, 1)
 
-
         display_label = QLabel(self)
         display_label.setText('Display size:')
         self.display_line = QLineEdit(self)
         grid_layout.addWidget(display_label, 3, 0)
         grid_layout.addWidget(self.display_line, 3, 1)
 
-
+        #Ok button
         hor_layout = QHBoxLayout()
         ok = QPushButton('Ok', self)
         ok.clicked.connect(self.onOk)
-
         ok.setFixedHeight(20)
         ok.setFixedWidth(100)
         hor_layout.addStretch(1)
         hor_layout.addWidget(ok)
 
+        #Cancel button
         canc = QPushButton('Cancel', self)
         canc.clicked.connect(self.reject)
         canc.setFixedHeight(20)

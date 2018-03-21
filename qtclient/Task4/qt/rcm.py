@@ -41,6 +41,7 @@ class MainWidget(QWidget):
         self.tabs = QTabWidget()
         self.tabs.resize(300, 200)
         self.tabs_list = []
+
     # Add tabs
         self.addNewTab("Login...")
         self.addNewTab("+")

@@ -153,6 +153,7 @@ class QSessionWidget(QWidget):
         self.containerLoginWidget.hide()
         self.containerSessionWidget.show()
 
+    #File Dialog
     def open(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
@@ -162,9 +163,10 @@ class QSessionWidget(QWidget):
                 print(filename)
 
     def addNewDisplay(self):
-
+        #cannot have more than 5 displays
         if len(self.rows) >= 5:
             return
+
 
         displaywin = QDisplayDialog(list(self.rows.keys()))
         displaywin.setModal(True)
@@ -228,13 +230,18 @@ class QSessionWidget(QWidget):
 
         self.rows[id] = display_widget
 
+    #to be added later
     def connectDisplay(self, id):
         print(self.rows[id])
 
+    #to be added later
     def shareDisplay(self, id):
         print(self.rows[id])
 
     def killDisplay(self, id):
+        #First it hide the display
         self.rows[id].hide()
+
+        #Then it delete from the layout and the dic
         self.rows_ver_layout.removeWidget(self.rows[id])
         del self.rows[id]
