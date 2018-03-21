@@ -1,9 +1,10 @@
-import sys
+import sys,logging
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, \
     QWidget,QTabWidget, QVBoxLayout, \
     QLabel, QFrame, QDesktopWidget
 from PyQt5.QtCore import pyqtSlot
 from session_widget import QSessionWidget
+from logger import QLabelLogger,logger
 
 class RCM(QMainWindow):
 
@@ -27,8 +28,8 @@ class RCM(QMainWindow):
         self.main_widget = MainWidget(self)
         self.setCentralWidget(self.main_widget)
 
+        logger.warning("Showing window")
         self.show()
-
 
 class MainWidget(QWidget):
 
@@ -40,7 +41,6 @@ class MainWidget(QWidget):
         self.tabs = QTabWidget()
         self.tabs.resize(300, 200)
         self.tabs_list = []
-
     # Add tabs
         self.addNewTab("Login...")
         self.addNewTab("+")
@@ -55,6 +55,8 @@ class MainWidget(QWidget):
         text_log_label.setFrameShape(QFrame.Panel)
         text_log_label.setFrameShadow(QFrame.Sunken)
         text_log_label.setLineWidth(1)
+        text_log_handler = QLabelLogger(text_log_label)
+        logger.addHandler(text_log_handler)
         self.main_layout.addWidget(text_log_label)
 
     #Set main layout

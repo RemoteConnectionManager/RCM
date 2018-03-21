@@ -65,7 +65,6 @@ class QDisplayDialog(QDialog):
         session_name = str(self.session_line.text())
 
         #se il nome è vuoto crea un id random
-        #da sostituire random con uuid
         if session_name == "":
             self.display_name = uuid.uuid4().hex
 

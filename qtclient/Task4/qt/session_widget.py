@@ -7,6 +7,8 @@ from PyQt5.QtCore import QSize
 
 from pyinstaller_utils import resource_path
 
+from logger import logger
+
 from ssh import sshCommando
 from paramiko.ssh_exception import AuthenticationException
 
@@ -137,13 +139,16 @@ class QSessionWidget(QWidget):
         self.setLayout(new_tab_main_layout)
 
     def login(self):
-        #try:
-        #    sshCommando(self.host_combo.currentText(), 22,
-        #                self.user_line.text(),
-        #                self.pssw_line.text(), 'ls')
-        #except AuthenticationException:
-        #    self.error_label.show()
-        #    return
+        try:
+            logger.info("Log in" + str(self.user_line.text()) + "@" + str(self.host_combo.currentText()))
+            sshCommando(self.host_combo.currentText(), 22,
+                        self.user_line.text(),
+                        self.pssw_line.text(), 'ls')
+        except AuthenticationException:
+            self.error_label.show()
+            logger.info("")
+            return
+        logger.info("Log in ")
         self.user = self.user_line.text()
         self.containerLoginWidget.hide()
         self.containerSessionWidget.show()
