@@ -1,9 +1,11 @@
-import sys,logging
+import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, \
     QWidget,QTabWidget, QVBoxLayout, \
     QLabel, QFrame, QDesktopWidget
 from PyQt5.QtCore import pyqtSlot
+
 from session_widget import QSessionWidget
+
 from logger import QLabelLogger,logger
 
 class RCM(QMainWindow):
@@ -11,6 +13,7 @@ class RCM(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Remote Connection Manager - CINECA - v0.01_alpha")
+        logger.debug("QMainWindow created")
 
         width = 1000
         height = 300
@@ -24,12 +27,14 @@ class RCM(QMainWindow):
 
         self.setFixedHeight(height)
         self.setFixedWidth(width)
+        logger.debug("QMainWindow moved at the center of the screen")
 
         self.main_widget = MainWidget(self)
         self.setCentralWidget(self.main_widget)
+        logger.debug("MainWidget created and added to QMainWindow")
 
-        logger.warning("Showing window")
         self.show()
+        logger.debug("Showing QMainWindow")
 
 class MainWidget(QWidget):
 
@@ -41,14 +46,17 @@ class MainWidget(QWidget):
         self.tabs = QTabWidget()
         self.tabs.resize(300, 200)
         self.tabs_list = []
+        logger.debug("Initialized tab screen")
 
     # Add tabs
         self.addNewTab("Login...")
         self.addNewTab("+")
         self.tabs.currentChanged.connect(self.onChange)
+        logger.debug("Created tabs")
 
     # Add tabs to widget
         self.main_layout.addWidget(self.tabs)
+        logger.debug("Added tabs to widget")
 
     #Add text_log
         text_log_label = QLabel(self)
@@ -56,8 +64,10 @@ class MainWidget(QWidget):
         text_log_label.setFrameShape(QFrame.Panel)
         text_log_label.setFrameShadow(QFrame.Sunken)
         text_log_label.setLineWidth(1)
+        logger.debug("Added Log Label")
         text_log_handler = QLabelLogger(text_log_label)
         logger.addHandler(text_log_handler)
+        logger.debug("Set the log handler")
         self.main_layout.addWidget(text_log_label)
 
     #Set main layout
@@ -73,6 +83,7 @@ class MainWidget(QWidget):
     #Add tab and set title
         self.tabs_list.append(QSessionWidget(self.tabs))
         self.tabs.addTab(self.tabs_list[self.tabs.count()], session_name)
+        logger.debug("Added new tab")
 
 
 if __name__ == '__main__':

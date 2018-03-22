@@ -2,6 +2,8 @@ import uuid
 from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, \
     QPushButton, QApplication
 
+from logger import logger
+
 class QDisplayDialog(QDialog):
     def __init__(self,keys):
         QDialog.__init__(self)
@@ -61,6 +63,7 @@ class QDisplayDialog(QDialog):
         dialog_layout.addLayout(hor_layout)
         self.setLayout(dialog_layout)
 
+
     def onOk(self):
 
         session_name = str(self.session_line.text())
@@ -74,7 +77,7 @@ class QDisplayDialog(QDialog):
 
         #se esiste già il nome della session
         if self.display_name in self.keys:
-            print("errore")
+            #error this name already exists
             return
 
         self.accept()

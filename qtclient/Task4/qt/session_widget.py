@@ -1,16 +1,15 @@
 from PyQt5.QtWidgets import QPushButton, \
     QWidget, QLineEdit, QVBoxLayout, QHBoxLayout,\
     QGridLayout, QLabel, QComboBox, QFileDialog, QFrame
-from display_window import *
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import QSize
-
-from pyinstaller_utils import resource_path
-
-from logger import logger
-
 from ssh import sshCommando
 from paramiko.ssh_exception import AuthenticationException
+
+from display_window import *
+from pyinstaller_utils import resource_path
+from logger import logger
+
 
 class QSessionWidget(QWidget):
 
@@ -148,7 +147,7 @@ class QSessionWidget(QWidget):
             self.error_label.show()
             logger.info("")
             return
-        logger.info("Log in ")
+        logger.info("Logged in")
         self.user = self.user_line.text()
         self.containerLoginWidget.hide()
         self.containerSessionWidget.show()
@@ -165,8 +164,8 @@ class QSessionWidget(QWidget):
     def addNewDisplay(self):
         #cannot have more than 5 displays
         if len(self.rows) >= 5:
+            logger.info("You have already 5 displays")
             return
-
 
         displaywin = QDisplayDialog(list(self.rows.keys()))
         displaywin.setModal(True)
@@ -229,19 +228,26 @@ class QSessionWidget(QWidget):
         self.rows_ver_layout.addWidget(display_widget)
 
         self.rows[id] = display_widget
+        logger.info("Added new display")
 
     #to be added later
     def connectDisplay(self, id):
         print(self.rows[id])
+        logger.info("Connected to "+str(id))
 
     #to be added later
     def shareDisplay(self, id):
         print(self.rows[id])
+        #info shared [id]
+        logger.info("Shared " + str(id))
 
     def killDisplay(self, id):
+
         #First it hide the display
+        logger.debug("Hiding the display")
         self.rows[id].hide()
 
         #Then it delete from the layout and the dic
         self.rows_ver_layout.removeWidget(self.rows[id])
         del self.rows[id]
+        logger.info("Killed process" + str(id))
