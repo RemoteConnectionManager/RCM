@@ -1,23 +1,37 @@
-from PyQt5.QtWidgets import QPushButton, \
-    QWidget, QLineEdit, QVBoxLayout, QHBoxLayout,\
-    QGridLayout, QLabel, QComboBox, QFileDialog, QFrame
-from PyQt5.QtGui import QIcon, QFont
+# pyqt5
 from PyQt5.QtCore import QSize
-from ssh import sshCommando
+from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtWidgets import QWidget, QFileDialog, QFrame, QLabel, QComboBox, \
+    QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton
+
+# paramiko
 from paramiko.ssh_exception import AuthenticationException
 
-from display_window import *
+# local includes
+from ssh import sshCommando
+from display_dialog import QDisplayDialog
 from pyinstaller_utils import resource_path
 from logger import logger
 
 
 class QSessionWidget(QWidget):
+    """
+    Create a new session widget to be put inside a tab in the main window
+    """
 
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
+
         self.hosts = ["login.marconi.cineca.it", "login.pico.cineca.it"]
         self.user = ""
-        self.rows = {}
+        self.sessions = {}
+
+        self.init_ui()
+
+    def init_ui(self):
+        """
+        Initialize the interface
+        """
 
     # Create first tab
         new_tab_main_layout = QVBoxLayout()
@@ -123,7 +137,7 @@ class QSessionWidget(QWidget):
         new_display_ico.addFile(resource_path('icons/plus.png'), QSize(16, 16))
         new_display = QPushButton()
         new_display.setIcon(new_display_ico)
-        new_display.clicked.connect(self.addNewDisplay)
+        new_display.clicked.connect(self.add_new_display)
         new_display_layout = QHBoxLayout()
         new_display_layout.addSpacing(100)
         new_display_layout.addWidget(new_display)
@@ -152,22 +166,23 @@ class QSessionWidget(QWidget):
         self.containerLoginWidget.hide()
         self.containerSessionWidget.show()
 
-    #File Dialog
+    # file dialog
     def open(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        filename, _ = QFileDialog.getOpenFileName(self, "Apri...", "",
-                                                      "VNC Files (*.vnc);;All Files (*)", options=options)
-        if filename:
-                print(filename)
+        filename, _ = QFileDialog.getOpenFileName(self,
+                                                  "Open...",
+                                                  "",
+                                                  "VNC Files (*.vnc);;All Files (*)",
+                                                  options=options)
 
-    def addNewDisplay(self):
-        #cannot have more than 5 displays
-        if len(self.rows) >= 5:
+    def add_new_display(self):
+        # cannot have more than 5 displays
+        if len(self.sessions) >= 5:
             logger.info("You have already 5 displays")
             return
 
-        displaywin = QDisplayDialog(list(self.rows.keys()))
+        displaywin = QDisplayDialog(list(self.sessions.keys()))
         displaywin.setModal(True)
 
         if displaywin.exec() != 1:
@@ -186,7 +201,7 @@ class QSessionWidget(QWidget):
         display_widget = QWidget()
         display_widget.setLayout(display_ver_layout)
 
-        id = displaywin.display_name
+        id = displaywin.session_name
         print(id)
 
         name = QLabel()
@@ -207,17 +222,17 @@ class QSessionWidget(QWidget):
 
         connect = QPushButton()
         connect.setIcon(self.connect_ico)
-        connect.clicked.connect(lambda: self.connectDisplay(id))
+        connect.clicked.connect(lambda: self.connect_display(id))
         display_hor_layout.addWidget(connect)
 
         share = QPushButton()
         share.setIcon(self.share_ico)
-        share.clicked.connect(lambda: self.shareDisplay(id))
+        share.clicked.connect(lambda: self.share_display(id))
         display_hor_layout.addWidget(share)
 
         kill = QPushButton()
         kill.setIcon(self.kill_ico)
-        kill.clicked.connect(lambda: self.killDisplay(id))
+        kill.clicked.connect(lambda: self.kill_display(id))
         display_hor_layout.addWidget(kill)
 
         separator = QFrame()
@@ -227,27 +242,24 @@ class QSessionWidget(QWidget):
 
         self.rows_ver_layout.addWidget(display_widget)
 
-        self.rows[id] = display_widget
+        self.sessions[id] = display_widget
         logger.info("Added new display")
 
-    #to be added later
-    def connectDisplay(self, id):
-        print(self.rows[id])
+    def connect_display(self, id):
+        print(self.sessions[id])
         logger.info("Connected to "+str(id))
 
-    #to be added later
-    def shareDisplay(self, id):
-        print(self.rows[id])
-        #info shared [id]
+    def share_display(self, id):
+        print(self.sessions[id])
         logger.info("Shared " + str(id))
 
-    def killDisplay(self, id):
-
-        #First it hide the display
+    def kill_display(self, id):
+        # first we hide the display
         logger.debug("Hiding the display")
-        self.rows[id].hide()
+        self.sessions[id].hide()
 
-        #Then it delete from the layout and the dic
-        self.rows_ver_layout.removeWidget(self.rows[id])
-        del self.rows[id]
-        logger.info("Killed process" + str(id))
+        # then we remove it from the layout and the dictionary
+        self.rows_ver_layout.removeWidget(self.sessions[id])
+        del self.sessions[id]
+
+        logger.info("Killed session " + str(id))

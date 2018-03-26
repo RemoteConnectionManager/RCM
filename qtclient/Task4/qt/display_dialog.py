@@ -1,23 +1,28 @@
+# stdlib
 import uuid
-from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, \
-    QPushButton, QApplication
 
-from logger import logger
+# pyqt5
+from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
+    QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, QPushButton
+
 
 class QDisplayDialog(QDialog):
-    def __init__(self,keys):
+
+    def __init__(self, session_names):
         QDialog.__init__(self)
-        self.setWindowTitle("New Display")
+
+        self.session_name = ""
+        self.session_names = session_names
+
+        self.setWindowTitle("New display")
         self.init_ui()
-        self.display_name = ""
-        self.keys = keys
 
     def init_ui(self):
 
-        #create the grid layout
+        # create the grid layout
         grid_layout = QGridLayout()
 
-        #Create session layout
+        # Create session layout
         session_name = QLabel(self)
         session_name.setText('session name:')
         self.session_line= QLineEdit(self)
@@ -37,16 +42,16 @@ class QDisplayDialog(QDialog):
         grid_layout.addWidget(display_label, 3, 0)
         grid_layout.addWidget(self.display_line, 3, 1)
 
-        #Ok button
+        # Ok button
         hor_layout = QHBoxLayout()
         ok = QPushButton('Ok', self)
-        ok.clicked.connect(self.onOk)
+        ok.clicked.connect(self.on_ok)
         ok.setFixedHeight(20)
         ok.setFixedWidth(100)
         hor_layout.addStretch(1)
         hor_layout.addWidget(ok)
 
-        #Cancel button
+        # Cancel button
         canc = QPushButton('Cancel', self)
         canc.clicked.connect(self.reject)
         canc.setFixedHeight(20)
@@ -63,21 +68,17 @@ class QDisplayDialog(QDialog):
         dialog_layout.addLayout(hor_layout)
         self.setLayout(dialog_layout)
 
-
-    def onOk(self):
-
+    def on_ok(self):
         session_name = str(self.session_line.text())
 
-        #se il nome è vuoto crea un id random
+        # if the session_name is empty, it is set to a random uuid
         if session_name == "":
-            self.display_name = uuid.uuid4().hex
-
+            self.session_name = uuid.uuid4().hex
         else:
-            self.display_name = session_name
+            self.session_name = session_name
 
-        #se esiste già il nome della session
-        if self.display_name in self.keys:
-            #error this name already exists
+        # if the session name already exists, it returns
+        if self.session_name in self.session_names:
             return
 
         self.accept()

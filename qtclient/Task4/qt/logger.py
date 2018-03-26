@@ -1,3 +1,4 @@
+# std lib
 import logging
 
 logger = logging.getLogger("RCM")
@@ -11,14 +12,17 @@ fh.setFormatter(formatter)
 
 logger.addHandler(fh)
 
+
 class QLabelLogger(logging.Handler):
+    """
+    We redirect the log info messages to the log label of the main window
+    """
 
     def __init__(self, label):
-        super(logging.Handler,self).__init__()
-        formatter = logging.Formatter('%(message)s')
-        self.setFormatter(formatter)
-        self.setLevel(logging.DEBUG)
+        super(logging.Handler, self).__init__()
 
+        self.setFormatter(logging.Formatter('%(message)s'))
+        self.setLevel(logging.DEBUG)
         self.widget = label
         self.lock = False
 
