@@ -18,7 +18,6 @@ class RCMMainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Remote Connection Manager - CINECA - v0.01_alpha")
-        logger.debug("QMainWindow created")
 
         width = 1000
         height = 300
@@ -32,17 +31,20 @@ class RCMMainWindow(QMainWindow):
 
         self.setFixedHeight(height)
         self.setFixedWidth(width)
-        logger.debug("QMainWindow moved at the center of the screen")
 
         self.main_widget = MainWidget(self)
         self.setCentralWidget(self.main_widget)
-        logger.debug("MainWidget created and added to QMainWindow")
+
+        logger.debug("QMainWindow created")
 
 
 class MainWidget(QWidget):
 
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
+
+        self.main_layout = QVBoxLayout(self)
+        self.tabs = QTabWidget()
 
         self.init_ui()
 
@@ -51,12 +53,8 @@ class MainWidget(QWidget):
         Initialize the interface
         """
 
-        self.main_layout = QVBoxLayout(self)
-
     # Initialize tab screen
-        self.tabs = QTabWidget()
         self.tabs.resize(300, 200)
-        self.tabs_list = []
         logger.debug("Initialized tab screen")
 
     # Add tabs
@@ -71,7 +69,7 @@ class MainWidget(QWidget):
 
     # Add text_log
         text_log_label = QLabel(self)
-        text_log_label.setText('Text Log')
+        text_log_label.setText('Idle')
         text_log_label.setFrameShape(QFrame.Panel)
         text_log_label.setFrameShadow(QFrame.Sunken)
         text_log_label.setLineWidth(1)
@@ -86,15 +84,24 @@ class MainWidget(QWidget):
 
     @pyqtSlot()
     def on_change(self):
+        """
+        Add a new "+" tab and substitute "+2" with "login" in the previous tab
+        if the last tab is selected
+        :return:
+        """
         if self.tabs.currentIndex() == self.tabs.count() - 1:
             self.tabs.setTabText(self.tabs.currentIndex(), "Login...")
             self.add_new_tab("+")
 
     def add_new_tab(self, session_name):
-    # Add tab and set title
-        self.tabs_list.append(QSessionWidget(self.tabs))
-        self.tabs.addTab(self.tabs_list[self.tabs.count()], session_name)
-        logger.debug("Added new tab")
+        """
+        Add a new tab in the tab widget
+        :param session_name: name to be displayed
+        :return:
+        """
+        new_tab = QSessionWidget(self.tabs)
+        self.tabs.addTab(new_tab, session_name)
+        logger.debug("Added new tab: " + str(session_name))
 
 
 if __name__ == '__main__':
@@ -102,4 +109,3 @@ if __name__ == '__main__':
     rcm_win = RCMMainWindow()
     rcm_win.show()
     sys.exit(app.exec_())
-

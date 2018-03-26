@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QWidget, QFileDialog, QFrame, QLabel, QComboBox, \
 from paramiko.ssh_exception import AuthenticationException
 
 # local includes
-from ssh import sshCommando
+from ssh import ssh_login
 from display_dialog import QDisplayDialog
 from pyinstaller_utils import resource_path
 from logger import logger
@@ -17,6 +17,7 @@ from logger import logger
 class QSessionWidget(QWidget):
     """
     Create a new session widget to be put inside a tab in the main window
+    For each session we can have many displays
     """
 
     def __init__(self, parent):
@@ -24,7 +25,26 @@ class QSessionWidget(QWidget):
 
         self.hosts = ["login.marconi.cineca.it", "login.pico.cineca.it"]
         self.user = ""
-        self.sessions = {}
+        self.displays = {}
+
+        # widgets
+        self.host_combo = QComboBox(self)
+        self.user_line = QLineEdit(self)
+        self.pssw_line = QLineEdit(self)
+        self.error_label = QLabel(self)
+
+        # containers
+        self.containerLoginWidget = QWidget()
+        self.containerSessionWidget = QWidget()
+
+        # layouts
+        self.session_ver_layout = QVBoxLayout()
+        self.rows_ver_layout = QVBoxLayout()
+
+        # icons
+        self.connect_ico = QIcon()
+        self.kill_ico = QIcon()
+        self.share_ico = QIcon()
 
         self.init_ui()
 
@@ -42,20 +62,21 @@ class QSessionWidget(QWidget):
 
         host_label = QLabel(self)
         host_label.setText('Host:')
-        self.host_combo = QComboBox(self)
-        self.host_combo.addItems(["login.marconi.cineca.it", "login.pico.cineca.it"])
+
+        self.host_combo.addItems(["login.marconi.cineca.it",
+                                  "login.pico.cineca.it"])
         grid_login_layout.addWidget(host_label, 0, 0)
         grid_login_layout.addWidget(self.host_combo, 0, 1)
 
         user_label = QLabel(self)
         user_label.setText('User:')
-        self.user_line = QLineEdit(self)
+
         grid_login_layout.addWidget(user_label, 1, 0)
         grid_login_layout.addWidget(self.user_line, 1, 1)
 
         pssw_label = QLabel(self)
         pssw_label.setText('Password:')
-        self.pssw_line = QLineEdit(self)
+
         self.pssw_line.setEchoMode(QLineEdit.Password)
         grid_login_layout.addWidget(pssw_label, 2, 0)
         grid_login_layout.addWidget(self.pssw_line, 2, 1)
@@ -73,7 +94,6 @@ class QSessionWidget(QWidget):
         login_hor_layout.addWidget(pybutton)
         login_hor_layout.addStretch(1)
 
-        self.error_label = QLabel(self)
         self.error_label.setText("Wrong username or password")
         self.error_label.setStyleSheet("color:red")
         grid_login_layout.addWidget(self.error_label, 3, 1)
@@ -81,56 +101,49 @@ class QSessionWidget(QWidget):
 
         login_layout.addLayout(grid_login_layout)
         login_layout.addLayout(login_hor_layout)
-        self.containerLoginWidget = QWidget()
+
         self.containerLoginWidget.setLayout(login_layout)
         new_tab_main_layout.addWidget(self.containerLoginWidget)
 
     # Session Layout
         plusbutton_layout = QGridLayout()
-        self.session_ver_layout = QVBoxLayout()
-        self.rows_ver_layout = QVBoxLayout()
-        self.rows_ver_layout.setContentsMargins(0,0,0,0)
+        self.rows_ver_layout.setContentsMargins(0, 0, 0, 0)
         self.rows_ver_layout.setSpacing(0)
 
         self.session_ver_layout.addLayout(plusbutton_layout)
         self.session_ver_layout.addLayout(self.rows_ver_layout)
         self.session_ver_layout.addStretch(1)
 
-        self.connect_ico = QIcon()
         self.connect_ico.addFile(resource_path('icons/connect.png'))
-
-        self.kill_ico = QIcon()
         self.kill_ico.addFile(resource_path('icons/kill.png'))
-
-        self.share_ico = QIcon()
         self.share_ico.addFile(resource_path('icons/share.png'))
 
-        myFont = QFont()
-        myFont.setBold(True)
+        font = QFont()
+        font.setBold(True)
 
         name = QLabel()
         name.setText("Name")
-        name.setFont(myFont)
-        plusbutton_layout.addWidget(name,0,0)
+        name.setFont(font)
+        plusbutton_layout.addWidget(name, 0, 0)
 
         status = QLabel()
         status.setText("Status")
-        status.setFont(myFont)
-        plusbutton_layout.addWidget(status,0,1)
+        status.setFont(font)
+        plusbutton_layout.addWidget(status, 0, 1)
 
         time = QLabel()
         time.setText("Time")
-        time.setFont(myFont)
-        plusbutton_layout.addWidget(time,0,2)
+        time.setFont(font)
+        plusbutton_layout.addWidget(time, 0, 2)
 
         resources = QLabel()
         resources.setText("Resources")
-        resources.setFont(myFont)
-        plusbutton_layout.addWidget(resources,0,3)
+        resources.setFont(font)
+        plusbutton_layout.addWidget(resources, 0, 3)
 
         x = QLabel()
         x.setText("")
-        plusbutton_layout.addWidget(x,0,4)
+        plusbutton_layout.addWidget(x, 0, 4)
         plusbutton_layout.addWidget(x, 0, 5)
 
         new_display_ico = QIcon()
@@ -142,9 +155,8 @@ class QSessionWidget(QWidget):
         new_display_layout.addSpacing(100)
         new_display_layout.addWidget(new_display)
 
-        plusbutton_layout.addLayout(new_display_layout,0,6)
+        plusbutton_layout.addLayout(new_display_layout, 0, 6)
 
-        self.containerSessionWidget = QWidget()
         self.containerSessionWidget.setLayout(self.session_ver_layout)
         new_tab_main_layout.addWidget(self.containerSessionWidget)
         self.containerSessionWidget.hide()
@@ -154,9 +166,11 @@ class QSessionWidget(QWidget):
     def login(self):
         try:
             logger.info("Log in" + str(self.user_line.text()) + "@" + str(self.host_combo.currentText()))
-            sshCommando(self.host_combo.currentText(), 22,
-                        self.user_line.text(),
-                        self.pssw_line.text(), 'ls')
+            ssh_login(self.host_combo.currentText(),
+                      22,
+                      self.user_line.text(),
+                      self.pssw_line.text(),
+                      'ls')
         except AuthenticationException:
             self.error_label.show()
             logger.info("")
@@ -177,15 +191,15 @@ class QSessionWidget(QWidget):
                                                   options=options)
 
     def add_new_display(self):
-        # cannot have more than 5 displays
-        if len(self.sessions) >= 5:
+        # cannot have more than 5 sessions
+        if len(self.displays) >= 5:
             logger.info("You have already 5 displays")
             return
 
-        displaywin = QDisplayDialog(list(self.sessions.keys()))
-        displaywin.setModal(True)
+        display_win = QDisplayDialog(list(self.displays.keys()))
+        display_win.setModal(True)
 
-        if displaywin.exec() != 1:
+        if display_win.exec() != 1:
             return
 
         display_hor_layout = QHBoxLayout()
@@ -201,7 +215,7 @@ class QSessionWidget(QWidget):
         display_widget = QWidget()
         display_widget.setLayout(display_ver_layout)
 
-        id = displaywin.session_name
+        id = display_win.display_name
         print(id)
 
         name = QLabel()
@@ -242,24 +256,24 @@ class QSessionWidget(QWidget):
 
         self.rows_ver_layout.addWidget(display_widget)
 
-        self.sessions[id] = display_widget
+        self.displays[id] = display_widget
         logger.info("Added new display")
 
     def connect_display(self, id):
-        print(self.sessions[id])
+        print(self.displays[id])
         logger.info("Connected to "+str(id))
 
     def share_display(self, id):
-        print(self.sessions[id])
+        print(self.displays[id])
         logger.info("Shared " + str(id))
 
     def kill_display(self, id):
         # first we hide the display
         logger.debug("Hiding the display")
-        self.sessions[id].hide()
+        self.displays[id].hide()
 
         # then we remove it from the layout and the dictionary
-        self.rows_ver_layout.removeWidget(self.sessions[id])
-        del self.sessions[id]
+        self.rows_ver_layout.removeWidget(self.displays[id])
+        del self.displays[id]
 
-        logger.info("Killed session " + str(id))
+        logger.info("Killed display " + str(id))
