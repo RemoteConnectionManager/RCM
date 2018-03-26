@@ -1,2 +1,2 @@
-pyqt5
-paramiko
+pyqt5==5.10.1
+paramiko==2.4.1
