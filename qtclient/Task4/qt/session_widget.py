@@ -1,7 +1,7 @@
 # pyqt5
 from PyQt5.QtCore import QSize, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont
-from PyQt5.QtWidgets import QWidget, QFileDialog, QFrame, QLabel, QComboBox, \
+from PyQt5.QtWidgets import QWidget, QFrame, QLabel, QComboBox, \
     QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton
 
 # paramiko
@@ -89,11 +89,7 @@ class QSessionWidget(QWidget):
         pybutton.clicked.connect(self.login)
         pybutton.setShortcut("Return")
 
-        openbtn = QPushButton('Open', self)
-        openbtn.clicked.connect(self.open)
-
         login_hor_layout.addStretch(1)
-        login_hor_layout.addWidget(openbtn)
         login_hor_layout.addWidget(pybutton)
         login_hor_layout.addStretch(1)
 
@@ -186,16 +182,6 @@ class QSessionWidget(QWidget):
 
         # Emit the logged_in signal.
         self.logged_in.emit(session_name)
-
-    # file dialog
-    def open(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        filename, _ = QFileDialog.getOpenFileName(self,
-                                                  "Open...",
-                                                  "",
-                                                  "VNC Files (*.vnc);;All Files (*)",
-                                                  options=options)
 
     def add_new_display(self):
         # cannot have more than 5 sessions

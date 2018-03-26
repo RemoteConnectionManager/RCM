@@ -3,12 +3,14 @@ import sys
 
 # pyqt5
 from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QApplication, \
     QWidget, QTabWidget, QVBoxLayout, \
-    QLabel, QFrame, QDesktopWidget
+    QLabel, QFrame, QDesktopWidget, QAction, QFileDialog
 
 # local includes
 from session_widget import QSessionWidget
+from pyinstaller_utils import resource_path
 from logger import QLabelLoggerHandler, logger
 
 
@@ -32,10 +34,80 @@ class RCMMainWindow(QMainWindow):
         self.setFixedHeight(height)
         self.setFixedWidth(width)
 
+        # Create new action
+        new_action = QAction(QIcon(resource_path('icons/new.png')), '&New', self)
+        new_action.setShortcut('Ctrl+N')
+        new_action.setStatusTip('New VNC session')
+        new_action.triggered.connect(self.new_vnc_session)
+
+        # Create new action
+        open_action = QAction(QIcon(resource_path('icons/open.png')), '&Open', self)
+        open_action.setShortcut('Ctrl+O')
+        open_action.setStatusTip('Open VNC session')
+        open_action.triggered.connect(self.open_vnc_session)
+
+        # Create exit action
+        exit_action = QAction(QIcon(resource_path('icons/exit.png')), '&Exit', self)
+        exit_action.setShortcut('Ctrl+Q')
+        exit_action.setStatusTip('Exit application')
+        exit_action.triggered.connect(self.exit)
+
+        # Create the settings action
+        edit_settings_action = QAction('&Settings', self)
+        edit_settings_action.setShortcut('Ctrl+S')
+        edit_settings_action.setStatusTip('Custom the application settings')
+        edit_settings_action.triggered.connect(self.edit_settings)
+
+        # Create the about action
+        about_action = QAction('&About', self)
+        about_action.setShortcut('Ctrl+A')
+        about_action.setStatusTip('About the application')
+        about_action.triggered.connect(self.about)
+
+        # Create the toolbar and add actions
+        tool_bar = self.addToolBar("File")
+        tool_bar.addAction(new_action)
+        tool_bar.addAction(open_action)
+
+        # Create menu bar and add actions
+        menu_bar = self.menuBar()
+        file_menu = menu_bar.addMenu('&File')
+        file_menu.addAction(new_action)
+        file_menu.addAction(open_action)
+        file_menu.addAction(exit_action)
+        edit_menu = menu_bar.addMenu('&Edit')
+        edit_menu.addAction(edit_settings_action)
+        help_menu = menu_bar.addMenu('&Help')
+        help_menu.addAction(about_action)
+
         self.main_widget = MainWidget(self)
         self.setCentralWidget(self.main_widget)
 
         logger.debug("QMainWindow created")
+
+    def new_vnc_session(self):
+        last_tab_id = self.main_widget.tabs.count() - 1
+        self.main_widget.tabs.setTabText(last_tab_id, "Login...")
+        self.main_widget.add_new_tab("+")
+
+    def open_vnc_session(self):
+
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        filename, _ = QFileDialog.getOpenFileName(self,
+                                                  "Open...",
+                                                  "",
+                                                  "VNC Files (*.vnc);;All Files (*)",
+                                                  options=options)
+
+    def exit(self):
+        self.close()
+
+    def edit_settings(self):
+        return
+
+    def about(self):
+        return
 
 
 class MainWidget(QWidget):
