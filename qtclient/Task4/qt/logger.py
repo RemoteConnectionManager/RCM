@@ -13,7 +13,7 @@ fh.setFormatter(formatter)
 logger.addHandler(fh)
 
 
-class QLabelLogger(logging.Handler):
+class QLabelLoggerHandler(logging.Handler):
     """
     We redirect the log info messages to the log label of the main window
     """

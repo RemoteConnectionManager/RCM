@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, \
 
 # local includes
 from session_widget import QSessionWidget
-from logger import QLabelLogger, logger
+from logger import QLabelLoggerHandler, logger
 
 
 class RCMMainWindow(QMainWindow):
@@ -74,7 +74,7 @@ class MainWidget(QWidget):
         text_log_label.setFrameShadow(QFrame.Sunken)
         text_log_label.setLineWidth(1)
         logger.debug("Added Log Label")
-        text_log_handler = QLabelLogger(text_log_label)
+        text_log_handler = QLabelLoggerHandler(text_log_label)
         logger.addHandler(text_log_handler)
         logger.debug("Set the log handler")
         self.main_layout.addWidget(text_log_label)
@@ -101,7 +101,12 @@ class MainWidget(QWidget):
         """
         new_tab = QSessionWidget(self.tabs)
         self.tabs.addTab(new_tab, session_name)
+        new_tab.logged_in.connect(self.on_login)
         logger.debug("Added new tab: " + str(session_name))
+
+    @pyqtSlot(str)
+    def on_login(self, session_name):
+        self.tabs.setTabText(self.tabs.currentIndex(), session_name)
 
 
 if __name__ == '__main__':

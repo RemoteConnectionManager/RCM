@@ -1,5 +1,5 @@
 # pyqt5
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QWidget, QFileDialog, QFrame, QLabel, QComboBox, \
     QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton
@@ -19,6 +19,9 @@ class QSessionWidget(QWidget):
     Create a new session widget to be put inside a tab in the main window
     For each session we can have many displays
     """
+
+    # define a signal when the user successful log in
+    logged_in = pyqtSignal(str)
 
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
@@ -164,8 +167,9 @@ class QSessionWidget(QWidget):
         self.setLayout(new_tab_main_layout)
 
     def login(self):
+        session_name = str(self.user_line.text()) + "@" + str(self.host_combo.currentText())
         try:
-            logger.info("Log in" + str(self.user_line.text()) + "@" + str(self.host_combo.currentText()))
+            logger.info("Log in" + session_name)
             ssh_login(self.host_combo.currentText(),
                       22,
                       self.user_line.text(),
@@ -179,6 +183,9 @@ class QSessionWidget(QWidget):
         self.user = self.user_line.text()
         self.containerLoginWidget.hide()
         self.containerSessionWidget.show()
+
+        # Emit the logged_in signal.
+        self.logged_in.emit(session_name)
 
     # file dialog
     def open(self):
