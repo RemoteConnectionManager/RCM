@@ -147,12 +147,15 @@ class QSessionWidget(QWidget):
 
         new_display_ico = QIcon()
         new_display_ico.addFile(resource_path('icons/plus.png'), QSize(16, 16))
-        new_display = QPushButton()
-        new_display.setIcon(new_display_ico)
-        new_display.clicked.connect(self.add_new_display)
+
+        new_display_btn = QPushButton()
+        new_display_btn.setIcon(new_display_ico)
+        new_display_btn.setToolTip('Create a new display session')
+        new_display_btn.clicked.connect(self.add_new_display)
+
         new_display_layout = QHBoxLayout()
         new_display_layout.addSpacing(100)
-        new_display_layout.addWidget(new_display)
+        new_display_layout.addWidget(new_display_btn)
 
         plusbutton_layout.addLayout(new_display_layout, 0, 6)
 
@@ -227,20 +230,23 @@ class QSessionWidget(QWidget):
         resources.setText("1 Node")
         display_hor_layout.addWidget(resources)
 
-        connect = QPushButton()
-        connect.setIcon(self.connect_ico)
-        connect.clicked.connect(lambda: self.connect_display(id))
-        display_hor_layout.addWidget(connect)
+        connect_btn = QPushButton()
+        connect_btn.setIcon(self.connect_ico)
+        connect_btn.setToolTip('Connect to the remote display')
+        connect_btn.clicked.connect(lambda: self.connect_display(id))
+        display_hor_layout.addWidget(connect_btn)
 
-        share = QPushButton()
-        share.setIcon(self.share_ico)
-        share.clicked.connect(lambda: self.share_display(id))
-        display_hor_layout.addWidget(share)
+        share_btn = QPushButton()
+        share_btn.setIcon(self.share_ico)
+        share_btn.setToolTip('Share the remote display via file')
+        share_btn.clicked.connect(lambda: self.share_display(id))
+        display_hor_layout.addWidget(share_btn)
 
-        kill = QPushButton()
-        kill.setIcon(self.kill_ico)
-        kill.clicked.connect(lambda: self.kill_display(id))
-        display_hor_layout.addWidget(kill)
+        kill_btn = QPushButton()
+        kill_btn.setIcon(self.kill_ico)
+        kill_btn.setToolTip('Kill the remote display')
+        kill_btn.clicked.connect(lambda: self.kill_display(id))
+        display_hor_layout.addWidget(kill_btn)
 
         separator = QFrame()
         separator.setFrameShape(QFrame.HLine)
