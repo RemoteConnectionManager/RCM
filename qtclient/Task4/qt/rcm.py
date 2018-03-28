@@ -5,8 +5,8 @@ import sys
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QApplication, \
-    QWidget, QTabWidget, QVBoxLayout, \
-    QLabel, QFrame, QDesktopWidget, QAction, QFileDialog
+    QWidget, QTabWidget, QVBoxLayout, QPushButton, \
+    QLabel, QFrame, QDesktopWidget, QAction, QFileDialog, QTabBar, QStyle
 
 # local includes
 from session_widget import QSessionWidget
@@ -65,9 +65,9 @@ class RCMMainWindow(QMainWindow):
         about_action.triggered.connect(self.about)
 
         # Create the toolbar and add actions
-        tool_bar = self.addToolBar("File")
-        tool_bar.addAction(new_action)
-        tool_bar.addAction(open_action)
+        # tool_bar = self.addToolBar("File")
+        # tool_bar.addAction(new_action)
+        # tool_bar.addAction(open_action)
 
         # Create menu bar and add actions
         menu_bar = self.menuBar()
@@ -87,8 +87,18 @@ class RCMMainWindow(QMainWindow):
 
     def new_vnc_session(self):
         last_tab_id = self.main_widget.tabs.count() - 1
+        last_tab_uuid = self.main_widget.tabs.widget(last_tab_id).uuid
+
+        kill_btn = QPushButton()
+        kill_btn.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
+        kill_btn.clicked.connect(lambda: self.on_close(last_tab_uuid))
+        kill_btn.setToolTip('Close session')
+
         self.main_widget.tabs.setTabText(last_tab_id, "Login...")
-        self.main_widget.add_new_tab("+")
+        self.main_widget.tabs.tabBar().setTabButton(last_tab_id,
+                                                    QTabBar.RightSide,
+                                                    kill_btn)
+        self.main_widget.add_new_tab("", False)
 
     def open_vnc_session(self):
 
@@ -108,6 +118,17 @@ class RCMMainWindow(QMainWindow):
 
     def about(self):
         return
+
+    @pyqtSlot()
+    def on_close(self, uuid):
+        # loop over the tabs and found the tab with the right uuid
+        for tab_id in range(0, self.main_widget.tabs.count()):
+            widget = self.main_widget.tabs.widget(tab_id)
+            if widget.uuid == uuid:
+                if self.main_widget.tabs.currentIndex() == self.main_widget.tabs.count() - 2:
+                    self.main_widget.tabs.setCurrentIndex(tab_id - 1)
+                self.main_widget.tabs.removeTab(tab_id)
+                return
 
 
 class MainWidget(QWidget):
@@ -131,7 +152,7 @@ class MainWidget(QWidget):
 
     # Add tabs
         self.add_new_tab("Login...")
-        self.add_new_tab("+")
+        self.add_new_tab("", False)
         self.tabs.currentChanged.connect(self.on_change)
         logger.debug("Created tabs")
 
@@ -163,22 +184,85 @@ class MainWidget(QWidget):
         """
         if self.tabs.currentIndex() == self.tabs.count() - 1:
             self.tabs.setTabText(self.tabs.currentIndex(), "Login...")
-            self.add_new_tab("+")
 
-    def add_new_tab(self, session_name):
+            uuid = self.tabs.currentWidget().uuid
+
+            kill_btn = QPushButton()
+            kill_btn.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
+            kill_btn.setToolTip('Close session')
+            kill_btn.clicked.connect(lambda: self.on_close(uuid))
+            self.tabs.tabBar().setTabButton(self.tabs.currentIndex(),
+                                            QTabBar.RightSide,
+                                            kill_btn)
+            self.add_new_tab("", False)
+
+    @pyqtSlot()
+    def on_new(self):
+        """
+        Add a new "+" tab and substitute "+2" with "login" in the previous tab
+        if the last tab button is pressed
+        :return:
+        """
+        last_tab = self.tabs.count() - 1
+        self.tabs.setTabText(last_tab, "Login...")
+
+        kill_btn = QPushButton()
+        kill_btn.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
+        kill_btn.setToolTip('Close session')
+        uuid = self.tabs.widget(last_tab).uuid
+        kill_btn.clicked.connect(lambda: self.on_close(uuid))
+        self.tabs.tabBar().setTabButton(last_tab,
+                                        QTabBar.RightSide,
+                                        kill_btn)
+        self.add_new_tab("", False)
+
+    def add_new_tab(self, session_name, show_close_btn=True):
         """
         Add a new tab in the tab widget
         :param session_name: name to be displayed
+        :param show_close_btn: if true we add the close button
         :return:
         """
         new_tab = QSessionWidget(self.tabs)
+        uuid = new_tab.uuid
         self.tabs.addTab(new_tab, session_name)
+
+        if show_close_btn:
+            kill_btn = QPushButton()
+            kill_btn.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
+            kill_btn.clicked.connect(lambda: self.on_close(uuid))
+            kill_btn.setToolTip('Close session')
+            self.tabs.tabBar().setTabButton(self.tabs.count() - 1,
+                                            QTabBar.RightSide,
+                                            kill_btn)
+        else:
+            kill_btn = QPushButton()
+            ico = QIcon()
+            ico.addFile(resource_path('icons/plus.png'))
+            kill_btn.setIcon(ico)
+            kill_btn.clicked.connect(self.on_new)
+            kill_btn.setToolTip('New session')
+            self.tabs.tabBar().setTabButton(self.tabs.count() - 1,
+                                            QTabBar.RightSide,
+                                            kill_btn)
+
         new_tab.logged_in.connect(self.on_login)
         logger.debug("Added new tab: " + str(session_name))
 
     @pyqtSlot(str)
     def on_login(self, session_name):
         self.tabs.setTabText(self.tabs.currentIndex(), session_name)
+
+    @pyqtSlot()
+    def on_close(self, uuid):
+        # loop over the tabs and found the tab with the right uuid
+        for tab_id in range(0, self.tabs.count()):
+            widget = self.tabs.widget(tab_id)
+            if widget.uuid == uuid:
+                if self.tabs.currentIndex() == self.tabs.count() - 2:
+                    self.tabs.setCurrentIndex(tab_id - 1)
+                self.tabs.removeTab(tab_id)
+                return
 
 
 if __name__ == '__main__':

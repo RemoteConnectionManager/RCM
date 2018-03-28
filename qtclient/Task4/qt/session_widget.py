@@ -1,3 +1,6 @@
+# python import
+import uuid
+
 # pyqt5
 from PyQt5.QtCore import QSize, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont
@@ -50,6 +53,8 @@ class QSessionWidget(QWidget):
         self.share_ico = QIcon()
 
         self.init_ui()
+
+        self.uuid = uuid.uuid4().hex
 
     def init_ui(self):
         """
