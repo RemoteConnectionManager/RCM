@@ -37,7 +37,7 @@ class QSessionWidget(QWidget):
         self.host_combo = QComboBox(self)
         self.user_line = QLineEdit(self)
         self.pssw_line = QLineEdit(self)
-        self.error_label = QLabel(self)
+        # self.error_label = QLabel(self)
 
         # containers
         self.containerLoginWidget = QWidget()
@@ -61,12 +61,9 @@ class QSessionWidget(QWidget):
         Initialize the interface
         """
 
-    # Create first tab
-        new_tab_main_layout = QVBoxLayout()
-
     # Login Layout
+    # grid login layout
         grid_login_layout = QGridLayout()
-        login_layout = QVBoxLayout()
 
         host_label = QLabel(self)
         host_label.setText('Host:')
@@ -89,24 +86,31 @@ class QSessionWidget(QWidget):
         grid_login_layout.addWidget(pssw_label, 2, 0)
         grid_login_layout.addWidget(self.pssw_line, 2, 1)
 
-        login_hor_layout = QHBoxLayout()
+        # self.error_label.setText("Wrong username or password")
+        # self.error_label.setStyleSheet("color:red")
+        # grid_login_layout.addWidget(self.error_label, 3, 1)
+        # self.error_label.hide()
+
+    # hor login layout
         pybutton = QPushButton('Login', self)
         pybutton.clicked.connect(self.login)
         pybutton.setShortcut("Return")
 
+        login_hor_layout = QHBoxLayout()
         login_hor_layout.addStretch(1)
         login_hor_layout.addWidget(pybutton)
         login_hor_layout.addStretch(1)
 
-        self.error_label.setText("Wrong username or password")
-        self.error_label.setStyleSheet("color:red")
-        grid_login_layout.addWidget(self.error_label, 3, 1)
-        self.error_label.hide()
-
+    # login layout
+        # it disappears when the user logged in
+        login_layout = QVBoxLayout()
         login_layout.addLayout(grid_login_layout)
         login_layout.addLayout(login_hor_layout)
 
         self.containerLoginWidget.setLayout(login_layout)
+
+    # Create the main layout
+        new_tab_main_layout = QVBoxLayout()
         new_tab_main_layout.addWidget(self.containerLoginWidget)
 
     # Session Layout
@@ -173,17 +177,17 @@ class QSessionWidget(QWidget):
     def login(self):
         session_name = str(self.user_line.text()) + "@" + str(self.host_combo.currentText())
         try:
-            logger.info("Log in" + session_name)
+            logger.info("Logging into " + session_name)
             ssh_login(self.host_combo.currentText(),
                       22,
                       self.user_line.text(),
                       self.pssw_line.text(),
                       'ls')
         except AuthenticationException:
-            self.error_label.show()
-            logger.info("")
+            # self.error_label.show()
+            logger.error("Failed to login: invalid credentials")
             return
-        logger.info("Logged in")
+        logger.info("Logged in " + session_name)
         self.user = self.user_line.text()
         self.containerLoginWidget.hide()
         self.containerSessionWidget.show()
@@ -194,7 +198,7 @@ class QSessionWidget(QWidget):
     def add_new_display(self):
         # cannot have more than 5 sessions
         if len(self.displays) >= 5:
-            logger.info("You have already 5 displays")
+            logger.warning("You have already 5 displays")
             return
 
         display_win = QDisplayDialog(list(self.displays.keys()))
@@ -265,15 +269,15 @@ class QSessionWidget(QWidget):
 
     def connect_display(self, id):
         print(self.displays[id])
-        logger.info("Connected to "+str(id))
+        logger.info("Connected to remote display " + str(id))
 
     def share_display(self, id):
         print(self.displays[id])
-        logger.info("Shared " + str(id))
+        logger.info("Shared display " + str(id))
 
     def kill_display(self, id):
         # first we hide the display
-        logger.debug("Hiding the display")
+        logger.debug("Hiding display " + str(id))
         self.displays[id].hide()
 
         # then we remove it from the layout and the dictionary

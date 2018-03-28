@@ -6,12 +6,13 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QApplication, \
     QWidget, QTabWidget, QVBoxLayout, QPushButton, \
-    QLabel, QFrame, QDesktopWidget, QAction, QFileDialog, QTabBar, QStyle
+    QDesktopWidget, QAction, QFileDialog, \
+    QTabBar, QStyle, QPlainTextEdit
 
 # local includes
 from session_widget import QSessionWidget
 from pyinstaller_utils import resource_path
-from logger import QLabelLoggerHandler, logger
+from logger import QTextEditLoggerHandler, logger
 
 
 class RCMMainWindow(QMainWindow):
@@ -22,7 +23,7 @@ class RCMMainWindow(QMainWindow):
         self.setWindowTitle("Remote Connection Manager - CINECA - v0.01_alpha")
 
         width = 1000
-        height = 300
+        height = 370
 
         screen_width = QDesktopWidget().width()
         screen_height = QDesktopWidget().height()
@@ -83,7 +84,7 @@ class RCMMainWindow(QMainWindow):
         self.main_widget = MainWidget(self)
         self.setCentralWidget(self.main_widget)
 
-        logger.debug("QMainWindow created")
+        logger.info("Welcome in RCM!")
 
     def new_vnc_session(self):
         last_tab_id = self.main_widget.tabs.count() - 1
@@ -147,7 +148,7 @@ class MainWidget(QWidget):
         """
 
     # Initialize tab screen
-        self.tabs.resize(300, 200)
+        self.tabs.resize(600, 200)
         logger.debug("Initialized tab screen")
 
     # Add tabs
@@ -160,17 +161,26 @@ class MainWidget(QWidget):
         self.main_layout.addWidget(self.tabs)
         logger.debug("Added tabs to widget")
 
-    # Add text_log
-        text_log_label = QLabel(self)
-        text_log_label.setText('Idle')
-        text_log_label.setFrameShape(QFrame.Panel)
-        text_log_label.setFrameShadow(QFrame.Sunken)
-        text_log_label.setLineWidth(1)
-        logger.debug("Added Log Label")
-        text_log_handler = QLabelLoggerHandler(text_log_label)
+    # Add text log
+        text_log_frame = QPlainTextEdit(self)
+        text_log_frame.setFixedHeight(80)
+        self.main_layout.addWidget(text_log_frame)
+
+    # configure logging
+        text_log_handler = QTextEditLoggerHandler(text_log_frame)
         logger.addHandler(text_log_handler)
-        logger.debug("Set the log handler")
-        self.main_layout.addWidget(text_log_label)
+
+    # Add text_log
+    #     text_log_label = QLabel(self)
+    #     text_log_label.setText('Idle')
+    #     text_log_label.setFrameShape(QFrame.Panel)
+    #     text_log_label.setFrameShadow(QFrame.Sunken)
+    #     text_log_label.setLineWidth(1)
+    #     # logger.debug("Added Log Label")
+    #     # text_log_handler = QLabelLoggerHandler(text_log_label)
+    #     # logger.addHandler(text_log_handler)
+    #     # logger.debug("Set the log handler")
+    #     self.main_layout.addWidget(text_log_label)
 
     # Set main layout
         self.setLayout(self.main_layout)
@@ -247,7 +257,7 @@ class MainWidget(QWidget):
                                             kill_btn)
 
         new_tab.logged_in.connect(self.on_login)
-        logger.debug("Added new tab: " + str(session_name))
+        logger.debug("Added new tab " + str(uuid))
 
     @pyqtSlot(str)
     def on_login(self, session_name):
