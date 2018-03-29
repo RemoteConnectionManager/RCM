@@ -1,5 +1,9 @@
 # python import
+import pickle
 import uuid
+import os.path
+import collections
+from configparser import RawConfigParser
 
 # pyqt5
 from PyQt5.QtCore import QSize, pyqtSignal
@@ -34,7 +38,8 @@ class QSessionWidget(QWidget):
         self.displays = {}
 
         # widgets
-        self.host_combo = QComboBox(self)
+        self.session_combo = QComboBox(self)
+        self.host_line = QLineEdit(self)
         self.user_line = QLineEdit(self)
         self.pssw_line = QLineEdit(self)
         # self.error_label = QLabel(self)
@@ -65,31 +70,48 @@ class QSessionWidget(QWidget):
     # grid login layout
         grid_login_layout = QGridLayout()
 
+        # parse config file to load the most recent sessions
+        config_file_name = os.path.join(os.path.expanduser('~'), '.rcm', 'RCM.cfg')
+        sessions_list = collections.deque(maxlen=5)
+        parser = RawConfigParser()
+        if os.path.exists(config_file_name):
+            try:
+                with open(config_file_name, 'r') as config_file:
+                    parser.read_file(config_file, source=config_file_name)
+                    sessions_list = parser.get('LoginFields', 'hostList')
+                    sessions_list = pickle.loads(sessions_list.encode('utf-8'))
+            except:
+                logger.error("Failed to load the sessions list from the config file")
+
+        session_label = QLabel(self)
+        session_label.setText('Sessions:')
+        self.session_combo.addItems(sessions_list)
+
+        self.session_combo.activated.connect(self.on_session_change)
+        if sessions_list:
+            self.session_combo.activated.emit(0)
+
+        grid_login_layout.addWidget(session_label, 0, 0)
+        grid_login_layout.addWidget(self.session_combo, 0, 1)
+
         host_label = QLabel(self)
         host_label.setText('Host:')
 
-        self.host_combo.addItems(["login.marconi.cineca.it",
-                                  "login.pico.cineca.it"])
-        grid_login_layout.addWidget(host_label, 0, 0)
-        grid_login_layout.addWidget(self.host_combo, 0, 1)
+        grid_login_layout.addWidget(host_label, 1, 0)
+        grid_login_layout.addWidget(self.host_line, 1, 1)
 
         user_label = QLabel(self)
         user_label.setText('User:')
 
-        grid_login_layout.addWidget(user_label, 1, 0)
-        grid_login_layout.addWidget(self.user_line, 1, 1)
-
+        grid_login_layout.addWidget(user_label, 2, 0)
         pssw_label = QLabel(self)
+        grid_login_layout.addWidget(self.user_line, 2, 1)
+
         pssw_label.setText('Password:')
 
         self.pssw_line.setEchoMode(QLineEdit.Password)
-        grid_login_layout.addWidget(pssw_label, 2, 0)
-        grid_login_layout.addWidget(self.pssw_line, 2, 1)
-
-        # self.error_label.setText("Wrong username or password")
-        # self.error_label.setStyleSheet("color:red")
-        # grid_login_layout.addWidget(self.error_label, 3, 1)
-        # self.error_label.hide()
+        grid_login_layout.addWidget(pssw_label, 3, 0)
+        grid_login_layout.addWidget(self.pssw_line, 3, 1)
 
     # hor login layout
         pybutton = QPushButton('Login', self)
@@ -174,19 +196,29 @@ class QSessionWidget(QWidget):
 
         self.setLayout(new_tab_main_layout)
 
+    def on_session_change(self):
+        """
+        Update the user and host fields when the user selects a different session in the combo
+        :return:
+        """
+        user, host = self.session_combo.currentText().split('@')
+        self.user_line.setText(user)
+        self.host_line.setText(host)
+
     def login(self):
-        session_name = str(self.user_line.text()) + "@" + str(self.host_combo.currentText())
+        session_name = str(self.user_line.text()) + "@" + str(self.host_line.text())
+
         try:
             logger.info("Logging into " + session_name)
-            ssh_login(self.host_combo.currentText(),
+            ssh_login(self.host_line.text(),
                       22,
                       self.user_line.text(),
                       self.pssw_line.text(),
                       'ls')
         except AuthenticationException:
-            # self.error_label.show()
             logger.error("Failed to login: invalid credentials")
             return
+
         logger.info("Logged in " + session_name)
         self.user = self.user_line.text()
         self.containerLoginWidget.hide()
