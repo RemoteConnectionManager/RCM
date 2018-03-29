@@ -1,5 +1,6 @@
 # stdlib
 import uuid
+from logger import logger
 
 # pyqt5
 from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
@@ -15,8 +16,9 @@ class QDisplayDialog(QDialog):
         self.display_names = display_names
 
         self.session_line = QLineEdit(self)
-        self.session_combo = QComboBox(self)
-        self.display_line = QLineEdit(self)
+        self.session_queue_combo = QComboBox(self)
+        self.session_vnc_combo = QComboBox(self)
+        self.display_combo = QComboBox(self)
 
         self.setWindowTitle("New display")
         self.init_ui()
@@ -38,16 +40,27 @@ class QDisplayDialog(QDialog):
         grid_layout.addWidget(self.session_line, 1, 1)
 
         session_queue = QLabel(self)
-        session_queue.setText('session queue:')
-        self.session_combo.addItems(["1", "2", "3", "4"])
+        session_queue.setText('Select queue:')
+        self.session_queue_combo.addItems(["12core_40gb_3h_slurm",
+                                           "4core_18gb_1h_slurm",
+                                           "4core_18gb_3h_slurm"])
         grid_layout.addWidget(session_queue, 2, 0)
-        grid_layout.addWidget(self.session_combo, 2, 1)
+        grid_layout.addWidget(self.session_queue_combo, 2, 1)
+
+        session_vnc = QLabel(self)
+        session_vnc.setText('Select wm+vnc:')
+        self.session_vnc_combo.addItems(["fluxbox_turbovnc",
+                                         "xfce_singularity_turbovnc"])
+        grid_layout.addWidget(session_vnc, 3, 0)
+        grid_layout.addWidget(self.session_vnc_combo, 3, 1)
 
         display_label = QLabel(self)
         display_label.setText('Display size:')
+        self.display_combo.addItems(["1920x1080",
+                                     "full_screen"])
 
-        grid_layout.addWidget(display_label, 3, 0)
-        grid_layout.addWidget(self.display_line, 3, 1)
+        grid_layout.addWidget(display_label, 4, 0)
+        grid_layout.addWidget(self.display_combo, 4, 1)
 
         # Ok button
         hor_layout = QHBoxLayout()
@@ -73,6 +86,7 @@ class QDisplayDialog(QDialog):
         dialog_layout.addWidget(group_box)
         dialog_layout.addSpacing(10)
         dialog_layout.addLayout(hor_layout)
+        dialog_layout.addSpacing(20)
         self.setLayout(dialog_layout)
 
     def on_ok(self):
@@ -90,6 +104,7 @@ class QDisplayDialog(QDialog):
 
         # if the display name already exists, it returns
         if self.display_name in self.display_names:
+            logger.error("session " + str(self.display_name) + " already exists")
             return
 
         self.accept()
