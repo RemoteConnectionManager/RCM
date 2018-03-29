@@ -1,5 +1,6 @@
 # std lib
 import sys
+import collections
 
 # pyqt5
 from PyQt5.QtCore import pyqtSlot
@@ -170,18 +171,6 @@ class MainWidget(QWidget):
         text_log_handler = QTextEditLoggerHandler(text_log_frame)
         logger.addHandler(text_log_handler)
 
-    # Add text_log
-    #     text_log_label = QLabel(self)
-    #     text_log_label.setText('Idle')
-    #     text_log_label.setFrameShape(QFrame.Panel)
-    #     text_log_label.setFrameShadow(QFrame.Sunken)
-    #     text_log_label.setLineWidth(1)
-    #     # logger.debug("Added Log Label")
-    #     # text_log_handler = QLabelLoggerHandler(text_log_label)
-    #     # logger.addHandler(text_log_handler)
-    #     # logger.debug("Set the log handler")
-    #     self.main_layout.addWidget(text_log_label)
-
     # Set main layout
         self.setLayout(self.main_layout)
 
@@ -257,6 +246,7 @@ class MainWidget(QWidget):
                                             kill_btn)
 
         new_tab.logged_in.connect(self.on_login)
+        new_tab.sessions_changed.connect(self.on_sessions_changed)
         logger.debug("Added new tab " + str(uuid))
 
     @pyqtSlot(str)
@@ -273,6 +263,13 @@ class MainWidget(QWidget):
                     self.tabs.setCurrentIndex(tab_id - 1)
                 self.tabs.removeTab(tab_id)
                 return
+
+    @pyqtSlot(collections.deque)
+    def on_sessions_changed(self, sessions_list):
+        for tab_id in range(0, self.tabs.count()):
+            widget = self.tabs.widget(tab_id)
+            widget.session_combo.clear()
+            widget.session_combo.addItems(sessions_list)
 
 
 if __name__ == '__main__':

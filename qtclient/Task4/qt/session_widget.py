@@ -1,5 +1,5 @@
 # python import
-import pickle
+import json
 import uuid
 import os.path
 import collections
@@ -30,19 +30,23 @@ class QSessionWidget(QWidget):
     # define a signal when the user successful log in
     logged_in = pyqtSignal(str)
 
+    sessions_changed = pyqtSignal(collections.deque)
+
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
 
-        self.hosts = ["login.marconi.cineca.it", "login.pico.cineca.it"]
         self.user = ""
         self.displays = {}
+
+        self.config_file_name = os.path.join(os.path.expanduser('~'), '.rcm', 'RCM2.cfg')
+        self.sessions_list = None
+        self.parser = RawConfigParser()
 
         # widgets
         self.session_combo = QComboBox(self)
         self.host_line = QLineEdit(self)
         self.user_line = QLineEdit(self)
         self.pssw_line = QLineEdit(self)
-        # self.error_label = QLabel(self)
 
         # containers
         self.containerLoginWidget = QWidget()
@@ -71,24 +75,22 @@ class QSessionWidget(QWidget):
         grid_login_layout = QGridLayout()
 
         # parse config file to load the most recent sessions
-        config_file_name = os.path.join(os.path.expanduser('~'), '.rcm', 'RCM.cfg')
-        sessions_list = collections.deque(maxlen=5)
-        parser = RawConfigParser()
-        if os.path.exists(config_file_name):
+        if os.path.exists(self.config_file_name):
             try:
-                with open(config_file_name, 'r') as config_file:
-                    parser.read_file(config_file, source=config_file_name)
-                    sessions_list = parser.get('LoginFields', 'hostList')
-                    sessions_list = pickle.loads(sessions_list.encode('utf-8'))
+                with open(self.config_file_name, 'r') as config_file:
+                    self.parser.read_file(config_file, source=self.config_file_name)
+                    sessions_list = self.parser.get('LoginFields', 'hostList')
+                    self.sessions_list = collections.deque(json.loads(sessions_list), maxlen=5)
             except:
                 logger.error("Failed to load the sessions list from the config file")
 
         session_label = QLabel(self)
         session_label.setText('Sessions:')
-        self.session_combo.addItems(sessions_list)
+        self.session_combo.clear()
+        self.session_combo.addItems(self.sessions_list)
 
         self.session_combo.activated.connect(self.on_session_change)
-        if sessions_list:
+        if self.sessions_list:
             self.session_combo.activated.emit(0)
 
         grid_login_layout.addWidget(session_label, 0, 0)
@@ -201,9 +203,12 @@ class QSessionWidget(QWidget):
         Update the user and host fields when the user selects a different session in the combo
         :return:
         """
-        user, host = self.session_combo.currentText().split('@')
-        self.user_line.setText(user)
-        self.host_line.setText(host)
+        try:
+            user, host = self.session_combo.currentText().split('@')
+            self.user_line.setText(user)
+            self.host_line.setText(host)
+        except ValueError:
+            pass
 
     def login(self):
         session_name = str(self.user_line.text()) + "@" + str(self.host_line.text())
@@ -221,6 +226,18 @@ class QSessionWidget(QWidget):
 
         logger.info("Logged in " + session_name)
         self.user = self.user_line.text()
+
+        # update sessions list
+        if session_name in list(self.sessions_list):
+            self.sessions_list.remove(session_name)
+        self.sessions_list.appendleft(session_name)
+
+        self.sessions_changed.emit(self.sessions_list)
+
+        # update config file
+        self.update_config_file(session_name)
+
+        # Hide the login view and show the session one
         self.containerLoginWidget.hide()
         self.containerSessionWidget.show()
 
@@ -240,7 +257,7 @@ class QSessionWidget(QWidget):
             return
 
         display_hor_layout = QHBoxLayout()
-        display_hor_layout.setContentsMargins(0,2,0,2)
+        display_hor_layout.setContentsMargins(0, 2, 0, 2)
         display_hor_layout.setSpacing(2)
 
         display_ver_layout = QVBoxLayout()
@@ -298,6 +315,27 @@ class QSessionWidget(QWidget):
 
         self.displays[id] = display_widget
         logger.info("Added new display")
+
+    def update_config_file(self, session_name):
+        """
+        Update the config file with the new session name
+        :param session_name: name of the last session inserted by the user
+        :return:
+        """
+        if not self.parser.has_section('LoginFields'):
+            self.parser.add_section('LoginFields')
+
+        self.parser.set('LoginFields', 'hostList', json.dumps(list(self.sessions_list)))
+
+        try:
+            config_file_dir = os.path.dirname(self.config_file_name)
+            if not os.path.exists(config_file_dir):
+                os.makedirs(config_file_dir)
+
+            with open(os.path.join(os.path.expanduser('~'), '.rcm', 'RCM2.cfg'), 'w') as config_file:
+                self.parser.write(config_file)
+        except:
+            logger.error("failed to dump the session list in the configuration file")
 
     def connect_display(self, id):
         print(self.displays[id])
