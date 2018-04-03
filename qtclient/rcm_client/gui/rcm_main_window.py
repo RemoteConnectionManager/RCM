@@ -264,6 +264,7 @@ class MainWidget(QWidget):
                 if self.tabs.currentIndex() == self.tabs.count() - 2:
                     self.tabs.setCurrentIndex(tab_id - 1)
                 self.tabs.removeTab(tab_id)
+                widget.setParent(None)
                 return
 
     @pyqtSlot(collections.deque)
