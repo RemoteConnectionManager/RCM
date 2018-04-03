@@ -1,6 +1,7 @@
 # std lib
 import logging
 
+# pyqt5
 from PyQt5.QtGui import QTextCursor
 
 logger = logging.getLogger("RCM")

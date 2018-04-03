@@ -11,9 +11,9 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, \
     QTabBar, QStyle, QPlainTextEdit
 
 # local includes
-from session_widget import QSessionWidget
-from pyinstaller_utils import resource_path
-from logger import QTextEditLoggerHandler, logger
+from rcm_client.gui.session_widget import QSessionWidget
+from rcm_client.utils.pyinstaller_utils import resource_path
+from rcm_client.log.logger import QTextEditLoggerHandler, logger
 
 
 class RCMMainWindow(QMainWindow):
@@ -37,19 +37,19 @@ class RCMMainWindow(QMainWindow):
         self.setFixedWidth(width)
 
         # Create new action
-        new_action = QAction(QIcon(resource_path('icons/new.png')), '&New', self)
+        new_action = QAction(QIcon(resource_path('gui/icons/new.png')), '&New', self)
         new_action.setShortcut('Ctrl+N')
         new_action.setStatusTip('New VNC session')
         new_action.triggered.connect(self.new_vnc_session)
 
         # Create new action
-        open_action = QAction(QIcon(resource_path('icons/open.png')), '&Open', self)
+        open_action = QAction(QIcon(resource_path('gui/icons/open.png')), '&Open', self)
         open_action.setShortcut('Ctrl+O')
         open_action.setStatusTip('Open VNC session')
         open_action.triggered.connect(self.open_vnc_session)
 
         # Create exit action
-        exit_action = QAction(QIcon(resource_path('icons/exit.png')), '&Exit', self)
+        exit_action = QAction(QIcon(resource_path('gui/icons/exit.png')), '&Exit', self)
         exit_action.setShortcut('Ctrl+Q')
         exit_action.setStatusTip('Exit application')
         exit_action.triggered.connect(self.exit)
@@ -237,7 +237,7 @@ class MainWidget(QWidget):
         else:
             kill_btn = QPushButton()
             ico = QIcon()
-            ico.addFile(resource_path('icons/plus.png'))
+            ico.addFile(resource_path('gui/icons/plus.png'))
             kill_btn.setIcon(ico)
             kill_btn.clicked.connect(self.on_new)
             kill_btn.setToolTip('New session')

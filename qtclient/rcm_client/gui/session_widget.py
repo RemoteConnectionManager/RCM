@@ -15,10 +15,10 @@ from PyQt5.QtWidgets import QWidget, QFrame, QLabel, QComboBox, \
 from paramiko.ssh_exception import AuthenticationException
 
 # local includes
-from ssh import ssh_login
-from display_dialog import QDisplayDialog
-from pyinstaller_utils import resource_path
-from logger import logger
+from rcm_client.logic.ssh import ssh_login
+from rcm_client.gui.display_dialog import QDisplayDialog
+from rcm_client.utils.pyinstaller_utils import resource_path
+from rcm_client.log.logger import logger
 
 
 class QSessionWidget(QWidget):
@@ -146,9 +146,9 @@ class QSessionWidget(QWidget):
         self.session_ver_layout.addLayout(self.rows_ver_layout)
         self.session_ver_layout.addStretch(1)
 
-        self.connect_ico.addFile(resource_path('icons/connect.png'))
-        self.kill_ico.addFile(resource_path('icons/kill.png'))
-        self.share_ico.addFile(resource_path('icons/share.png'))
+        self.connect_ico.addFile(resource_path('gui/icons/connect.png'))
+        self.kill_ico.addFile(resource_path('gui/icons/kill.png'))
+        self.share_ico.addFile(resource_path('gui/icons/share.png'))
 
         font = QFont()
         font.setBold(True)
@@ -179,7 +179,7 @@ class QSessionWidget(QWidget):
         plusbutton_layout.addWidget(x, 0, 5)
 
         new_display_ico = QIcon()
-        new_display_ico.addFile(resource_path('icons/plus.png'), QSize(16, 16))
+        new_display_ico.addFile(resource_path('gui/icons/plus.png'), QSize(16, 16))
 
         new_display_btn = QPushButton()
         new_display_btn.setIcon(new_display_ico)
@@ -270,7 +270,6 @@ class QSessionWidget(QWidget):
         display_widget.setLayout(display_ver_layout)
 
         id = display_win.display_name
-        print(id)
 
         name = QLabel()
         name.setText(str(id)[:16])
@@ -338,11 +337,9 @@ class QSessionWidget(QWidget):
             logger.error("failed to dump the session list in the configuration file")
 
     def connect_display(self, id):
-        print(self.displays[id])
         logger.info("Connected to remote display " + str(id))
 
     def share_display(self, id):
-        print(self.displays[id])
         logger.info("Shared display " + str(id))
 
     def kill_display(self, id):

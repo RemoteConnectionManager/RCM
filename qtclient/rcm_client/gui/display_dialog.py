@@ -1,10 +1,12 @@
 # stdlib
 import uuid
-from logger import logger
 
 # pyqt5
 from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
     QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, QPushButton
+
+# local includes
+from rcm_client.log.logger import logger
 
 
 class QDisplayDialog(QDialog):
