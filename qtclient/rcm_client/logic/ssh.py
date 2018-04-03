@@ -8,4 +8,3 @@ def ssh_login(hostname, port, username, password, command):
     ssh_client.connect(hostname, port, username, password)
     stdin, stdout, stderr = ssh_client.exec_command(command)
     print(stdout.read())
-
