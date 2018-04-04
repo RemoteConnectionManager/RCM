@@ -3,7 +3,6 @@ import json
 import uuid
 import os.path
 import collections
-from configparser import RawConfigParser
 
 # pyqt5
 from PyQt5.QtCore import QSize, pyqtSignal
@@ -20,6 +19,7 @@ from rcm_client.logic.ssh import ssh_login
 from rcm_client.gui.display_dialog import QDisplayDialog
 from rcm_client.utils.pyinstaller_utils import resource_path
 from rcm_client.log.logger import logger
+from rcm_client.log.config_parser import parser, config_file_name
 
 
 class QSessionWidget(QWidget):
@@ -38,10 +38,7 @@ class QSessionWidget(QWidget):
 
         self.user = ""
         self.displays = {}
-
-        self.config_file_name = os.path.join(os.path.expanduser('~'), '.rcm', 'rcm.cfg')
-        self.sessions_list = None
-        self.parser = RawConfigParser()
+        self.sessions_list = collections.deque(maxlen=5)
 
         # widgets
         self.session_combo = QComboBox(self)
@@ -75,15 +72,11 @@ class QSessionWidget(QWidget):
     # grid login layout
         grid_login_layout = QGridLayout()
 
-        # parse config file to load the most recent sessions
-        if os.path.exists(self.config_file_name):
-            try:
-                with open(self.config_file_name, 'r') as config_file:
-                    self.parser.read_file(config_file, source=self.config_file_name)
-                    sessions_list = self.parser.get('LoginFields', 'hostList')
-                    self.sessions_list = collections.deque(json.loads(sessions_list), maxlen=5)
-            except:
-                logger.error("Failed to load the sessions list from the config file")
+        try:
+            sessions_list = parser.get('LoginFields', 'hostList')
+            self.sessions_list = collections.deque(json.loads(sessions_list), maxlen=5)
+        except Exception:
+            pass
 
         session_label = QLabel(self)
         session_label.setText('Sessions:')
@@ -328,18 +321,18 @@ class QSessionWidget(QWidget):
         :param session_name: name of the last session inserted by the user
         :return:
         """
-        if not self.parser.has_section('LoginFields'):
-            self.parser.add_section('LoginFields')
+        if not parser.has_section('LoginFields'):
+            parser.add_section('LoginFields')
 
-        self.parser.set('LoginFields', 'hostList', json.dumps(list(self.sessions_list)))
+        parser.set('LoginFields', 'hostList', json.dumps(list(self.sessions_list)))
 
         try:
-            config_file_dir = os.path.dirname(self.config_file_name)
+            config_file_dir = os.path.dirname(config_file_name)
             if not os.path.exists(config_file_dir):
                 os.makedirs(config_file_dir)
 
-            with open(self.config_file_name, 'w') as config_file:
-                self.parser.write(config_file)
+            with open(config_file_name, 'w') as config_file:
+                parser.write(config_file)
         except:
             logger.error("failed to dump the session list in the configuration file")
 

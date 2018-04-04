@@ -17,7 +17,6 @@ class QLabelLoggerHandler(logging.Handler):
         super().__init__()
 
         self.setFormatter(logging.Formatter('%(message)s'))
-        self.setLevel(logging.DEBUG)
         self.widget = label
         self.lock = False
 
@@ -39,7 +38,6 @@ class QTextEditLoggerHandler(logging.Handler):
         super().__init__()
 
         self.setFormatter(logging.Formatter('%(asctime)-15s - %(levelname)s - %(message)s'))
-        self.setLevel(logging.DEBUG)
         self.widget = text_edit
         self.lock = False
 
