@@ -39,7 +39,7 @@ class QSessionWidget(QWidget):
         self.user = ""
         self.displays = {}
 
-        self.config_file_name = os.path.join(os.path.expanduser('~'), '.rcm', 'RCM2.cfg')
+        self.config_file_name = os.path.join(os.path.expanduser('~'), '.rcm', 'rcm.cfg')
         self.sessions_list = None
         self.parser = RawConfigParser()
 
@@ -338,7 +338,7 @@ class QSessionWidget(QWidget):
             if not os.path.exists(config_file_dir):
                 os.makedirs(config_file_dir)
 
-            with open(os.path.join(os.path.expanduser('~'), '.rcm', 'RCM2.cfg'), 'w') as config_file:
+            with open(self.config_file_name, 'w') as config_file:
                 self.parser.write(config_file)
         except:
             logger.error("failed to dump the session list in the configuration file")
