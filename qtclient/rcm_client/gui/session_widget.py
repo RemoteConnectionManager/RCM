@@ -9,7 +9,8 @@ from configparser import RawConfigParser
 from PyQt5.QtCore import QSize, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QWidget, QFrame, QLabel, QComboBox, \
-    QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton
+    QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, \
+    QStyle
 
 # paramiko
 from paramiko.ssh_exception import AuthenticationException
@@ -186,8 +187,14 @@ class QSessionWidget(QWidget):
         new_display_btn.setToolTip('Create a new display session')
         new_display_btn.clicked.connect(self.add_new_display)
 
+        reload_btn = QPushButton()
+        reload_btn.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
+        reload_btn.setToolTip('Reload the page')
+        reload_btn.clicked.connect(self.reload)
+
         new_display_layout = QHBoxLayout()
-        new_display_layout.addSpacing(100)
+        new_display_layout.addSpacing(70)
+        new_display_layout.addWidget(reload_btn)
         new_display_layout.addWidget(new_display_btn)
 
         plusbutton_layout.addLayout(new_display_layout, 0, 6)
@@ -352,3 +359,6 @@ class QSessionWidget(QWidget):
         del self.displays[id]
 
         logger.info("Killed display " + str(id))
+
+    def reload(self):
+        logger.debug("Reloading...")
