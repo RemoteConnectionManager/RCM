@@ -7,7 +7,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QWidget, \
     QTabWidget, QVBoxLayout, QPushButton, \
     QDesktopWidget, QAction, QFileDialog, \
-    QTabBar, QStyle, QPlainTextEdit
+    QTabBar, QStyle, QPlainTextEdit, QMessageBox
 
 # local includes
 from rcm_client.gui.session_widget import QSessionWidget
@@ -20,7 +20,8 @@ class RCMMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Remote Connection Manager - CINECA - v0.01_alpha")
+        title = "Remote Connection Manager - CINECA - v0.01_alpha"
+        self.setWindowTitle(title)
 
         width = 1000
         height = 370
@@ -121,6 +122,7 @@ class RCMMainWindow(QMainWindow):
         return
 
     def about(self):
+        QMessageBox.about(self, "RCM", self.windowTitle())
         return
 
     @pyqtSlot()
