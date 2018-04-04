@@ -72,27 +72,22 @@ class QDisplayDialog(QDialog):
         hor_layout = QHBoxLayout()
         ok_button = QPushButton('Ok', self)
         ok_button.clicked.connect(self.on_ok)
-        ok_button.setFixedHeight(20)
-        ok_button.setFixedWidth(100)
         hor_layout.addStretch(1)
         hor_layout.addWidget(ok_button)
 
         # Cancel button
         cancel_button = QPushButton('Cancel', self)
         cancel_button.clicked.connect(self.reject)
-        cancel_button.setFixedHeight(20)
-        cancel_button.setFixedWidth(100)
         hor_layout.addWidget(cancel_button)
         hor_layout.addStretch(1)
 
-        group_box = QGroupBox()
+        group_box = QGroupBox("Display options:")
         group_box.setLayout(grid_layout)
 
         dialog_layout = QVBoxLayout()
         dialog_layout.addWidget(group_box)
         dialog_layout.addSpacing(10)
         dialog_layout.addLayout(hor_layout)
-        dialog_layout.addSpacing(20)
         self.setLayout(dialog_layout)
 
     def on_ok(self):
