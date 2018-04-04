@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QMainWindow, QWidget, \
 
 # local includes
 from rcm_client.gui.session_widget import QSessionWidget
+from rcm_client.gui.edit_settings_dialog import QEditSettingsDialog
 from rcm_client.utils.pyinstaller_utils import resource_path
 from rcm_client.log.logger import QTextEditLoggerHandler, logger
 
@@ -119,7 +120,9 @@ class RCMMainWindow(QMainWindow):
         self.close()
 
     def edit_settings(self):
-        return
+        edit_settings_dlg = QEditSettingsDialog(self)
+        edit_settings_dlg.setModal(True)
+        edit_settings_dlg.exec()
 
     def about(self):
         QMessageBox.about(self, "RCM", self.windowTitle())
