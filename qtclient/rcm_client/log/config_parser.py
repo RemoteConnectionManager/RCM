@@ -3,7 +3,6 @@ import os
 from configparser import RawConfigParser
 
 # local includes
-from rcm_client.log.logger import logger
 
 config_file_name = os.path.join(os.path.expanduser('~'), '.rcm', 'rcm.cfg')
 parser = RawConfigParser()
@@ -14,6 +13,6 @@ if os.path.exists(config_file_name):
         with open(config_file_name, 'r') as config_file:
             parser.read_file(config_file, source=config_file_name)
     except Exception:
-        logger.error("Failed to load the config file")
+        print("Failed to load the config file")
 else:
-    logger.error("Failed to load the config file: file does not exist")
+    print("Failed to load the config file: file does not exist")

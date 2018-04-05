@@ -1,6 +1,7 @@
 # std lib
 import os
 import json
+import logging
 
 # pyqt5
 from PyQt5.QtWidgets import QLabel, QDialog, \
@@ -43,6 +44,7 @@ class QEditSettingsDialog(QDialog):
         log_level_checkbox = QCheckBox("", self)
         log_level_checkbox.setObjectName('debug_log_level')
         log_level_checkbox.setChecked(self.settings['debug_log_level'])
+        log_level_checkbox.toggled.connect(self.on_log_level_change)
         log_level_hlayout.addWidget(log_level_checkbox)
 
         # Save button
@@ -65,10 +67,16 @@ class QEditSettingsDialog(QDialog):
         outer_grid_layout.addLayout(last_hor_layout)
         self.setLayout(outer_grid_layout)
 
+    def on_log_level_change(self, debug):
+        if debug:
+            logger.setLevel(logging.DEBUG)
+        else:
+            logger.setLevel(logging.INFO)
+
     def load_settings(self):
         try:
-            settings = parser.get('Settings', 'settings')
-            self.settings = json.loads(settings)
+            debug_log_level = json.loads(parser.get('Settings', 'debug_log_level'))
+            self.settings['debug_log_level'] = debug_log_level
         except Exception:
             self.use_default_settings()
 
@@ -79,7 +87,7 @@ class QEditSettingsDialog(QDialog):
         # update settings values
         self.update_and_apply_settings()
 
-        parser.set('Settings', 'settings', json.dumps(self.settings))
+        parser.set('Settings', 'debug_log_level', json.dumps(self.settings['debug_log_level']))
 
         try:
             config_file_dir = os.path.dirname(config_file_name)
