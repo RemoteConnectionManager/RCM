@@ -19,7 +19,7 @@ class rcm_session:
             self.hash['file']=fromfile
         elif (fromstring != ''):
             print "pikl fromstring-->"+fromstring
-            self.hash=pickle.loads('server.'+fromstring)
+            self.hash=pickle.loads(fromstring)
         else:
             self.hash={'file':file, 'session name':sessionname ,'state':state, 'node':node, 'tunnel':tunnel, 'sessiontype':sessiontype, 'nodelogin':nodelogin,  'display':display, 'jobid':jobid, 'sessionid':sessionid, 'username':username, 'walltime':walltime,'timeleft':walltime, 'otp':otp, 'vncpassword':vncpassword}
             self.hash['created']=datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
