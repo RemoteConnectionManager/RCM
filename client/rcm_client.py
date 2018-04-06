@@ -111,7 +111,7 @@ class rcm_client_connection:
                 #    print "got passwd-->",self.passwd
                 else:
                     self.passwd=password
-                    self.login_options =  self.remoteuser
+                self.login_options =  self.remoteuser
         
         self.login_options_withproxy =  self.login_options + "@" + self.proxynode
         self.ssh_remote_exec_command = self.ssh_command + " " + self.login_options
@@ -356,17 +356,19 @@ if __name__ == '__main__':
         print "vncviewer-->"+rcm_utils.which('vncviewer')
         
         c = rcm_client_connection()
-        c.login_setup()
+        host='login.marconi.cineca.it'
+        c.login_setup(host=host)
         c.debug=False
+        print("##########  open sessions on "+host)
         res=c.list()
         res.write(2)
-        newc=c.newconn()
+        newc=c.newconn(queue='4core_18_gb_1h_slurm', geometry='1200x1000', sessionname = 'test',vnc_id='fluxbox_turbovnc_vnc')
         newsession = newc.hash['sessionid']
         print "created session -->",newsession,"<- display->",newc.hash['display'],"<-- node-->",newc.hash['node']
         c.vncsession(newc)
         res=c.list()
         res.write(2)
-        c.kill(newsession)
+        c.kill(newc)
         res=c.list()
         res.write(2)
         
