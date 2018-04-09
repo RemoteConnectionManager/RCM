@@ -71,12 +71,12 @@ def configure_logging(verbose=0,vnclv=0):
         if not os.path.isdir(logf):
             raise
     for f in os.listdir(logf):
-        print "deleting "+f
+        print(("deleting "+f))
         file_path = os.path.join(logf, f)
         try: 
             if os.path.isfile(file_path): os.unlink(file_path)
         except OSError:
-            print "failed to remove "+file_path
+            print(("failed to remove "+file_path))
     os.chdir(logf)
     module_logger.error( "log file folder: "+logf)
     consoleFormatter = logging.Formatter('%(threadName)-12.12s: [%(filename)-30.30s %(lineno)-4d]-->%(message)s')
@@ -132,10 +132,14 @@ def client_folder():
 def log_folder():    
     return os.path.join(client_folder(),'logs')
 
-def vnc_crypt(vncpass,decrypt=False):
+def vnc_crypt(vncpass, decrypt=False):
     if(decrypt):
         try:
-            passpadd = vncpass.decode('hex')
+            if sys.version_info >= (3, 0):
+                import binascii
+                passpadd = binascii.unhexlify(vncpass)
+            else:
+                passpadd = vncpass.decode('hex')
         except TypeError as e:
             if e.message == 'Odd-length string':
                 module_logger.warning( 'WARN: %s . Chopping last char off... "%s"' % ( e.message, vncpass[:-1] ))
@@ -144,13 +148,34 @@ def vnc_crypt(vncpass,decrypt=False):
                 raise
     else:
         passpadd = (vncpass + '\x00'*8)[:8]
-    strkey = ''.join([ chr(x) for x in d3des.vnckey ])
-    key = d3des.deskey(strkey,decrypt)
-    crypted = d3des.desfunc(passpadd, key)
-    if(decrypt):
-        return crypted.encode('hex').decode('hex')
+        passpadd = passpadd.encode('utf-8')
+    strkey = u''.join([ chr(x) for x in d3des.vnckey ])
+
+    if sys.version_info >= (3, 0):
+        # python3
+        key = d3des.deskey(strkey.encode('utf-8'), decrypt)
+        crypted = d3des.desfunc(passpadd, key)
     else:
-        return crypted.encode('hex')
+        key = d3des.deskey(strkey, decrypt)
+        crypted = d3des.desfunc(passpadd, key)
+
+    if(decrypt):
+        if sys.version_info >= (3, 0):
+            import binascii
+            hex_crypted = binascii.unhexlify(binascii.hexlify(crypted)).decode('utf-8')
+        else:
+            hex_crypted = crypted.encode('hex').decode('hex')
+        print('crypted hex password-->' + hex_crypted + '<--')
+        return hex_crypted
+    else:
+        if sys.version_info >= (3, 0):
+            import binascii
+            hex_crypted = binascii.hexlify(crypted).decode('utf-8')
+        else:
+            # ------------------------------
+            hex_crypted = crypted.encode('hex')
+        print('crypted hex password-->' + hex_crypted + '<--')
+        return hex_crypted
 
 
 class rcm_cipher():
@@ -172,13 +197,13 @@ class rcm_cipher():
         if (not vncpassword):
             vncpassword = self.vncpassword
         if(self.acypher):
-            return self.acypher.encrypt(vncpassword)
+            return self.acypher.encrypt(vncpassword).decode('utf-8')
         else:
             return vnc_crypt(vncpassword,decrypt=False)
 
     def decrypt(self,vncpassword):
         if(self.acypher):
-            return self.acypher.decrypt(vncpassword)
+            return self.acypher.decrypt(vncpassword).decode('utf-8')
         else:
             return vnc_crypt(vncpassword,decrypt=True)
 
@@ -189,7 +214,7 @@ class pack_info():
             if hasattr(sys, '_MEIPASS'):
                 # PyInstaller >= 1.6
                 self.basedir = os.path.abspath(sys._MEIPASS)
-            elif(os.environ.has_key('_MEIPASS2')):
+            elif('_MEIPASS2' in os.environ):
                 self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
             else:
                 self.basedir = os.path.dirname(os.path.abspath(sys.executable))
@@ -218,8 +243,8 @@ def get_unused_portnumber():
     sock.close()
     return sn
 
-import Queue
-threads_exception_queue=Queue.Queue()
+import queue
+threads_exception_queue=queue.Queue()
 
 def get_threads_exceptions():
     go=True
@@ -227,7 +252,7 @@ def get_threads_exceptions():
     while go:
         try:
             exc = threads_exception_queue.get(block=False)
-        except Queue.Empty:
+        except queue.Empty:
             go=False
         else:
             module_logger.error( "one thread raised ->"+exc)
@@ -261,7 +286,13 @@ def get_server_command(host,user,passwd=''):
 
     while(loop):
         try:
-            line = stdout.readline()
+            # python3
+            if sys.version_info >= (3, 0):
+                line = str(stdout.readline(), 'utf-8')
+            # python2
+            else:
+                line = stdout.readline()
+            print(line)
             # print line
             if(end_string in line and start_string in line):
                 # print "line-->"+line
@@ -422,17 +453,16 @@ class SessionThread( threading.Thread ):
                     #REMOVE_FOR_JAVA#if(self.gui_cmd): self.gui_cmd(active=False)
                     #raise Exception("Timeout connecting to the display.")
                     #REMOVE_FOR_JAVA#threads_exception_queue.put("Timeout connecting to the display.")
-		  
-		i = child.expect(['Authentication successful', pexpect.TIMEOUT, pexpect.EOF])
-		if i > 0:
-                    if(self.debug): module_logger.error( "#REMOVE_FOR_JAVA#Authentication problems.")
+
+                i = child.expect(['Authentication successful', pexpect.TIMEOUT, pexpect.EOF])
+                if i > 0:
+                    if(self.debug):
+                        module_logger.error( "#REMOVE_FOR_JAVA#Authentication problems.")
                     #REMOVE_FOR_JAVA#if(self.gui_cmd): self.gui_cmd(active=False)
-		    for line in child:
-		      module_logger.debug( "#REMOVE_FOR_JAVA#child expect-->"+line)
+                    for line in child:
+                        module_logger.debug( "#REMOVE_FOR_JAVA#child expect-->"+line)
                     #raise Exception("Authentication problems.")
                     #REMOVE_FOR_JAVA#threads_exception_queue.put("Authentication problems.")
-
-
                 child.expect(pexpect.EOF, timeout=None)
             self.vnc_process = None
             if(self.gui_cmd):

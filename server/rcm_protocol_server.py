@@ -1,15 +1,15 @@
 import os
 import sys
-import rcm
+from . import rcm
 import logging
 
 class rcm_protocol:
     def __init__(self,rcm_server=None): 
-        logger = logging.getLogger("basic")    
-         
-	if(rcm_server):	self.rcm_server=rcm_server
-	
-    def config(self,build_platform=''): 
+        logger = logging.getLogger("basic")
+        if(rcm_server):
+            self.rcm_server=rcm_server
+
+    def config(self,build_platform=''):
         logger = logging.getLogger("basic")    
         logger.debug("config")
         conf=rcm.rcm_config()
@@ -19,7 +19,7 @@ class rcm_protocol:
         queueList = self.rcm_server.get_queue()
         for q in queueList:
             conf.add_queue(q)
-        for vnc_id,menu_entry in self.rcm_server.pconfig.get_vnc_menu().iteritems():
+        for vnc_id,menu_entry in self.rcm_server.pconfig.get_vnc_menu().items():
             conf.add_vnc(vnc_id,menu_entry)
         conf.serialize()
 
@@ -27,7 +27,7 @@ class rcm_protocol:
     def version(self,build_platform=''): 
         logger = logging.getLogger("basic")    
         logger.debug("version")
-        print "get version"
+        print("get version")
         if (self.client_sendfunc):
             return self.client_sendfunc("version "+build_platform)
 
@@ -40,7 +40,7 @@ class rcm_protocol:
 #        fullhostname = socket.getfqdn()
         self.rcm_server.fill_sessions_hash()
         s=rcm.rcm_sessions()
-        for sid, ses in self.rcm_server.sessions.items():
+        for sid, ses in list(self.rcm_server.sessions.items()):
             s.array.append(self.rcm_server.sessions[sid])
         sys.stdout.write(rcm.serverOutputString)
         sys.stdout.write(s.get_string())
@@ -62,7 +62,7 @@ class rcm_protocol:
     def new(self,geometry='',queue='',sessionname='',subnet='',vncpassword='',vncpassword_crypted='',vnc_id=''): 
         logger = logging.getLogger("basic")    
         logger.debug("new")
-        print "create new vnc display session"
+        print("create new vnc display session")
         if(subnet): self.rcm_server.subnet = subnet
         if(queue): self.rcm_server.queue = queue
         if(sessionname): self.rcm_server.sessionname = sessionname
