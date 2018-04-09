@@ -444,25 +444,26 @@ class SessionThread( threading.Thread ):
                 
 if __name__ == '__main__':
 
-    print vnc_crypt(vnc_crypt('paperino'),True)
+    print (vnc_crypt(vnc_crypt('paperino'),True))
+    print (vnc_crypt('paperino',False))
 
     r=rcm_cipher()
     e=r.encrypt()
-    print "clear-->"+r.decrypt(e)+" crypt->"+e+" recrypt->"+r.encrypt(r.decrypt(e))+" reclear->"+r.decrypt(r.encrypt(r.decrypt(e)))
+    print ("clear-->"+r.decrypt(e)+" crypt->"+e+" recrypt->"+r.encrypt(r.decrypt(e))+" reclear->"+r.decrypt(r.encrypt(r.decrypt(e))))
 
     ar=rcm_cipher("mypass")
     ae=ar.encrypt()
-    print "stored clear pass-->"+ar.vncpassword+"<--encrypted without par-->"+ae+"<--"
-    print "stored clear pass-->"+ar.vncpassword+"<--decrypt              -->"+ar.decrypt(ae)
+    print ("stored clear pass-->"+ar.vncpassword+"<--encrypted without par-->"+ae+"<--")
+    print ("stored clear pass-->"+ar.vncpassword+"<--decrypt              -->"+ar.decrypt(ae))
     ae=ar.encrypt()
-    print "stored clear pass-->"+ar.vncpassword+"<--enc nopar-->"+ae+"<--"
-    print "stored clear pass-->"+ar.vncpassword+"<--decrypt  -->"+ar.decrypt(ae)
-    print "stored clear pass-->"+ar.vncpassword+"<--recrypt  -->"+ar.encrypt(ar.vncpassword)+"< clear->"+ar.decrypt(ar.encrypt(ar.vncpassword))
-    print "stored clear pass-->"+ar.vncpassword+"<--recrypt  -->"+ar.encrypt(ar.vncpassword)+"< clear->"+ar.decrypt(ar.encrypt(ar.vncpassword))
-    print "clear-->"+ar.decrypt(ae)+" crypt->"+ae+" recrypt->"+ar.encrypt(ar.decrypt(ae))+" reclear->"+ar.decrypt(ar.encrypt(ar.decrypt(ae)))
+    print ("stored clear pass-->"+ar.vncpassword+"<--enc nopar-->"+ae+"<--")
+    print ("stored clear pass-->"+ar.vncpassword+"<--decrypt  -->"+ar.decrypt(ae))
+    print ("stored clear pass-->"+ar.vncpassword+"<--recrypt  -->"+ar.encrypt(ar.vncpassword)+"< clear->"+ar.decrypt(ar.encrypt(ar.vncpassword)))
+    print ("stored clear pass-->"+ar.vncpassword+"<--recrypt  -->"+ar.encrypt(ar.vncpassword)+"< clear->"+ar.decrypt(ar.encrypt(ar.vncpassword)))
+    print ("clear-->"+ar.decrypt(ae)+" crypt->"+ae+" recrypt->"+ar.encrypt(ar.decrypt(ae))+" reclear->"+ar.decrypt(ar.encrypt(ar.decrypt(ae))))
 
 
-    print 'om10-->'+get_server_command('om10.eni.cineca.it','cibo19','')+'<--'
-    print 'aux6-->'+get_server_command('aux6.eni.cineca.it','cibo19','')+'<--'
-    print 'hpc1-->'+get_server_command('login-hpc1.eni.cineca.it','cibo19','')+'<--'
+    #print 'om10-->'+get_server_command('om10.eni.cineca.it','cibo19','')+'<--'
+    #print 'aux6-->'+get_server_command('aux6.eni.cineca.it','cibo19','')+'<--'
+    print ('marconi-->'+get_server_command('login.marconi.cineca.it','lcalori0','')+'<--')
 
