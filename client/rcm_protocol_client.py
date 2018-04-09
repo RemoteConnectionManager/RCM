@@ -3,16 +3,18 @@ import os
 import types
 import inspect
 
-from server import rcm_protocol_server
-#sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "server"))
+sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "server"))
 sys.path.append( os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) )
+from server import rcm_protocol_server
+
+
 
 import logging
 module_logger = logging.getLogger('RCM.protocol')
 
 def rcm_decorate(fn):
-    name=fn.func_name
-    code=fn.func_code
+    name=fn.__name__
+    code=fn.__code__
     argcount = code.co_argcount
     argnames = code.co_varnames[:argcount]
 #    print "inside_decorator "+inspect.stack()[0][3]+" function->"+name,
@@ -22,7 +24,7 @@ def rcm_decorate(fn):
     @wraps(fn)
     def wrapper(*args, **kw):
         command='--command='+name
-        for p in kw.keys():
+        for p in list(kw.keys()):
             if p in argnames:
                 command +=' --'+p+'='+kw[p]
         module_logger.debug( "calling "+name+" argnames-> "+str(argnames))
@@ -36,15 +38,23 @@ def rcm_decorate(fn):
     return wrapper
 
 
-
-
 for name,fn in inspect.getmembers(rcm_protocol_server.rcm_protocol):
-    if isinstance(fn, types.UnboundMethodType) and name[:2] != '__':
-        module_logger.debug( "wrapping-->"+name)
-        setattr(rcm_protocol_server.rcm_protocol, name, rcm_decorate(fn))
+    if sys.version_info >= (3, 0):
+        # look for user-defined member functions
+        if isinstance(fn, types.FunctionType) and name[:2] != '__':
+            module_logger.debug("wrapping-->" + name)
+            setattr(rcm_protocol_server.rcm_protocol, name, rcm_decorate(fn))
+    else:
+        if isinstance(fn, types.MethodType) and name[:2] != '__':
+            module_logger.debug( "wrapping-->"+name)
+            setattr(rcm_protocol_server.rcm_protocol, name, rcm_decorate(fn))
+
+
 
 def get_protocol():
     return rcm_protocol_server.rcm_protocol()
+
+
 if __name__ == '__main__':
 
     def prex(command='',commandnode=''):
