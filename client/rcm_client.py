@@ -5,17 +5,12 @@ import platform
 import os 
 import getpass
 import socket
-import time
+# import time
 import paramiko
-import string
-
-
-
-
+# import string
 
 if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
     import pexpect
-
 
 sys.path.append( os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) )
 from server import rcm
@@ -24,8 +19,6 @@ import rcm_protocol_client
 
 import logging
 module_logger = logging.getLogger('RCM.client')
-
-
 
 
 class rcm_client_connection:
@@ -50,6 +43,9 @@ class rcm_client_connection:
         self.config['vnc']['win32']=("vncviewer.exe","")
         self.config['ssh']['linux2']=("ssh","","")
         self.config['vnc']['linux2']=("vncviewer","")
+        # for python3
+        self.config['ssh']['linux'] = ("ssh", "", "")
+        self.config['vnc']['linux'] = ("vncviewer", "")
         self.config['ssh']['darwin']=("ssh","","")
         self.config['vnc']['darwin']=("vncviewer_java/Contents/MacOS/JavaApplicationStub","")
 
@@ -83,7 +79,10 @@ class rcm_client_connection:
            
         
         if (remoteuser == ''):
-            self.remoteuser=raw_input("Remote user: ")
+            if sys.version_info >= (3, 0):
+                self.remoteuser = input("Remote user: ")
+            else:
+                self.remoteuser = raw_input("Remote user: ")
         else:
             self.remoteuser=remoteuser
         keyfile=os.path.join(self.basedir,'keys',self.remoteuser+'.ppk')
@@ -353,7 +352,7 @@ class rcm_client_connection:
     
 if __name__ == '__main__':
     try:
-        print "vncviewer-->"+rcm_utils.which('vncviewer')
+        print("vncviewer-->"+rcm_utils.which('vncviewer'))
         
         c = rcm_client_connection()
         host='login.marconi.cineca.it'
@@ -364,7 +363,7 @@ if __name__ == '__main__':
         res.write(2)
         newc=c.newconn(queue='4core_18_gb_1h_slurm', geometry='1200x1000', sessionname = 'test',vnc_id='fluxbox_turbovnc_vnc')
         newsession = newc.hash['sessionid']
-        print "created session -->",newsession,"<- display->",newc.hash['display'],"<-- node-->",newc.hash['node']
+        print("created session -->",newsession,"<- display->",newc.hash['display'],"<-- node-->",newc.hash['node'])
         c.vncsession(newc)
         res=c.list()
         res.write(2)
@@ -374,6 +373,6 @@ if __name__ == '__main__':
         
         
     except Exception:
-        print "ERROR OCCURRED HERE"
+        print("ERROR OCCURRED HERE")
         raise
   
