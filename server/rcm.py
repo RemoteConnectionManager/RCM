@@ -13,13 +13,13 @@ class rcm_session:
 
     def __init__(self,fromstring='',fromfile='',file='',sessionname='',state='',node='',tunnel='',sessiontype='',nodelogin='',display='',jobid='',sessionid='',username='',walltime='',otp='', vncpassword=''):
         self.hash={'file':'','session name':'', 'state':'', 'node':'','tunnel':'','sessiontype':'', 'nodelogin':'', 'display':'', 'jobid':'', 'sessionid':'', 'username':'', 'walltime':'00:00:00','timeleft':'00:00:00', 'otp':'', 'vncpassword':''}
-        print "pikl init -----------------------------"
+        print("pikl init -----------------------------")
         if (fromfile != ''):
             self.hash=pickle.load(open(fromfile,"rb"))
             self.hash['file']=fromfile
         elif (fromstring != ''):
-            print "pikl fromstring-->"+fromstring
-            self.hash=pickle.loads(fromstring)
+            print("pikl fromstring-->"+fromstring)
+            self.hash=pickle.loads(fromstring.encode('utf-8'))
         else:
             self.hash={'file':file, 'session name':sessionname ,'state':state, 'node':node, 'tunnel':tunnel, 'sessiontype':sessiontype, 'nodelogin':nodelogin,  'display':display, 'jobid':jobid, 'sessionid':sessionid, 'username':username, 'walltime':walltime,'timeleft':walltime, 'otp':otp, 'vncpassword':vncpassword}
             self.hash['created']=datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
@@ -42,13 +42,13 @@ class rcm_session:
             sys.stdout.write(serverOutputString+self.get_string())
         elif ( format == 1):
             for k in self.hash.keys():
-                print "%s;%s" % ( k , self.hash[k] )
+                print("%s;%s" % ( k , self.hash[k] ))
         elif ( format == 2):
             x=[]
             #for k in sorted(self.hash.keys()):
             for k in self.hash.keys():
                 x.append(self.hash[k])
-            print ";".join(x) 
+            print(";".join(x))
 
 
 
@@ -60,7 +60,7 @@ class rcm_sessions:
         if (fromfile != ''):
             self.array=pickle.load(fromfile)
         elif (fromstring != ''):
-            self.array=pickle.loads(fromstring)
+            self.array=pickle.loads(fromstring.encode('utf-8'))
         else:
             self.array=sessions
 
@@ -72,21 +72,22 @@ class rcm_sessions:
     def get_string(self): 
         logger = logging.getLogger("basic")    
         logger.debug("get_string")
-	return pickle.dumps(self.array)
-    def write(self,format=0): 
+        return pickle.dumps(self.array)
+
+    def write(self,format=0):
         logger = logging.getLogger("basic")    
         logger.debug("write")
         #print "server output->"
         if ( format == 0):
             sys.stdout.write(serverOutputString+self.get_string())
-	    #print pickle.dumps(self.array)
+        #print pickle.dumps(self.array)
         elif ( format == 1):
             for k in self.array:
-                print "---------------------"
+                print("---------------------")
                 k.write(1)
         elif ( format == 2):
             c=rcm_session()
-            print ";".join(sorted(c.hash.keys())) 
+            print(";".join(sorted(c.hash.keys())))
             for k in self.array:
                 k.write(2)
 
@@ -122,38 +123,40 @@ class rcm_config:
     def add_vnc(self,vnc,entry=None): 
         logger = logging.getLogger("basic")    
         logger.debug("add_vnc")
-	if(not entry): entry=(vnc,'')
+        if(not entry):
+            entry=(vnc,'')
         self.config['vnc_commands'][vnc]=entry
-        
+
     def get_string(self): 
         logger = logging.getLogger("basic")    
         logger.debug("get_string")
         return pickle.dumps(self.config)
-    def serialize(self,file=''): 
+
+    def serialize(self,file=''):
         logger = logging.getLogger("basic")    
         logger.debug("serialize")
         if (file != ''):
             pickle.dump(self.config, open( file, "wb" ) )
         else:
             #print pickle.dumps(self.config)
-	    sys.stdout.write(serverOutputString+self.get_string())
-            
+            sys.stdout.write(serverOutputString+self.get_string())
+
     def pretty_print(self): 
         logger = logging.getLogger("basic")    
         logger.debug("pretty_print")
-        print "version: checksum->"+self.config['version']['checksum']+'<--url ->'+self.config['version']['url']
-        print
+        print("version: checksum->"+self.config['version']['checksum']+'<--url ->'+self.config['version']['url'])
+        print()
         for queue in self.config['queues']:
-            print "queue "+queue+" info-->"+self.config['queues'][queue]+"<--"
+            print("queue "+queue+" info-->"+self.config['queues'][queue]+"<--")
         print
         for vnc in sorted(self.config['vnc_commands'].keys()):
-            print "vnc command "+vnc+" info-->"+self.config['vnc_commands'][vnc]+"<--"
+            print("vnc command "+vnc+" info-->"+self.config['vnc_commands'][vnc]+"<--")
             
 
 if __name__ == '__main__':
-    print "start testing.................................."
+    print("start testing..................................")
     void_config=rcm_config()
-    print "void......-->"+void_config.get_string()+"<--"
+    print("void......-->"+void_config.get_string()+"<--")
     void_config.pretty_print()
 
     test_config=rcm_config()
@@ -163,10 +166,10 @@ if __name__ == '__main__':
     test_config.add_vnc('vnc1','this is vnc 1')
     test_config.add_vnc('vnc2','this is vnc 2')
     test_config.add_vnc('vnc3')
-    print "test......-->"+test_config.get_string()+"<--"
+    print("test......-->"+test_config.get_string()+"<--")
     test_config.pretty_print()
     
-    print "test pack_unpack......-->"+test_config.get_string()+"<--"
+    print("test pack_unpack......-->"+test_config.get_string()+"<--")
     test_config.add_vnc('vnc4','added before unpack')
     derived=rcm_config(test_config.get_string())
     derived.add_vnc('vnc5','added after unpack')
@@ -175,7 +178,7 @@ if __name__ == '__main__':
     def prex(command='',commandnode=''): 
         logger = logging.getLogger("basic")    
         logger.debug("prex")
-        print "node "+commandnode+" "+ command
+        print("node "+commandnode+" "+ command)
         
     for i in ['uno','due','tre']:
       def myfunc(command): 
