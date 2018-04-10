@@ -7,7 +7,7 @@ import collections
 # pyqt5
 from PyQt5.QtCore import QSize, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont
-from PyQt5.QtWidgets import QWidget, QFrame, QLabel, QComboBox, \
+from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
     QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, \
     QStyle
 
@@ -17,6 +17,7 @@ from paramiko.ssh_exception import AuthenticationException
 # local includes
 from rcm_client.logic.ssh import ssh_login
 from rcm_client.gui.display_dialog import QDisplayDialog
+from rcm_client.gui.display_widget import QDisplayWidget
 from rcm_client.utils.pyinstaller_utils import resource_path
 from rcm_client.log.logger import logger
 from rcm_client.log.config_parser import parser, config_file_name
@@ -53,11 +54,6 @@ class QSessionWidget(QWidget):
         # layouts
         self.session_ver_layout = QVBoxLayout()
         self.rows_ver_layout = QVBoxLayout()
-
-        # icons
-        self.connect_ico = QIcon()
-        self.kill_ico = QIcon()
-        self.share_ico = QIcon()
 
         self.init_ui()
 
@@ -139,10 +135,6 @@ class QSessionWidget(QWidget):
         self.session_ver_layout.addLayout(plusbutton_layout)
         self.session_ver_layout.addLayout(self.rows_ver_layout)
         self.session_ver_layout.addStretch(1)
-
-        self.connect_ico.addFile(resource_path('gui/icons/connect.png'))
-        self.kill_ico.addFile(resource_path('gui/icons/kill.png'))
-        self.share_ico.addFile(resource_path('gui/icons/share.png'))
 
         font = QFont()
         font.setBold(True)
@@ -256,63 +248,10 @@ class QSessionWidget(QWidget):
         if display_win.exec() != 1:
             return
 
-        display_hor_layout = QHBoxLayout()
-        display_hor_layout.setContentsMargins(0, 2, 0, 2)
-        display_hor_layout.setSpacing(2)
-
-        display_ver_layout = QVBoxLayout()
-        display_ver_layout.setContentsMargins(0, 0, 0, 0)
-        display_ver_layout.setSpacing(0)
-
-        display_ver_layout.addLayout(display_hor_layout)
-
-        display_widget = QWidget()
-        display_widget.setLayout(display_ver_layout)
-
-        id = display_win.display_name
-
-        name = QLabel()
-        name.setText(str(id)[:16])
-        display_hor_layout.addWidget(name)
-
-        status = QLabel()
-        status.setText("Pending...")
-        display_hor_layout.addWidget(status)
-
-        time = QLabel()
-        time.setText("24H")
-        display_hor_layout.addWidget(time)
-
-        resources = QLabel()
-        resources.setText("1 Node")
-        display_hor_layout.addWidget(resources)
-
-        connect_btn = QPushButton()
-        connect_btn.setIcon(self.connect_ico)
-        connect_btn.setToolTip('Connect to the remote display')
-        connect_btn.clicked.connect(lambda: self.connect_display(id))
-        display_hor_layout.addWidget(connect_btn)
-
-        share_btn = QPushButton()
-        share_btn.setIcon(self.share_ico)
-        share_btn.setToolTip('Share the remote display via file')
-        share_btn.clicked.connect(lambda: self.share_display(id))
-        display_hor_layout.addWidget(share_btn)
-
-        kill_btn = QPushButton()
-        kill_btn.setIcon(self.kill_ico)
-        kill_btn.setToolTip('Kill the remote display')
-        kill_btn.clicked.connect(lambda: self.kill_display(id))
-        display_hor_layout.addWidget(kill_btn)
-
-        separator = QFrame()
-        separator.setFrameShape(QFrame.HLine)
-        separator.setFrameShadow(QFrame.Sunken)
-        display_ver_layout.addWidget(separator)
-
+        display_name = display_win.display_name
+        display_widget = QDisplayWidget(self, display_name)
         self.rows_ver_layout.addWidget(display_widget)
-
-        self.displays[id] = display_widget
+        self.displays[display_name] = display_widget
         logger.info("Added new display")
 
     def update_config_file(self, session_name):
@@ -336,19 +275,19 @@ class QSessionWidget(QWidget):
         except:
             logger.error("failed to dump the session list in the configuration file")
 
-    def connect_display(self, id):
-        logger.info("Connected to remote display " + str(id))
-
-    def share_display(self, id):
-        logger.info("Shared display " + str(id))
-
-    def kill_display(self, id):
+    def remove_display(self, id):
+        """
+        Remove the display widget from the tab
+        :param id: display id name
+        :return:
+        """
         # first we hide the display
         logger.debug("Hiding display " + str(id))
         self.displays[id].hide()
 
-        # then we remove it from the layout and the dictionary
+        # then we remove it from the layout and from the dictionary
         self.rows_ver_layout.removeWidget(self.displays[id])
+        self.displays[id].setParent(None)
         del self.displays[id]
 
         logger.info("Killed display " + str(id))
