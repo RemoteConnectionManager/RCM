@@ -1,7 +1,7 @@
 # RCM
 RCM is a VNC client for the remote visualization on the CINECA clusters.
 
-## Setup
+## Linux Setup
 ```sh
 mkdir <new_folder>
 cd <new_folder>
@@ -13,3 +13,6 @@ cd rcm-client
 pip3 install -r requirements.txt
 ```
 
+## Linux dist build
+cd rcm-client
+pyinstaller rcm.spec
