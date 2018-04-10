@@ -12,7 +12,7 @@ pypath,libpath = os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])
 sys.path.append(pypath)
 
 # local includes
-from rcm_client.gui.rcm_main_window import RCMMainWindow
+from rcm.client.gui.rcm_main_window import RCMMainWindow
 
 
 if __name__ == '__main__':

@@ -8,9 +8,9 @@ from PyQt5.QtWidgets import QWidget, QFrame, QLabel, \
     QVBoxLayout, QHBoxLayout, QPushButton
 
 # local includes
-from rcm_client.utils.pyinstaller_utils import resource_path
-from rcm_client.log.logger import logger
-from rcm_client.gui.worker import Worker
+from rcm.client.utils.pyinstaller_utils import resource_path
+from rcm.client.log.logger import logger
+from rcm.client.gui.worker import Worker
 
 
 class QDisplayWidget(QWidget):

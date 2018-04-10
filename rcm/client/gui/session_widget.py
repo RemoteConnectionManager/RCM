@@ -15,12 +15,12 @@ from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
 from paramiko.ssh_exception import AuthenticationException
 
 # local includes
-from rcm_client.logic.ssh import ssh_login
-from rcm_client.gui.display_dialog import QDisplayDialog
-from rcm_client.gui.display_widget import QDisplayWidget
-from rcm_client.utils.pyinstaller_utils import resource_path
-from rcm_client.log.logger import logger
-from rcm_client.log.config_parser import parser, config_file_name
+from rcm.client.logic.ssh import ssh_login
+from rcm.client.gui.display_dialog import QDisplayDialog
+from rcm.client.gui.display_widget import QDisplayWidget
+from rcm.client.utils.pyinstaller_utils import resource_path
+from rcm.client.log.logger import logger
+from rcm.client.log.config_parser import parser, config_file_name
 
 
 class QSessionWidget(QWidget):

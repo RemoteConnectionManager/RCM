@@ -10,10 +10,10 @@ from PyQt5.QtWidgets import QMainWindow, QWidget, \
     QTabBar, QStyle, QPlainTextEdit, QMessageBox
 
 # local includes
-from rcm_client.gui.session_widget import QSessionWidget
-from rcm_client.gui.edit_settings_dialog import QEditSettingsDialog
-from rcm_client.utils.pyinstaller_utils import resource_path
-from rcm_client.log.logger import QTextEditLoggerHandler, logger
+from rcm.client.gui.session_widget import QSessionWidget
+from rcm.client.gui.edit_settings_dialog import QEditSettingsDialog
+from rcm.client.utils.pyinstaller_utils import resource_path
+from rcm.client.log.logger import QTextEditLoggerHandler, logger
 
 
 class RCMMainWindow(QMainWindow):

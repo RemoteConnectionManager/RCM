@@ -8,8 +8,8 @@ from PyQt5.QtWidgets import QLabel, QDialog, \
     QHBoxLayout, QVBoxLayout, QGroupBox, QPushButton, QCheckBox
 
 # local includes
-from rcm_client.log.logger import logger
-from rcm_client.log.config_parser import parser, config_file_name
+from rcm.client.log.logger import logger
+from rcm.client.log.config_parser import parser, config_file_name
 
 
 class QEditSettingsDialog(QDialog):
