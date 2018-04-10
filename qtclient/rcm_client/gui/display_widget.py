@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QWidget, QFrame, QLabel, \
 # local includes
 from rcm_client.utils.pyinstaller_utils import resource_path
 from rcm_client.log.logger import logger
+from rcm_client.gui.worker import Worker
 
 
 class QDisplayWidget(QWidget):
@@ -57,9 +58,9 @@ class QDisplayWidget(QWidget):
         name.setText(str(self.display_name)[:16])
         display_hor_layout.addWidget(name)
 
-        status = QLabel(self)
-        status.setText("Pending...")
-        display_hor_layout.addWidget(status)
+        self.status = QLabel(self)
+        self.status.setText("Pending...")
+        display_hor_layout.addWidget(self.status)
 
         self.time = QLabel(self)
         self.time.setText(str(self.remaining_time))
@@ -73,30 +74,35 @@ class QDisplayWidget(QWidget):
         resources.setText("1 Node")
         display_hor_layout.addWidget(resources)
 
-        connect_btn = QPushButton(self)
-        connect_btn.setIcon(self.connect_ico)
-        connect_btn.setToolTip('Connect to the remote display')
-        connect_btn.clicked.connect(self.connect_display)
-        display_hor_layout.addWidget(connect_btn)
+        self.connect_btn = QPushButton(self)
+        self.connect_btn.setIcon(self.connect_ico)
+        self.connect_btn.setToolTip('Connect to the remote display')
+        self.connect_btn.clicked.connect(self.connect_display)
+        display_hor_layout.addWidget(self.connect_btn)
 
-        share_btn = QPushButton(self)
-        share_btn.setIcon(self.share_ico)
-        share_btn.setToolTip('Share the remote display via file')
-        share_btn.clicked.connect(self.share_display)
-        display_hor_layout.addWidget(share_btn)
+        self.share_btn = QPushButton(self)
+        self.share_btn.setIcon(self.share_ico)
+        self.share_btn.setToolTip('Share the remote display via file')
+        self.share_btn.clicked.connect(self.share_display)
+        display_hor_layout.addWidget(self.share_btn)
 
-        kill_btn = QPushButton(self)
-        kill_btn.setIcon(self.kill_ico)
-        kill_btn.setToolTip('Kill the remote display')
-        kill_btn.clicked.connect(self.kill_display)
+        self.kill_btn = QPushButton(self)
+        self.kill_btn.setIcon(self.kill_ico)
+        self.kill_btn.setToolTip('Kill the remote display')
+        self.kill_btn.clicked.connect(self.kill_display)
         self.terminate.connect(self.parentWidget().remove_display)
 
-        display_hor_layout.addWidget(kill_btn)
+        display_hor_layout.addWidget(self.kill_btn)
 
         separator = QFrame(self)
         separator.setFrameShape(QFrame.HLine)
         separator.setFrameShadow(QFrame.Sunken)
         display_ver_layout.addWidget(separator)
+
+        # start the worker
+        worker = Worker(self.display_name)
+        worker.signals.status.connect(self.status_update)
+        self.window().thread_pool.start(worker)
 
     def connect_display(self):
         logger.info("Connected to remote display " + str(self.display_name))
@@ -113,9 +119,31 @@ class QDisplayWidget(QWidget):
 
     def time_update(self):
         """
-        Update the remaining time of the job running on the server
+        Update the remaining time of the job running on the server in the gui
         :return:
         """
         self.remaining_time = self.remaining_time - timedelta(seconds=1)
         self.time.setText(str(self.remaining_time))
         self.time.update()
+
+    def status_update(self, status):
+        """
+        Update the status of the job running on the server in the gui
+        and set the buttons enabled True/False accordingly
+        :return:
+        """
+        if status is status.PENDING:
+            self.connect_btn.setEnabled(False)
+            self.share_btn.setEnabled(False)
+            self.kill_btn.setEnabled(False)
+        if status is status.RUNNING:
+            self.connect_btn.setEnabled(True)
+            self.share_btn.setEnabled(True)
+            self.kill_btn.setEnabled(True)
+        if status is status.FINISHED:
+            self.connect_btn.setEnabled(False)
+            self.share_btn.setEnabled(False)
+            self.kill_btn.setEnabled(True)
+
+        self.status.setText(str(status))
+        self.status.update()

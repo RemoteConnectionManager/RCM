@@ -2,7 +2,7 @@
 import collections
 
 # pyqt5
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, QThreadPool
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QWidget, \
     QTabWidget, QVBoxLayout, QPushButton, \
@@ -42,7 +42,10 @@ class RCMMainWindow(QMainWindow):
         self.main_widget = MainWidget(self)
         self.setCentralWidget(self.main_widget)
 
+        self.thread_pool = QThreadPool()
+
         logger.info("Welcome in RCM!")
+        logger.debug("Multithreading with maximum %d threads" % self.thread_pool.maxThreadCount())
 
     def build_menu(self):
         """
