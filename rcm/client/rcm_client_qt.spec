@@ -1,13 +1,12 @@
 # -*- mode: python -*-
 
 block_cipher = None
+import os
 
-import os 
-
-a = Analysis(['rcm_client/rcm.py'],
+a = Analysis(['rcm_client_qt.py'],
              pathex=[os.getcwd()],
              binaries=[],
-             datas=[('rcm_client/gui/icons/*.png', 'gui/icons/')],
+             datas=[('gui/icons/*.png', 'gui/icons/')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -20,7 +19,7 @@ pyz = PYZ(a.pure, a.zipped_data,
 exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
-          name='rcm',
+          name='rcm_client_qt',
           debug=False,
           strip=False,
           upx=True,
@@ -31,4 +30,4 @@ coll = COLLECT(exe,
                a.datas,
                strip=False,
                upx=True,
-               name='rcm')
+               name='rcm_client_qt')
