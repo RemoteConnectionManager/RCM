@@ -42,6 +42,7 @@ class QSessionWidget(QWidget):
         self.displays = {}
         self.sessions_list = collections.deque(maxlen=5)
         self.platform_config = None
+        self.rcm_client_connection = None
 
         # widgets
         self.session_combo = QComboBox(self)
@@ -213,12 +214,12 @@ class QSessionWidget(QWidget):
         try:
             logger.info("Logging into " + session_name)
 
-            client_connection = rcm_client.rcm_client_connection()
-            client_connection.login_setup(host=host,
-                                          remoteuser=user,
-                                          password=password)
-            client_connection.debug = False
-            self.platform_config = client_connection.get_config()
+            self.rcm_client_connection = rcm_client.rcm_client_connection()
+            self.rcm_client_connection.login_setup(host=host,
+                                                   remoteuser=user,
+                                                   password=password)
+            self.rcm_client_connection.debug = False
+            self.platform_config = self.rcm_client_connection.get_config()
 
         except AuthenticationException:
             logger.error("Failed to login: invalid credentials")

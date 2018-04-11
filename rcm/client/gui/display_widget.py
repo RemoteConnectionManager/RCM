@@ -100,7 +100,8 @@ class QDisplayWidget(QWidget):
         display_ver_layout.addWidget(separator)
 
         # start the worker
-        worker = Worker(self.display_name)
+        worker = Worker(self.display_name,
+                        self.parent().rcm_client_connection)
         worker.signals.status.connect(self.status_update)
         self.window().thread_pool.start(worker)
 
