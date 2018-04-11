@@ -12,8 +12,10 @@ import paramiko
 if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
     import pexpect
 
-sys.path.append( os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) )
-from server import rcm
+root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append( root_rcm_path)
+
+import server.rcm as rcm
 import rcm_utils
 import rcm_protocol_client
 

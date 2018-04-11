@@ -3,8 +3,10 @@ import os
 import types
 import inspect
 
-sys.path.append( os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) , "server"))
-sys.path.append( os.path.dirname(os.path.dirname(os.path.abspath(__file__)) ) )
+
+root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append( root_rcm_path)
+
 from server import rcm_protocol_server
 
 

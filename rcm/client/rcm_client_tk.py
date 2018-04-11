@@ -2,8 +2,8 @@
 
 import os
 import tempfile
-import rcm_utils
-import rcm_client
+import logic.rcm_utils as rcm_utils
+import logic.rcm_client as rcm_client
 from server import rcm
 
 #from Tkinter import *
