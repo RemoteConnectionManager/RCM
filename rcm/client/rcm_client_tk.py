@@ -2,9 +2,7 @@
 
 import os
 import tempfile
-import logic.rcm_utils as rcm_utils
-import logic.rcm_client as rcm_client
-from server import rcm
+
 
 #from Tkinter import *
 from Tkinter import *
@@ -29,6 +27,16 @@ import subprocess
 import argparse
 
 import logging
+
+# add python path
+source_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(source_root)
+
+# local includes
+import logic.rcm_utils as rcm_utils
+import logic.rcm_client as rcm_client
+from server import rcm
+
 module_logger = logging.getLogger('RCM.client_tk')
 
 
