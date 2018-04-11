@@ -6,7 +6,7 @@ import json
 from PyQt5.QtGui import QTextCursor
 
 # local import
-from rcm.client.log.config_parser import parser
+from client.log.config_parser import parser
 
 logger = logging.getLogger("RCM")
 

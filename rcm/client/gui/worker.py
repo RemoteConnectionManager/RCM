@@ -5,7 +5,7 @@ import time
 from PyQt5.QtCore import QRunnable, pyqtSlot, pyqtSignal, QObject
 
 # local includes
-from rcm.client.utils.rcm_enum import Status
+from client.utils.rcm_enum import Status
 
 
 # Reference https://martinfitzpatrick.name/article/multithreading-pyqt-applications-with-qthreadpool/
