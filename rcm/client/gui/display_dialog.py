@@ -11,11 +11,19 @@ from client.log.logger import logger
 
 class QDisplayDialog(QDialog):
 
-    def __init__(self, display_names):
+    def __init__(self, display_names, platform_config):
         QDialog.__init__(self)
 
         self.display_name = ""
         self.display_names = display_names
+
+        try:
+            self.session_queues = platform_config.config['queues'].keys()
+            self.session_vncs = platform_config.config['vnc_commands'].keys()
+        except:
+            self.session_queues = []
+            self.session_vncs = []
+            logger.error("Failed to parse the server platform config")
 
         self.setWindowTitle("New display")
         self.init_ui()
@@ -43,9 +51,7 @@ class QDisplayDialog(QDialog):
         session_queue.setText('Select queue:')
 
         session_queue_combo = QComboBox(self)
-        session_queue_combo.addItems(["12core_40gb_3h_slurm",
-                                           "4core_18gb_1h_slurm",
-                                           "4core_18gb_3h_slurm"])
+        session_queue_combo.addItems(self.session_queues)
         grid_layout.addWidget(session_queue, 2, 0)
         grid_layout.addWidget(session_queue_combo, 2, 1)
 
@@ -53,8 +59,7 @@ class QDisplayDialog(QDialog):
         session_vnc.setText('Select wm+vnc:')
 
         session_vnc_combo = QComboBox(self)
-        session_vnc_combo.addItems(["fluxbox_turbovnc",
-                                    "xfce_singularity_turbovnc"])
+        session_vnc_combo.addItems(self.session_vncs)
         grid_layout.addWidget(session_vnc, 3, 0)
         grid_layout.addWidget(session_vnc_combo, 3, 1)
 
