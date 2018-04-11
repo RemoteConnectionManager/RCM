@@ -8,11 +8,11 @@ import os
 from PyQt5.QtWidgets import QApplication
 
 # add python path
-source_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+source_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(source_root)
 
 # local includes
-from rcm.client.gui.rcm_main_window import RCMMainWindow
+from client.gui.rcm_main_window import RCMMainWindow
 
 
 if __name__ == '__main__':

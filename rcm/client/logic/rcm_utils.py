@@ -7,7 +7,7 @@ import threading
 import sys
 import subprocess
 
-import d3des
+import client.logic.d3des as d3des
 
 import logging
 import logging.handlers

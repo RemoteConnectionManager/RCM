@@ -21,6 +21,7 @@ from rcm.client.gui.display_widget import QDisplayWidget
 from rcm.client.utils.pyinstaller_utils import resource_path
 from rcm.client.log.logger import logger
 from rcm.client.log.config_parser import parser, config_file_name
+from client.logic import rcm_client
 
 
 class QSessionWidget(QWidget):

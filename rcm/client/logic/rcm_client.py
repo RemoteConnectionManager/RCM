@@ -16,8 +16,8 @@ root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 sys.path.append( root_rcm_path)
 
 import server.rcm as rcm
-import rcm_utils
-import rcm_protocol_client
+import client.logic.rcm_utils as rcm_utils
+import client.logic.rcm_protocol_client as rcm_protocol_client
 
 import logging
 module_logger = logging.getLogger('RCM.client')
