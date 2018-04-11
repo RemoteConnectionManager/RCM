@@ -1,5 +1,5 @@
-# RCM
-RCM is a VNC client for the remote visualization on the CINECA clusters.
+# rcm-client
+rcm-client is a VNC client for the remote visualization on the CINECA clusters.
 
 ## Setup
 
