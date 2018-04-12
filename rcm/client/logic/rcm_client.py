@@ -349,6 +349,7 @@ class rcm_client_connection:
     
 if __name__ == '__main__':
     try:
+        rcm_utils.configure_logging()
         print("vncviewer-->"+rcm_utils.which('vncviewer'))
         
         c = rcm_client_connection()

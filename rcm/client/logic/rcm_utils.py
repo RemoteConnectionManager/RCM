@@ -65,10 +65,17 @@ def which(*args, **kwargs):
 def configure_logging(verbose=0,vnclv=0):
 
     ### parsing argument
-    print sys.argv
+    import argparse
+    parser = argparse.ArgumentParser(description='RCM client.')
+    parser.add_argument('-d','--debug',default=verbose,type=int,
+                   help='define %(prog)s verbosity')
+    parser.add_argument('-l','--vncloglev',default=vnclv,type=int,
+                   help='pass  this to vnc loglevel')
+    p=parser.parse_args()
+    verbose=p.debug
 #    rootLogger = logging.getLogger()
     global vnc_loglevel
-    vnc_loglevel=vnclv
+    vnc_loglevel=p.vncloglev
     module_logger.error( "setting verbosity to: "+str(verbose))
     logf=log_folder()
     try: 
@@ -526,6 +533,6 @@ if __name__ == '__main__':
 
     #print 'om10-->'+get_server_command('om10.eni.cineca.it','cibo19','')+'<--'
     #print 'aux6-->'+get_server_command('aux6.eni.cineca.it','cibo19','')+'<--'
-    configure_logging(verbose=3)
+    configure_logging()
     print ('marconi-->'+get_server_command('login.marconi.cineca.it','lcalori0','')+'<--')
 
