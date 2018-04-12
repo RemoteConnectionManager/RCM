@@ -100,7 +100,7 @@ class rcm_config:
         if (fromfile != ''):
             self.config=pickle.load(open(fromfile,"rb"))
         elif (fromstring != ''):
-            self.config=pickle.loads(fromstring)
+            self.config=pickle.loads(fromstring.encode('utf-8'))
         else:
             self.config={'version':{'checksum':'','url':''},'queues':dict(),'vnc_commands':dict()}
         

@@ -27,9 +27,10 @@ class Worker(QRunnable):
 
     """
 
-    def __init__(self, display_name):
+    def __init__(self, display_name, rcm_client_connection):
         super().__init__()
         self.display_name = display_name
+        self.rcm_client_connection = rcm_client_connection
         self.signals = WorkerSignals()
 
     @pyqtSlot()
@@ -38,7 +39,21 @@ class Worker(QRunnable):
         self.signals.status.emit(Status.PENDING)
 
         print("Polling the display job: " + str(self.display_name))
-        time.sleep(5)
+
+        connection = self.rcm_client_connection.newconn(queue='4core_18_gb_1h_slurm',
+                                                        geometry='1200x1000',
+                                                        sessionname = 'test',
+                                                        vnc_id='fluxbox_turbovnc_vnc')
+
+        newsession = connection.hash['sessionid']
+        print("created session -->", newsession,
+              "<- display->",
+              connection.hash['display'],
+              "<-- node-->",
+              connection.hash['node'])
+        self.rcm_client_connection.vncsession(connection)
+
+        # time.sleep(5)
         self.signals.status.emit(Status.RUNNING)
         time.sleep(5)
 

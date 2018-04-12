@@ -41,6 +41,8 @@ class QSessionWidget(QWidget):
         self.user = ""
         self.displays = {}
         self.sessions_list = collections.deque(maxlen=5)
+        self.platform_config = None
+        self.rcm_client_connection = None
 
         # widgets
         self.session_combo = QComboBox(self)
@@ -204,15 +206,21 @@ class QSessionWidget(QWidget):
             pass
 
     def login(self):
-        session_name = str(self.user_line.text()) + "@" + str(self.host_line.text())
+        user = str(self.user_line.text())
+        host = str(self.host_line.text())
+        password = str(self.pssw_line.text())
+        session_name = user + "@" + host
 
         try:
             logger.info("Logging into " + session_name)
-            ssh_login(self.host_line.text(),
-                      22,
-                      self.user_line.text(),
-                      self.pssw_line.text(),
-                      'ls')
+
+            self.rcm_client_connection = rcm_client.rcm_client_connection()
+            self.rcm_client_connection.login_setup(host=host,
+                                                   remoteuser=user,
+                                                   password=password)
+            self.rcm_client_connection.debug = False
+            self.platform_config = self.rcm_client_connection.get_config()
+
         except AuthenticationException:
             logger.error("Failed to login: invalid credentials")
             return
@@ -243,7 +251,8 @@ class QSessionWidget(QWidget):
             logger.warning("You have already 5 displays")
             return
 
-        display_win = QDisplayDialog(list(self.displays.keys()))
+        display_win = QDisplayDialog(list(self.displays.keys()),
+                                     self.platform_config)
         display_win.setModal(True)
 
         if display_win.exec() != 1:

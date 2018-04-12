@@ -75,11 +75,9 @@ class rcm_client_connection:
             sys.exit()
         self.session_thread=[]
 
-
-    def login_setup(self, host='', remoteuser='',password=''):
+    def login_setup(self, host='', remoteuser='', password=None):
         self.proxynode=host
-           
-        
+
         if (remoteuser == ''):
             if sys.version_info >= (3, 0):
                 self.remoteuser = input("Remote user: ")
@@ -97,23 +95,20 @@ class rcm_client_connection:
                 self.login_options =  " -i " + keyfile + " " + self.remoteuser
                 
         else:
-            if(sys.platform == 'win32'):
-                if (password == ''):
-                    self.passwd=getpass.getpass("Get password for " + self.remoteuser + "@" + self.proxynode + " : ")
-                #    print "got passwd-->",self.passwd
+            if sys.platform == 'win32':
+                #if (password == ''):
+                if password is None:
+                    self.passwd = getpass.getpass("Get password for " + self.remoteuser + "@" + self.proxynode + " : ")
                 else:
-                    self.passwd=password
-                self.login_options =  " -pw "+self.passwd + " " + self.remoteuser
-
+                    self.passwd = password
+                self.login_options = " -pw "+self.passwd + " " + self.remoteuser
             else:
-                if (password == ''):
+                if password is None:
                     self.passwd=getpass.getpass("Get password for " + self.remoteuser + "@" + self.proxynode + " : ")
-                    
-                #    print "got passwd-->",self.passwd
                 else:
-                    self.passwd=password
-                self.login_options =  self.remoteuser
-        
+                    self.passwd = password
+                self.login_options = self.remoteuser
+
         self.login_options_withproxy =  self.login_options + "@" + self.proxynode
         self.ssh_remote_exec_command = self.ssh_command + " " + self.login_options
         self.ssh_remote_exec_command_withproxy = self.ssh_command + " " + self.login_options_withproxy 
