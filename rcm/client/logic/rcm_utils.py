@@ -7,6 +7,9 @@ import threading
 import sys
 import subprocess
 
+root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append( root_rcm_path)
+
 import client.logic.d3des as d3des
 
 import logging
@@ -60,6 +63,9 @@ def which(*args, **kwargs):
 
 
 def configure_logging(verbose=0,vnclv=0):
+
+    ### parsing argument
+    print sys.argv
 #    rootLogger = logging.getLogger()
     global vnc_loglevel
     vnc_loglevel=vnclv
@@ -83,6 +89,7 @@ def configure_logging(verbose=0,vnclv=0):
 #    consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(consoleFormatter)
     if( verbose > 0):
+        module_logger.setLevel(logging.DEBUG)
         logging.getLogger('paramiko').setLevel(logging.DEBUG)
         if( verbose > 2):
             logging.getLogger('paramiko.transport').setLevel(logging.DEBUG)
@@ -292,7 +299,7 @@ def get_server_command(host,user,passwd=''):
             # python2
             else:
                 line = stdout.readline()
-            print(line)
+            module_logger.debug("parsing output line: ->"+line+"<-")
             # print line
             if(end_string in line and start_string in line):
                 # print "line-->"+line
@@ -352,6 +359,8 @@ class SessionThread( threading.Thread ):
         if self.configFile:
             commandlist=self.vnc_command.split()
             commandlist.append(self.configFile)
+            if(self.debug):
+                module_logger.debug('This is thread ' + str ( self.threadnum ) + ' CONFIGFILE, executing-->'+' '.join(commandlist)+ "<--")
             self.vnc_process=subprocess.Popen(commandlist , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False
             )
             self.vnc_process.wait()
@@ -430,7 +439,7 @@ class SessionThread( threading.Thread ):
 
             else:
                 #-#####################   linux
-                if(self.debug): module_logger.info( 'This is thread ' + str ( self.threadnum ) + " executing-->" + self.vnc_command.replace(self.password,"****") + "<-vncpass->"+self.vncpassword+"<--")
+                if(self.debug): module_logger.info( '#-## linux  ## This is thread ' + str ( self.threadnum ) + " executing-->" + self.vnc_command.replace(self.password,"****") + "<-vncpass->"+self.vncpassword+"<--")
 
                 child = pexpect.spawn(self.vnc_command,timeout=50)
                 self.vnc_process=child
@@ -495,5 +504,6 @@ if __name__ == '__main__':
 
     #print 'om10-->'+get_server_command('om10.eni.cineca.it','cibo19','')+'<--'
     #print 'aux6-->'+get_server_command('aux6.eni.cineca.it','cibo19','')+'<--'
+    configure_logging(verbose=3)
     print ('marconi-->'+get_server_command('login.marconi.cineca.it','lcalori0','')+'<--')
 
