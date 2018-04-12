@@ -329,6 +329,7 @@ class SessionThread( threading.Thread ):
         self.threadnum = SessionThread.threadscount
         SessionThread.threadscount += 1
         if(self.debug): module_logger.debug( 'This is thread ' + str ( self.threadnum ) + ' init.')
+
     def terminate( self ):
         self.gui_cmd=None
         if(self.debug): module_logger.debug( 'This is thread ' + str ( self.threadnum ) + ' TERMINATE.')
@@ -344,10 +345,12 @@ class SessionThread( threading.Thread ):
             self.tunnel_process.terminate()
             self.tunnel_process=None
 
-    def run ( self ):
-        if(self.debug):
-            module_logger.debug('This is thread ' + str ( self.threadnum ) + ' run.')
-        if(self.gui_cmd): self.gui_cmd(active=True)
+    def run(self):
+        if self.debug:
+            module_logger.debug('This is thread ' + str(self.threadnum) + ' run.')
+
+        if self.gui_cmd:
+            self.gui_cmd(active=True)
 
         if self.configFile:
             commandlist=self.vnc_command.split()
@@ -429,49 +432,68 @@ class SessionThread( threading.Thread ):
                 self.vnc_process=None
 
             else:
-                #-#####################   linux
-                if(self.debug): module_logger.info( 'This is thread ' + str ( self.threadnum ) + " executing-->" + self.vnc_command.replace(self.password,"****") + "<-vncpass->"+self.vncpassword+"<--")
+                # linux
+                if self.debug:
+                    module_logger.info('This is thread ' +
+                                       str(self.threadnum) +
+                                       " executing-->" +
+                                       self.vnc_command.replace(self.password, "****") +
+                                       "<-vncpass->" + self.vncpassword + "<--")
 
-                child = pexpect.spawn(self.vnc_command,timeout=50)
-                self.vnc_process=child
-                i = child.expect(['continue connecting', 'password','standard VNC authentication', pexpect.TIMEOUT, pexpect.EOF])
+                child = pexpect.spawn(self.vnc_command, timeout=50)
+                self.vnc_process = child
+
+                i = child.expect(['continue connecting',
+                                  'password',
+                                  'standard VNC authentication',
+                                  pexpect.TIMEOUT,
+                                  pexpect.EOF])
 
                 if i == 0:
                     child.sendline('yes')
-                    i = child.expect(['continue connecting', 'password','standard VNC authentication', pexpect.TIMEOUT, pexpect.EOF])
+                    i = child.expect(['continue connecting',
+                                      'password',
+                                      'standard VNC authentication',
+                                      pexpect.TIMEOUT,
+                                      pexpect.EOF])
 
                 if i == 1:
                     child.sendline(self.password)
-                    i = child.expect(['continue connecting', 'password','standard VNC authentication', pexpect.TIMEOUT, pexpect.EOF])
+                    i = child.expect(['continue connecting',
+                                      'password',
+                                      'standard VNC authentication',
+                                      pexpect.TIMEOUT, pexpect.EOF])
+
                 if i == 2:
                     # Standard VNC authentication
-                    i = child.expect(['dummy0','dummy1','Password:', pexpect.TIMEOUT, pexpect.EOF])
+                    i = child.expect(['dummy0',
+                                      'dummy1',
+                                      'Password:',
+                                      pexpect.TIMEOUT, pexpect.EOF])
                     child.sendline(self.vncpassword)
 
                 if i == 3 or i == 4:
-                    if(self.debug): module_logger.error( "#REMOVE_FOR_JAVA#Timeout connecting to the display.")
-                    #REMOVE_FOR_JAVA#if(self.gui_cmd): self.gui_cmd(active=False)
-                    #raise Exception("Timeout connecting to the display.")
-                    #REMOVE_FOR_JAVA#threads_exception_queue.put("Timeout connecting to the display.")
+                    if self.debug:
+                        module_logger.error("#REMOVE_FOR_JAVA#Timeout connecting to the display.")
 
-                i = child.expect(['Authentication successful', pexpect.TIMEOUT, pexpect.EOF])
+                i = child.expect(['Authentication successful',
+                                  pexpect.TIMEOUT,
+                                  pexpect.EOF])
+
                 if i > 0:
-                    if(self.debug):
-                        module_logger.error( "#REMOVE_FOR_JAVA#Authentication problems.")
-                    #REMOVE_FOR_JAVA#if(self.gui_cmd): self.gui_cmd(active=False)
+                    if self.debug:
+                        module_logger.error("#REMOVE_FOR_JAVA#Authentication problems.")
                     for line in child:
-                        module_logger.debug( "#REMOVE_FOR_JAVA#child expect-->"+line)
-                    #raise Exception("Authentication problems.")
-                    #REMOVE_FOR_JAVA#threads_exception_queue.put("Authentication problems.")
+                        module_logger.debug("#REMOVE_FOR_JAVA#child expect-->" + str(line))
+
                 child.expect(pexpect.EOF, timeout=None)
+
             self.vnc_process = None
-            if(self.gui_cmd):
+
+            if self.gui_cmd:
                 self.gui_cmd(active=False)
 
 
-                
-                
-                
 if __name__ == '__main__':
 
     print (vnc_crypt(vnc_crypt('paperino'),True))
