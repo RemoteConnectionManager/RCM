@@ -11,10 +11,6 @@ from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
     QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, \
     QStyle, QProgressBar
 
-
-# paramiko
-from paramiko.ssh_exception import AuthenticationException
-
 # local includes
 from client.gui.display_dialog import QDisplayDialog
 from client.gui.display_widget import QDisplayWidget
@@ -22,7 +18,7 @@ from client.utils.pyinstaller_utils import resource_path
 from client.log.logger import logger
 from client.log.config_parser import parser, config_file_name
 from client.logic import rcm_client
-from client.gui.thread import LoginThread
+from client.gui.thread import LoginThread, ReloadThread
 
 
 class QSessionWidget(QWidget):
@@ -47,7 +43,10 @@ class QSessionWidget(QWidget):
         self.platform_config = None
         self.rcm_client_connection = None
         self.is_logged = False
+
+        # threads
         self.login_thread = None
+        self.reload_thread = None
 
         # widgets
         self.session_combo = QComboBox(self)
@@ -59,6 +58,7 @@ class QSessionWidget(QWidget):
         self.containerLoginWidget = QWidget()
         self.containerSessionWidget = QWidget()
         self.containerWaitingWidget = QWidget()
+        self.containerReloadWidget = QWidget()
 
         # layouts
         self.session_ver_layout = QVBoxLayout()
@@ -149,12 +149,12 @@ class QSessionWidget(QWidget):
         first_hor_waiting_layout.addWidget(connecting_label)
         first_hor_waiting_layout.addStretch(0)
 
-        prog_dlg = QProgressBar(self)
-        prog_dlg.setMinimum(0)
-        prog_dlg.setMaximum(0)
+        prog_bar = QProgressBar(self)
+        prog_bar.setMinimum(0)
+        prog_bar.setMaximum(0)
 
         second_hor_waiting_layout.addStretch(0)
-        second_hor_waiting_layout.addWidget(prog_dlg)
+        second_hor_waiting_layout.addWidget(prog_bar)
         second_hor_waiting_layout.addStretch(0)
 
         ver_waiting_layout.addStretch(0)
@@ -165,6 +165,36 @@ class QSessionWidget(QWidget):
         self.containerWaitingWidget.setLayout(ver_waiting_layout)
         new_tab_main_layout.addWidget(self.containerWaitingWidget)
         self.containerWaitingWidget.hide()
+
+    # reload waiting widget
+        ver_reload_layout = QVBoxLayout()
+
+        first_hor_reload_layout = QHBoxLayout()
+        second_hor_reload_layout = QHBoxLayout()
+
+        reload_label = QLabel(self)
+        reload_label.setText("Reloading...")
+
+        first_hor_reload_layout.addStretch(0)
+        first_hor_reload_layout.addWidget(reload_label)
+        first_hor_reload_layout.addStretch(0)
+
+        reload_prog_bar = QProgressBar(self)
+        reload_prog_bar.setMinimum(0)
+        reload_prog_bar.setMaximum(0)
+
+        second_hor_reload_layout.addStretch(0)
+        second_hor_reload_layout.addWidget(reload_prog_bar)
+        second_hor_reload_layout.addStretch(0)
+
+        ver_reload_layout.addStretch(0)
+        ver_reload_layout.addLayout(first_hor_reload_layout)
+        ver_reload_layout.addLayout(second_hor_reload_layout)
+        ver_reload_layout.addStretch(0)
+
+        self.containerReloadWidget.setLayout(ver_reload_layout)
+        new_tab_main_layout.addWidget(self.containerReloadWidget)
+        self.containerReloadWidget.hide()
 
     # container session widget
         plusbutton_layout = QGridLayout()
@@ -347,3 +377,20 @@ class QSessionWidget(QWidget):
 
     def reload(self):
         logger.debug("Reloading...")
+
+        # Show the reload widget
+        self.containerLoginWidget.hide()
+        self.containerSessionWidget.hide()
+        self.containerWaitingWidget.hide()
+        self.containerReloadWidget.show()
+
+        self.reload_thread = ReloadThread()
+        self.reload_thread.finished.connect(self.on_reloaded)
+        self.reload_thread.start()
+
+    def on_reloaded(self):
+        # Show the reload widget
+        self.containerLoginWidget.hide()
+        self.containerSessionWidget.show()
+        self.containerWaitingWidget.hide()
+        self.containerReloadWidget.hide()

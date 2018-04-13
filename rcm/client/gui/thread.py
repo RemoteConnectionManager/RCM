@@ -20,3 +20,12 @@ class LoginThread(QThread):
             self.session_widget.is_logged = True
         except:
             self.session_widget.is_logged = False
+
+
+class ReloadThread(QThread):
+    def __init__(self):
+        QThread.__init__(self)
+
+    def run(self):
+        import time
+        time.sleep(5)
