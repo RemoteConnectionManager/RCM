@@ -137,15 +137,32 @@ class QSessionWidget(QWidget):
         new_tab_main_layout.addWidget(self.containerLoginWidget)
 
     # container waiting widget
-        self.waiting_layout = QVBoxLayout()
+        ver_waiting_layout = QVBoxLayout()
 
-        self.prog_dlg = QProgressBar(self)
-        self.prog_dlg.setMinimum(0)
-        self.prog_dlg.setMaximum(0)
+        first_hor_waiting_layout = QHBoxLayout()
+        second_hor_waiting_layout = QHBoxLayout()
 
-        self.waiting_layout.addWidget(self.prog_dlg)
-        self.containerWaitingWidget.setLayout(self.waiting_layout)
+        connecting_label = QLabel(self)
+        connecting_label.setText("Connecting...")
 
+        first_hor_waiting_layout.addStretch(0)
+        first_hor_waiting_layout.addWidget(connecting_label)
+        first_hor_waiting_layout.addStretch(0)
+
+        prog_dlg = QProgressBar(self)
+        prog_dlg.setMinimum(0)
+        prog_dlg.setMaximum(0)
+
+        second_hor_waiting_layout.addStretch(0)
+        second_hor_waiting_layout.addWidget(prog_dlg)
+        second_hor_waiting_layout.addStretch(0)
+
+        ver_waiting_layout.addStretch(0)
+        ver_waiting_layout.addLayout(first_hor_waiting_layout)
+        ver_waiting_layout.addLayout(second_hor_waiting_layout)
+        ver_waiting_layout.addStretch(0)
+
+        self.containerWaitingWidget.setLayout(ver_waiting_layout)
         new_tab_main_layout.addWidget(self.containerWaitingWidget)
         self.containerWaitingWidget.hide()
 
@@ -265,6 +282,10 @@ class QSessionWidget(QWidget):
             # Emit the logged_in signal.
             self.logged_in.emit(self.session_name)
         else:
+            # Show the login widget again
+            self.containerLoginWidget.show()
+            self.containerSessionWidget.hide()
+            self.containerWaitingWidget.hide()
             logger.error("Failed to login: invalid credentials")
 
     def add_new_display(self):
