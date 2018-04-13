@@ -8,7 +8,7 @@ from PyQt5.QtGui import QTextCursor
 # local import
 from client.log.config_parser import parser
 
-logger = logging.getLogger("RCM")
+logger = logging.getLogger("RCM.gui")
 
 try:
     debug = json.loads(parser.get('Settings', 'debug_log_level'))
