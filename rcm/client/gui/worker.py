@@ -38,8 +38,6 @@ class Worker(QRunnable):
         print("Thread start")
         self.signals.status.emit(Status.PENDING)
 
-        print("Polling the display job: " + str(self.display_name))
-
         connection = self.rcm_client_connection.newconn(queue='4core_18_gb_1h_slurm',
                                                         geometry='1200x1000',
                                                         sessionname = 'test',
@@ -53,9 +51,5 @@ class Worker(QRunnable):
               connection.hash['node'])
         self.rcm_client_connection.vncsession(connection)
 
-        # time.sleep(5)
         self.signals.status.emit(Status.RUNNING)
-        time.sleep(5)
-
         print("Thread complete")
-        self.signals.status.emit(Status.FINISHED)

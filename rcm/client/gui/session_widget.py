@@ -9,19 +9,20 @@ from PyQt5.QtCore import QSize, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
     QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, \
-    QStyle
+    QStyle, QProgressBar
+
 
 # paramiko
 from paramiko.ssh_exception import AuthenticationException
 
 # local includes
-from client.logic.ssh import ssh_login
 from client.gui.display_dialog import QDisplayDialog
 from client.gui.display_widget import QDisplayWidget
 from client.utils.pyinstaller_utils import resource_path
 from client.log.logger import logger
 from client.log.config_parser import parser, config_file_name
 from client.logic import rcm_client
+from client.gui.thread import LoginThread
 
 
 class QSessionWidget(QWidget):
@@ -39,10 +40,14 @@ class QSessionWidget(QWidget):
         super(QWidget, self).__init__(parent)
 
         self.user = ""
+        self.host = ""
+        self.session_name = ""
         self.displays = {}
         self.sessions_list = collections.deque(maxlen=5)
         self.platform_config = None
         self.rcm_client_connection = None
+        self.is_logged = False
+        self.login_thread = None
 
         # widgets
         self.session_combo = QComboBox(self)
@@ -53,6 +58,7 @@ class QSessionWidget(QWidget):
         # containers
         self.containerLoginWidget = QWidget()
         self.containerSessionWidget = QWidget()
+        self.containerWaitingWidget = QWidget()
 
         # layouts
         self.session_ver_layout = QVBoxLayout()
@@ -118,7 +124,7 @@ class QSessionWidget(QWidget):
         login_hor_layout.addWidget(pybutton)
         login_hor_layout.addStretch(1)
 
-    # login layout
+    # container login widget
         # it disappears when the user logged in
         login_layout = QVBoxLayout()
         login_layout.addLayout(grid_login_layout)
@@ -130,7 +136,20 @@ class QSessionWidget(QWidget):
         new_tab_main_layout = QVBoxLayout()
         new_tab_main_layout.addWidget(self.containerLoginWidget)
 
-    # Session Layout
+    # container waiting widget
+        self.waiting_layout = QVBoxLayout()
+
+        self.prog_dlg = QProgressBar(self)
+        self.prog_dlg.setMinimum(0)
+        self.prog_dlg.setMaximum(0)
+
+        self.waiting_layout.addWidget(self.prog_dlg)
+        self.containerWaitingWidget.setLayout(self.waiting_layout)
+
+        new_tab_main_layout.addWidget(self.containerWaitingWidget)
+        self.containerWaitingWidget.hide()
+
+    # container session widget
         plusbutton_layout = QGridLayout()
         self.rows_ver_layout.setContentsMargins(0, 0, 0, 0)
         self.rows_ver_layout.setSpacing(0)
@@ -206,44 +225,47 @@ class QSessionWidget(QWidget):
             pass
 
     def login(self):
-        user = str(self.user_line.text())
-        host = str(self.host_line.text())
+        self.user = str(self.user_line.text())
+        self.host = str(self.host_line.text())
         password = str(self.pssw_line.text())
-        session_name = user + "@" + host
+        self.session_name = self.user + "@" + self.host
 
-        try:
-            logger.info("Logging into " + session_name)
+        logger.info("Logging into " + self.session_name)
 
-            self.rcm_client_connection = rcm_client.rcm_client_connection()
-            self.rcm_client_connection.login_setup(host=host,
-                                                   remoteuser=user,
-                                                   password=password)
-            self.rcm_client_connection.debug = False
-            self.platform_config = self.rcm_client_connection.get_config()
+        self.rcm_client_connection = rcm_client.rcm_client_connection()
+        self.rcm_client_connection.debug = False
 
-        except AuthenticationException:
-            logger.error("Failed to login: invalid credentials")
-            return
+        self.login_thread = LoginThread(self, self.host, self.user, password)
+        self.login_thread.finished.connect(self.on_logged)
+        self.login_thread.start()
 
-        logger.info("Logged in " + session_name)
-        self.user = self.user_line.text()
-
-        # update sessions list
-        if session_name in list(self.sessions_list):
-            self.sessions_list.remove(session_name)
-        self.sessions_list.appendleft(session_name)
-
-        self.sessions_changed.emit(self.sessions_list)
-
-        # update config file
-        self.update_config_file(session_name)
-
-        # Hide the login view and show the session one
+        # Show the waiting widget
         self.containerLoginWidget.hide()
-        self.containerSessionWidget.show()
+        self.containerSessionWidget.hide()
+        self.containerWaitingWidget.show()
 
-        # Emit the logged_in signal.
-        self.logged_in.emit(session_name)
+    def on_logged(self):
+        if self.is_logged:
+            # Show the session widget
+            self.containerLoginWidget.hide()
+            self.containerWaitingWidget.hide()
+            self.containerSessionWidget.show()
+
+            logger.info("Logged in " + self.session_name)
+
+            # update sessions list
+            if self.session_name in list(self.sessions_list):
+                self.sessions_list.remove(self.session_name)
+            self.sessions_list.appendleft(self.session_name)
+            self.sessions_changed.emit(self.sessions_list)
+
+            # update config file
+            self.update_config_file(self.session_name)
+
+            # Emit the logged_in signal.
+            self.logged_in.emit(self.session_name)
+        else:
+            logger.error("Failed to login: invalid credentials")
 
     def add_new_display(self):
         # cannot have more than 5 sessions
