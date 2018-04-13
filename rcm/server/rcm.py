@@ -150,7 +150,7 @@ class rcm_config:
             print("queue "+queue+" info-->"+self.config['queues'][queue]+"<--")
         print
         for vnc in sorted(self.config['vnc_commands'].keys()):
-            print("vnc command "+vnc+" info-->"+self.config['vnc_commands'][vnc]+"<--")
+            print("vnc command "+vnc+" info-->"+str(self.config['vnc_commands'][vnc])+"<--")
             
 
 if __name__ == '__main__':
@@ -174,16 +174,4 @@ if __name__ == '__main__':
     derived=rcm_config(test_config.get_string())
     derived.add_vnc('vnc5','added after unpack')
     derived.pretty_print()
-    
-    def prex(command='',commandnode=''): 
-        logger = logging.getLogger("basic")    
-        logger.debug("prex")
-        print("node "+commandnode+" "+ command)
-        
-    for i in ['uno','due','tre']:
-      def myfunc(command): 
-          logger = logging.getLogger("basic")    
-          logger.debug("myfunc")
-          prex(command,i)
-      r=rcm_protocol(clientfunc=myfunc)
-      r.config('mia build platform '+i)
+
