@@ -1,5 +1,5 @@
 # python import
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 # pyqt5
 from PyQt5.QtCore import pyqtSignal, QTimer
@@ -10,7 +10,6 @@ from PyQt5.QtWidgets import QWidget, QFrame, QLabel, \
 # local includes
 from client.utils.pyinstaller_utils import resource_path
 from client.log.logger import logger
-from client.gui.worker import Worker
 
 
 class QDisplayWidget(QWidget):
@@ -20,11 +19,28 @@ class QDisplayWidget(QWidget):
 
     terminate = pyqtSignal(str)
 
-    def __init__(self, parent, display_name):
-        super(QWidget, self).__init__(parent)
+    def __init__(self,
+                 parent,
+                 display_id,
+                 display_name,
+                 status="Not defined",
+                 resources="Not defined",
+                 timeleft=None):
+        super().__init__(parent)
 
+        self.parent = parent
+        self.display_id = display_id
         self.display_name = display_name
-        self.remaining_time = timedelta(seconds=3600*3)
+        self.status = status
+        self.resources = resources
+
+        if timeleft is not None:
+            strp_time = datetime.strptime(timeleft, "%H:%M:%S")
+            self.timeleft = timedelta(hours=strp_time.hour,
+                                      minutes=strp_time.minute,
+                                      seconds=strp_time.second)
+        else:
+            self.timeleft = timeleft
 
         # icons
         self.connect_ico = QIcon()
@@ -58,21 +74,24 @@ class QDisplayWidget(QWidget):
         name.setText(str(self.display_name)[:16])
         display_hor_layout.addWidget(name)
 
-        self.status = QLabel(self)
-        self.status.setText("Pending...")
-        display_hor_layout.addWidget(self.status)
+        self.status_label = QLabel(self)
+        self.status_label.setText(self.status)
+        display_hor_layout.addWidget(self.status_label)
 
         self.time = QLabel(self)
-        self.time.setText(str(self.remaining_time))
+        if self.timeleft is not None:
+            self.time.setText(str(self.timeleft))
+        else:
+            self.time.setText("Not defined")
         display_hor_layout.addWidget(self.time)
 
         timer = QTimer(self)
         timer.timeout.connect(self.time_update)
         timer.start(1000)
 
-        resources = QLabel(self)
-        resources.setText("1 Node")
-        display_hor_layout.addWidget(resources)
+        resources_label = QLabel(self)
+        resources_label.setText(self.resources)
+        display_hor_layout.addWidget(resources_label)
 
         self.connect_btn = QPushButton(self)
         self.connect_btn.setIcon(self.connect_ico)
@@ -99,12 +118,6 @@ class QDisplayWidget(QWidget):
         separator.setFrameShadow(QFrame.Sunken)
         display_ver_layout.addWidget(separator)
 
-        # start the worker
-        worker = Worker(self.display_name,
-                        self.parent().rcm_client_connection)
-        worker.signals.status.connect(self.status_update)
-        self.window().thread_pool.start(worker)
-
     def connect_display(self):
         logger.info("Connected to remote display " + str(self.display_name))
 
@@ -116,16 +129,17 @@ class QDisplayWidget(QWidget):
         Kill the display running on the server
         :return:
         """
-        self.terminate.emit(self.display_name)
+        self.terminate.emit(self.display_id)
 
     def time_update(self):
         """
-        Update the remaining time of the job running on the server in the gui
+        Update the time left of the job running on the server in the gui
         :return:
         """
-        self.remaining_time = self.remaining_time - timedelta(seconds=1)
-        self.time.setText(str(self.remaining_time))
-        self.time.update()
+        if self.status == "valid":
+            self.timeleft = self.timeleft - timedelta(seconds=1)
+            self.time.setText(str(self.timeleft))
+            self.time.update()
 
     def status_update(self, status):
         """
@@ -138,6 +152,7 @@ class QDisplayWidget(QWidget):
             self.share_btn.setEnabled(False)
             self.kill_btn.setEnabled(False)
         if status is status.RUNNING:
+            self.time.setText(str(self.parent.rcm_client_connection.hash('timeleft')))
             self.connect_btn.setEnabled(True)
             self.share_btn.setEnabled(True)
             self.kill_btn.setEnabled(True)
@@ -146,5 +161,5 @@ class QDisplayWidget(QWidget):
             self.share_btn.setEnabled(False)
             self.kill_btn.setEnabled(True)
 
-        self.status.setText(str(status))
-        self.status.update()
+        self.status_label.setText(str(status))
+        self.status_label.update()

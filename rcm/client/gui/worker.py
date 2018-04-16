@@ -27,9 +27,9 @@ class Worker(QRunnable):
 
     """
 
-    def __init__(self, display_name, rcm_client_connection):
+    def __init__(self, display_id, rcm_client_connection):
         super().__init__()
-        self.display_name = display_name
+        self.display_id = display_id
         self.rcm_client_connection = rcm_client_connection
         self.signals = WorkerSignals()
 
@@ -40,7 +40,7 @@ class Worker(QRunnable):
 
         connection = self.rcm_client_connection.newconn(queue='4core_18_gb_1h_slurm',
                                                         geometry='1200x1000',
-                                                        sessionname = 'test',
+                                                        sessionname = self.display_id,
                                                         vnc_id='fluxbox_turbovnc_vnc')
 
         newsession = connection.hash['sessionid']
