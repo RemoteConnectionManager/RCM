@@ -19,6 +19,7 @@ from client.log.logger import logger
 from client.log.config_parser import parser, config_file_name
 from client.logic import rcm_client
 from client.gui.thread import LoginThread, ReloadThread
+from client.gui.worker import Worker
 
 
 class QSessionWidget(QWidget):
@@ -332,9 +333,17 @@ class QSessionWidget(QWidget):
             return
 
         display_name = display_win.display_name
-        display_widget = QDisplayWidget(self, display_name)
+        display_id = '-'.join((display_name, str(uuid.uuid4())))
+        display_widget = QDisplayWidget(self, display_id, display_name)
         self.rows_ver_layout.addWidget(display_widget)
-        self.displays[display_name] = display_widget
+        self.displays[display_id] = display_widget
+
+        # start the worker
+        worker = Worker(display_id,
+                        self.rcm_client_connection)
+        worker.signals.status.connect(display_widget.status_update)
+        self.window().thread_pool.start(worker)
+
         logger.info("Added new display")
 
     def update_config_file(self, session_name):
@@ -373,7 +382,7 @@ class QSessionWidget(QWidget):
         self.displays[id].setParent(None)
         del self.displays[id]
 
-        logger.info("Killed display " + str(id))
+        logger.info("Removed display " + str(id))
 
     def reload(self):
         logger.debug("Reloading...")
@@ -394,3 +403,38 @@ class QSessionWidget(QWidget):
         self.containerSessionWidget.show()
         self.containerWaitingWidget.hide()
         self.containerReloadWidget.hide()
+
+        sessions = self.rcm_client_connection.list()
+
+        # kill not existing sessions
+        for display_id in list(self.displays.keys()):
+            missing = True
+            for session in sessions.array:
+                if str(display_id) == str(session.hash['session name']):
+                    missing = False
+                    break
+            if missing:
+                self.remove_display(display_id)
+
+        # update or create from scratch new sessions
+        for session in sessions.array:
+            display_id = str(session.hash['session name'])
+            print(str(display_id))
+            display_state = str(session.hash['state'])
+            display_node = str(session.hash['node'])
+            display_name = display_id.split('-')[0]
+            display_timeleft = str(session.hash['timeleft'])
+            print(str(display_timeleft))
+            print(str(session.hash['walltime']))
+
+            if display_id in self.displays.keys():
+                logger.debug("Session " + display_id + " already exists")
+            else:
+                display_widget = QDisplayWidget(self, display_id,
+                                                display_name,
+                                                display_state,
+                                                display_node,
+                                                display_timeleft)
+                self.rows_ver_layout.addWidget(display_widget)
+                self.displays[display_id] = display_widget
+                logger.debug("Created session " + display_id)
