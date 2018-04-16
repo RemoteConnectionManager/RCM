@@ -71,7 +71,7 @@ def configure_logging(verbose=0,vnclv=0):
                    help='define %(prog)s verbosity')
     parser.add_argument('-l','--vncloglev',default=vnclv,type=int,
                    help='pass  this to vnc loglevel')
-    p=parser.parse_args()
+    p=parser.parse_known_args()[0]
     verbose=p.debug
 #    rootLogger = logging.getLogger()
     global vnc_loglevel
@@ -277,7 +277,11 @@ def get_server_command(host,user,passwd=''):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     module_logger.info("getting server command host->"+host+"< user->"+user+"<")
-    ssh.connect(host, username=user, password=passwd)
+    try:
+        ssh.connect(host, username=user, password=passwd)
+    except Exception as e:
+        module_logger.error("ERROR {0}: ".format( e)+"in ssh.connect to host "+host) 
+        return ''
     chan = ssh.get_transport().open_session()
     chan.get_pty()
     stdin = chan.makefile('wb')
@@ -512,6 +516,7 @@ class SessionThread( threading.Thread ):
 
 if __name__ == '__main__':
 
+    configure_logging()
     print (vnc_crypt(vnc_crypt('paperino'),True))
     print (vnc_crypt('paperino',False))
 
@@ -531,8 +536,15 @@ if __name__ == '__main__':
     print ("clear-->"+ar.decrypt(ae)+" crypt->"+ae+" recrypt->"+ar.encrypt(ar.decrypt(ae))+" reclear->"+ar.decrypt(ar.encrypt(ar.decrypt(ae))))
 
 
-    #print 'om10-->'+get_server_command('om10.eni.cineca.it','cibo19','')+'<--'
-    #print 'aux6-->'+get_server_command('aux6.eni.cineca.it','cibo19','')+'<--'
-    configure_logging()
-    print ('marconi-->'+get_server_command('login.marconi.cineca.it','lcalori0','')+'<--')
+    import argparse
+    parser = argparse.ArgumentParser(description='RCM client.')
+    parser.add_argument('-t','--hosts', default=[], nargs='*', 
+                   help='list of hosts to test')
+    parser.add_argument('-u','--users', default=[os.environ.get('USER')], nargs='*', 
+                   help='list of users to test')
+    p=parser.parse_known_args()
+    print (p )
+    for host in p[0].hosts:
+        for user in p[0].users:
+            print ('marconi-->'+get_server_command(host,user,'')+'<--')
 
