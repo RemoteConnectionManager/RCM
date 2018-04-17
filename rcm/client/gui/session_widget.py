@@ -39,6 +39,7 @@ class QSessionWidget(QWidget):
         self.user = ""
         self.host = ""
         self.session_name = ""
+        self.display_sessions = None
         self.displays = {}
         self.sessions_list = collections.deque(maxlen=5)
         self.platform_config = None
@@ -393,47 +394,46 @@ class QSessionWidget(QWidget):
         self.containerWaitingWidget.hide()
         self.containerReloadWidget.show()
 
-        self.reload_thread = ReloadThread()
+        self.reload_thread = ReloadThread(self)
         self.reload_thread.finished.connect(self.on_reloaded)
         self.reload_thread.start()
 
     def on_reloaded(self):
-        # Show the reload widget
-        self.containerLoginWidget.hide()
-        self.containerSessionWidget.show()
-        self.containerWaitingWidget.hide()
-        self.containerReloadWidget.hide()
+        if self.display_sessions:
+            # kill not existing sessions
+            for display_id in list(self.displays.keys()):
+                missing = True
+                for session in self.display_sessions.array:
+                    if str(display_id) == str(session.hash['session name']):
+                        missing = False
+                        break
+                if missing:
+                    self.remove_display(display_id)
 
-        sessions = self.remote_connection_manager.list()
+            # update or create from scratch new sessions
+            for session in self.display_sessions.array:
+                display_id = str(session.hash['session name'])
+                display_state = str(session.hash['state'])
+                display_node = str(session.hash['node'])
+                display_name = display_id.split('-')[0]
+                display_timeleft = str(session.hash['timeleft'])
 
-        # kill not existing sessions
-        for display_id in list(self.displays.keys()):
-            missing = True
-            for session in sessions.array:
-                if str(display_id) == str(session.hash['session name']):
-                    missing = False
-                    break
-            if missing:
-                self.remove_display(display_id)
+                if display_id in self.displays.keys():
+                    logger.debug("Display " + display_id + " already exists")
+                else:
+                    display_widget = QDisplayWidget(parent=self,
+                                                    display_id=display_id,
+                                                    display_name=display_name,
+                                                    session=session,
+                                                    status=display_state,
+                                                    resources=display_node,
+                                                    timeleft=display_timeleft)
+                    self.rows_ver_layout.addWidget(display_widget)
+                    self.displays[display_id] = display_widget
+                    logger.debug("Created display " + display_id)
 
-        # update or create from scratch new sessions
-        for session in sessions.array:
-            display_id = str(session.hash['session name'])
-            display_state = str(session.hash['state'])
-            display_node = str(session.hash['node'])
-            display_name = display_id.split('-')[0]
-            display_timeleft = str(session.hash['timeleft'])
-
-            if display_id in self.displays.keys():
-                logger.debug("Display " + display_id + " already exists")
-            else:
-                display_widget = QDisplayWidget(parent=self,
-                                                display_id=display_id,
-                                                display_name=display_name,
-                                                session=session,
-                                                status=display_state,
-                                                resources=display_node,
-                                                timeleft=display_timeleft)
-                self.rows_ver_layout.addWidget(display_widget)
-                self.displays[display_id] = display_widget
-                logger.debug("Created display " + display_id)
+            # Show the reload widget
+            self.containerLoginWidget.hide()
+            self.containerSessionWidget.show()
+            self.containerWaitingWidget.hide()
+            self.containerReloadWidget.hide()

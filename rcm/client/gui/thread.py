@@ -23,9 +23,9 @@ class LoginThread(QThread):
 
 
 class ReloadThread(QThread):
-    def __init__(self):
+    def __init__(self, session_widget):
         QThread.__init__(self)
+        self.session_widget = session_widget
 
     def run(self):
-        import time
-        time.sleep(5)
+        self.session_widget.display_sessions = self.session_widget.remote_connection_manager.list()
