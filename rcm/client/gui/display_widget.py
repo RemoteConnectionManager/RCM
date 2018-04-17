@@ -5,7 +5,7 @@ from datetime import timedelta, datetime
 from PyQt5.QtCore import pyqtSignal, QTimer
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QFrame, QLabel, \
-    QVBoxLayout, QHBoxLayout, QPushButton
+    QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog
 
 # local includes
 from client.utils.pyinstaller_utils import resource_path
@@ -128,7 +128,32 @@ class QDisplayWidget(QWidget):
             logger.error("Failed to connecting to remote display " + str(self.display_name))
 
     def share_display(self):
-        logger.info("Shared display " + str(self.display_name))
+        try:
+            logger.info("Sharing display " + str(self.display_name))
+
+            filename_suggested = self.session.hash['session name'].replace(' ', '_') + '.vnc'
+            options = QFileDialog.Options()
+            options |= QFileDialog.DontUseNativeDialog
+            filename, _ = QFileDialog.getSaveFileName(self,
+                                                      "Share display " + str(self.display_name),
+                                                      filename_suggested,
+                                                      " Vnc Files (*.vnc);;All Files (*)",
+                                                      options=options)
+
+            if filename:
+                with open(filename, 'w') as out_file:
+                    out_file.write("[Connection]\n")
+                    if self.session.hash['tunnel'] == 'y':
+                        # rcm_tunnel is a key word to know that I need to tunnel across that node
+                        out_file.write("rcm_tunnel={0}\n".format(self.session.hash['nodelogin']))
+                        out_file.write("host={0}\n".format(self.session.hash['node']))
+                    else:
+                        out_file.write("host={0}\n".format(self.session.hash['nodelogin']))
+                    out_file.write("port={0}\n".format(5900 + int(self.session.hash['display'])))
+                    out_file.write("password={0}\n".format(self.session.hash['vncpassword']))
+        except Exception as e:
+            logger.error(e)
+            logger.error("Failed to share display " + str(self.display_name))
 
     def kill_display(self):
         """
