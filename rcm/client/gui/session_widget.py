@@ -428,7 +428,7 @@ class QSessionWidget(QWidget):
             print(str(session.hash['walltime']))
 
             if display_id in self.displays.keys():
-                logger.debug("Session " + display_id + " already exists")
+                logger.debug("Display " + display_id + " already exists")
             else:
                 display_widget = QDisplayWidget(parent=self,
                                                 display_id=display_id,
@@ -439,4 +439,4 @@ class QSessionWidget(QWidget):
                                                 timeleft=display_timeleft)
                 self.rows_ver_layout.addWidget(display_widget)
                 self.displays[display_id] = display_widget
-                logger.debug("Created session " + display_id)
+                logger.debug("Created display " + display_id)

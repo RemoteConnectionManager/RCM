@@ -135,6 +135,10 @@ class QDisplayWidget(QWidget):
         Kill the display running on the server
         :return:
         """
+        try:
+            self.parent.rcm_client_connection.kill(self.session)
+        except:
+            logger.error("Failed to kill remote display" + str(self.display_name))
         self.terminate.emit(self.display_id)
 
     def time_update(self):
