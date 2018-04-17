@@ -313,6 +313,9 @@ class QSessionWidget(QWidget):
 
             # Emit the logged_in signal.
             self.logged_in.emit(self.session_name)
+
+            # update the session list to be shown
+            self.reload()
         else:
             # Show the login widget again
             self.containerLoginWidget.show()
