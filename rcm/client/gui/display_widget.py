@@ -23,12 +23,14 @@ class QDisplayWidget(QWidget):
                  parent,
                  display_id,
                  display_name,
+                 session=None,
                  status="Not defined",
                  resources="Not defined",
                  timeleft=None):
         super().__init__(parent)
 
         self.parent = parent
+        self.session = session
         self.display_id = display_id
         self.display_name = display_name
         self.status = status
@@ -119,7 +121,11 @@ class QDisplayWidget(QWidget):
         display_ver_layout.addWidget(separator)
 
     def connect_display(self):
-        logger.info("Connected to remote display " + str(self.display_name))
+        try:
+            logger.info("Connecting to remote display " + str(self.display_name))
+            self.parent.rcm_client_connection.vncsession(self.session)
+        except:
+            logger.error("Failed to connecting to remote display " + str(self.display_name))
 
     def share_display(self):
         logger.info("Shared display " + str(self.display_name))

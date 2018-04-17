@@ -430,11 +430,13 @@ class QSessionWidget(QWidget):
             if display_id in self.displays.keys():
                 logger.debug("Session " + display_id + " already exists")
             else:
-                display_widget = QDisplayWidget(self, display_id,
-                                                display_name,
-                                                display_state,
-                                                display_node,
-                                                display_timeleft)
+                display_widget = QDisplayWidget(parent=self,
+                                                display_id=display_id,
+                                                display_name=display_name,
+                                                session=session,
+                                                status=display_state,
+                                                resources=display_node,
+                                                timeleft=display_timeleft)
                 self.rows_ver_layout.addWidget(display_widget)
                 self.displays[display_id] = display_widget
                 logger.debug("Created session " + display_id)
