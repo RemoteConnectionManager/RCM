@@ -7,7 +7,7 @@ rcm-client is a VNC client for the remote visualization on the CINECA clusters.
 
 #### Setup
 
-For the turbovnc installation, read [here](https://github.com/RemoteConnectionManager/RCM_spack_deploy/tree/dev/recipes/hosts/ws_mint)
+For the turbovnc installation, read [here](https://github.com/RemoteConnectionManager/RCM_spack_deploy/tree/dev/recipes/hosts/ws_mint).
 For the python-qt part, instructions are below:
 
 ```sh
