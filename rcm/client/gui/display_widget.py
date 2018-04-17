@@ -123,7 +123,7 @@ class QDisplayWidget(QWidget):
     def connect_display(self):
         try:
             logger.info("Connecting to remote display " + str(self.display_name))
-            self.parent.rcm_client_connection.vncsession(self.session)
+            self.parent.remote_connection_manager.vncsession(self.session)
         except:
             logger.error("Failed to connecting to remote display " + str(self.display_name))
 
@@ -161,7 +161,7 @@ class QDisplayWidget(QWidget):
         :return:
         """
         try:
-            self.parent.rcm_client_connection.kill(self.session)
+            self.parent.remote_connection_manager.kill(self.session)
         except:
             logger.error("Failed to kill remote display" + str(self.display_name))
         self.terminate.emit(self.display_id)
@@ -187,7 +187,8 @@ class QDisplayWidget(QWidget):
             self.share_btn.setEnabled(False)
             self.kill_btn.setEnabled(False)
         if status is status.RUNNING:
-            self.time.setText(str(self.parent.rcm_client_connection.hash('timeleft')))
+            if self.session:
+                self.time.setText(str(self.session.hash('timeleft')))
             self.connect_btn.setEnabled(True)
             self.share_btn.setEnabled(True)
             self.kill_btn.setEnabled(True)

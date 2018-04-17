@@ -42,7 +42,7 @@ class QSessionWidget(QWidget):
         self.displays = {}
         self.sessions_list = collections.deque(maxlen=5)
         self.platform_config = None
-        self.rcm_client_connection = None
+        self.remote_connection_manager = None
         self.is_logged = False
 
         # threads
@@ -280,8 +280,8 @@ class QSessionWidget(QWidget):
 
         logger.info("Logging into " + self.session_name)
 
-        self.rcm_client_connection = rcm_client.rcm_client_connection()
-        self.rcm_client_connection.debug = False
+        self.remote_connection_manager = rcm_client.rcm_client_connection()
+        self.remote_connection_manager.debug = False
 
         self.login_thread = LoginThread(self, self.host, self.user, password)
         self.login_thread.finished.connect(self.on_logged)
@@ -340,7 +340,7 @@ class QSessionWidget(QWidget):
 
         # start the worker
         worker = Worker(display_id,
-                        self.rcm_client_connection)
+                        self.remote_connection_manager)
         worker.signals.status.connect(display_widget.status_update)
         self.window().thread_pool.start(worker)
 
@@ -404,7 +404,7 @@ class QSessionWidget(QWidget):
         self.containerWaitingWidget.hide()
         self.containerReloadWidget.hide()
 
-        sessions = self.rcm_client_connection.list()
+        sessions = self.remote_connection_manager.list()
 
         # kill not existing sessions
         for display_id in list(self.displays.keys()):

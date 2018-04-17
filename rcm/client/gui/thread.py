@@ -13,10 +13,10 @@ class LoginThread(QThread):
 
     def run(self):
         try:
-            self.session_widget.rcm_client_connection.login_setup(host=self.host,
-                                                                  remoteuser=self.user,
-                                                                  password=self.password)
-            self.session_widget.platform_config = self.session_widget.rcm_client_connection.get_config()
+            self.session_widget.remote_connection_manager.login_setup(host=self.host,
+                                                                      remoteuser=self.user,
+                                                                      password=self.password)
+            self.session_widget.platform_config = self.session_widget.remote_connection_manager.get_config()
             self.session_widget.is_logged = True
         except:
             self.session_widget.is_logged = False
