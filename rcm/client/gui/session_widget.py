@@ -339,7 +339,7 @@ class QSessionWidget(QWidget):
         self.displays[display_id] = display_widget
 
         # start the worker
-        worker = Worker(display_id,
+        worker = Worker(display_widget,
                         self.remote_connection_manager)
         worker.signals.status.connect(display_widget.status_update)
         self.window().thread_pool.start(worker)
@@ -419,13 +419,10 @@ class QSessionWidget(QWidget):
         # update or create from scratch new sessions
         for session in sessions.array:
             display_id = str(session.hash['session name'])
-            print(str(display_id))
             display_state = str(session.hash['state'])
             display_node = str(session.hash['node'])
             display_name = display_id.split('-')[0]
             display_timeleft = str(session.hash['timeleft'])
-            print(str(display_timeleft))
-            print(str(session.hash['walltime']))
 
             if display_id in self.displays.keys():
                 logger.debug("Display " + display_id + " already exists")

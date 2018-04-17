@@ -91,9 +91,9 @@ class QDisplayWidget(QWidget):
         timer.timeout.connect(self.time_update)
         timer.start(1000)
 
-        resources_label = QLabel(self)
-        resources_label.setText(self.resources)
-        display_hor_layout.addWidget(resources_label)
+        self.resources_label = QLabel(self)
+        self.resources_label.setText(self.resources)
+        display_hor_layout.addWidget(self.resources_label)
 
         self.connect_btn = QPushButton(self)
         self.connect_btn.setIcon(self.connect_ico)
@@ -161,6 +161,7 @@ class QDisplayWidget(QWidget):
         :return:
         """
         try:
+            logger.debug("Killing remote display" + str(self.display_name))
             self.parent.remote_connection_manager.kill(self.session)
         except:
             logger.error("Failed to kill remote display" + str(self.display_name))
@@ -188,7 +189,13 @@ class QDisplayWidget(QWidget):
             self.kill_btn.setEnabled(False)
         if status is status.RUNNING:
             if self.session:
-                self.time.setText(str(self.session.hash('timeleft')))
+                timeleft = str(self.session.hash['timeleft'])
+                self.time.setText(timeleft)
+                strp_time = datetime.strptime(timeleft, "%H:%M:%S")
+                self.timeleft = timedelta(hours=strp_time.hour,
+                                          minutes=strp_time.minute,
+                                          seconds=strp_time.second)
+            self.resources_label.setText(str(self.session.hash['node']))
             self.connect_btn.setEnabled(True)
             self.share_btn.setEnabled(True)
             self.kill_btn.setEnabled(True)
@@ -197,5 +204,6 @@ class QDisplayWidget(QWidget):
             self.share_btn.setEnabled(False)
             self.kill_btn.setEnabled(True)
 
+        self.status = str(status)
         self.status_label.setText(str(status))
         self.status_label.update()

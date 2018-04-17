@@ -3,9 +3,9 @@ from enum import Enum
 
 
 class Status(Enum):
-    PENDING = "Pending"
-    RUNNING = "Running"
-    FINISHED = "Finished"
+    PENDING = "pending"
+    RUNNING = "valid"
+    FINISHED = "finished"
 
     def __str__(self):
         return '{0}'.format(self.value)
