@@ -27,11 +27,19 @@ class Worker(QRunnable):
 
     """
 
-    def __init__(self, display_widget, remote_connection_manager):
+    def __init__(self,
+                 display_widget,
+                 remote_connection_manager,
+                 session_queue,
+                 session_vnc,
+                 display_size):
         super().__init__()
         self.display_widget = display_widget
         self.display_id = display_widget.display_id
         self.remote_connection_manager = remote_connection_manager
+        self.session_queue = session_queue
+        self.session_vnc = session_vnc
+        self.display_size = display_size
         self.signals = WorkerSignals()
 
     @pyqtSlot()
@@ -39,10 +47,10 @@ class Worker(QRunnable):
         print("Thread start")
         self.signals.status.emit(Status.PENDING)
 
-        display_session = self.remote_connection_manager.newconn(queue='4core_18_gb_1h_slurm',
-                                                                 geometry='1200x1000',
+        display_session = self.remote_connection_manager.newconn(queue=self.session_queue,
+                                                                 geometry=self.display_size,
                                                                  sessionname=self.display_id,
-                                                                 vnc_id='fluxbox_turbovnc_vnc')
+                                                                 vnc_id=self.session_vnc)
 
         self.display_widget.session = display_session
         self.remote_connection_manager.vncsession(display_session)

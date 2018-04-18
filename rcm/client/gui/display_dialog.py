@@ -3,7 +3,8 @@ import uuid
 
 # pyqt5
 from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
-    QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, QPushButton
+    QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, QPushButton, \
+    QDesktopWidget
 
 # local includes
 from client.log.logger import logger
@@ -16,6 +17,16 @@ class QDisplayDialog(QDialog):
 
         self.display_name = ""
         self.display_names = display_names
+
+        # current selections
+        self.session_queue = None
+        self.session_vnc = None
+        self.display_size = None
+
+        # combo
+        self.session_queue_combo = None
+        self.session_vnc_combo = None
+        self.display_combo = None
 
         try:
             self.session_queues = platform_config.config['queues'].keys()
@@ -50,28 +61,28 @@ class QDisplayDialog(QDialog):
         session_queue = QLabel(self)
         session_queue.setText('Select queue:')
 
-        session_queue_combo = QComboBox(self)
-        session_queue_combo.addItems(self.session_queues)
+        self.session_queue_combo = QComboBox(self)
+        self.session_queue_combo.addItems(self.session_queues)
         grid_layout.addWidget(session_queue, 2, 0)
-        grid_layout.addWidget(session_queue_combo, 2, 1)
+        grid_layout.addWidget(self.session_queue_combo, 2, 1)
 
         session_vnc = QLabel(self)
         session_vnc.setText('Select wm+vnc:')
 
-        session_vnc_combo = QComboBox(self)
-        session_vnc_combo.addItems(self.session_vncs)
+        self.session_vnc_combo = QComboBox(self)
+        self.session_vnc_combo.addItems(self.session_vncs)
         grid_layout.addWidget(session_vnc, 3, 0)
-        grid_layout.addWidget(session_vnc_combo, 3, 1)
+        grid_layout.addWidget(self.session_vnc_combo, 3, 1)
 
         display_label = QLabel(self)
         display_label.setText('Display size:')
 
-        display_combo = QComboBox(self)
-        display_combo.addItems(["1920x1080",
-                                "full_screen"])
+        self.display_combo = QComboBox(self)
+        self.display_combo.addItems(["1920x1080",
+                                     "full_screen"])
 
         grid_layout.addWidget(display_label, 4, 0)
-        grid_layout.addWidget(display_combo, 4, 1)
+        grid_layout.addWidget(self.display_combo, 4, 1)
 
         # Ok button
         hor_layout = QHBoxLayout()
@@ -113,5 +124,18 @@ class QDisplayDialog(QDialog):
         if self.display_name in self.display_names:
             logger.error("session " + str(self.display_name) + " already exists")
             return
+
+        self.session_queue = str(self.session_queue_combo.currentText())
+        self.session_vnc = str(self.session_vnc_combo.currentText())
+        self.display_size = str(self.display_combo.currentText())
+
+        if self.display_size == "full_screen":
+            screen_width = QDesktopWidget().width()
+            screen_height = QDesktopWidget().height()
+            self.display_size = str(screen_width) + "x" + str(screen_height)
+
+        logger.info("session queue: " + self.session_queue + "; " +
+                    "session vnc: " + self.session_vnc + "; " +
+                    "display size: " + self.display_size + ";")
 
         self.accept()

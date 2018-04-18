@@ -329,22 +329,27 @@ class QSessionWidget(QWidget):
             logger.warning("You have already 5 displays")
             return
 
-        display_win = QDisplayDialog(list(self.displays.keys()),
+        display_dlg = QDisplayDialog(list(self.displays.keys()),
                                      self.platform_config)
-        display_win.setModal(True)
+        display_dlg.setModal(True)
 
-        if display_win.exec() != 1:
+        if display_dlg.exec() != 1:
             return
 
-        display_name = display_win.display_name
+        display_name = display_dlg.display_name
         display_id = '-'.join((display_name, str(uuid.uuid4())))
-        display_widget = QDisplayWidget(self, display_id, display_name)
+        display_widget = QDisplayWidget(self,
+                                        display_id=display_id,
+                                        display_name=display_name)
         self.rows_ver_layout.addWidget(display_widget)
         self.displays[display_id] = display_widget
 
         # start the worker
         worker = Worker(display_widget,
-                        self.remote_connection_manager)
+                        self.remote_connection_manager,
+                        display_dlg.session_queue,
+                        display_dlg.session_vnc,
+                        display_dlg.display_size)
         worker.signals.status.connect(display_widget.status_update)
         self.window().thread_pool.start(worker)
 
