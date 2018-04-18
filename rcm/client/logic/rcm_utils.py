@@ -280,8 +280,9 @@ def get_server_command(host,user,passwd=''):
     try:
         ssh.connect(host, username=user, password=passwd)
     except Exception as e:
-        module_logger.error("ERROR {0}: ".format( e)+"in ssh.connect to host "+host) 
-        return ''
+        module_logger.error("ERROR {0}: ".format( e)+"in ssh.connect to host "+host)
+        raise e
+
     chan = ssh.get_transport().open_session()
     chan.get_pty()
     stdin = chan.makefile('wb')
@@ -550,5 +551,15 @@ if __name__ == '__main__':
     print (p )
     for host in p[0].hosts:
         for user in p[0].users:
-            print ('marconi-->'+get_server_command(host,user,'')+'<--')
+            print("################# "+ host + " ############")
+            try:
+                server_command =  get_server_command(host,user,'')
+                print(host + ' -->' + server_command + '<--')
+            except Exception as e:
+                import traceback
+                #print(exceptionformat.format(__name__, e,traceback.format_exc()))
+                traceback.print_exc()
+
+
+
 
