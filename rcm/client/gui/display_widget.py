@@ -10,6 +10,8 @@ from PyQt5.QtWidgets import QWidget, QFrame, QLabel, \
 # local includes
 from client.utils.pyinstaller_utils import resource_path
 from client.log.logger import logger
+from client.gui.thread import KillThread
+from client.utils.rcm_enum import Status
 
 
 class QDisplayWidget(QWidget):
@@ -48,6 +50,9 @@ class QDisplayWidget(QWidget):
         self.connect_ico = QIcon()
         self.kill_ico = QIcon()
         self.share_ico = QIcon()
+
+        # threads
+        self.kill_thread = None
 
         self.init_ui()
 
@@ -162,10 +167,17 @@ class QDisplayWidget(QWidget):
         :return:
         """
         try:
-            logger.debug("Killing remote display" + str(self.display_name))
-            self.parent.remote_connection_manager.kill(self.session)
+            logger.debug("Killing remote display " + str(self.display_name))
+
+            self.status_update(Status.KILLING)
+
+            self.kill_thread = KillThread(self.parent, self.session)
+            self.kill_thread.finished.connect(self.on_killed)
+            self.kill_thread.start()
         except:
             logger.error("Failed to kill remote display" + str(self.display_name))
+
+    def on_killed(self):
         self.terminate.emit(self.display_id)
 
     def time_update(self):
@@ -206,6 +218,10 @@ class QDisplayWidget(QWidget):
             self.connect_btn.setEnabled(True)
             self.share_btn.setEnabled(True)
             self.kill_btn.setEnabled(True)
+        if status is status.KILLING:
+            self.connect_btn.setEnabled(False)
+            self.share_btn.setEnabled(False)
+            self.kill_btn.setEnabled(False)
         if status is status.FINISHED:
             self.connect_btn.setEnabled(False)
             self.share_btn.setEnabled(False)

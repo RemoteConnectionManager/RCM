@@ -22,6 +22,16 @@ class LoginThread(QThread):
             self.session_widget.is_logged = False
 
 
+class KillThread(QThread):
+    def __init__(self, session_widget, session):
+        QThread.__init__(self)
+        self.session_widget = session_widget
+        self.session = session
+
+    def run(self):
+        self.session_widget.remote_connection_manager.kill(self.session)
+
+
 class ReloadThread(QThread):
     def __init__(self, session_widget):
         QThread.__init__(self)
