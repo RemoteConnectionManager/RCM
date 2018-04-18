@@ -8,7 +8,6 @@
 import os,sys,collections,subprocess,re
 
 
-
 class TraceHandler:
     def __init__(self):
         self.system_path={'bin':4, 'lib':4, 'etc':3, 'usr':2, 'home':1}
@@ -69,7 +68,8 @@ class TraceHandler:
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE,
                                       stdin=subprocess.PIPE,
-                                      shell=False)
+                                      shell=False,
+                                      universal_newlines=True)
         while True:
             nextline = self.process.stderr.readline()
             if nextline == '' and self.process.poll() is not None:
