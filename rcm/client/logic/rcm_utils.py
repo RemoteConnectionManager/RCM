@@ -460,36 +460,39 @@ class SessionThread( threading.Thread ):
                                        self.vnc_command.replace(self.password, "****") +
                                        "<-vncpass->" + self.vncpassword + "<--")
 
-                child = pexpect.spawn(self.vnc_command, timeout=50)
+                child = pexpect.spawn(self.vnc_command,
+                                      timeout=50)
                 self.vnc_process = child
 
                 i = child.expect(['continue connecting',
                                   'password',
                                   'standard VNC authentication',
-                                  pexpect.TIMEOUT,
-                                  pexpect.EOF])
+                                  pexpect.EOF],
+                                 timeout=None)
 
                 if i == 0:
                     child.sendline('yes')
                     i = child.expect(['continue connecting',
                                       'password',
                                       'standard VNC authentication',
-                                      pexpect.TIMEOUT,
-                                      pexpect.EOF])
+                                      pexpect.EOF],
+                                     timeout=None)
 
                 if i == 1:
                     child.sendline(self.password)
                     i = child.expect(['continue connecting',
                                       'password',
                                       'standard VNC authentication',
-                                      pexpect.TIMEOUT, pexpect.EOF])
+                                      pexpect.EOF],
+                                     timeout=None)
 
                 if i == 2:
                     # Standard VNC authentication
                     i = child.expect(['dummy0',
                                       'dummy1',
                                       'Password:',
-                                      pexpect.TIMEOUT, pexpect.EOF])
+                                      pexpect.EOF],
+                                     timeout=None)
                     child.sendline(self.vncpassword)
 
                 if i == 3 or i == 4:
@@ -497,8 +500,8 @@ class SessionThread( threading.Thread ):
                         module_logger.error("#REMOVE_FOR_JAVA#Timeout connecting to the display.")
 
                 i = child.expect(['Authentication successful',
-                                  pexpect.TIMEOUT,
-                                  pexpect.EOF])
+                                  pexpect.EOF],
+                                 timeout=None)
 
                 if i > 0:
                     if self.debug:
@@ -506,7 +509,8 @@ class SessionThread( threading.Thread ):
                     for line in child:
                         module_logger.debug("#REMOVE_FOR_JAVA#child expect-->" + str(line))
 
-                child.expect(pexpect.EOF, timeout=None)
+                child.expect(pexpect.EOF,
+                             timeout=None)
 
             self.vnc_process = None
 

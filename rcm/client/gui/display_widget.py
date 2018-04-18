@@ -123,7 +123,8 @@ class QDisplayWidget(QWidget):
     def connect_display(self):
         try:
             logger.info("Connecting to remote display " + str(self.display_name))
-            self.parent.remote_connection_manager.vncsession(self.session)
+            self.parent.remote_connection_manager.vncsession(self.session,
+                                                             gui_cmd=self.enable_connect_button)
         except:
             logger.error("Failed to connecting to remote display " + str(self.display_name))
 
@@ -177,6 +178,12 @@ class QDisplayWidget(QWidget):
             self.time.setText(str(self.timeleft))
             self.time.update()
 
+    def enable_connect_button(self, active):
+        if active:
+            self.connect_btn.setEnabled(False)
+        else:
+            self.connect_btn.setEnabled(True)
+
     def status_update(self, status):
         """
         Update the status of the job running on the server in the gui
@@ -186,7 +193,7 @@ class QDisplayWidget(QWidget):
         if status is status.PENDING:
             self.connect_btn.setEnabled(False)
             self.share_btn.setEnabled(False)
-            self.kill_btn.setEnabled(False)
+            self.kill_btn.setEnabled(True)
         if status is status.RUNNING:
             if self.session:
                 timeleft = str(self.session.hash['timeleft'])
