@@ -315,6 +315,8 @@ class MainWidget(QWidget):
             if widget.uuid == uuid:
                 if self.tabs.currentIndex() == self.tabs.count() - 2:
                     self.tabs.setCurrentIndex(tab_id - 1)
+                # kill all the pending threads
+                widget.remote_connection_manager.vncsession_kill()
                 self.tabs.removeTab(tab_id)
                 widget.setParent(None)
                 return
