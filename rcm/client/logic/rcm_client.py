@@ -328,10 +328,16 @@ class rcm_client_connection:
         st.start()
 
     def vncsession_kill(self):
-        if(self.debug): module_logger.debug( "here in vncsession_kill")
-        for t in self.session_thread:
-            t.terminate()
-            
+        module_logger.debug("here in vncsession_kill")
+        if self.session_thread:
+            for thread in self.session_thread:
+                thread.terminate()
+        self.session_thread = None
+
+    def __del__(self):
+        module_logger.debug("######## destructor")
+        self.vncsession_kill()
+
     def checkCredential(self):
         
         #check if RCM_PATH env variable is set
