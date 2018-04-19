@@ -52,9 +52,10 @@ class Worker(QRunnable):
                                                                  sessionname=self.display_id,
                                                                  vnc_id=self.session_vnc)
 
+        self.signals.status.emit(Status.RUNNING)
+
         self.display_widget.session = display_session
         self.remote_connection_manager.vncsession(display_session,
                                                   gui_cmd=self.display_widget.enable_connect_button)
 
-        self.signals.status.emit(Status.RUNNING)
         print("Thread complete")

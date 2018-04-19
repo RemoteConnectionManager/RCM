@@ -3,6 +3,7 @@ from enum import Enum
 
 
 class Status(Enum):
+    NOTDEFINED = "Not defined"
     PENDING = "pending"
     RUNNING = "valid"
     KILLING = "killing"

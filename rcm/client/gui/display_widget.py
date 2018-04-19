@@ -125,6 +125,8 @@ class QDisplayWidget(QWidget):
         separator.setFrameShadow(QFrame.Sunken)
         display_ver_layout.addWidget(separator)
 
+        self.status_update(Status(self.status))
+
     def connect_display(self):
         try:
             logger.info("Connecting to remote display " + str(self.display_name))
@@ -202,6 +204,10 @@ class QDisplayWidget(QWidget):
         and set the buttons enabled True/False accordingly
         :return:
         """
+        if status is status.NOTDEFINED:
+            self.connect_btn.setEnabled(False)
+            self.share_btn.setEnabled(False)
+            self.kill_btn.setEnabled(False)
         if status is status.PENDING:
             self.connect_btn.setEnabled(False)
             self.share_btn.setEnabled(False)
