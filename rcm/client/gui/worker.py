@@ -6,6 +6,7 @@ from PyQt5.QtCore import QRunnable, pyqtSlot, pyqtSignal, QObject
 
 # local includes
 from client.utils.rcm_enum import Status
+from client.log.logger import logger
 
 
 # Reference https://martinfitzpatrick.name/article/multithreading-pyqt-applications-with-qthreadpool/
@@ -44,7 +45,7 @@ class Worker(QRunnable):
 
     @pyqtSlot()
     def run(self):
-        print("Thread start")
+        logger.debug("Worker for display " + str(self.display_id) + " started")
         self.signals.status.emit(Status.PENDING)
 
         display_session = self.remote_connection_manager.newconn(queue=self.session_queue,
@@ -52,9 +53,10 @@ class Worker(QRunnable):
                                                                  sessionname=self.display_id,
                                                                  vnc_id=self.session_vnc)
 
+        self.signals.status.emit(Status.RUNNING)
+
         self.display_widget.session = display_session
         self.remote_connection_manager.vncsession(display_session,
                                                   gui_cmd=self.display_widget.enable_connect_button)
 
-        self.signals.status.emit(Status.RUNNING)
-        print("Thread complete")
+        logger.debug("Worker for display " + str(self.display_id) + " finished")

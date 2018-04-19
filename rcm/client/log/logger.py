@@ -3,7 +3,8 @@ import logging
 import json
 
 # pyqt5
-from PyQt5.QtGui import QTextCursor
+from PyQt5.QtCore import pyqtSignal, QObject
+
 
 # local import
 from client.log.config_parser import parser
@@ -41,32 +42,56 @@ class QLabelLoggerHandler(logging.Handler):
         pass
 
 
+class LoggerSignals(QObject):
+    """
+    Defines the signals available for thread-safe logging
+    Read here https://stackoverflow.com/questions/2104779/qobject-qplaintextedit-multithreading-issues
+    """
+
+    log_message = pyqtSignal(str)
+
+
 class QTextEditLoggerHandler(logging.Handler):
     """
     We redirect the log info messages to the log text edit of the main window
     """
 
     def __init__(self, text_edit):
+        """
+        Initialize the handler.
+        """
         super().__init__()
 
         self.setFormatter(logging.Formatter('%(asctime)-15s - %(levelname)s - %(message)s'))
         self.widget = text_edit
-        self.lock = False
+        self.logger_signals = LoggerSignals()
+        self.html_msg = ""
+
+    def flush(self):
+        """
+        Flushes the html message into the text edit widget using signal/slot
+        """
+        self.logger_signals.log_message.emit(self.html_msg)
 
     def emit(self, record):
-        msg = self.format(record)
+        """
+        Emit a record.
+        """
+        try:
+            msg = self.format(record)
 
-        if record.levelno == logging.ERROR or record.levelno == logging.CRITICAL:
-            html_msg = "<span style=\" font-size:10pt; font-weight:600; color:#ff0000;\" >"
-        elif record.levelno == logging.WARNING:
-            html_msg = "<span style=\" font-size:10pt; font-weight:600; color:#ff9900;\" >"
-        else:
-            html_msg = "<span style=\" font-size:10pt; font-weight:600; color:#000000;\" >"
-        html_msg += msg
-        html_msg += "</span>"
+            if record.levelno == logging.ERROR or record.levelno == logging.CRITICAL:
+                self.html_msg = "<span style=\" font-size:10pt; font-weight:600; color:#ff0000;\" >"
+            elif record.levelno == logging.WARNING:
+                self.html_msg = "<span style=\" font-size:10pt; font-weight:600; color:#ff9900;\" >"
+            else:
+                self.html_msg = "<span style=\" font-size:10pt; font-weight:600; color:#000000;\" >"
+            self.html_msg += str(msg)
+            self.html_msg += "</span>"
 
-        self.widget.moveCursor(QTextCursor.EndOfLine)
-        self.widget.appendHtml(html_msg)
+            self.flush()
+        except Exception:
+            self.handleError(record)
 
     def write(self, m):
         pass

@@ -321,7 +321,6 @@ class QSessionWidget(QWidget):
             self.containerLoginWidget.show()
             self.containerSessionWidget.hide()
             self.containerWaitingWidget.hide()
-            logger.error("Failed to login: invalid credentials")
 
     def add_new_display(self):
         # cannot have more than 5 sessions
@@ -350,7 +349,7 @@ class QSessionWidget(QWidget):
                         display_dlg.session_queue,
                         display_dlg.session_vnc,
                         display_dlg.display_size)
-        worker.signals.status.connect(display_widget.status_update)
+        worker.signals.status.connect(display_widget.update_gui)
         self.window().thread_pool.start(worker)
 
         logger.info("Added new display")

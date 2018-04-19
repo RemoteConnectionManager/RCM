@@ -125,6 +125,8 @@ class QDisplayWidget(QWidget):
         separator.setFrameShadow(QFrame.Sunken)
         display_ver_layout.addWidget(separator)
 
+        self.update_gui(Status(self.status))
+
     def connect_display(self):
         try:
             logger.info("Connecting to remote display " + str(self.display_name))
@@ -169,7 +171,7 @@ class QDisplayWidget(QWidget):
         try:
             logger.debug("Killing remote display " + str(self.display_name))
 
-            self.status_update(Status.KILLING)
+            self.update_gui(Status.KILLING)
 
             self.kill_thread = KillThread(self.parent, self.session)
             self.kill_thread.finished.connect(self.on_killed)
@@ -196,12 +198,18 @@ class QDisplayWidget(QWidget):
         else:
             self.connect_btn.setEnabled(True)
 
-    def status_update(self, status):
+    def update_gui(self, status):
         """
         Update the status of the job running on the server in the gui
         and set the buttons enabled True/False accordingly
         :return:
         """
+        logger.debug("updating display widget for status " + str(status))
+
+        if status is status.NOTDEFINED:
+            self.connect_btn.setEnabled(False)
+            self.share_btn.setEnabled(False)
+            self.kill_btn.setEnabled(True)
         if status is status.PENDING:
             self.connect_btn.setEnabled(False)
             self.share_btn.setEnabled(False)
@@ -230,3 +238,4 @@ class QDisplayWidget(QWidget):
         self.status = str(status)
         self.status_label.setText(str(status))
         self.status_label.update()
+

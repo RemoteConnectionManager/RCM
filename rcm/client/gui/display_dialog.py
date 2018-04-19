@@ -1,5 +1,8 @@
 # stdlib
-import uuid
+import collections
+import json
+import os
+import re
 
 # pyqt5
 from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
@@ -8,6 +11,7 @@ from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
 
 # local includes
 from client.log.logger import logger
+from client.log.config_parser import parser, config_file_name
 
 
 class QDisplayDialog(QDialog):
@@ -17,6 +21,7 @@ class QDisplayDialog(QDialog):
 
         self.display_name = ""
         self.display_names = display_names
+        self.display_size_list = collections.deque(maxlen=5)
 
         # current selections
         self.session_queue = None
@@ -44,6 +49,13 @@ class QDisplayDialog(QDialog):
         Initialize the interface
         :return:
         """
+
+        try:
+            display_size_list = parser.get('DisplaySizeField', 'displaysizelist')
+            self.display_size_list = collections.deque(json.loads(display_size_list), maxlen=5)
+        except Exception:
+            self.display_size_list.appendleft("full_screen")
+            self.display_size_list.appendleft("1024x968")
 
         # create the grid layout
         grid_layout = QGridLayout()
@@ -78,8 +90,8 @@ class QDisplayDialog(QDialog):
         display_label.setText('Display size:')
 
         self.display_combo = QComboBox(self)
-        self.display_combo.addItems(["1920x1080",
-                                     "full_screen"])
+        self.display_combo.setEditable(True)
+        self.display_combo.addItems(list(self.display_size_list))
 
         grid_layout.addWidget(display_label, 4, 0)
         grid_layout.addWidget(self.display_combo, 4, 1)
@@ -106,6 +118,26 @@ class QDisplayDialog(QDialog):
         dialog_layout.addLayout(hor_layout)
         self.setLayout(dialog_layout)
 
+    def update_config_file(self):
+        """
+        Update the config file with the display size list
+        :return:
+        """
+        if not parser.has_section('DisplaySizeField'):
+            parser.add_section('DisplaySizeField')
+
+        parser.set('DisplaySizeField', 'displaysizelist', json.dumps(list(self.display_size_list)))
+
+        try:
+            config_file_dir = os.path.dirname(config_file_name)
+            if not os.path.exists(config_file_dir):
+                os.makedirs(config_file_dir)
+
+            with open(config_file_name, 'w') as config_file:
+                parser.write(config_file)
+        except:
+            logger.error("failed to dump the display size list in the configuration file")
+
     def on_ok(self):
         """
         :return: Return accept signal if the display name is unique
@@ -114,9 +146,15 @@ class QDisplayDialog(QDialog):
         session_line = self.findChild(QLineEdit, 'session_line')
         display_name = str(session_line.text())
 
-        # if the display_name is empty, it is set to a random uuid
+        # if the display_name is empty, it is set to test
+        # if it is not empty we validate it using a regex
+        if not re.match(r'^[\w\_\s]{0,16}$', display_name):
+            logger.error("Invalid display name: only alphanumeric "
+                         "plus underscore plus space characters "
+                         "are allowed for a maximum of 16 characters")
+            return
         if display_name == "":
-            self.display_name = uuid.uuid4().hex
+            self.display_name = "test"
         else:
             self.display_name = display_name
 
@@ -129,6 +167,15 @@ class QDisplayDialog(QDialog):
         self.session_vnc = str(self.session_vnc_combo.currentText())
         self.display_size = str(self.display_combo.currentText())
 
+        # add a new display size if it's fine for us in the combobox for the next time
+        if self.display_size not in list(self.display_size_list):
+            if re.match(r'^\d{1,5}x\d{1,5}$', self.display_size):
+                self.display_size_list.appendleft(self.display_size)
+            else:
+                logger.error("Invalid display size")
+                return
+
+        # convert full screen in the format width x height
         if self.display_size == "full_screen":
             screen_width = QDesktopWidget().width()
             screen_height = QDesktopWidget().height()
@@ -138,4 +185,5 @@ class QDisplayDialog(QDialog):
                     "session vnc: " + self.session_vnc + "; " +
                     "display size: " + self.display_size + ";")
 
+        self.update_config_file()
         self.accept()

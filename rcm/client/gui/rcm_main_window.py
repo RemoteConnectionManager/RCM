@@ -3,7 +3,7 @@ import collections
 
 # pyqt5
 from PyQt5.QtCore import pyqtSlot, QThreadPool
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QTextCursor
 from PyQt5.QtWidgets import QMainWindow, QWidget, \
     QTabWidget, QVBoxLayout, QPushButton, \
     QDesktopWidget, QAction, QFileDialog, \
@@ -194,6 +194,7 @@ class MainWidget(QWidget):
 
         self.main_layout = QVBoxLayout(self)
         self.tabs = QTabWidget()
+        self.text_log_frame = None
 
         self.init_ui()
 
@@ -217,21 +218,27 @@ class MainWidget(QWidget):
         logger.debug("Added tabs to widget")
 
     # Add text log
-        text_log_frame = QPlainTextEdit(self)
-        text_log_frame.setFixedHeight(80)
-        self.main_layout.addWidget(text_log_frame)
+        self.text_log_frame = QPlainTextEdit(self)
+        self.text_log_frame.setFixedHeight(80)
+        self.main_layout.addWidget(self.text_log_frame)
 
     # configure logging
-        text_log_handler = QTextEditLoggerHandler(text_log_frame)
+        text_log_handler = QTextEditLoggerHandler(self.text_log_frame)
+        text_log_handler.logger_signals.log_message.connect(self.on_log)
         logger.addHandler(text_log_handler)
 
     # Set main layout
         self.setLayout(self.main_layout)
 
+    @pyqtSlot(str)
+    def on_log(self, html_msg):
+        self.text_log_frame.moveCursor(QTextCursor.EndOfLine)
+        self.text_log_frame.appendHtml(html_msg)
+
     @pyqtSlot()
     def on_change(self):
         """
-        Add a new "+" tab and substitute "+2" with "login" in the previous tab
+        Add a new "+" tab and substitute "+" with "login" in the previous tab
         if the last tab is selected
         :return:
         """
@@ -252,7 +259,7 @@ class MainWidget(QWidget):
     @pyqtSlot()
     def on_new(self):
         """
-        Add a new "+" tab and substitute "+2" with "login" in the previous tab
+        Add a new "+" tab and substitute "+" with "login" in the previous tab
         if the last tab button is pressed
         :return:
         """
@@ -327,3 +334,4 @@ class MainWidget(QWidget):
             widget = self.tabs.widget(tab_id)
             widget.session_combo.clear()
             widget.session_combo.addItems(sessions_list)
+            widget.session_combo.activated.emit(0)
