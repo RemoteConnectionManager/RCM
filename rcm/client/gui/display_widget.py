@@ -209,7 +209,7 @@ class QDisplayWidget(QWidget):
         if status is status.NOTDEFINED:
             self.connect_btn.setEnabled(False)
             self.share_btn.setEnabled(False)
-            self.kill_btn.setEnabled(False)
+            self.kill_btn.setEnabled(True)
         if status is status.PENDING:
             self.connect_btn.setEnabled(False)
             self.share_btn.setEnabled(False)
