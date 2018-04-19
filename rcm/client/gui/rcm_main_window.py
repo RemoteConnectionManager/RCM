@@ -231,7 +231,7 @@ class MainWidget(QWidget):
     @pyqtSlot()
     def on_change(self):
         """
-        Add a new "+" tab and substitute "+2" with "login" in the previous tab
+        Add a new "+" tab and substitute "+" with "login" in the previous tab
         if the last tab is selected
         :return:
         """
@@ -252,7 +252,7 @@ class MainWidget(QWidget):
     @pyqtSlot()
     def on_new(self):
         """
-        Add a new "+" tab and substitute "+2" with "login" in the previous tab
+        Add a new "+" tab and substitute "+" with "login" in the previous tab
         if the last tab button is pressed
         :return:
         """
@@ -327,3 +327,4 @@ class MainWidget(QWidget):
             widget = self.tabs.widget(tab_id)
             widget.session_combo.clear()
             widget.session_combo.addItems(sessions_list)
+            widget.session_combo.activated.emit(0)
