@@ -204,6 +204,8 @@ class QDisplayWidget(QWidget):
         and set the buttons enabled True/False accordingly
         :return:
         """
+        logger.debug("updating display widget for status " + str(status))
+
         if status is status.NOTDEFINED:
             self.connect_btn.setEnabled(False)
             self.share_btn.setEnabled(False)

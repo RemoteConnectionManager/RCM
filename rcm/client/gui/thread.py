@@ -1,6 +1,9 @@
 # pyqt5
 from PyQt5.QtCore import QThread
 
+# local includes
+from client.log.logger import logger
+
 
 class LoginThread(QThread):
     def __init__(self, session_widget, host, user, password):
@@ -18,8 +21,10 @@ class LoginThread(QThread):
                                                                       password=self.password)
             self.session_widget.platform_config = self.session_widget.remote_connection_manager.get_config()
             self.session_widget.is_logged = True
-        except:
+        except Exception as e:
             self.session_widget.is_logged = False
+            logger.error("Failed to login")
+            logger.error(e)
 
 
 class KillThread(QThread):

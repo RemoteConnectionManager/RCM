@@ -321,7 +321,6 @@ class QSessionWidget(QWidget):
             self.containerLoginWidget.show()
             self.containerSessionWidget.hide()
             self.containerWaitingWidget.hide()
-            logger.error("Failed to login: invalid credentials")
 
     def add_new_display(self):
         # cannot have more than 5 sessions
