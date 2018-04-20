@@ -222,7 +222,7 @@ class QDisplayWidget(QWidget):
                 self.timeleft = timedelta(hours=strp_time.hour,
                                           minutes=strp_time.minute,
                                           seconds=strp_time.second)
-            self.resources_label.setText(str(self.session.hash['node']))
+                self.resources_label.setText(str(self.session.hash['node']))
             self.connect_btn.setEnabled(True)
             self.share_btn.setEnabled(True)
             self.kill_btn.setEnabled(True)
