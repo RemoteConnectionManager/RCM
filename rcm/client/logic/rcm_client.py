@@ -1,23 +1,25 @@
 #!/bin/env python
 
+# std lib
 import sys
 import platform
 import os 
 import getpass
 import socket
-# import time
 import paramiko
-# import string
 
 if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
     import pexpect
 
+# local includes
+# in order to parse the pickle message coming from the server, we need to import rcm as below
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append( root_rcm_path)
-
-import server.rcm as rcm
+sys.path.append(root_rcm_path)
+sys.path.append(os.path.join(root_rcm_path, 'server'))
+import rcm
 import client.logic.rcm_utils as rcm_utils
 import client.logic.rcm_protocol_client as rcm_protocol_client
+from client.utils.pyinstaller_utils import resource_path
 
 import logging
 module_logger = logging.getLogger('RCM.client')
@@ -26,9 +28,10 @@ module_logger = logging.getLogger('RCM.client')
 class rcm_client_connection:
 
     def __init__(self,proxynode='login.plx.cineca.it', user_account='', remoteuser='',password='', pack_info=None):
-        self.debug=True
-        self.commandnode=''
-        self.protocol=rcm_protocol_client.get_protocol()
+        self.session_thread = []
+        self.debug = True
+        self.commandnode = ''
+        self.protocol = rcm_protocol_client.get_protocol()
         def mycall(command):
             return self.prex(command)
         self.protocol.mycall=mycall
@@ -50,30 +53,47 @@ class rcm_client_connection:
         self.config['vnc']['linux'] = ("vncviewer", "")
         self.config['ssh']['darwin']=("ssh","","")
         self.config['vnc']['darwin']=("vncviewer_java/Contents/MacOS/JavaApplicationStub","")
-
         self.config['remote_rcm_server']="module load rcm; python $RCM_HOME/bin/server/rcm_new_server.py"
-        #self.config['remote_rcm_server']="module load python; /om/home/cibo19/RCM_Dev/bin/server/rcm_server.py"
-        #finding out the basedir, it depends if we are running as executable pyinstaler or as script
-        self.sshexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['ssh'][sys.platform][0])
+
+        # ssh executable
+        self.sshexe = os.path.join(self.basedir,
+                                   "external",
+                                   sys.platform,
+                                   platform.architecture()[0],
+                                   "bin",
+                                   self.config['ssh'][sys.platform][0])
         self.activeConnectionsList = []
-        if os.path.exists(self.sshexe) :
-            self.ssh_command = self.config['ssh'][sys.platform][2] + self.sshexe + self.config['ssh'][sys.platform][1]
+        if os.path.exists(self.sshexe):
+            self.ssh_command = self.config['ssh'][sys.platform][2] + \
+                               self.sshexe + \
+                               self.config['ssh'][sys.platform][1]
         else:
             self.ssh_command = "ssh"
-        if(self.debug):
-             module_logger.debug( "ssh command1: "+ self.ssh_command)
-        vncexe=rcm_utils.which('vncviewer') 
-        if not vncexe :
-            vncexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['vnc'][sys.platform][0])
-        #vncexe = os.path.join(self.basedir,"external",sys.platform,platform.architecture()[0],"bin",self.config['vnc'][sys.platform][0])
+        module_logger.debug("ssh command1: "+ self.ssh_command)
+
+        # vnc viewer executable
+        if getattr(sys, 'frozen', False):
+            module_logger.debug("Running in a bundle")
+            # if running in a bundle, we hardcode the path of the built-in vnc viewer
+            os.environ['JAVA_HOME'] = resource_path('turbovnc')
+            os.environ['PATH'] = os.environ['JAVA_HOME'] + "/bin:" + os.environ['PATH']
+            module_logger.debug(os.environ['JAVA_HOME'])
+            module_logger.debug(os.environ['PATH'])
+
+        vncexe = rcm_utils.which('vncviewer')
+        if not vncexe:
+            vncexe = os.path.join(self.basedir,
+                                  "external",
+                                  sys.platform,
+                                  platform.architecture()[0],
+                                  "bin",
+                                  self.config['vnc'][sys.platform][0])
+
         if os.path.exists(vncexe):
-            self.vncexe=vncexe
+            self.vncexe = vncexe
         else:
-            if(self.debug): 
-                module_logger.debug( "VNC exec -->"+vncexe+"<-- NOT FOUND !!!")
-                name=raw_input("VNC exec -->"+vncexe+"<-- NOT FOUND !!!")
+            module_logger.error("VNC exec -->" + vncexe + "<-- NOT FOUND !!!")
             sys.exit()
-        self.session_thread=[]
 
     def login_setup(self, host='', remoteuser='', password=None):
         self.proxynode=host
