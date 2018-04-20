@@ -3,10 +3,13 @@
 block_cipher = None
 import os
 
+basepath = os.path.dirname(os.path.dirname(os.path.dirname(os.getcwd())))
+
 a = Analysis(['rcm_client_qt.py'],
-             pathex=[os.getcwd()],
+             pathex=[os.path.join(basepath, 'RCM/rcm/server')],
              binaries=[],
-             datas=[('gui/icons/*.png', 'gui/icons/')],
+             datas=[('gui/icons/*.png', 'gui/icons/'),
+                    (os.path.join(basepath, 'turbovnc'), 'turbovnc')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],

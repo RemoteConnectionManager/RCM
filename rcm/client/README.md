@@ -29,6 +29,9 @@ python RCM/rcm/client/rcm_client_qt.py
 ```
 
 #### Dist build
+In order to create the distribution, you need to install in the turbovnc folder at the same level of RCM
+the vncviewer with its dependecies.
+
 ```sh
 source py3env/bin/activate
 cd RCM/rcm/client
