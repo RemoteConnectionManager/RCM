@@ -35,5 +35,5 @@ the vncviewer with its dependecies.
 ```sh
 source py3env/bin/activate
 cd RCM/rcm/client
-pyinstaller rcm_client_qt.spec
+pyinstaller rcm_client_qt_onedir.spec
 ```
