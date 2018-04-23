@@ -2,7 +2,7 @@
 from datetime import timedelta, datetime
 
 # pyqt5
-from PyQt5.QtCore import pyqtSignal, QTimer
+from PyQt5.QtCore import pyqtSignal, QTimer, pyqtSlot
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QFrame, QLabel, \
     QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog
@@ -126,7 +126,7 @@ class QDisplaySessionWidget(QWidget):
         separator.setFrameShadow(QFrame.Sunken)
         display_ver_layout.addWidget(separator)
 
-        self.update_gui(self.status)
+        self.update_gui()
 
     def connect_display(self):
         try:
@@ -169,19 +169,26 @@ class QDisplaySessionWidget(QWidget):
         Kill the display running on the server
         :return:
         """
+        current_status = self.status
         try:
             logger.debug("Killing remote display " + str(self.display_name))
+            self.status = Status.KILLING
+            self.update_gui()
 
-            self.kill_thread = KillThread(self.parent, self.session, self)
+            self.kill_thread = KillThread(self.parent,
+                                          self.session,
+                                          self,
+                                          current_status)
             self.kill_thread.finished.connect(self.on_killed)
             self.kill_thread.start()
-
-            self.update_gui(Status.KILLING)
         except:
             logger.error("Failed to start kill remote display thread " + str(self.display_name))
+            self.status = current_status
+            self.update_gui()
 
     def on_killed(self):
-        if self.status.FINISHED:
+        self.update_gui()
+        if self.status is Status.FINISHED:
             self.terminate.emit(self.display_id)
 
     def time_update(self):
@@ -200,47 +207,75 @@ class QDisplaySessionWidget(QWidget):
         else:
             self.connect_btn.setEnabled(True)
 
-    def update_gui(self, status):
+    @pyqtSlot(Status)
+    def on_status_change(self, status):
+        self.status = status
+        self.update_gui()
+
+    def update_gui(self):
         """
         Update the status of the job running on the server in the gui
         and set the buttons enabled True/False accordingly
         :return:
         """
-        logger.debug("updating display widget for status " + str(status))
+        logger.debug("updating display widget for status " + str(self.status))
 
-        if status is status.NOTDEFINED:
-            self.connect_btn.setEnabled(False)
-            self.share_btn.setEnabled(False)
-            self.kill_btn.setEnabled(True)
-        if status is status.PENDING:
+        if self.status is Status.NOTDEFINED:
             self.connect_btn.setEnabled(False)
             self.share_btn.setEnabled(False)
             self.kill_btn.setEnabled(True)
             self.time.setText('Not defined')
             self.resources_label.setText('Not defined')
-        if status is status.RUNNING:
+
+        if self.status is Status.PENDING:
+            self.connect_btn.setEnabled(False)
+            self.share_btn.setEnabled(False)
+            self.kill_btn.setEnabled(True)
+            self.time.setText('Not defined')
+            self.resources_label.setText('Not defined')
+
+        if self.status is Status.RUNNING:
+            self.connect_btn.setEnabled(True)
+            self.share_btn.setEnabled(True)
+            self.kill_btn.setEnabled(True)
             if self.session:
                 timeleft = str(self.session.hash['timeleft'])
                 self.time.setText(timeleft)
+
                 strp_time = datetime.strptime(timeleft, "%H:%M:%S")
                 self.timeleft = timedelta(hours=strp_time.hour,
                                           minutes=strp_time.minute,
                                           seconds=strp_time.second)
                 self.resources_label.setText(str(self.session.hash['node']))
-            self.connect_btn.setEnabled(True)
-            self.share_btn.setEnabled(True)
-            self.kill_btn.setEnabled(True)
-        if status is status.KILLING:
+            else:
+                self.time.setText('Not defined')
+                self.resources_label.setText('Not defined')
+
+        if self.status is Status.KILLING:
             self.connect_btn.setEnabled(False)
             self.share_btn.setEnabled(False)
             self.kill_btn.setEnabled(False)
-        if status is status.FINISHED:
+            if self.session:
+                timeleft = str(self.session.hash['timeleft'])
+                self.time.setText(timeleft)
+
+                strp_time = datetime.strptime(timeleft, "%H:%M:%S")
+                self.timeleft = timedelta(hours=strp_time.hour,
+                                          minutes=strp_time.minute,
+                                          seconds=strp_time.second)
+                self.resources_label.setText(str(self.session.hash['node']))
+            else:
+                self.time.setText('Not defined')
+                self.resources_label.setText('Not defined')
+
+        if self.status is Status.FINISHED:
             self.connect_btn.setEnabled(False)
             self.share_btn.setEnabled(False)
             self.kill_btn.setEnabled(True)
+            self.time.setText('Not defined')
+            self.resources_label.setText('Not defined')
 
-        self.status = status
-        self.status_label.setText(str(status))
+        self.status_label.setText(str(self.status))
         self.status_label.update()
 
     def kill_all_threads(self):

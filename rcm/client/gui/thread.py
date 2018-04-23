@@ -29,17 +29,19 @@ class LoginThread(QThread):
 
 
 class KillThread(QThread):
-    def __init__(self, session_widget, session, display_widget):
+    def __init__(self, session_widget, session, display_widget, current_status):
         QThread.__init__(self)
         self.session_widget = session_widget
         self.session = session
         self.display_widget = display_widget
+        self.current_status = current_status
 
     def run(self):
         try:
             self.session_widget.remote_connection_manager.kill(self.session)
             self.display_widget.status = Status.FINISHED
         except Exception as e:
+            self.display_widget.status = self.current_status
             logger.error("Failed to kill the display session")
             logger.error(e)
 

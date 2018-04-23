@@ -372,7 +372,7 @@ class QSSHSessionWidget(QWidget):
                         display_dlg.session_queue,
                         display_dlg.session_vnc,
                         display_dlg.display_size)
-        worker.signals.status.connect(display_widget.update_gui)
+        worker.signals.status.connect(display_widget.on_status_change)
         self.window().thread_pool.start(worker)
 
         logger.info("Added new display")
@@ -450,6 +450,9 @@ class QSSHSessionWidget(QWidget):
 
                 if display_id in self.displays.keys():
                     logger.debug("Display " + display_id + " already exists")
+                    self.displays[display_id].session = session
+                    self.displays[display_id].status = Status(display_state)
+                    self.displays[display_id].update_gui()
                 else:
                     display_widget = QDisplaySessionWidget(parent=self,
                                                            display_id=display_id,
