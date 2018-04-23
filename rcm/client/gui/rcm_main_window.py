@@ -2,12 +2,12 @@
 import collections
 
 # pyqt5
-from PyQt5.QtCore import pyqtSlot, QThreadPool
+from PyQt5.QtCore import pyqtSlot, QThreadPool, Qt
 from PyQt5.QtGui import QIcon, QTextCursor
 from PyQt5.QtWidgets import QMainWindow, QWidget, \
     QTabWidget, QVBoxLayout, QPushButton, \
     QDesktopWidget, QAction, QFileDialog, \
-    QTabBar, QStyle, QPlainTextEdit, QMessageBox
+    QTabBar, QStyle, QPlainTextEdit, QMessageBox, QSplitter
 
 # local includes
 from client.gui.session_widget import QSessionWidget
@@ -35,8 +35,8 @@ class RCMMainWindow(QMainWindow):
                          (screen_height / 2) - (height / 2),
                          width, height)
 
-        self.setFixedHeight(height)
-        self.setFixedWidth(width)
+        self.setMinimumHeight(height)
+        self.setMinimumWidth(width)
 
         self.build_menu()
 
@@ -193,7 +193,7 @@ class MainWidget(QWidget):
         super(QWidget, self).__init__(parent)
 
         self.main_layout = QVBoxLayout(self)
-        self.tabs = QTabWidget()
+        self.tabs = QTabWidget(self)
         self.text_log_frame = None
 
         self.init_ui()
@@ -203,31 +203,29 @@ class MainWidget(QWidget):
         Initialize the interface
         """
 
-    # Initialize tab screen
-        self.tabs.resize(600, 200)
-        logger.debug("Initialized tab screen")
+        # layout the tab and textedit widgets inside the splitter
+        splitter = QSplitter(self)
+        splitter.setOrientation(Qt.Vertical)
 
-    # Add tabs
+        # Add tabs
         self.add_new_tab("Login...")
         self.add_new_tab("", False)
         self.tabs.currentChanged.connect(self.on_change)
-        logger.debug("Created tabs")
+        splitter.addWidget(self.tabs)
 
-    # Add tabs to widget
-        self.main_layout.addWidget(self.tabs)
-        logger.debug("Added tabs to widget")
-
-    # Add text log
+        # Add text log
         self.text_log_frame = QPlainTextEdit(self)
-        self.text_log_frame.setFixedHeight(80)
-        self.main_layout.addWidget(self.text_log_frame)
+        splitter.addWidget(self.text_log_frame)
 
-    # configure logging
+        # configure logging
         text_log_handler = QTextEditLoggerHandler(self.text_log_frame)
         text_log_handler.logger_signals.log_message.connect(self.on_log)
         logger.addHandler(text_log_handler)
 
-    # Set main layout
+        # add the splitter to the main layout
+        self.main_layout.addWidget(splitter)
+
+        # Set main layout
         self.setLayout(self.main_layout)
 
     @pyqtSlot(str)
