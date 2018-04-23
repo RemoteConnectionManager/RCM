@@ -462,11 +462,11 @@ class QSSHSessionWidget(QWidget):
                     self.displays[display_id] = display_widget
                     logger.debug("Created display " + display_id)
 
-            # Show the reload widget
-            self.containerLoginWidget.hide()
-            self.containerSessionWidget.show()
-            self.containerWaitingWidget.hide()
-            self.containerReloadWidget.hide()
+        # Show the reload widget
+        self.containerLoginWidget.hide()
+        self.containerSessionWidget.show()
+        self.containerWaitingWidget.hide()
+        self.containerReloadWidget.hide()
 
     def kill_all_threads(self):
         try:
