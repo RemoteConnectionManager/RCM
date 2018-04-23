@@ -321,7 +321,8 @@ class MainWidget(QWidget):
                 if self.tabs.currentIndex() == self.tabs.count() - 2:
                     self.tabs.setCurrentIndex(tab_id - 1)
                 # kill all the pending threads
-                widget.remote_connection_manager.vncsession_kill()
+                if widget.remote_connection_manager:
+                    widget.remote_connection_manager.vncsession_kill()
                 widget.kill_all_threads()
                 self.tabs.removeTab(tab_id)
                 widget.setParent(None)

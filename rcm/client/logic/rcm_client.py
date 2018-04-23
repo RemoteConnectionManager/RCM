@@ -348,11 +348,14 @@ class rcm_client_connection:
         st.start()
 
     def vncsession_kill(self):
-        module_logger.debug("here in vncsession_kill")
-        if self.session_thread:
-            for thread in self.session_thread:
-                thread.terminate()
-        self.session_thread = None
+        try:
+            module_logger.debug("here in vncsession_kill")
+            if self.session_thread:
+                for thread in self.session_thread:
+                    thread.terminate()
+            self.session_thread = None
+        except Exception as e:
+            module_logger.error(e)
 
     def __del__(self):
         module_logger.debug("######## destructor")
