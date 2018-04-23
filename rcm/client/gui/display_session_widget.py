@@ -216,6 +216,8 @@ class QDisplaySessionWidget(QWidget):
             self.connect_btn.setEnabled(False)
             self.share_btn.setEnabled(False)
             self.kill_btn.setEnabled(True)
+            self.time.setText('Not defined')
+            self.resources_label.setText('Not defined')
         if status is status.RUNNING:
             if self.session:
                 timeleft = str(self.session.hash['timeleft'])
