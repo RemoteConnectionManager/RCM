@@ -26,7 +26,7 @@ class QDisplayWidget(QWidget):
                  display_id,
                  display_name,
                  session=None,
-                 status="Not defined",
+                 status=Status.NOTDEFINED,
                  resources="Not defined",
                  timeleft=None):
         super().__init__(parent)
@@ -82,7 +82,7 @@ class QDisplayWidget(QWidget):
         display_hor_layout.addWidget(name)
 
         self.status_label = QLabel(self)
-        self.status_label.setText(self.status)
+        self.status_label.setText(str(self.status))
         display_hor_layout.addWidget(self.status_label)
 
         self.time = QLabel(self)
@@ -125,7 +125,7 @@ class QDisplayWidget(QWidget):
         separator.setFrameShadow(QFrame.Sunken)
         display_ver_layout.addWidget(separator)
 
-        self.update_gui(Status(self.status))
+        self.update_gui(self.status)
 
     def connect_display(self):
         try:
@@ -171,23 +171,24 @@ class QDisplayWidget(QWidget):
         try:
             logger.debug("Killing remote display " + str(self.display_name))
 
-            self.update_gui(Status.KILLING)
-
-            self.kill_thread = KillThread(self.parent, self.session)
+            self.kill_thread = KillThread(self.parent, self.session, self)
             self.kill_thread.finished.connect(self.on_killed)
             self.kill_thread.start()
+
+            self.update_gui(Status.KILLING)
         except:
-            logger.error("Failed to kill remote display" + str(self.display_name))
+            logger.error("Failed to start kill remote display thread " + str(self.display_name))
 
     def on_killed(self):
-        self.terminate.emit(self.display_id)
+        if self.status.FINISHED:
+            self.terminate.emit(self.display_id)
 
     def time_update(self):
         """
         Update the time left of the job running on the server in the gui
         :return:
         """
-        if self.status == "valid":
+        if self.status is Status.RUNNING:
             self.timeleft = self.timeleft - timedelta(seconds=1)
             self.time.setText(str(self.timeleft))
             self.time.update()
@@ -235,7 +236,7 @@ class QDisplayWidget(QWidget):
             self.share_btn.setEnabled(False)
             self.kill_btn.setEnabled(True)
 
-        self.status = str(status)
+        self.status = status
         self.status_label.setText(str(status))
         self.status_label.update()
 

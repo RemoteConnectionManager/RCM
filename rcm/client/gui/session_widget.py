@@ -20,6 +20,7 @@ from client.log.config_parser import parser, config_file_name
 from client.logic import rcm_client
 from client.gui.thread import LoginThread, ReloadThread
 from client.gui.worker import Worker
+from client.utils.rcm_enum import Status
 
 
 class QSessionWidget(QWidget):
@@ -432,7 +433,7 @@ class QSessionWidget(QWidget):
                                                     display_id=display_id,
                                                     display_name=display_name,
                                                     session=session,
-                                                    status=display_state,
+                                                    status=Status(display_state),
                                                     resources=display_node,
                                                     timeleft=display_timeleft)
                     self.rows_ver_layout.addWidget(display_widget)

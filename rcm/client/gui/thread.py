@@ -3,6 +3,7 @@ from PyQt5.QtCore import QThread
 
 # local includes
 from client.log.logger import logger
+from client.utils.rcm_enum import Status
 
 
 class LoginThread(QThread):
@@ -28,13 +29,19 @@ class LoginThread(QThread):
 
 
 class KillThread(QThread):
-    def __init__(self, session_widget, session):
+    def __init__(self, session_widget, session, display_widget):
         QThread.__init__(self)
         self.session_widget = session_widget
         self.session = session
+        self.display_widget = display_widget
 
     def run(self):
-        self.session_widget.remote_connection_manager.kill(self.session)
+        try:
+            self.session_widget.remote_connection_manager.kill(self.session)
+            self.display_widget.status = Status.FINISHED
+        except Exception as e:
+            logger.error("Failed to kill the display session")
+            logger.error(e)
 
 
 class ReloadThread(QThread):
@@ -43,4 +50,8 @@ class ReloadThread(QThread):
         self.session_widget = session_widget
 
     def run(self):
-        self.session_widget.display_sessions = self.session_widget.remote_connection_manager.list()
+        try:
+            self.session_widget.display_sessions = self.session_widget.remote_connection_manager.list()
+        except Exception as e:
+            logger.error("Failed to reload the display sessions")
+            logger.error(e)
