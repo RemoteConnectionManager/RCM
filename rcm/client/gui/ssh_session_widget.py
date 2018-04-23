@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
 
 # local includes
 from client.gui.display_dialog import QDisplayDialog
-from client.gui.display_widget import QDisplaySessionWidget
+from client.gui.display_session_widget import QDisplaySessionWidget
 from client.utils.pyinstaller_utils import resource_path
 from client.log.logger import logger
 from client.log.config_parser import parser, config_file_name
