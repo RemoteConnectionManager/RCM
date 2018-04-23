@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QMainWindow, QWidget, \
     QTabBar, QStyle, QPlainTextEdit, QMessageBox, QSplitter
 
 # local includes
-from client.gui.session_widget import QSessionWidget
+from client.gui.session_widget import QSSHSessionWidget
 from client.gui.edit_settings_dialog import QEditSettingsDialog
 from client.utils.pyinstaller_utils import resource_path
 from client.log.logger import QTextEditLoggerHandler, logger
@@ -281,7 +281,7 @@ class MainWidget(QWidget):
         :param show_close_btn: if true we add the close button
         :return:
         """
-        new_tab = QSessionWidget(self.tabs)
+        new_tab = QSSHSessionWidget(self.tabs)
         uuid = new_tab.uuid
         self.tabs.addTab(new_tab, session_name)
 

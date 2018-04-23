@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
 
 # local includes
 from client.gui.display_dialog import QDisplayDialog
-from client.gui.display_widget import QDisplayWidget
+from client.gui.display_widget import QDisplaySessionWidget
 from client.utils.pyinstaller_utils import resource_path
 from client.log.logger import logger
 from client.log.config_parser import parser, config_file_name
@@ -23,10 +23,10 @@ from client.gui.worker import Worker
 from client.utils.rcm_enum import Status
 
 
-class QSessionWidget(QWidget):
+class QSSHSessionWidget(QWidget):
     """
-    Create a new session widget to be put inside a tab in the main window
-    For each session we can have many displays
+    Create a new ssh session widget to be put inside a tab in the main window
+    For each ssh session we can have many display sessions
     """
 
     # define a signal when the user successful log in
@@ -338,9 +338,9 @@ class QSessionWidget(QWidget):
 
         display_name = display_dlg.display_name
         display_id = '-'.join((display_name, str(uuid.uuid4())))
-        display_widget = QDisplayWidget(self,
-                                        display_id=display_id,
-                                        display_name=display_name)
+        display_widget = QDisplaySessionWidget(self,
+                                               display_id=display_id,
+                                               display_name=display_name)
         self.rows_ver_layout.addWidget(display_widget)
         self.displays[display_id] = display_widget
 
@@ -429,13 +429,13 @@ class QSessionWidget(QWidget):
                 if display_id in self.displays.keys():
                     logger.debug("Display " + display_id + " already exists")
                 else:
-                    display_widget = QDisplayWidget(parent=self,
-                                                    display_id=display_id,
-                                                    display_name=display_name,
-                                                    session=session,
-                                                    status=Status(display_state),
-                                                    resources=display_node,
-                                                    timeleft=display_timeleft)
+                    display_widget = QDisplaySessionWidget(parent=self,
+                                                           display_id=display_id,
+                                                           display_name=display_name,
+                                                           session=session,
+                                                           status=Status(display_state),
+                                                           resources=display_node,
+                                                           timeleft=display_timeleft)
                     self.rows_ver_layout.addWidget(display_widget)
                     self.displays[display_id] = display_widget
                     logger.debug("Created display " + display_id)

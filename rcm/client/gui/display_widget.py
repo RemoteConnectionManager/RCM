@@ -14,9 +14,10 @@ from client.gui.thread import KillThread
 from client.utils.rcm_enum import Status
 
 
-class QDisplayWidget(QWidget):
+class QDisplaySessionWidget(QWidget):
     """
-    Create a new row (display widget) to be put inside the table shown in the session widget
+    Create a new row (display session widget) to be put inside
+    the table shown in the ssh session widget
     """
 
     terminate = pyqtSignal(str)
@@ -239,4 +240,3 @@ class QDisplayWidget(QWidget):
         self.status = status
         self.status_label.setText(str(status))
         self.status_label.update()
-
