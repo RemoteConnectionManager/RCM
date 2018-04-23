@@ -240,3 +240,9 @@ class QDisplaySessionWidget(QWidget):
         self.status = status
         self.status_label.setText(str(status))
         self.status_label.update()
+
+    def kill_all_threads(self):
+        if self.kill_thread:
+            if not self.kill_thread.isFinished():
+                logger.debug("killing kill display thread")
+                self.kill_thread.terminate()

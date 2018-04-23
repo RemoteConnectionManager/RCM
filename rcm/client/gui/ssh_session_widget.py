@@ -144,6 +144,7 @@ class QSSHSessionWidget(QWidget):
 
         first_hor_waiting_layout = QHBoxLayout()
         second_hor_waiting_layout = QHBoxLayout()
+        third_hor_waiting_layout = QHBoxLayout()
 
         connecting_label = QLabel(self)
         connecting_label.setText("Connecting...")
@@ -160,9 +161,19 @@ class QSSHSessionWidget(QWidget):
         second_hor_waiting_layout.addWidget(prog_bar)
         second_hor_waiting_layout.addStretch(0)
 
+        waiting_kill_btn = QPushButton(self)
+        waiting_kill_btn.setText('Cancel')
+        waiting_kill_btn.setToolTip('Kill the ssh login process')
+        waiting_kill_btn.clicked.connect(self.kill_login_thread)
+
+        third_hor_waiting_layout.addStretch(0)
+        third_hor_waiting_layout.addWidget(waiting_kill_btn)
+        third_hor_waiting_layout.addStretch(0)
+
         ver_waiting_layout.addStretch(0)
         ver_waiting_layout.addLayout(first_hor_waiting_layout)
         ver_waiting_layout.addLayout(second_hor_waiting_layout)
+        ver_waiting_layout.addLayout(third_hor_waiting_layout)
         ver_waiting_layout.addStretch(0)
 
         self.containerWaitingWidget.setLayout(ver_waiting_layout)
@@ -174,6 +185,7 @@ class QSSHSessionWidget(QWidget):
 
         first_hor_reload_layout = QHBoxLayout()
         second_hor_reload_layout = QHBoxLayout()
+        third_hor_reload_layout = QHBoxLayout()
 
         reload_label = QLabel(self)
         reload_label.setText("Reloading...")
@@ -190,9 +202,19 @@ class QSSHSessionWidget(QWidget):
         second_hor_reload_layout.addWidget(reload_prog_bar)
         second_hor_reload_layout.addStretch(0)
 
+        reload_btn = QPushButton(self)
+        reload_btn.setText('Cancel')
+        reload_btn.setToolTip('Kill the reload process')
+        reload_btn.clicked.connect(self.kill_reload_thread)
+
+        third_hor_reload_layout.addStretch(0)
+        third_hor_reload_layout.addWidget(reload_btn)
+        third_hor_reload_layout.addStretch(0)
+
         ver_reload_layout.addStretch(0)
         ver_reload_layout.addLayout(first_hor_reload_layout)
         ver_reload_layout.addLayout(second_hor_reload_layout)
+        ver_reload_layout.addLayout(third_hor_reload_layout)
         ver_reload_layout.addStretch(0)
 
         self.containerReloadWidget.setLayout(ver_reload_layout)
@@ -445,3 +467,26 @@ class QSSHSessionWidget(QWidget):
             self.containerSessionWidget.show()
             self.containerWaitingWidget.hide()
             self.containerReloadWidget.hide()
+
+    def kill_all_threads(self):
+        try:
+            self.kill_login_thread()
+            self.kill_reload_thread()
+
+            for display_session_id in self.displays.keys():
+                self.displays[display_session_id].kill_all_threads()
+        except Exception as e:
+            logger.error('Failed to kill running threads')
+            logger.error(e)
+
+    def kill_login_thread(self):
+        if self.login_thread:
+            if not self.login_thread.isFinished():
+                logger.debug("killing login thread")
+                self.login_thread.terminate()
+
+    def kill_reload_thread(self):
+        if self.reload_thread:
+            if not self.reload_thread.isFinished():
+                logger.debug("killing reload thread")
+                self.reload_thread.terminate()
