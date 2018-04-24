@@ -37,3 +37,19 @@ source py3env/bin/activate
 cd RCM/rcm/client
 pyinstaller rcm_client_qt_onedir.spec
 ```
+
+### Windows
+
+#### Setup
+
+Download and install Python3.5 or higher with pip3 (https://www.python.org/downloads/).
+Clone the repository with a git client. Then install the virtualenv package,
+create a new virtual environment, activate it and install there the dependencies. 
+
+```sh
+pip3.exe install virtualenv
+cd <base_dir>
+<python_install_dir>\Scripts\virtualenv py3env
+py3env\Scripts\activate
+pip3 install -r RCM\rcm\client\requirements.txt
+```
