@@ -53,11 +53,13 @@ def which(*args, **kwargs):
     for name in args:
         for directory in path:
             exe = os.path.join(directory, name)
-            if os.path.isfile(exe) and os.access(exe, os.X_OK):
-                return exe
-
-    if required:
-        tty.die("spack requires '%s'. Make sure it is in your path." % args[0])
+            if sys.platform == 'win32':
+                exe = exe + '.exe'
+                if os.path.isfile(exe):
+                    return exe
+            else:
+                if os.path.isfile(exe) and os.access(exe, os.X_OK):
+                    return exe
 
     return None
 
