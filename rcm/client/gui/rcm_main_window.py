@@ -281,7 +281,7 @@ class MainWidget(QWidget):
         :param show_close_btn: if true we add the close button
         :return:
         """
-        new_tab = QSSHSessionWidget(self.tabs)
+        new_tab = QSSHSessionWidget(self)
         uuid = new_tab.uuid
         self.tabs.addTab(new_tab, session_name)
 

@@ -56,6 +56,7 @@ class QSSHSessionWidget(QWidget):
         self.host_line = QLineEdit(self)
         self.user_line = QLineEdit(self)
         self.pssw_line = QLineEdit(self)
+        self.login_button = None
 
         # containers
         self.containerLoginWidget = QWidget()
@@ -118,13 +119,13 @@ class QSSHSessionWidget(QWidget):
         grid_login_layout.addWidget(self.pssw_line, 3, 1)
 
     # hor login layout
-        pybutton = QPushButton('Login', self)
-        pybutton.clicked.connect(self.login)
-        pybutton.setShortcut("Return")
+        self.login_button = QPushButton('Login', self)
+        self.login_button.clicked.connect(self.login)
+        self.login_button.setShortcut("Return")
 
         login_hor_layout = QHBoxLayout()
         login_hor_layout.addStretch(1)
-        login_hor_layout.addWidget(pybutton)
+        login_hor_layout.addWidget(self.login_button)
         login_hor_layout.addStretch(1)
 
     # container login widget
@@ -304,17 +305,17 @@ class QSSHSessionWidget(QWidget):
 
         logger.info("Logging into " + self.session_name)
 
+        # Show the waiting widget
+        self.containerLoginWidget.hide()
+        self.containerSessionWidget.hide()
+        self.containerWaitingWidget.show()
+
         self.remote_connection_manager = rcm_client.rcm_client_connection()
         self.remote_connection_manager.debug = False
 
         self.login_thread = LoginThread(self, self.host, self.user, password)
         self.login_thread.finished.connect(self.on_logged)
         self.login_thread.start()
-
-        # Show the waiting widget
-        self.containerLoginWidget.hide()
-        self.containerSessionWidget.hide()
-        self.containerWaitingWidget.show()
 
     def on_logged(self):
         if self.is_logged:
@@ -328,8 +329,9 @@ class QSSHSessionWidget(QWidget):
             # update sessions list
             if self.session_name in list(self.sessions_list):
                 self.sessions_list.remove(self.session_name)
-            self.sessions_list.appendleft(self.session_name)
-            self.sessions_changed.emit(self.sessions_list)
+            if self.session_name:
+                self.sessions_list.appendleft(self.session_name)
+                self.sessions_changed.emit(self.sessions_list)
 
             # update config file
             self.update_config_file(self.session_name)
