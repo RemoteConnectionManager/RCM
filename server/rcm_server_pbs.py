@@ -45,7 +45,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
   
  def cprex(self,cmd): 
     logger = logging.getLogger("basic")    
-    logger.debug("cprex")
+    logger.debug("cprex cmd="+str(cmd))
     (r,o,e)=self.prex(cmd)
     if (r != 0):
       print e
