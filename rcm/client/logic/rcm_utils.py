@@ -378,8 +378,13 @@ class SessionThread( threading.Thread ):
             commandlist.append(self.configFile)
             if(self.debug):
                 module_logger.debug('This is thread ' + str ( self.threadnum ) + ' CONFIGFILE, executing-->'+' '.join(commandlist)+ "<--")
-            self.vnc_process=subprocess.Popen(commandlist , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False
-            )
+            self.vnc_process = subprocess.Popen(commandlist,
+                                                bufsize=1,
+                                                stdout=subprocess.PIPE,
+                                                stderr=subprocess.PIPE,
+                                                stdin=subprocess.PIPE,
+                                                shell=False,
+                                                universal_newlines=True)
             self.vnc_process.wait()
             self.vnc_process=None
 
@@ -388,7 +393,13 @@ class SessionThread( threading.Thread ):
 
                 if(self.tunnel_command != ''):
                     if(self.debug):  module_logger.debug('This is thread ' + str ( self.threadnum ) + "executing-->" + self.tunnel_command.replace(self.password,"****") + "<--")
-                    self.tunnel_process=subprocess.Popen(self.tunnel_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
+                    self.tunnel_process = subprocess.Popen(self.tunnel_command ,
+                                                           bufsize=1,
+                                                           stdout=subprocess.PIPE,
+                                                           stderr=subprocess.PIPE,
+                                                           stdin=subprocess.PIPE,
+                                                           shell=True,
+                                                           universal_newlines=True)
                     self.tunnel_process.stdin.close()
                     while True:
                         o = self.tunnel_process.stdout.readline()
@@ -412,8 +423,13 @@ class SessionThread( threading.Thread ):
                 if(self.debug):
                     module_logger.debug("vncviewer command-->"+str(commandlist)+"<--")
 
-                #self.vnc_process=subprocess.Popen(self.vnc_command , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=True)
-                self.vnc_process=subprocess.Popen(commandlist , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False)
+                self.vnc_process = subprocess.Popen(commandlist,
+                                                    bufsize=1,
+                                                    stdout=subprocess.PIPE,
+                                                    stderr=subprocess.PIPE,
+                                                    stdin=subprocess.PIPE,
+                                                    shell=False,
+                                                    universal_newlines=True)
                 if(tmppass):
                     self.vnc_process.stdin.write(tmppass)
                     o=self.vnc_process.communicate()
@@ -447,9 +463,14 @@ class SessionThread( threading.Thread ):
                         if(self.gui_cmd): self.gui_cmd(active=False)
                         raise Exception("Timeout connecting to the display.")
 
-
                 commandlist=self.vnc_command.split()
-                self.vnc_process=subprocess.Popen(commandlist , bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, shell=False)
+                self.vnc_process = subprocess.Popen(commandlist,
+                                                    bufsize=1,
+                                                    stdout=subprocess.PIPE,
+                                                    stderr=subprocess.PIPE,
+                                                    stdin=subprocess.PIPE,
+                                                    shell=False,
+                                                    universal_newlines=True)
                 if(self.vnc_process): self.vnc_process.stdin.close()
                 if(self.vnc_process): self.vnc_process.wait()
                 self.vnc_process=None

@@ -2,21 +2,37 @@
 
 block_cipher = None
 import os
+import sys
 
 basepath = os.path.dirname(os.path.dirname(os.path.dirname(os.getcwd())))
 
-a = Analysis(['rcm_client_qt.py'],
-             pathex=[os.path.join(basepath, 'RCM/rcm/server')],
-             binaries=[],
-             datas=[('gui/icons/*.png', 'gui/icons/'),
-                    (os.path.join(basepath, 'turbovnc'), 'turbovnc')],
-             hiddenimports=[],
-             hookspath=[],
-             runtime_hooks=[],
-             excludes=[],
-             win_no_prefer_redirects=False,
-             win_private_assemblies=False,
-             cipher=block_cipher)
+if sys.platform == 'win32':
+    a = Analysis(['rcm_client_qt.py'],
+                 pathex=[os.path.join(basepath, 'RCM/rcm/server')],
+                 binaries=[],
+                 datas=[('gui/icons/*.png', 'gui/icons/'),
+                        (os.path.join('C:\Program Files (x86)', 'TurboVNC', 'vncviewer.exe'), 'turbovnc'),
+                        (os.path.join('C:\Program Files (x86)', 'PuTTY', 'plink.exe'), 'putty')],
+                 hiddenimports=[],
+                 hookspath=[],
+                 runtime_hooks=[],
+                 excludes=[],
+                 win_no_prefer_redirects=False,
+                 win_private_assemblies=False,
+                 cipher=block_cipher)
+else:
+    a = Analysis(['rcm_client_qt.py'],
+                 pathex=[os.path.join(basepath, 'RCM/rcm/server')],
+                 binaries=[],
+                 datas=[('gui/icons/*.png', 'gui/icons/'),
+                        (os.path.join(basepath, 'turbovnc'), 'turbovnc')],
+                 hiddenimports=[],
+                 hookspath=[],
+                 runtime_hooks=[],
+                 excludes=[],
+                 win_no_prefer_redirects=False,
+                 win_private_assemblies=False,
+                 cipher=block_cipher)
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
