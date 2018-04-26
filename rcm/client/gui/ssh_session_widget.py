@@ -303,8 +303,16 @@ class QSSHSessionWidget(QWidget):
         self.user = str(self.user_line.text())
         self.host = str(self.host_line.text())
         password = str(self.pssw_line.text())
-        self.session_name = self.user + "@" + self.host
 
+        if not self.host:
+            logger.warning("Host field is empty")
+            return
+
+        if not self.user:
+            logger.warning("User field is empty")
+            return
+
+        self.session_name = self.user + "@" + self.host
         logger.info("Logging into " + self.session_name)
 
         # Show the waiting widget
