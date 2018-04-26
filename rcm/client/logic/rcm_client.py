@@ -56,20 +56,25 @@ class rcm_client_connection:
         self.config['remote_rcm_server']="module load rcm; python $RCM_HOME/bin/server/rcm_new_server.py"
 
         # ssh executable
-        self.sshexe = os.path.join(self.basedir,
-                                   "external",
-                                   sys.platform,
-                                   platform.architecture()[0],
-                                   "bin",
-                                   self.config['ssh'][sys.platform][0])
+        sshexe = rcm_utils.which('PLINK')
+        if not sshexe:
+            sshexe = os.path.join(self.basedir,
+                                  "external",
+                                  sys.platform,
+                                  platform.architecture()[0],
+                                  "bin",
+                                  self.config['ssh'][sys.platform][0])
         self.activeConnectionsList = []
-        if os.path.exists(self.sshexe):
+        if os.path.exists(sshexe):
+            if sys.platform == 'win32':
+                # if the executable path contains spaces, it has to be put inside apexes
+                sshexe = "\"" + sshexe + "\""
             self.ssh_command = self.config['ssh'][sys.platform][2] + \
-                               self.sshexe + \
+                               sshexe + \
                                self.config['ssh'][sys.platform][1]
         else:
             self.ssh_command = "ssh"
-        module_logger.debug("ssh command1: "+ self.ssh_command)
+        module_logger.debug("ssh command1: " + self.ssh_command)
 
         # vnc viewer executable
         if getattr(sys, 'frozen', False):
@@ -90,6 +95,9 @@ class rcm_client_connection:
                                   self.config['vnc'][sys.platform][0])
 
         if os.path.exists(vncexe):
+            if sys.platform == 'win32':
+                # if the executable path contains spaces, it has to be put inside apexes
+                vncexe = "\"" + vncexe + "\""
             self.vncexe = vncexe
         else:
             module_logger.error("VNC exec -->" + vncexe + "<-- NOT FOUND !!!")
@@ -297,25 +305,19 @@ class rcm_client_connection:
             rcm_cipher = rcm_utils.rcm_cipher()
             vncpassword_decrypted=rcm_cipher.decrypt(vncpassword)
 
-            if(self.debug):
-                module_logger.debug( "portnumber --> "+ str(portnumber) +" node --> " + str(node) + " nodelogin --> " + str(nodelogin)+ " tunnel --> "+str(tunnel))
+            module_logger.debug("portnumber --> " + str(portnumber) + " node --> " + str(node) + " nodelogin --> "
+                                + str(nodelogin) + " tunnel --> " + str(tunnel))
 
-
-            if sys.platform.startswith('darwin') :
+            if sys.platform.startswith('darwin'):
                 vnc_command = self.vncexe + " -quality 80 -subsampling 2X" + " -password " + vncpassword_decrypted
                 vnc_command += " -loglevel "+str(rcm_utils.vnc_loglevel)
-            elif(sys.platform == 'win32'):
-            #    vnc_command = self.vncexe + " -medqual " + "-password " + vncpassword_decrypted
-                #vnc_command = "echo "+ vncpassword_decrypted+ " | " + self.vncexe + " -medqual " + "-autopass -nounixlogin"
-                vnc_command = "echo "+ vncpassword_decrypted+ " | " + self.vncexe + "-autopass -nounixlogin"
-                vnc_command += " -logfile "+os.path.join(rcm_utils.log_folder(),'vncviewer_'+nodelogin+'_'+session.hash.get('sessionid','')+'.log')
+            elif sys.platform == 'win32':
+                vnc_command = "echo " + vncpassword_decrypted + " | " + self.vncexe + " -autopass -nounixlogin"
+                vnc_command += " -logfile " + os.path.join(rcm_utils.log_folder(), 'vncviewer_' + nodelogin + '_' +
+                                                           session.hash.get('sessionid', '') + '.log')
                 vnc_command += " -loglevel "+str(rcm_utils.vnc_loglevel)
             else:
-                #vnc_command = self.vncexe + " -medqual "
                 vnc_command = self.vncexe + " -quality 80 " + " -password " + vncpassword_decrypted
-                #vnc_command += " -logfile "+os.path.join(rcm_utils.log_folder(),'vncviewer_'+nodelogin+'_'+session.hash.get('sessionid','')+'.log')
-
-
 
             if(sys.platform == 'win32' or sys.platform.startswith('darwin')):
                 if (tunnel == 'y'):
@@ -337,13 +339,12 @@ class rcm_client_connection:
 
             vnc_command = self.vncexe + " -config "
 
-                
-        
-        if(self.debug): module_logger.info( "tunnel->"+tunnel_command.replace(self.passwd,"****")+"< vnc->"+vnc_command+"< conffile->"+str(configFile)+"<")
+        module_logger.debug("tunnel->" + tunnel_command.replace(self.passwd, "****") +
+                            "< vnc->" + vnc_command + "< conffile->" + str(configFile) + "<")
 
-        st=rcm_utils.SessionThread ( tunnel_command, vnc_command, self.passwd, vncpassword_decrypted,  otp, gui_cmd, configFile, self.debug)
+        st=rcm_utils.SessionThread(tunnel_command, vnc_command, self.passwd, vncpassword_decrypted,  otp, gui_cmd, configFile, self.debug)
 
-        if(self.debug): module_logger.debug( "!!!!!session  thread--->"+str(st)+"<- num thread:"+str(len(self.session_thread)))
+        module_logger.debug( "!!!!!session  thread--->"+str(st)+"<- num thread:"+str(len(self.session_thread)))
         self.session_thread.append(st)
         st.start()
 
