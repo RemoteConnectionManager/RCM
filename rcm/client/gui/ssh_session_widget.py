@@ -5,7 +5,7 @@ import os.path
 import collections
 
 # pyqt5
-from PyQt5.QtCore import QSize, pyqtSignal
+from PyQt5.QtCore import QSize, pyqtSignal, Qt
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
     QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, \
@@ -157,6 +157,7 @@ class QSSHSessionWidget(QWidget):
         prog_bar = QProgressBar(self)
         prog_bar.setMinimum(0)
         prog_bar.setMaximum(0)
+        prog_bar.setAlignment(Qt.AlignCenter)
 
         second_hor_waiting_layout.addStretch(0)
         second_hor_waiting_layout.addWidget(prog_bar)
@@ -198,6 +199,7 @@ class QSSHSessionWidget(QWidget):
         reload_prog_bar = QProgressBar(self)
         reload_prog_bar.setMinimum(0)
         reload_prog_bar.setMaximum(0)
+        reload_prog_bar.setAlignment(Qt.AlignCenter)
 
         second_hor_reload_layout.addStretch(0)
         second_hor_reload_layout.addWidget(reload_prog_bar)
