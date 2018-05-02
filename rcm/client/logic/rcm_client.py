@@ -55,53 +55,50 @@ class rcm_client_connection:
         self.config['vnc']['darwin']=("vncviewer_java/Contents/MacOS/JavaApplicationStub","")
         self.config['remote_rcm_server']="module load rcm; python $RCM_HOME/bin/server/rcm_new_server.py"
 
-        # ssh executable
-        sshexe = rcm_utils.which('PLINK')
-        if not sshexe:
-            sshexe = os.path.join(self.basedir,
-                                  "external",
-                                  sys.platform,
-                                  platform.architecture()[0],
-                                  "bin",
-                                  self.config['ssh'][sys.platform][0])
         self.activeConnectionsList = []
-        if os.path.exists(sshexe):
-            if sys.platform == 'win32':
-                # if the executable path contains spaces, it has to be put inside apexes
-                sshexe = "\"" + sshexe + "\""
-            self.ssh_command = self.config['ssh'][sys.platform][2] + \
-                               sshexe + \
-                               self.config['ssh'][sys.platform][1]
-        else:
-            self.ssh_command = "ssh"
-        module_logger.debug("ssh command1: " + self.ssh_command)
 
-        # vnc viewer executable
+        # set the environment
         if getattr(sys, 'frozen', False):
             module_logger.debug("Running in a bundle")
-            # if running in a bundle, we hardcode the path of the built-in vnc viewer
+            # if running in a bundle, we hardcode the path
+            # of the built-in vnc viewer and plink (windows only)
             os.environ['JAVA_HOME'] = resource_path('turbovnc')
-            os.environ['PATH'] = os.environ['JAVA_HOME'] + "/bin:" + os.environ['PATH']
+            if sys.platform == 'win32':
+                os.environ['PATH'] = os.environ['JAVA_HOME'] + ";" + os.environ['PATH']
+                os.environ['PATH'] = resource_path('putty') + ";" + os.environ['PATH']
+            else:
+                os.environ['PATH'] = os.environ['JAVA_HOME'] + "/bin:" + os.environ['PATH']
             module_logger.debug(os.environ['JAVA_HOME'])
             module_logger.debug(os.environ['PATH'])
 
+        # ssh executable
+        if sys.platform == 'win32':
+            sshexe = rcm_utils.which('PLINK')
+        else:
+            sshexe = rcm_utils.which('ssh')
+        if not sshexe:
+            if sys.platform == 'win32':
+                module_logger.error("plink.exe not found! Check the PATH environment variable.")
+            else:
+                module_logger.error("ssh not found!")
+            sys.exit()
+        if sys.platform == 'win32':
+            # if the executable path contains spaces, it has to be put inside apexes
+            sshexe = "\"" + sshexe + "\""
+        self.ssh_command = self.config['ssh'][sys.platform][2] + \
+                           sshexe + \
+                           self.config['ssh'][sys.platform][1]
+        module_logger.debug("ssh command: " + self.ssh_command)
+
         vncexe = rcm_utils.which('vncviewer')
         if not vncexe:
-            vncexe = os.path.join(self.basedir,
-                                  "external",
-                                  sys.platform,
-                                  platform.architecture()[0],
-                                  "bin",
-                                  self.config['vnc'][sys.platform][0])
-
-        if os.path.exists(vncexe):
-            if sys.platform == 'win32':
-                # if the executable path contains spaces, it has to be put inside apexes
-                vncexe = "\"" + vncexe + "\""
-            self.vncexe = vncexe
-        else:
-            module_logger.error("VNC exec -->" + vncexe + "<-- NOT FOUND !!!")
+            module_logger.error("vncviewer not found! Check the PATH environment variable.")
             sys.exit()
+        if sys.platform == 'win32':
+            # if the executable path contains spaces, it has to be put inside apexes
+            vncexe = "\"" + vncexe + "\""
+        self.vncexe = vncexe
+        module_logger.debug("vncviewer path: " + self.vncexe)
 
     def login_setup(self, host='', remoteuser='', password=None):
         self.proxynode=host
