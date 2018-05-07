@@ -1,5 +1,5 @@
 #!/bin/env python
-
+# python imports
 import os
 import string
 import random
@@ -8,14 +8,11 @@ import sys
 import subprocess
 
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append( root_rcm_path)
-
+sys.path.append(root_rcm_path)
 import client.logic.d3des as d3des
-
 import logging
 import logging.handlers
 module_logger = logging.getLogger('RCM.utils')
-
 if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
     import pexpect
 
@@ -24,8 +21,9 @@ rootLogger.setLevel(logging.INFO)
 consoleHandler = logging.StreamHandler()
 rootLogger.addHandler(consoleHandler)
 
-exceptionformat=" {1}"
-vnc_loglevel=0
+exceptionformat = " {1}"
+vnc_loglevel = 0
+
 
 def which(*args, **kwargs):
     """Finds an executable in the path like command-line which.
@@ -64,22 +62,25 @@ def which(*args, **kwargs):
     return None
 
 
-def configure_logging(verbose=0,vnclv=0):
-
-    ### parsing argument
+def configure_logging(verbose=0, vnclv=0):
     import argparse
     parser = argparse.ArgumentParser(description='RCM client.')
-    parser.add_argument('-d','--debug',default=verbose,type=int,
-                   help='define %(prog)s verbosity')
-    parser.add_argument('-l','--vncloglev',default=vnclv,type=int,
-                   help='pass  this to vnc loglevel')
-    p=parser.parse_known_args()[0]
-    verbose=p.debug
-#    rootLogger = logging.getLogger()
+    parser.add_argument('-d',
+                        '--debug',
+                        default=verbose,
+                        type=int,
+                        help='define %(prog)s verbosity')
+    parser.add_argument('-l',
+                        '--vncloglev',
+                        default=vnclv,
+                        type=int,
+                        help='pass  this to vnc loglevel')
+    p = parser.parse_known_args()[0]
+    verbose = p.debug
     global vnc_loglevel
-    vnc_loglevel=p.vncloglev
-    module_logger.error( "setting verbosity to: "+str(verbose))
-    logf=log_folder()
+    vnc_loglevel = p.vncloglev
+    module_logger.error("setting verbosity to: " + str(verbose))
+    logf = log_folder()
     try: 
         os.makedirs(logf)
     except OSError:
@@ -93,63 +94,65 @@ def configure_logging(verbose=0,vnclv=0):
         except OSError:
             print(("failed to remove "+file_path))
     os.chdir(logf)
-    module_logger.error( "log file folder: "+logf)
+    module_logger.error("log file folder: " + logf)
     consoleFormatter = logging.Formatter('%(threadName)-12.12s: [%(filename)-30.30s %(lineno)-4d]-->%(message)s')
-#    consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(consoleFormatter)
-    if( verbose > 0):
+
+    if verbose > 0:
         module_logger.setLevel(logging.DEBUG)
         logging.getLogger('paramiko').setLevel(logging.DEBUG)
-        if( verbose > 2):
+
+        if verbose > 2:
             logging.getLogger('paramiko.transport').setLevel(logging.DEBUG)
         else:
             logging.getLogger('paramiko.transport').setLevel(logging.INFO)
-        rcmLogger=logging.getLogger('RCM')
+
+        rcmLogger = logging.getLogger('RCM')
         rcmLogger.setLevel(logging.DEBUG)
-        if( verbose > 2):
+
+        if verbose > 2:
             logging.getLogger('RCM.protocol').setLevel(logging.DEBUG)
         else:
             logging.getLogger('RCM.protocol').setLevel(logging.INFO)
         
-        rotatehandler = logging.handlers.RotatingFileHandler(
-                        os.path.join(log_folder(),'rcm_logfile.txt'), maxBytes=100000, backupCount=5)
+        rotatehandler = logging.handlers.RotatingFileHandler(os.path.join(log_folder(), 'rcm_logfile.txt'),
+                                                             maxBytes=100000,
+                                                             backupCount=5)
         logFormatter = logging.Formatter('%(asctime)s [%(levelname)s:%(name)s] [%(threadName)-12.12s] [%(filename)s:%(funcName)s:%(lineno)d]-->%(message)s')
         rotatehandler.setFormatter(logFormatter)
-                
-        if( verbose > 2):
+
+        if verbose > 2:
             consoleHandler.setLevel(logging.DEBUG)
         else:
             consoleHandler.setLevel(logging.INFO)
-        if( verbose > 1):
+        if verbose > 1:
             consoleHandler.setFormatter(logFormatter)
             
         rootLogger.addHandler(rotatehandler) 
  
         rootLogger.removeHandler(consoleHandler)
         rcmLogger.addHandler(consoleHandler)
-        if( verbose > 2): 
+        if verbose > 2:
             rootLogger.addHandler(consoleHandler)
             rcmLogger.removeHandler(consoleHandler)
         
-        exceptionformat="in {0}: {1}\n{2}"
-        
+        exceptionformat = "in {0}: {1}\n{2}"
     else:
         logging.getLogger('paramiko').setLevel(logging.ERROR)
         logging.getLogger('RCM').setLevel(logging.ERROR)
-        
-        exceptionformat="in {0}: {1}"
+        exceptionformat = "in {0}: {1}"
 
 
-#   rootLogger.addHandler(consoleHandler)
+def client_folder():
+    return os.path.join(os.path.expanduser('~'), '.rcm')
 
-def client_folder():    
-    return os.path.join(os.path.expanduser('~'),'.rcm')
 
 def log_folder():    
-    return os.path.join(client_folder(),'logs')
+    return os.path.join(client_folder(), 'logs')
+
 
 def vnc_crypt(vncpass, decrypt=False):
-    if(decrypt):
+    if decrypt:
         try:
             if sys.version_info >= (3, 0):
                 import binascii
@@ -158,14 +161,14 @@ def vnc_crypt(vncpass, decrypt=False):
                 passpadd = vncpass.decode('hex')
         except TypeError as e:
             if e.message == 'Odd-length string':
-                module_logger.warning( 'WARN: %s . Chopping last char off... "%s"' % ( e.message, vncpass[:-1] ))
+                module_logger.warning('WARN: %s . Chopping last char off... "%s"' % (e.message, vncpass[:-1] ))
                 passpadd = vncpass[:-1].decode('hex')
             else:
                 raise
     else:
         passpadd = (vncpass + '\x00'*8)[:8]
         passpadd = passpadd.encode('utf-8')
-    strkey = u''.join([ chr(x) for x in d3des.vnckey ])
+    strkey = u''.join([chr(x) for x in d3des.vnckey])
 
     if sys.version_info >= (3, 0):
         # python3
@@ -175,7 +178,7 @@ def vnc_crypt(vncpass, decrypt=False):
         key = d3des.deskey(strkey, decrypt)
         crypted = d3des.desfunc(passpadd, key)
 
-    if(decrypt):
+    if decrypt:
         if sys.version_info >= (3, 0):
             import binascii
             hex_crypted = binascii.unhexlify(binascii.hexlify(crypted)).decode('utf-8')
@@ -188,73 +191,72 @@ def vnc_crypt(vncpass, decrypt=False):
             import binascii
             hex_crypted = binascii.hexlify(crypted).decode('utf-8')
         else:
-            # ------------------------------
             hex_crypted = crypted.encode('hex')
         print('crypted hex password-->' + hex_crypted + '<--')
         return hex_crypted
 
 
-class rcm_cipher():
+class rcm_cipher:
     def random_pwd_generator(self, size=8, chars=string.ascii_uppercase + string.digits):
         return ''.join(random.choice(chars) for _ in range(size))
 
-
-    def __init__ ( self, encryptpass=None ):
-        self.encryptpass=encryptpass
+    def __init__(self, encryptpass=None):
+        self.encryptpass = encryptpass
         self.vncpassword = self.random_pwd_generator()
-        self.acypher=None
-        if(self.encryptpass):
+        self.acypher = None
+        if self.encryptpass:
             import AESCipher
 #           VNC password encription python implementation 
 #           from https://github.com/trinitronx/vncpasswd.py
             self.acypher = AESCipher.AESCipher(self.encryptpass)
 
-    def encrypt(self,vncpassword=None):
-        if (not vncpassword):
+    def encrypt(self, vncpassword=None):
+        if not vncpassword:
             vncpassword = self.vncpassword
-        if(self.acypher):
+        if self.acypher:
             return self.acypher.encrypt(vncpassword).decode('utf-8')
         else:
-            return vnc_crypt(vncpassword,decrypt=False)
+            return vnc_crypt(vncpassword, decrypt=False)
 
-    def decrypt(self,vncpassword):
-        if(self.acypher):
+    def decrypt(self, vncpassword):
+        if self.acypher:
             return self.acypher.decrypt(vncpassword).decode('utf-8')
         else:
-            return vnc_crypt(vncpassword,decrypt=True)
+            return vnc_crypt(vncpassword, decrypt=True)
 
 
-class pack_info():
-    def __init__ ( self):
-        if('frozen' in dir(sys)):
+class pack_info:
+    def __init__(self):
+        if 'frozen' in dir(sys):
             if hasattr(sys, '_MEIPASS'):
                 # PyInstaller >= 1.6
                 self.basedir = os.path.abspath(sys._MEIPASS)
-            elif('_MEIPASS2' in os.environ):
+            elif '_MEIPASS2' in os.environ:
                 self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
             else:
                 self.basedir = os.path.dirname(os.path.abspath(sys.executable))
-                self.debug=False
+                self.debug = False
         else:
             self.basedir = os.path.dirname(os.path.abspath(__file__))
-            
-        #Read file containing the platform on which the client were build
-        buildPlatform = os.path.join(self.basedir,"external","build_platform.txt")
+
+        # Read file containing the platform on which the client were build
+        buildPlatform = os.path.join(self.basedir, "external","build_platform.txt")
         self.buildPlatformString = ""
         self.rcmVersion = ""
-        if (os.path.exists(buildPlatform)):
-            in_file = open(buildPlatform,"r")
+        if os.path.exists(buildPlatform):
+            in_file = open(buildPlatform, "r")
             self.buildPlatformString = in_file.readline()
             self.rcmVersion = in_file.readline()
             in_file.close()
-            
+
 
 import paramiko
 import socket
 
+
 def get_unused_portnumber():
-    sock=socket.socket()
-    sock.bind(('',0))
+    sock = socket.socket()
+    sock.bind(('', 0))
     sn=sock.getsockname()[1]
     sock.close()
     return sn
@@ -262,27 +264,29 @@ def get_unused_portnumber():
 import queue
 threads_exception_queue=queue.Queue()
 
+
 def get_threads_exceptions():
-    go=True
-    exc=None
+    go = True
+    exc = None
     while go:
         try:
             exc = threads_exception_queue.get(block=False)
         except queue.Empty:
-            go=False
+            go = False
         else:
-            module_logger.error( "one thread raised ->"+exc)
-    if(exc):
-        raise Exception("ERROR: "+exc+" in thread")
-        
-def get_server_command(host,user,passwd=''):
+            module_logger.error("one thread raised ->" + exc)
+    if exc:
+        raise Exception("ERROR: " + exc + " in thread")
+
+
+def get_server_command(host, user, passwd=''):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     module_logger.info("getting server command host->"+host+"< user->"+user+"<")
     try:
         ssh.connect(host, username=user, password=passwd)
     except Exception as e:
-        module_logger.error("ERROR {0}: ".format( e)+"in ssh.connect to host "+host)
+        module_logger.error("ERROR {0}: ".format(e) + "in ssh.connect to host " + host)
         raise e
 
     chan = ssh.get_transport().open_session()
@@ -290,7 +294,6 @@ def get_server_command(host,user,passwd=''):
     stdin = chan.makefile('wb')
     stdout = chan.makefile('rb')
 
-    #stderr = chan.makefile_stderr('rb')
     start_string = '_##start##_'
     end_string = '_##end##_'
     evn_variable = '${RCM_SERVER_COMMAND}'
@@ -305,7 +308,7 @@ def get_server_command(host,user,passwd=''):
     output = ''
     rcm_server_command = ''
 
-    while(loop):
+    while loop:
         try:
             # python3
             if sys.version_info >= (3, 0):
@@ -313,58 +316,68 @@ def get_server_command(host,user,passwd=''):
             # python2
             else:
                 line = stdout.readline()
-            module_logger.debug("parsing output line: ->"+line+"<-")
-            # print line
-            if(end_string in line and start_string in line):
-                # print "line-->"+line
+            module_logger.debug("parsing output line: ->" + line + "<-")
+
+            if end_string in line and start_string in line:
                 tmp_command = line.split(end_string)[0].split(start_string)[1]
-                if(not evn_variable in tmp_command):
+                if not evn_variable in tmp_command:
                     rcm_server_command=tmp_command
                     loop = False
-        # print "rcm_server_command-->"+rcm_server_command+"<--"
             output += line
         except socket.timeout:
-            module_logger.warning( "WARNING TIMEOUT: unable to grab output of -->"+get_rcm_server_command+"< on host:"+host)
+            module_logger.warning("WARNING TIMEOUT: unable to grab output of -->" +
+                                  get_rcm_server_command + "< on host:" + host)
             loop = False
-    # print host,"output-->"+output+"<--"
-    # print host,"rcm_server_command-->"+rcm_server_command+"<--"
     return rcm_server_command
 
 
-class SessionThread( threading.Thread ):
+class SessionThread(threading.Thread):
 
     threadscount = 0
 
-    def __init__ ( self, tunnel_cmd='', vnc_cmd='', passwd = '', vncpassword = '', otp = '', gui_cmd=None, configFile = '', debug = False ):
-        self.debug=debug
+    def __init__(self,
+                 tunnel_cmd='',
+                 vnc_cmd='',
+                 passwd='',
+                 vncpassword='',
+                 otp='',
+                 gui_cmd=None,
+                 configFile='',
+                 debug=False):
+
+        self.debug = debug
         self.tunnel_command = tunnel_cmd
         self.vnc_command = vnc_cmd
-        self.gui_cmd=gui_cmd
+        self.gui_cmd = gui_cmd
         self.password = passwd
         self.vncpassword = vncpassword
         self.otp = otp
         self.vnc_process = None
         self.tunnel_process = None
         self.configFile = configFile
-        threading.Thread.__init__ ( self )
+        threading.Thread.__init__(self)
         self.threadnum = SessionThread.threadscount
         SessionThread.threadscount += 1
-        if(self.debug): module_logger.debug( 'This is thread ' + str ( self.threadnum ) + ' init.')
+        module_logger.debug('This is thread ' + str(self.threadnum) + ' init.')
 
-    def terminate( self ):
-        self.gui_cmd=None
-        if(self.debug): module_logger.debug( 'This is thread ' + str ( self.threadnum ) + ' TERMINATE.')
-        if(self.vnc_process):
-            arguments='Args not available on Popen'
-            if(hasattr(self.vnc_process,'args')): arguments=str(self.vnc_process.args) 
-            module_logger.info( "Killing vnc process "+ str(self.vnc_process.pid)+" args->"+arguments+"<")
-            if(self.debug): module_logger.debug( "Killing vnc process-->"+ str(self.vnc_process.pid))
+    def terminate(self):
+        self.gui_cmd = None
+        module_logger.debug('This is thread ' + str(self.threadnum) + ' TERMINATE.')
+        if self.vnc_process:
+            arguments = 'Args not available on Popen'
+            if hasattr(self.vnc_process, 'args'):
+                arguments = str(self.vnc_process.args)
+
+            module_logger.info("Killing vnc process " + str(self.vnc_process.pid) + " args->" + arguments + "<")
+            module_logger.debug("Killing vnc process-->" + str(self.vnc_process.pid))
+
             self.vnc_process.terminate()
-            self.vnc_process=None
-        if(self.tunnel_process):
-            module_logger.debug("Killing tunnel process-->"+str(self.tunnel_process.pid))
+            self.vnc_process = None
+
+        if self.tunnel_process:
+            module_logger.debug("Killing tunnel process-->" + str(self.tunnel_process.pid))
             self.tunnel_process.terminate()
-            self.tunnel_process=None
+            self.tunnel_process = None
 
     def run(self):
         if self.debug:
@@ -374,10 +387,10 @@ class SessionThread( threading.Thread ):
             self.gui_cmd(active=True)
 
         if self.configFile:
-            commandlist=self.vnc_command.split()
+            commandlist = self.vnc_command.split()
             commandlist.append(self.configFile)
-            if(self.debug):
-                module_logger.debug('This is thread ' + str ( self.threadnum ) + ' CONFIGFILE, executing-->'+' '.join(commandlist)+ "<--")
+            module_logger.debug('This is thread ' + str(self.threadnum)
+                                + ' CONFIGFILE, executing-->' + ' '.join(commandlist) + "<--")
             self.vnc_process = subprocess.Popen(commandlist,
                                                 bufsize=1,
                                                 stdout=subprocess.PIPE,
@@ -389,11 +402,11 @@ class SessionThread( threading.Thread ):
             self.vnc_process=None
 
         else:
-            if(sys.platform == 'win32'):
-
-                if(self.tunnel_command != ''):
-                    if(self.debug):  module_logger.debug('This is thread ' + str ( self.threadnum ) + "executing-->" + self.tunnel_command.replace(self.password,"****") + "<--")
-                    self.tunnel_process = subprocess.Popen(self.tunnel_command ,
+            if sys.platform == 'win32':
+                if self.tunnel_command != '':
+                    module_logger.debug('This is thread ' + str(self.threadnum) + "executing-->" +
+                                        self.tunnel_command.replace(self.password, "****") + "<--")
+                    self.tunnel_process = subprocess.Popen(self.tunnel_command,
                                                            bufsize=1,
                                                            stdout=subprocess.PIPE,
                                                            stderr=subprocess.PIPE,
@@ -403,25 +416,29 @@ class SessionThread( threading.Thread ):
                     self.tunnel_process.stdin.close()
                     while True:
                         o = self.tunnel_process.stdout.readline()
-                        #print "into the while!-->",o
-                        if o == '' and self.tunnel_process.poll() != None: continue
-                        if(self.debug):
-                            module_logger.debug( "output from process---->"+o.strip()+"<---" )
-                        if o.strip() == 'rcm_tunnel' : break
-                a=self.vnc_command.split("|")
-                if(self.debug):
-                    module_logger.debug( "starting vncviewer-->"+self.vnc_command.replace(self.password,"****")+"<--")
-                    module_logger.debug("splitting-->"+str(a)+"<--")
-                if(len(a)>1):
-                    tmppass=a[0].strip().split()[1].strip()
-                    commandlist=a[1].strip()
+
+                        if o == '' and self.tunnel_process.poll() is not None:
+                            continue
+                        module_logger.debug("output from process---->" + o.strip() + "<---")
+
+                        if o.strip() == 'rcm_tunnel':
+                            break
+
+                a = self.vnc_command.split("|")
+
+                module_logger.debug("starting vncviewer-->" +
+                                    self.vnc_command.replace(self.password, "****") + "<--")
+                module_logger.debug("splitting-->"+str(a)+"<--")
+
+                if len(a) > 1:
+                    tmppass = a[0].strip().split()[1].strip()
+                    commandlist = a[1].strip()
                 else:
-                    tmppass=None
-                    commandlist=self.vnc_command.split()
-                    if(self.debug):
-                        module_logger.debug( "vncviewer tmp  pass-->"+tmppass+"<--")
-                if(self.debug):
-                    module_logger.debug("vncviewer command-->"+str(commandlist)+"<--")
+                    tmppass = None
+                    commandlist = self.vnc_command.split()
+
+                    module_logger.debug("vncviewer tmp  pass-->" + tmppass + "<--")
+                    module_logger.debug("vncviewer command-->" + str(commandlist) + "<--")
 
                 self.vnc_process = subprocess.Popen(commandlist,
                                                     bufsize=1,
@@ -430,37 +447,42 @@ class SessionThread( threading.Thread ):
                                                     stdin=subprocess.PIPE,
                                                     shell=False,
                                                     universal_newlines=True)
-                if(tmppass):
+                if tmppass:
                     self.vnc_process.stdin.write(tmppass)
-                    o=self.vnc_process.communicate()
-                    if(self.debug):
-                        module_logger.debug( "vnc res-->"+str(o)+"<--")
-                if(self.vnc_process): self.vnc_process.stdin.close()
-                if(self.vnc_process): self.vnc_process.wait()
-                self.vnc_process=None
-            elif ( sys.platform.startswith('darwin')):
+                    o = self.vnc_process.communicate()
+                    module_logger.debug("vnc res-->" + str(o) + "<--")
 
-                #-#####################   OSX
-                if(self.debug): module_logger.debug( 'This is thread ' + str ( self.threadnum ) + " executing-->" + self.vnc_command.replace(self.password,"****") + "<--")
-                if (self.tunnel_command != ''):
+                if self.vnc_process:
+                    self.vnc_process.stdin.close()
+                if self.vnc_process:
+                    self.vnc_process.wait()
+                self.vnc_process = None
+
+            elif sys.platform.startswith('darwin'):
+                module_logger.debug('This is thread ' + str(self.threadnum) +
+                                    " executing-->" + self.vnc_command.replace(self.password, "****") + "<--")
+
+                if self.tunnel_command != '':
                     ssh_newkey = 'Are you sure you want to continue connecting'
-                    if(self.debug): module_logger.debug( 'Tunnel commands: '+ str( self.tunnel_command))
+                    module_logger.debug('Tunnel commands: ' + str(self.tunnel_command))
+
                     child = pexpect.spawn(self.tunnel_command,timeout=50)
-                    i = child.expect([ssh_newkey, 'password:','rcm_tunnel', pexpect.TIMEOUT, pexpect.EOF])
-                    
-                    if(self.debug): module_logger.info( 'Tunnel return: '+ str( i))
+                    i = child.expect([ssh_newkey, 'password:', 'rcm_tunnel', pexpect.TIMEOUT, pexpect.EOF])
+
+                    module_logger.info('Tunnel return: ' + str(i))
                     if i == 0:
-                        #no certificate
+                        # no certificate
                         child.sendline('yes')
                         i = child.expect(['password','standard VNC authentication','rcm_tunnel', pexpect.TIMEOUT, pexpect.EOF])
 
                     if i == 1:
-                        #no certificate
+                        # no certificate
                         child.sendline(self.password)
 
                     if i == 0 or i == 3:
-                        if(self.debug): module_logger.debug( "Timeout connecting to the display.")
-                        if(self.gui_cmd): self.gui_cmd(active=False)
+                        module_logger.debug("Timeout connecting to the display.")
+                        if self.gui_cmd:
+                            self.gui_cmd(active=False)
                         raise Exception("Timeout connecting to the display.")
 
                 commandlist=self.vnc_command.split()
@@ -471,18 +493,19 @@ class SessionThread( threading.Thread ):
                                                     stdin=subprocess.PIPE,
                                                     shell=False,
                                                     universal_newlines=True)
-                if(self.vnc_process): self.vnc_process.stdin.close()
-                if(self.vnc_process): self.vnc_process.wait()
-                self.vnc_process=None
+                if self.vnc_process:
+                    self.vnc_process.stdin.close()
+                if self.vnc_process:
+                    self.vnc_process.wait()
+                self.vnc_process = None
 
             else:
                 # linux
-                if self.debug:
-                    module_logger.info('This is thread ' +
-                                       str(self.threadnum) +
-                                       " executing-->" +
-                                       self.vnc_command.replace(self.password, "****") +
-                                       "<-vncpass->" + self.vncpassword + "<--")
+                module_logger.info('This is thread ' +
+                                    str(self.threadnum) +
+                                    " executing-->" +
+                                    self.vnc_command.replace(self.password, "****") +
+                                    "<-vncpass->" + self.vncpassword + "<--")
 
                 child = pexpect.spawn(self.vnc_command,
                                       timeout=50)
@@ -545,44 +568,48 @@ class SessionThread( threading.Thread ):
 if __name__ == '__main__':
 
     configure_logging()
-    print (vnc_crypt(vnc_crypt('paperino'),True))
-    print (vnc_crypt('paperino',False))
+    print(vnc_crypt(vnc_crypt('paperino'), True))
+    print(vnc_crypt('paperino', False))
 
-    r=rcm_cipher()
-    e=r.encrypt()
-    print ("clear-->"+r.decrypt(e)+" crypt->"+e+" recrypt->"+r.encrypt(r.decrypt(e))+" reclear->"+r.decrypt(r.encrypt(r.decrypt(e))))
+    r = rcm_cipher()
+    e = r.encrypt()
+    print("clear-->" + r.decrypt(e) + " crypt->" + e + " recrypt->" +
+          r.encrypt(r.decrypt(e)) + " reclear->" + r.decrypt(r.encrypt(r.decrypt(e))))
 
-    ar=rcm_cipher("mypass")
-    ae=ar.encrypt()
-    print ("stored clear pass-->"+ar.vncpassword+"<--encrypted without par-->"+ae+"<--")
-    print ("stored clear pass-->"+ar.vncpassword+"<--decrypt              -->"+ar.decrypt(ae))
-    ae=ar.encrypt()
-    print ("stored clear pass-->"+ar.vncpassword+"<--enc nopar-->"+ae+"<--")
-    print ("stored clear pass-->"+ar.vncpassword+"<--decrypt  -->"+ar.decrypt(ae))
-    print ("stored clear pass-->"+ar.vncpassword+"<--recrypt  -->"+ar.encrypt(ar.vncpassword)+"< clear->"+ar.decrypt(ar.encrypt(ar.vncpassword)))
-    print ("stored clear pass-->"+ar.vncpassword+"<--recrypt  -->"+ar.encrypt(ar.vncpassword)+"< clear->"+ar.decrypt(ar.encrypt(ar.vncpassword)))
-    print ("clear-->"+ar.decrypt(ae)+" crypt->"+ae+" recrypt->"+ar.encrypt(ar.decrypt(ae))+" reclear->"+ar.decrypt(ar.encrypt(ar.decrypt(ae))))
-
+    ar = rcm_cipher("mypass")
+    ae = ar.encrypt()
+    print("stored clear pass-->" + ar.vncpassword + "<--encrypted without par-->" + ae + "<--")
+    print("stored clear pass-->" + ar.vncpassword + "<--decrypt              -->" + ar.decrypt(ae))
+    ae = ar.encrypt()
+    print("stored clear pass-->" + ar.vncpassword + "<--enc nopar-->" + ae + "<--")
+    print("stored clear pass-->" + ar.vncpassword + "<--decrypt  -->" + ar.decrypt(ae))
+    print("stored clear pass-->" + ar.vncpassword + "<--recrypt  -->" + ar.encrypt(ar.vncpassword)
+          + "< clear->" + ar.decrypt(ar.encrypt(ar.vncpassword)))
+    print("stored clear pass-->" + ar.vncpassword + "<--recrypt  -->" + ar.encrypt(ar.vncpassword)
+          + "< clear->" + ar.decrypt(ar.encrypt(ar.vncpassword)))
+    print("clear-->" + ar.decrypt(ae) + " crypt->" + ae + " recrypt->" + ar.encrypt(ar.decrypt(ae))
+          + " reclear->" + ar.decrypt(ar.encrypt(ar.decrypt(ae))))
 
     import argparse
     parser = argparse.ArgumentParser(description='RCM client.')
-    parser.add_argument('-t','--hosts', default=[], nargs='*', 
-                   help='list of hosts to test')
-    parser.add_argument('-u','--users', default=[os.environ.get('USER')], nargs='*', 
-                   help='list of users to test')
-    p=parser.parse_known_args()
-    print (p )
+    parser.add_argument('-t',
+                        '--hosts',
+                        default=[],
+                        nargs='*',
+                        help='list of hosts to test')
+    parser.add_argument('-u',
+                        '--users',
+                        default=[os.environ.get('USER')],
+                        nargs='*',
+                        help='list of users to test')
+    p = parser.parse_known_args()
+    print(p)
     for host in p[0].hosts:
         for user in p[0].users:
-            print("################# "+ host + " ############")
+            print("################# " + host + " ############")
             try:
-                server_command =  get_server_command(host,user,'')
+                server_command = get_server_command(host, user, '')
                 print(host + ' -->' + server_command + '<--')
             except Exception as e:
                 import traceback
-                #print(exceptionformat.format(__name__, e,traceback.format_exc()))
                 traceback.print_exc()
-
-
-
-
