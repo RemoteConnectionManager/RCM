@@ -14,6 +14,8 @@ root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 sys.path.append(root_rcm_path)
 
 # local includes
+# VNC password encription python implementation
+# from https://github.com/trinitronx/vncpasswd.py
 import client.logic.d3des as d3des
 from client.log.logger import logic_logger
 
@@ -200,10 +202,8 @@ class rcm_cipher:
         self.vncpassword = self.random_pwd_generator()
         self.acypher = None
         if self.encryptpass:
-            import AESCipher
-#           VNC password encription python implementation 
-#           from https://github.com/trinitronx/vncpasswd.py
-            self.acypher = AESCipher.AESCipher(self.encryptpass)
+            import client.logic.aes_cipher as aes_cipher
+            self.acypher = aes_cipher.AESCipher(self.encryptpass)
 
     def encrypt(self, vncpassword=None):
         if not vncpassword:
