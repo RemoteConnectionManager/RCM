@@ -131,8 +131,10 @@ class QSSHSessionWidget(QWidget):
     # container login widget
         # it disappears when the user logged in
         login_layout = QVBoxLayout()
+        login_layout.addStretch(1)
         login_layout.addLayout(grid_login_layout)
         login_layout.addLayout(login_hor_layout)
+        login_layout.addStretch(1)
 
         self.containerLoginWidget.setLayout(login_layout)
 
