@@ -1,25 +1,22 @@
 #!/bin/env python
-# python imports
+
+# std lib
 import os
 import string
 import random
 import threading
 import sys
 import subprocess
-
-root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(root_rcm_path)
-import client.logic.d3des as d3des
-import logging
-import logging.handlers
-module_logger = logging.getLogger('RCM.utils')
 if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
     import pexpect
 
-rootLogger = logging.getLogger()
-rootLogger.setLevel(logging.INFO)
-consoleHandler = logging.StreamHandler()
-rootLogger.addHandler(consoleHandler)
+root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(root_rcm_path)
+
+# local includes
+import client.logic.d3des as d3des
+from client.log.logger import logic_logger
+
 
 exceptionformat = " {1}"
 vnc_loglevel = 0
@@ -79,7 +76,7 @@ def configure_logging(verbose=0, vnclv=0):
     verbose = p.debug
     global vnc_loglevel
     vnc_loglevel = p.vncloglev
-    module_logger.error("setting verbosity to: " + str(verbose))
+    logic_logger.error("setting verbosity to: " + str(verbose))
     logf = log_folder()
     try: 
         os.makedirs(logf)
@@ -94,12 +91,12 @@ def configure_logging(verbose=0, vnclv=0):
         except OSError:
             print(("failed to remove "+file_path))
     os.chdir(logf)
-    module_logger.error("log file folder: " + logf)
+    logic_logger.error("log file folder: " + logf)
     consoleFormatter = logging.Formatter('%(threadName)-12.12s: [%(filename)-30.30s %(lineno)-4d]-->%(message)s')
     consoleHandler.setFormatter(consoleFormatter)
 
     if verbose > 0:
-        module_logger.setLevel(logging.DEBUG)
+        logic_logger.setLevel(logging.DEBUG)
         logging.getLogger('paramiko').setLevel(logging.DEBUG)
 
         if verbose > 2:
@@ -161,7 +158,7 @@ def vnc_crypt(vncpass, decrypt=False):
                 passpadd = vncpass.decode('hex')
         except TypeError as e:
             if e.message == 'Odd-length string':
-                module_logger.warning('WARN: %s . Chopping last char off... "%s"' % (e.message, vncpass[:-1] ))
+                logic_logger.warning('WARN: %s . Chopping last char off... "%s"' % (e.message, vncpass[:-1] ))
                 passpadd = vncpass[:-1].decode('hex')
             else:
                 raise
@@ -184,7 +181,6 @@ def vnc_crypt(vncpass, decrypt=False):
             hex_crypted = binascii.unhexlify(binascii.hexlify(crypted)).decode('utf-8')
         else:
             hex_crypted = crypted.encode('hex').decode('hex')
-        print('crypted hex password-->' + hex_crypted + '<--')
         return hex_crypted
     else:
         if sys.version_info >= (3, 0):
@@ -192,7 +188,6 @@ def vnc_crypt(vncpass, decrypt=False):
             hex_crypted = binascii.hexlify(crypted).decode('utf-8')
         else:
             hex_crypted = crypted.encode('hex')
-        print('crypted hex password-->' + hex_crypted + '<--')
         return hex_crypted
 
 
@@ -274,7 +269,7 @@ def get_threads_exceptions():
         except queue.Empty:
             go = False
         else:
-            module_logger.error("one thread raised ->" + exc)
+            logic_logger.error("one thread raised ->" + exc)
     if exc:
         raise Exception("ERROR: " + exc + " in thread")
 
@@ -282,11 +277,11 @@ def get_threads_exceptions():
 def get_server_command(host, user, passwd=''):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    module_logger.info("getting server command host->"+host+"< user->"+user+"<")
+    logic_logger.info("getting server command host->"+host+"< user->"+user+"<")
     try:
         ssh.connect(host, username=user, password=passwd)
     except Exception as e:
-        module_logger.error("ERROR {0}: ".format(e) + "in ssh.connect to host " + host)
+        logic_logger.error("ERROR {0}: ".format(e) + "in ssh.connect to host " + host)
         raise e
 
     chan = ssh.get_transport().open_session()
@@ -316,7 +311,7 @@ def get_server_command(host, user, passwd=''):
             # python2
             else:
                 line = stdout.readline()
-            module_logger.debug("parsing output line: ->" + line + "<-")
+            logic_logger.debug("parsing output line: ->" + line + "<-")
 
             if end_string in line and start_string in line:
                 tmp_command = line.split(end_string)[0].split(start_string)[1]
@@ -325,7 +320,7 @@ def get_server_command(host, user, passwd=''):
                     loop = False
             output += line
         except socket.timeout:
-            module_logger.warning("WARNING TIMEOUT: unable to grab output of -->" +
+            logic_logger.warning("WARNING TIMEOUT: unable to grab output of -->" +
                                   get_rcm_server_command + "< on host:" + host)
             loop = False
     return rcm_server_command
@@ -358,30 +353,30 @@ class SessionThread(threading.Thread):
         threading.Thread.__init__(self)
         self.threadnum = SessionThread.threadscount
         SessionThread.threadscount += 1
-        module_logger.debug('This is thread ' + str(self.threadnum) + ' init.')
+        logic_logger.debug('This is thread ' + str(self.threadnum) + ' init.')
 
     def terminate(self):
         self.gui_cmd = None
-        module_logger.debug('This is thread ' + str(self.threadnum) + ' TERMINATE.')
+        logic_logger.debug('This is thread ' + str(self.threadnum) + ' TERMINATE.')
         if self.vnc_process:
             arguments = 'Args not available on Popen'
             if hasattr(self.vnc_process, 'args'):
                 arguments = str(self.vnc_process.args)
 
-            module_logger.info("Killing vnc process " + str(self.vnc_process.pid) + " args->" + arguments + "<")
-            module_logger.debug("Killing vnc process-->" + str(self.vnc_process.pid))
+            logic_logger.info("Killing vnc process " + str(self.vnc_process.pid) + " args->" + arguments + "<")
+            logic_logger.debug("Killing vnc process-->" + str(self.vnc_process.pid))
 
             self.vnc_process.terminate()
             self.vnc_process = None
 
         if self.tunnel_process:
-            module_logger.debug("Killing tunnel process-->" + str(self.tunnel_process.pid))
+            logic_logger.debug("Killing tunnel process-->" + str(self.tunnel_process.pid))
             self.tunnel_process.terminate()
             self.tunnel_process = None
 
     def run(self):
         if self.debug:
-            module_logger.debug('This is thread ' + str(self.threadnum) + ' run.')
+            logic_logger.debug('This is thread ' + str(self.threadnum) + ' run.')
 
         if self.gui_cmd:
             self.gui_cmd(active=True)
@@ -389,7 +384,7 @@ class SessionThread(threading.Thread):
         if self.configFile:
             commandlist = self.vnc_command.split()
             commandlist.append(self.configFile)
-            module_logger.debug('This is thread ' + str(self.threadnum)
+            logic_logger.debug('This is thread ' + str(self.threadnum)
                                 + ' CONFIGFILE, executing-->' + ' '.join(commandlist) + "<--")
             self.vnc_process = subprocess.Popen(commandlist,
                                                 bufsize=1,
@@ -404,7 +399,7 @@ class SessionThread(threading.Thread):
         else:
             if sys.platform == 'win32':
                 if self.tunnel_command != '':
-                    module_logger.debug('This is thread ' + str(self.threadnum) + "executing-->" +
+                    logic_logger.debug('This is thread ' + str(self.threadnum) + "executing-->" +
                                         self.tunnel_command.replace(self.password, "****") + "<--")
                     self.tunnel_process = subprocess.Popen(self.tunnel_command,
                                                            bufsize=1,
@@ -419,16 +414,16 @@ class SessionThread(threading.Thread):
 
                         if o == '' and self.tunnel_process.poll() is not None:
                             continue
-                        module_logger.debug("output from process---->" + o.strip() + "<---")
+                        logic_logger.debug("output from process---->" + o.strip() + "<---")
 
                         if o.strip() == 'rcm_tunnel':
                             break
 
                 a = self.vnc_command.split("|")
 
-                module_logger.debug("starting vncviewer-->" +
+                logic_logger.debug("starting vncviewer-->" +
                                     self.vnc_command.replace(self.password, "****") + "<--")
-                module_logger.debug("splitting-->"+str(a)+"<--")
+                logic_logger.debug("splitting-->"+str(a)+"<--")
 
                 if len(a) > 1:
                     tmppass = a[0].strip().split()[1].strip()
@@ -437,8 +432,8 @@ class SessionThread(threading.Thread):
                     tmppass = None
                     commandlist = self.vnc_command.split()
 
-                    module_logger.debug("vncviewer tmp  pass-->" + tmppass + "<--")
-                    module_logger.debug("vncviewer command-->" + str(commandlist) + "<--")
+                    logic_logger.debug("vncviewer tmp  pass-->" + tmppass + "<--")
+                    logic_logger.debug("vncviewer command-->" + str(commandlist) + "<--")
 
                 self.vnc_process = subprocess.Popen(commandlist,
                                                     bufsize=1,
@@ -450,7 +445,7 @@ class SessionThread(threading.Thread):
                 if tmppass:
                     self.vnc_process.stdin.write(tmppass)
                     o = self.vnc_process.communicate()
-                    module_logger.debug("vnc res-->" + str(o) + "<--")
+                    logic_logger.debug("vnc res-->" + str(o) + "<--")
 
                 if self.vnc_process:
                     self.vnc_process.stdin.close()
@@ -459,17 +454,17 @@ class SessionThread(threading.Thread):
                 self.vnc_process = None
 
             elif sys.platform.startswith('darwin'):
-                module_logger.debug('This is thread ' + str(self.threadnum) +
+                logic_logger.debug('This is thread ' + str(self.threadnum) +
                                     " executing-->" + self.vnc_command.replace(self.password, "****") + "<--")
 
                 if self.tunnel_command != '':
                     ssh_newkey = 'Are you sure you want to continue connecting'
-                    module_logger.debug('Tunnel commands: ' + str(self.tunnel_command))
+                    logic_logger.debug('Tunnel commands: ' + str(self.tunnel_command))
 
                     child = pexpect.spawn(self.tunnel_command,timeout=50)
                     i = child.expect([ssh_newkey, 'password:', 'rcm_tunnel', pexpect.TIMEOUT, pexpect.EOF])
 
-                    module_logger.info('Tunnel return: ' + str(i))
+                    logic_logger.info('Tunnel return: ' + str(i))
                     if i == 0:
                         # no certificate
                         child.sendline('yes')
@@ -480,7 +475,7 @@ class SessionThread(threading.Thread):
                         child.sendline(self.password)
 
                     if i == 0 or i == 3:
-                        module_logger.debug("Timeout connecting to the display.")
+                        logic_logger.debug("Timeout connecting to the display.")
                         if self.gui_cmd:
                             self.gui_cmd(active=False)
                         raise Exception("Timeout connecting to the display.")
@@ -501,7 +496,7 @@ class SessionThread(threading.Thread):
 
             else:
                 # linux
-                module_logger.info('This is thread ' +
+                logic_logger.info('This is thread ' +
                                     str(self.threadnum) +
                                     " executing-->" +
                                     self.vnc_command.replace(self.password, "****") +
@@ -544,7 +539,7 @@ class SessionThread(threading.Thread):
 
                 if i == 3 or i == 4:
                     if self.debug:
-                        module_logger.error("#REMOVE_FOR_JAVA#Timeout connecting to the display.")
+                        logic_logger.error("#REMOVE_FOR_JAVA#Timeout connecting to the display.")
 
                 i = child.expect(['Authentication successful',
                                   pexpect.EOF],
@@ -552,9 +547,9 @@ class SessionThread(threading.Thread):
 
                 if i > 0:
                     if self.debug:
-                        module_logger.error("#REMOVE_FOR_JAVA#Authentication problems.")
+                        logic_logger.error("#REMOVE_FOR_JAVA#Authentication problems.")
                     for line in child:
-                        module_logger.debug("#REMOVE_FOR_JAVA#child expect-->" + str(line))
+                        logic_logger.debug("#REMOVE_FOR_JAVA#child expect-->" + str(line))
 
                 child.expect(pexpect.EOF,
                              timeout=None)

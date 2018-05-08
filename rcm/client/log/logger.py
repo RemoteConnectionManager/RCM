@@ -1,24 +1,33 @@
 # std lib
 import logging
+import logging.handlers
 import json
 
 # pyqt5
 from PyQt5.QtCore import pyqtSignal, QObject
 
-
 # local import
 from client.log.config_parser import parser
 
+rootLogger = logging.getLogger()
+rootLogger.setLevel(logging.INFO)
+consoleHandler = logging.StreamHandler()
+rootLogger.addHandler(consoleHandler)
+
 logger = logging.getLogger("RCM.gui")
+logic_logger = logging.getLogger('RCM.client')
 
 try:
     debug = json.loads(parser.get('Settings', 'debug_log_level'))
     if debug:
         logger.setLevel(logging.DEBUG)
+        logic_logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
+        logic_logger.setLevel(logging.INFO)
 except Exception:
     logger.setLevel(logging.DEBUG)
+    logic_logger.setLevel(logging.DEBUG)
 
 
 class QLabelLoggerHandler(logging.Handler):

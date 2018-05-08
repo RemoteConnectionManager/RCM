@@ -7,22 +7,20 @@ import os
 import getpass
 import socket
 import paramiko
-
 if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
     import pexpect
 
-# local includes
 # in order to parse the pickle message coming from the server, we need to import rcm as below
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root_rcm_path)
 sys.path.append(os.path.join(root_rcm_path, 'server'))
+
+# local includes
 import rcm
 import client.logic.rcm_utils as rcm_utils
 import client.logic.rcm_protocol_client as rcm_protocol_client
 from client.utils.pyinstaller_utils import resource_path
-
-import logging
-module_logger = logging.getLogger('RCM.client')
+from client.log.logger import logic_logger
 
 
 class rcm_client_connection:
@@ -61,7 +59,7 @@ class rcm_client_connection:
 
         # set the environment
         if getattr(sys, 'frozen', False):
-            module_logger.debug("Running in a bundle")
+            logic_logger.debug("Running in a bundle")
             # if running in a bundle, we hardcode the path
             # of the built-in vnc viewer and plink (windows only)
             os.environ['JAVA_HOME'] = resource_path('turbovnc')
@@ -70,8 +68,8 @@ class rcm_client_connection:
                 os.environ['PATH'] = resource_path('putty') + ";" + os.environ['PATH']
             else:
                 os.environ['PATH'] = os.environ['JAVA_HOME'] + "/bin:" + os.environ['PATH']
-            module_logger.debug(os.environ['JAVA_HOME'])
-            module_logger.debug(os.environ['PATH'])
+            logic_logger.debug(os.environ['JAVA_HOME'])
+            logic_logger.debug(os.environ['PATH'])
 
         # ssh executable
         if sys.platform == 'win32':
@@ -80,9 +78,9 @@ class rcm_client_connection:
             sshexe = rcm_utils.which('ssh')
         if not sshexe:
             if sys.platform == 'win32':
-                module_logger.error("plink.exe not found! Check the PATH environment variable.")
+                logic_logger.error("plink.exe not found! Check the PATH environment variable.")
             else:
-                module_logger.error("ssh not found!")
+                logic_logger.error("ssh not found!")
             sys.exit()
         if sys.platform == 'win32':
             # if the executable path contains spaces, it has to be put inside apexes
@@ -90,17 +88,17 @@ class rcm_client_connection:
         self.ssh_command = self.config['ssh'][sys.platform][2] + \
                            sshexe + \
                            self.config['ssh'][sys.platform][1]
-        module_logger.debug("ssh command: " + self.ssh_command)
+        logic_logger.debug("ssh command: " + self.ssh_command)
 
         vncexe = rcm_utils.which('vncviewer')
         if not vncexe:
-            module_logger.error("vncviewer not found! Check the PATH environment variable.")
+            logic_logger.error("vncviewer not found! Check the PATH environment variable.")
             sys.exit()
         if sys.platform == 'win32':
             # if the executable path contains spaces, it has to be put inside apexes
             vncexe = "\"" + vncexe + "\""
         self.vncexe = vncexe
-        module_logger.debug("vncviewer path: " + self.vncexe)
+        logic_logger.debug("vncviewer path: " + self.vncexe)
 
     def login_setup(self, host='', remoteuser='', password=None):
         self.proxynode = host
@@ -119,7 +117,7 @@ class rcm_client_connection:
                 self.login_options = " -i " + keyfile + " " + self.remoteuser
                 
             else:
-                module_logger.warning("PASSING PRIVATE KEY FILE NOT IMPLEMENTED ON PLATFORM -->" + sys.platform + "<--")
+                logic_logger.warning("PASSING PRIVATE KEY FILE NOT IMPLEMENTED ON PLATFORM -->" + sys.platform + "<--")
                 self.login_options = " -i " + keyfile + " " + self.remoteuser
                 
         else:
@@ -143,7 +141,7 @@ class rcm_client_connection:
         check_cred = self.checkCredential()
         if check_cred:
             self.subnet = '.'.join(socket.gethostbyname(self.proxynode).split('.')[0:-1])
-            module_logger.debug("Login host: " + self.proxynode + " subnet: " + self.subnet)
+            logic_logger.debug("Login host: " + self.proxynode + " subnet: " + self.subnet)
         return check_cred 
         
     def prex(self, cmd, commandnode = ''):
@@ -157,12 +155,12 @@ class rcm_client_connection:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         
-        module_logger.info("on " + commandnode + " run-->" + self.config['remote_rcm_server'] + ' ' + cmd + "<")
+        logic_logger.debug("on " + commandnode + " run-->" + self.config['remote_rcm_server'] + ' ' + cmd + "<")
 
         try:
             ssh.connect(commandnode, username=self.remoteuser, password=self.passwd, timeout=10)
         except Exception as e: 
-            module_logger.warning("ERROR {0}: ".format(e) + "in ssh.connect to node->" +
+            logic_logger.warning("ERROR {0}: ".format(e) + "in ssh.connect to node->" +
                                   commandnode + "< user->" + self.remoteuser + "<")
             return('')
 
@@ -170,7 +168,7 @@ class rcm_client_connection:
         myout = ''.join(stdout)
         myerr = stderr.readlines()
         if myerr:
-            module_logger.error(myerr)
+            logic_logger.error(myerr)
             raise Exception("Server error: {0}".format(myerr))
 
         # find where the real server output starts
@@ -231,7 +229,7 @@ class rcm_client_connection:
     def get_config(self):
         o = self.protocol.config(build_platform=self.pack_info.buildPlatformString)
         self.server_config = rcm.rcm_config(o)
-        module_logger.debug("config---->" + str(self.server_config))
+        logic_logger.debug("config---->" + str(self.server_config))
         return self.server_config
 
     def queues(self):
@@ -258,7 +256,7 @@ class rcm_client_connection:
             rcm_cipher = rcm_utils.rcm_cipher()
             vncpassword_decrypted = rcm_cipher.decrypt(vncpassword)
 
-            module_logger.debug("portnumber --> " + str(portnumber) + " node --> " + str(node) + " nodelogin --> "
+            logic_logger.debug("portnumber --> " + str(portnumber) + " node --> " + str(node) + " nodelogin --> "
                                 + str(nodelogin) + " tunnel --> " + str(tunnel))
 
             if sys.platform.startswith('darwin'):
@@ -293,7 +291,7 @@ class rcm_client_connection:
 
             vnc_command = self.vncexe + " -config "
 
-        module_logger.debug("tunnel->" + tunnel_command.replace(self.passwd, "****") +
+        logic_logger.debug("tunnel->" + tunnel_command.replace(self.passwd, "****") +
                             "< vnc->" + vnc_command + "< conffile->" + str(configFile) + "<")
 
         st = rcm_utils.SessionThread(tunnel_command,
@@ -305,22 +303,22 @@ class rcm_client_connection:
                                      configFile,
                                      self.debug)
 
-        module_logger.debug("session  thread--->" + str(st) + "<--- num thread:" + str(len(self.session_thread)))
+        logic_logger.debug("session  thread--->" + str(st) + "<--- num thread:" + str(len(self.session_thread)))
         self.session_thread.append(st)
         st.start()
 
     def vncsession_kill(self):
         try:
-            module_logger.debug("here in vncsession_kill")
+            logic_logger.debug("here in vncsession_kill")
             if self.session_thread:
                 for thread in self.session_thread:
                     thread.terminate()
             self.session_thread = None
         except Exception as e:
-            module_logger.error(e)
+            logic_logger.error(e)
 
     def __del__(self):
-        module_logger.debug("######## destructor")
+        logic_logger.debug("######## destructor")
         self.vncsession_kill()
 
     def checkCredential(self):

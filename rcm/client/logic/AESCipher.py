@@ -1,9 +1,12 @@
+# std lib
 import sys
+import base64
 
+# crypto
 from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.Hash import MD5
-import base64
+
 
 BS = 16
 pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS) 
