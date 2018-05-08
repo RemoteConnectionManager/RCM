@@ -320,10 +320,6 @@ class RemoteConnectionManager:
         except Exception as e:
             logic_logger.error(e)
 
-    def __del__(self):
-        logic_logger.debug("######## destructor")
-        self.vncsession_kill()
-
     def checkCredential(self):
         rcm_server_command = rcm_utils.get_server_command(self.proxynode,
                                                           self.remoteuser,
