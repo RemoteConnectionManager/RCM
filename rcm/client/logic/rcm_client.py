@@ -23,7 +23,12 @@ from client.utils.pyinstaller_utils import resource_path
 from client.log.logger import logic_logger
 
 
-class rcm_client_connection:
+class RemoteConnectionManager:
+    """
+    The remote connection manager is the mediator between the user and the server.
+    It allows to login into the server, get the server configuration and
+    create/start/kill/list display remote sessions.
+    """
 
     def __init__(self, proxynode='', user_account='', remoteuser='', password='', pack_info=None):
         self.session_thread = []
@@ -331,28 +336,31 @@ class rcm_client_connection:
 
 
 if __name__ == '__main__':
-    try:
-        rcm_utils.configure_logging()
-        print("vncviewer-->"+rcm_utils.which('vncviewer'))
-        c = rcm_client_connection()
-        host = 'login.marconi.cineca.it'
-        c.login_setup(host=host)
-        c.debug = False
-        print("##########  open sessions on "+host)
-        res = c.list()
-        res.write(2)
-        newc = c.newconn(queue='4core_18_gb_1h_slurm',
-                         geometry='1200x1000',
-                         sessionname='test',
-                         vnc_id='fluxbox_turbovnc_vnc')
-        newsession = newc.hash['sessionid']
-        print("created session -->", newsession, "<- display->", newc.hash['display'], "<-- node-->", newc.hash['node'])
-        c.vncsession(newc)
-        res = c.list()
-        res.write(2)
-        c.kill(newc)
-        res = c.list()
-        res.write(2)
-    except Exception:
-        print("ERROR OCCURRED HERE")
-        raise
+    rcm_utils.configure_logging()
+    print("vncviewer-->" + rcm_utils.which('vncviewer'))
+
+    remote_connection_manager = RemoteConnectionManager()
+    host = 'login.marconi.cineca.it'
+    remote_connection_manager.login_setup(host=host)
+    print("open sessions on " + host)
+    out = remote_connection_manager.list()
+    out.write(2)
+
+    session = remote_connection_manager.newconn(queue='4core_18_gb_1h_slurm',
+                                                geometry='1200x1000',
+                                                sessionname='test',
+                                                vnc_id='fluxbox_turbovnc_vnc')
+    print("created session -->",
+          session.hash['sessionid'],
+          "<- display->",
+          session.hash['display'],
+          "<-- node-->",
+          session.hash['node'])
+
+    remote_connection_manager.vncsession(session)
+    out = remote_connection_manager.list()
+    out.write(2)
+
+    remote_connection_manager.kill(session)
+    out = remote_connection_manager.list()
+    out.write(2)

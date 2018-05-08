@@ -791,7 +791,7 @@ class MyTopFrame(Frame):
         self.bind("<Destroy>", self.deathHandler)
 
 
-#class rcm_client_connection_GUI(rcm_client.rcm_client_connection):
+#class rcm_client_connection_GUI(rcm_client.RemoteConnectionManager):
 class rcm_client_connection_GUI():
     def __init__(self):
         self.pack_info=rcm_utils.pack_info()

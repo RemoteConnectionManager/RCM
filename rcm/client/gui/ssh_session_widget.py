@@ -320,7 +320,7 @@ class QSSHSessionWidget(QWidget):
         self.containerSessionWidget.hide()
         self.containerWaitingWidget.show()
 
-        self.remote_connection_manager = rcm_client.rcm_client_connection()
+        self.remote_connection_manager = rcm_client.RemoteConnectionManager()
         self.remote_connection_manager.debug = False
 
         self.login_thread = LoginThread(self, self.host, self.user, password)
