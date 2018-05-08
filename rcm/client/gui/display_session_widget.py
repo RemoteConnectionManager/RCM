@@ -197,7 +197,8 @@ class QDisplaySessionWidget(QWidget):
         :return:
         """
         if self.status is Status.RUNNING:
-            self.timeleft = self.timeleft - timedelta(seconds=1)
+            if self.timeleft:
+                self.timeleft = self.timeleft - timedelta(seconds=1)
             self.time.setText(str(self.timeleft))
             self.time.update()
 
