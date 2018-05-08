@@ -24,15 +24,15 @@ try:
     if debug:
         logger.setLevel(logging.DEBUG)
         logic_logger.setLevel(logging.DEBUG)
-        ssh_logger.setLevel(logging.DEBUG)
+        ssh_logger.setLevel(logging.INFO)
     else:
         logger.setLevel(logging.INFO)
         logic_logger.setLevel(logging.INFO)
-        ssh_logger.setLevel(logging.INFO)
+        ssh_logger.setLevel(logging.WARNING)
 except Exception:
     logger.setLevel(logging.INFO)
     logic_logger.setLevel(logging.INFO)
-    ssh_logger.setLevel(logging.INFO)
+    ssh_logger.setLevel(logging.WARNING)
 
 
 class QLabelLoggerHandler(logging.Handler):

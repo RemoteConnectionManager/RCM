@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QLabel, QDialog, \
     QHBoxLayout, QVBoxLayout, QGroupBox, QPushButton, QCheckBox
 
 # local includes
-from client.log.logger import logger, logic_logger
+from client.log.logger import logger, logic_logger, ssh_logger
 from client.log.config_parser import parser, config_file_name
 
 
@@ -71,9 +71,11 @@ class QEditSettingsDialog(QDialog):
         if debug:
             logger.setLevel(logging.DEBUG)
             logic_logger.setLevel(logging.DEBUG)
+            ssh_logger.setLevel(logging.INFO)
         else:
             logger.setLevel(logging.INFO)
             logic_logger.setLevel(logging.INFO)
+            ssh_logger.setLevel(logging.WARNING)
 
     def load_settings(self):
         try:
