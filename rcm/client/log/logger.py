@@ -16,18 +16,23 @@ rootLogger.addHandler(consoleHandler)
 
 logger = logging.getLogger("RCM.gui")
 logic_logger = logging.getLogger('RCM.client')
+ssh_logger = logging.getLogger('paramiko')
+
 
 try:
     debug = json.loads(parser.get('Settings', 'debug_log_level'))
     if debug:
         logger.setLevel(logging.DEBUG)
         logic_logger.setLevel(logging.DEBUG)
+        ssh_logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
         logic_logger.setLevel(logging.INFO)
+        ssh_logger.setLevel(logging.INFO)
 except Exception:
-    logger.setLevel(logging.DEBUG)
-    logic_logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
+    logic_logger.setLevel(logging.INFO)
+    ssh_logger.setLevel(logging.INFO)
 
 
 class QLabelLoggerHandler(logging.Handler):

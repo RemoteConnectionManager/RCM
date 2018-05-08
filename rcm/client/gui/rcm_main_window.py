@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QMainWindow, QWidget, \
 from client.gui.ssh_session_widget import QSSHSessionWidget
 from client.gui.edit_settings_dialog import QEditSettingsDialog
 from client.utils.pyinstaller_utils import resource_path
-from client.log.logger import QTextEditLoggerHandler, logger, logic_logger
+from client.log.logger import QTextEditLoggerHandler, logger, logic_logger, ssh_logger
 import server.rcm as rcm
 
 
@@ -222,6 +222,7 @@ class MainWidget(QWidget):
         text_log_handler.logger_signals.log_message.connect(self.on_log)
         logger.addHandler(text_log_handler)
         logic_logger.addHandler(text_log_handler)
+        ssh_logger.addHandler(text_log_handler)
 
         # add the splitter to the main layout
         self.main_layout.addWidget(splitter)
