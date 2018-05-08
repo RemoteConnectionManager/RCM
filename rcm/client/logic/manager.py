@@ -30,9 +30,8 @@ class RemoteConnectionManager:
     create/start/kill/list display remote sessions.
     """
 
-    def __init__(self, proxynode='', user_account='', remoteuser='', password='', pack_info=None):
+    def __init__(self, pack_info=None):
         self.session_thread = []
-        self.debug = True
         self.commandnode = ''
         self.protocol = rcm_protocol_client.get_protocol()
 
@@ -305,8 +304,7 @@ class RemoteConnectionManager:
                                      vncpassword_decrypted,
                                      otp,
                                      gui_cmd,
-                                     configFile,
-                                     self.debug)
+                                     configFile)
 
         logic_logger.debug("session  thread--->" + str(st) + "<--- num thread:" + str(len(self.session_thread)))
         self.session_thread.append(st)

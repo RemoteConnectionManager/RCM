@@ -230,7 +230,6 @@ class pack_info:
                 self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
             else:
                 self.basedir = os.path.dirname(os.path.abspath(sys.executable))
-                self.debug = False
         else:
             self.basedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -337,10 +336,8 @@ class SessionThread(threading.Thread):
                  vncpassword='',
                  otp='',
                  gui_cmd=None,
-                 configFile='',
-                 debug=False):
+                 configFile=''):
 
-        self.debug = debug
         self.tunnel_command = tunnel_cmd
         self.vnc_command = vnc_cmd
         self.gui_cmd = gui_cmd
@@ -375,8 +372,7 @@ class SessionThread(threading.Thread):
             self.tunnel_process = None
 
     def run(self):
-        if self.debug:
-            logic_logger.debug('This is thread ' + str(self.threadnum) + ' run.')
+        logic_logger.debug('This is thread ' + str(self.threadnum) + ' run.')
 
         if self.gui_cmd:
             self.gui_cmd(active=True)
@@ -534,20 +530,18 @@ class SessionThread(threading.Thread):
                                       'dummy1',
                                       'Password:',
                                       pexpect.EOF],
-                                     timeout=None)
+                                      timeout=None)
                     child.sendline(self.vncpassword)
 
                 if i == 3 or i == 4:
-                    if self.debug:
-                        logic_logger.error("#REMOVE_FOR_JAVA#Timeout connecting to the display.")
+                    logic_logger.debug("#REMOVE_FOR_JAVA#Timeout connecting to the display.")
 
                 i = child.expect(['Authentication successful',
                                   pexpect.EOF],
                                  timeout=None)
 
                 if i > 0:
-                    if self.debug:
-                        logic_logger.error("#REMOVE_FOR_JAVA#Authentication problems.")
+                    logic_logger.debug("#REMOVE_FOR_JAVA#Authentication problems.")
                     for line in child:
                         logic_logger.debug("#REMOVE_FOR_JAVA#child expect-->" + str(line))
 
