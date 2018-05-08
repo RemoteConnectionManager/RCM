@@ -17,7 +17,7 @@ from client.gui.display_session_widget import QDisplaySessionWidget
 from client.utils.pyinstaller_utils import resource_path
 from client.log.logger import logger
 from client.log.config_parser import parser, config_file_name
-from client.logic import rcm_client
+from client.logic import manager
 from client.gui.thread import LoginThread, ReloadThread
 from client.gui.worker import Worker
 from client.utils.rcm_enum import Status
@@ -320,7 +320,7 @@ class QSSHSessionWidget(QWidget):
         self.containerSessionWidget.hide()
         self.containerWaitingWidget.show()
 
-        self.remote_connection_manager = rcm_client.RemoteConnectionManager()
+        self.remote_connection_manager = manager.RemoteConnectionManager()
         self.remote_connection_manager.debug = False
 
         self.login_thread = LoginThread(self, self.host, self.user, password)
