@@ -70,14 +70,13 @@ class QTextEditLoggerHandler(logging.Handler):
     We redirect the log info messages to the log text edit of the main window
     """
 
-    def __init__(self, text_edit):
+    def __init__(self):
         """
         Initialize the handler.
         """
         super().__init__()
 
         self.setFormatter(logging.Formatter('%(asctime)-15s - %(levelname)s - %(message)s'))
-        self.widget = text_edit
         self.logger_signals = LoggerSignals()
         self.html_msg = ""
 
@@ -109,3 +108,5 @@ class QTextEditLoggerHandler(logging.Handler):
 
     def write(self, m):
         pass
+
+text_log_handler =  QTextEditLoggerHandler()
