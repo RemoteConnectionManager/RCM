@@ -45,7 +45,7 @@ class RCMMainWindow(QMainWindow):
 
         self.thread_pool = QThreadPool()
 
-        logger.info("Welcome in RCM!")
+        logger.info("Welcome to RCM!")
         logger.debug("Multithreading with maximum %d threads" % self.thread_pool.maxThreadCount())
 
     def build_menu(self):
