@@ -67,7 +67,7 @@ class RemoteConnectionManager:
             # if running in a bundle, we hardcode the path
             # of the built-in vnc viewer and plink (windows only)
             os.environ['JAVA_HOME'] = resource_path('turbovnc')
-            os.environ['PATH'] = os.environ['JAVA_HOME'] + "/bin:" + os.environ['PATH']
+            os.environ['PATH'] = os.path.join(os.environ['JAVA_HOME'], 'bin') + os.pathsep + os.environ['PATH']
             logic_logger.debug(os.environ['JAVA_HOME'])
             logic_logger.debug(os.environ['PATH'])
 
