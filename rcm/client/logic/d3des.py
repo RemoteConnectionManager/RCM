@@ -367,29 +367,3 @@ def desfunc(block, keys):
   leftt &= 0xffffffff
   right &= 0xffffffff
   return pack('>II', right, leftt)
-
-
-# test
-if __name__ == '__main__':
-    import sys
-    if sys.version_info >= (3, 0):
-        import binascii
-        key = binascii.unhexlify(b'0123456789abcdef')
-        plain = binascii.unhexlify(b'0123456789abcdef')
-        cipher = binascii.unhexlify(b'6e09a37726dd560c')
-        ek = deskey(key, False)
-        dk = deskey(key, True)
-        assert desfunc(plain, ek) == cipher
-        assert desfunc(desfunc(plain, ek), dk) == plain
-        assert desfunc(desfunc(plain, dk), ek) == plain
-        print('test succeeded.')
-    else:
-        key = '0123456789abcdef'.decode('hex')
-        plain = '0123456789abcdef'.decode('hex')
-        cipher = '6e09a37726dd560c'.decode('hex')
-        ek = deskey(key, False)
-        dk = deskey(key, True)
-        assert desfunc(plain, ek) == cipher
-        assert desfunc(desfunc(plain, ek), dk) == plain
-        assert desfunc(desfunc(plain, dk), ek) == plain
-        print('test succeeded.')

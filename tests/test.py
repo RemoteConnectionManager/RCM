@@ -15,6 +15,8 @@ sys.path.append(os.path.join(source_root, 'rcm'))
 
 # local includes
 from rcm.client.gui.ssh_session_widget import QSSHSessionWidget
+from client.utils.rcm_enum import Mode
+from client.log.logger import configure_logger
 
 app = QApplication(sys.argv)
 
@@ -77,5 +79,41 @@ class TestSSHSessionWidget(unittest.TestCase):
         self.assertEqual(ssh_session_widget.containerWaitingWidget.isHidden(), True)
 
 
+class TestAESCipher(unittest.TestCase):
+    def test_encryption(self):
+        from rcm.client.logic.aes_cipher import AESCipher
+
+        rcm_cipher = AESCipher(key='hyTedDfs')
+        message = "lorem_ipsum"
+        encrypted_messaged = rcm_cipher.encrypt(message).decode('utf-8')
+        decrypted_messge = rcm_cipher.decrypt(encrypted_messaged).decode('utf-8')
+        self.assertEqual(message, decrypted_messge)
+
+
+class TestD3DESCipher(unittest.TestCase):
+    def test_encryption(self):
+        import client.logic.d3des as d3des
+        if sys.version_info >= (3, 0):
+            import binascii
+            key = binascii.unhexlify(b'0123456789abcdef')
+            plain = binascii.unhexlify(b'0123456789abcdef')
+            cipher = binascii.unhexlify(b'6e09a37726dd560c')
+            ek = d3des.deskey(key, False)
+            dk = d3des.deskey(key, True)
+            self.assertEqual(d3des.desfunc(plain, ek), cipher)
+            self.assertEqual(d3des.desfunc(d3des.desfunc(plain, ek), dk), plain)
+            self.assertEqual(d3des.desfunc(d3des.desfunc(plain, dk), ek), plain)
+        else:
+            key = '0123456789abcdef'.decode('hex')
+            plain = '0123456789abcdef'.decode('hex')
+            cipher = '6e09a37726dd560c'.decode('hex')
+            ek = d3des.deskey(key, False)
+            dk = d3des.deskey(key, True)
+            self.assertEqual(d3des.desfunc(plain, ek), cipher)
+            self.assertEqual(d3des.desfunc(d3des.desfunc(plain, ek), dk), plain)
+            self.assertEqual(d3des.desfunc(d3des.desfunc(plain, dk), ek), plain)
+
+
 if __name__ == '__main__':
+    configure_logger(mode=Mode.TEST, debug=False)
     unittest.main(verbosity=2)

@@ -34,13 +34,3 @@ class AESCipher:
         iv = enc[:16]
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
         return unpad(cipher.decrypt(enc[16:]))
-
-
-if __name__ == '__main__':
-        rcm_cipher = AESCipher('pippo')
-        message = "messaggio in chiaro"
-        for i in range(10):
-            secret = rcm_cipher.encrypt(message).decode('utf-8')
-            print("secret-->" + str(secret) + "<---")
-            clear = rcm_cipher.decrypt(secret).decode('utf-8')
-            print("clear-->" + str(clear) + "<---")
