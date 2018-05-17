@@ -306,15 +306,17 @@ class RemoteConnectionManager:
         self.session_thread.append(st)
         st.start()
 
+    def __del__(self):
+        self.vncsession_kill()
+
     def vncsession_kill(self):
         try:
-            logic_logger.debug("here in vncsession_kill")
             if self.session_thread:
                 for thread in self.session_thread:
                     thread.terminate()
             self.session_thread = None
-        except Exception as e:
-            logic_logger.error(e)
+        except Exception:
+            print('error: failed to kill a session thread still alive')
 
     def checkCredential(self):
         rcm_server_command = rcm_utils.get_server_command(self.proxynode,
