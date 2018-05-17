@@ -11,3 +11,9 @@ class Status(Enum):
 
     def __str__(self):
         return '{0}'.format(self.value)
+
+
+class Mode(Enum):
+    GUI = 1
+    CLI = 2
+    TEST = 3

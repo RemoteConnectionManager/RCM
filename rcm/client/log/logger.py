@@ -8,7 +8,7 @@ import json
 from PyQt5.QtCore import pyqtSignal, QObject
 
 # local import
-from client.log.config_parser import parser
+from client.utils.rcm_enum import Mode
 
 rootLogger = logging.getLogger()
 rootLogger.setLevel(logging.INFO)
@@ -65,15 +65,9 @@ class QTextEditLoggerHandler(logging.Handler):
         self.logger_signals = LoggerSignals()
         self.html_msg = ""
 
-    def flush(self):
-        """
-        Flushes the html message into the text edit widget using signal/slot
-        """
-        self.logger_signals.log_message.emit(self.html_msg)
-
     def emit(self, record):
         """
-        Emit a record.
+        Emit a html message into the text edit widget using signal/slot
         """
         if sys.platform == 'win32':
             font_size = 8
@@ -94,7 +88,7 @@ class QTextEditLoggerHandler(logging.Handler):
             self.html_msg += str(msg)
             self.html_msg += "</span>"
 
-            self.flush()
+            self.logger_signals.log_message.emit(self.html_msg)
         except Exception:
             self.handleError(record)
 
@@ -102,27 +96,27 @@ class QTextEditLoggerHandler(logging.Handler):
         pass
 
 
-def configure_logger(debug=False):
-    if debug:
-        logger.setLevel(logging.DEBUG)
-        logic_logger.setLevel(logging.DEBUG)
-        ssh_logger.setLevel(logging.INFO)
+def configure_logger(mode=Mode.GUI, debug=False):
+    if mode is Mode.GUI:
+        if debug:
+            logger.setLevel(logging.DEBUG)
+            logic_logger.setLevel(logging.DEBUG)
+            ssh_logger.setLevel(logging.INFO)
 
-        text_log_handler.setFormatter(
-            logging.Formatter('%(asctime)s [%(levelname)s:%(name)s] ' +
-                              '[%(threadName)-12.12s] [%(filename)s:' +
-                              '%(funcName)s:%(lineno)d]-->%(message)s')
-        )
+            text_log_handler.setFormatter(
+                logging.Formatter('%(asctime)s [%(levelname)s:%(name)s] ' +
+                                  '[%(threadName)-12.12s] [%(filename)s:' +
+                                  '%(funcName)s:%(lineno)d]-->%(message)s')
+            )
+        else:
+            logger.setLevel(logging.INFO)
+            logic_logger.setLevel(logging.INFO)
+            ssh_logger.setLevel(logging.WARNING)
+            text_log_handler.setFormatter(logging.Formatter('%(asctime)-15s - %(levelname)s - %(message)s'))
     else:
-        logger.setLevel(logging.INFO)
-        logic_logger.setLevel(logging.INFO)
-        ssh_logger.setLevel(logging.WARNING)
-        text_log_handler.setFormatter(logging.Formatter('%(asctime)-15s - %(levelname)s - %(message)s'))
+        logger.setLevel(logging.ERROR)
+        logic_logger.setLevel(logging.ERROR)
+        ssh_logger.setLevel(logging.ERROR)
 
 
 text_log_handler = QTextEditLoggerHandler()
-try:
-    debug_log_level = json.loads(parser.get('Settings', 'debug_log_level'))
-    configure_logger(debug_log_level)
-except Exception:
-    configure_logger(False)

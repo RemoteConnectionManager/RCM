@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QLabel, QDialog, \
 # local includes
 from client.log.logger import logger, configure_logger
 from client.log.config_parser import parser, config_file_name
+from client.utils.rcm_enum import Mode
 
 
 class QEditSettingsDialog(QDialog):
@@ -68,7 +69,7 @@ class QEditSettingsDialog(QDialog):
         self.setLayout(outer_grid_layout)
 
     def on_log_level_change(self, debug):
-        configure_logger(debug)
+        configure_logger(Mode.GUI, debug)
 
     def load_settings(self):
         try:
