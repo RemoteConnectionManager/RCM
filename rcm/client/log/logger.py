@@ -1,4 +1,5 @@
 # std lib
+import sys
 import logging
 import logging.handlers
 import json
@@ -90,15 +91,22 @@ class QTextEditLoggerHandler(logging.Handler):
         """
         Emit a record.
         """
+        if sys.platform == 'win32':
+            font_size = 8
+        else:
+            font_size = 10
+
         try:
             msg = self.format(record)
 
             if record.levelno == logging.ERROR or record.levelno == logging.CRITICAL:
-                self.html_msg = "<span style=\" font-size:10pt; font-weight:600; color:#ff0000;\" >"
+                self.html_msg = "<span style=\" font-size:%spt; font-weight:600; color:#ff0000;\" >" % str(font_size)
             elif record.levelno == logging.WARNING:
-                self.html_msg = "<span style=\" font-size:10pt; font-weight:600; color:#ff9900;\" >"
+                self.html_msg = "<span style=\" font-size:%spt; font-weight:600; color:#ff9900;\" >" % str(font_size)
+            elif record.levelno == logging.INFO:
+                self.html_msg = "<span style=\" font-size:%spt; font-weight:600; color:#000000;\" >" % str(font_size)
             else:
-                self.html_msg = "<span style=\" font-size:10pt; font-weight:600; color:#000000;\" >"
+                self.html_msg = "<span style=\" font-size:%spt; font-weight:400; color:#000000;\" >" % str(font_size - 1)
             self.html_msg += str(msg)
             self.html_msg += "</span>"
 
