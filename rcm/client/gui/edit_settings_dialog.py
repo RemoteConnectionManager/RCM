@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QLabel, QDialog, \
     QHBoxLayout, QVBoxLayout, QGroupBox, QPushButton, QCheckBox
 
 # local includes
-from client.log.logger import logger, logic_logger, ssh_logger, text_log_handler
+from client.log.logger import logger, configure_logger
 from client.log.config_parser import parser, config_file_name
 
 
@@ -68,21 +68,7 @@ class QEditSettingsDialog(QDialog):
         self.setLayout(outer_grid_layout)
 
     def on_log_level_change(self, debug):
-        if debug:
-            logger.setLevel(logging.DEBUG)
-            logic_logger.setLevel(logging.DEBUG)
-            ssh_logger.setLevel(logging.INFO)
-
-            text_log_handler.setFormatter(
-                logging.Formatter('%(asctime)s [%(levelname)s:%(name)s] ' +
-                                  '[%(threadName)-12.12s] [%(filename)s:' +
-                                  '%(funcName)s:%(lineno)d]-->%(message)s')
-            )
-        else:
-            logger.setLevel(logging.INFO)
-            logic_logger.setLevel(logging.INFO)
-            ssh_logger.setLevel(logging.WARNING)
-            text_log_handler.setFormatter(logging.Formatter('%(asctime)-15s - %(levelname)s - %(message)s'))
+        configure_logger(debug)
 
     def load_settings(self):
         try:

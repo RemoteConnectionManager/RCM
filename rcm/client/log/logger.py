@@ -20,22 +20,6 @@ logic_logger = logging.getLogger('RCM.client')
 ssh_logger = logging.getLogger('paramiko')
 
 
-try:
-    debug = json.loads(parser.get('Settings', 'debug_log_level'))
-    if debug:
-        logger.setLevel(logging.DEBUG)
-        logic_logger.setLevel(logging.DEBUG)
-        ssh_logger.setLevel(logging.INFO)
-    else:
-        logger.setLevel(logging.INFO)
-        logic_logger.setLevel(logging.INFO)
-        ssh_logger.setLevel(logging.WARNING)
-except Exception:
-    logger.setLevel(logging.INFO)
-    logic_logger.setLevel(logging.INFO)
-    ssh_logger.setLevel(logging.WARNING)
-
-
 class QLabelLoggerHandler(logging.Handler):
     """
     We redirect the log info messages to the log label of the main window
@@ -117,4 +101,28 @@ class QTextEditLoggerHandler(logging.Handler):
     def write(self, m):
         pass
 
-text_log_handler =  QTextEditLoggerHandler()
+
+def configure_logger(debug=False):
+    if debug:
+        logger.setLevel(logging.DEBUG)
+        logic_logger.setLevel(logging.DEBUG)
+        ssh_logger.setLevel(logging.INFO)
+
+        text_log_handler.setFormatter(
+            logging.Formatter('%(asctime)s [%(levelname)s:%(name)s] ' +
+                              '[%(threadName)-12.12s] [%(filename)s:' +
+                              '%(funcName)s:%(lineno)d]-->%(message)s')
+        )
+    else:
+        logger.setLevel(logging.INFO)
+        logic_logger.setLevel(logging.INFO)
+        ssh_logger.setLevel(logging.WARNING)
+        text_log_handler.setFormatter(logging.Formatter('%(asctime)-15s - %(levelname)s - %(message)s'))
+
+
+text_log_handler = QTextEditLoggerHandler()
+try:
+    debug_log_level = json.loads(parser.get('Settings', 'debug_log_level'))
+    configure_logger(debug_log_level)
+except Exception:
+    configure_logger(False)
