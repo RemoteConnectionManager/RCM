@@ -1,6 +1,6 @@
 import os
 import sys
-from . import rcm
+import rcm
 import logging
 
 class rcm_protocol:
