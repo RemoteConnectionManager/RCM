@@ -64,6 +64,7 @@ class Rcm(Package):
     version('v0.0.3', 'a9ee0ddfa533701a3a538011f9c2349c')
     version('v0.0.4', '215537f33ce5e17c67ec901334404c79')
     version('develop', git='https://github.com/RemoteConnectionManager/RCM.git', tag='dev')
+    version('refactoring', git='https://github.com/RemoteConnectionManager/RCM.git', branch='refactoring')
 
     variant('linksource', default=False, description='link to source instead of copying scripts')
     variant('client', default=False, description='install client part')
@@ -126,6 +127,8 @@ class Rcm(Package):
                     tty.warn('copy RCM source tree in prefix: '+rcm_source + ' -->'+dest)
                     shutil.copytree(rcm_source,dest)
                     rcm_source=dest
+                if '@refactoring' in self.spec:
+                    rcm_source=os.path.join(rcm_source,'rcm')
                 tty.warn('linking to source->'+rcm_source)
                 os.symlink(os.path.join(rcm_source,'server'),
                            os.path.join(prefix.bin,'server'))
