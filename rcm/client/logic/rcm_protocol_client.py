@@ -9,7 +9,7 @@ sys.path.append(root_rcm_path)
 
 # local includes
 from server import rcm_protocol_server
-from client.log.logger import logic_logger
+from client.miscellaneous.logger import logic_logger
 
 
 def rcm_decorate(fn):

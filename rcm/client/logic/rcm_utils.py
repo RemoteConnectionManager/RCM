@@ -10,7 +10,7 @@ root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 sys.path.append(root_rcm_path)
 
 # local includes
-from client.log.logger import logic_logger
+from client.miscellaneous.logger import logic_logger
 
 
 exceptionformat = " {1}"

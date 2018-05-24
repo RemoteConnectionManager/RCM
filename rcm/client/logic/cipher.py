@@ -7,7 +7,7 @@ import random
 # VNC password encription python implementation
 # from https://github.com/trinitronx/vncpasswd.py
 import client.logic.d3des as d3des
-from client.log.logger import logic_logger
+from client.miscellaneous.logger import logic_logger
 
 
 def vnc_crypt(vncpass, decrypt=False):

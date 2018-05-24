@@ -8,8 +8,8 @@ from PyQt5.QtWidgets import QLabel, QDialog, \
     QHBoxLayout, QVBoxLayout, QGroupBox, QPushButton, QCheckBox
 
 # local includes
-from client.log.logger import logger, configure_logger
-from client.log.config_parser import parser, config_file_name
+from client.miscellaneous.logger import logger, configure_logger
+from client.miscellaneous.config_parser import parser, config_file_name
 from client.utils.rcm_enum import Mode
 
 

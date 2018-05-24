@@ -6,7 +6,7 @@ from PyQt5.QtCore import QRunnable, pyqtSlot, pyqtSignal, QObject
 
 # local includes
 from client.utils.rcm_enum import Status
-from client.log.logger import logger
+from client.miscellaneous.logger import logger
 
 
 # Reference https://martinfitzpatrick.name/article/multithreading-pyqt-applications-with-qthreadpool/

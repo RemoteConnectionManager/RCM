@@ -2,7 +2,7 @@
 from PyQt5.QtCore import QThread
 
 # local includes
-from client.log.logger import logger
+from client.miscellaneous.logger import logger
 from client.utils.rcm_enum import Status
 
 

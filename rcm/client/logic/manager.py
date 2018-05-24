@@ -22,7 +22,7 @@ import client.logic.cipher as cipher
 import client.logic.thread as thread
 import client.logic.rcm_protocol_client as rcm_protocol_client
 from client.utils.pyinstaller_utils import resource_path
-from client.log.logger import logic_logger
+from client.miscellaneous.logger import logic_logger
 
 
 class RemoteConnectionManager:

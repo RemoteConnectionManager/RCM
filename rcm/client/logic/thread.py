@@ -6,7 +6,7 @@ if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
     import pexpect
 
 # local includes
-from client.log.logger import logic_logger
+from client.miscellaneous.logger import logic_logger
 
 
 class SessionThread(threading.Thread):

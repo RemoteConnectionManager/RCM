@@ -14,9 +14,9 @@ sys.path.append(source_root)
 
 # local includes
 from client.gui.rcm_main_window import RCMMainWindow
-from client.log.config_parser import parser
+from client.miscellaneous.config_parser import parser
 from client.utils.rcm_enum import Mode
-from client.log.logger import configure_logger
+from client.miscellaneous.logger import configure_logger
 
 
 if __name__ == '__main__':

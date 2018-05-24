@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QWidget, QFrame, QLabel, \
 
 # local includes
 from client.utils.pyinstaller_utils import resource_path
-from client.log.logger import logger
+from client.miscellaneous.logger import logger
 from client.gui.thread import KillThread
 from client.utils.rcm_enum import Status
 

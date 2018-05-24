@@ -10,8 +10,8 @@ from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
     QDesktopWidget
 
 # local includes
-from client.log.logger import logger
-from client.log.config_parser import parser, config_file_name
+from client.miscellaneous.logger import logger
+from client.miscellaneous.config_parser import parser, config_file_name
 
 
 class QDisplayDialog(QDialog):
