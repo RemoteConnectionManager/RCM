@@ -18,6 +18,7 @@ sys.path.append(os.path.join(root_rcm_path, 'server'))
 # local includes
 import rcm
 import client.logic.rcm_utils as rcm_utils
+import client.logic.thread as thread
 import client.logic.rcm_protocol_client as rcm_protocol_client
 from client.utils.pyinstaller_utils import resource_path
 from client.log.logger import logic_logger
@@ -294,13 +295,13 @@ class RemoteConnectionManager:
         logic_logger.debug("tunnel->" + tunnel_command.replace(self.passwd, "****") +
                             "< vnc->" + vnc_command + "< conffile->" + str(configFile) + "<")
 
-        st = rcm_utils.SessionThread(tunnel_command,
-                                     vnc_command,
-                                     self.passwd,
-                                     vncpassword_decrypted,
-                                     otp,
-                                     gui_cmd,
-                                     configFile)
+        st = thread.SessionThread(tunnel_command,
+                                  vnc_command,
+                                  self.passwd,
+                                  vncpassword_decrypted,
+                                  otp,
+                                  gui_cmd,
+                                  configFile)
 
         logic_logger.debug("session  thread--->" + str(st) + "<--- num thread:" + str(len(self.session_thread)))
         self.session_thread.append(st)
