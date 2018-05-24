@@ -114,6 +114,15 @@ class TestD3DESCipher(unittest.TestCase):
             self.assertEqual(d3des.desfunc(d3des.desfunc(plain, dk), ek), plain)
 
 
+class TestRCMCipher(unittest.TestCase):
+    def test_encryption(self):
+        import client.logic.cipher as cipher
+        rcm_cipher = cipher.RCMCipher()
+        self.assertEqual(rcm_cipher.decrypt(rcm_cipher.encrypt()), rcm_cipher.vncpassword)
+        rcm_cipher = cipher.RCMCipher("hyTedDfs")
+        self.assertEqual(rcm_cipher.decrypt(rcm_cipher.encrypt()), rcm_cipher.vncpassword)
+
+
 if __name__ == '__main__':
     configure_logger(mode=Mode.TEST, debug=False)
     unittest.main(verbosity=2)

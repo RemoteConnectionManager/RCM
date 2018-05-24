@@ -18,6 +18,7 @@ sys.path.append(os.path.join(root_rcm_path, 'server'))
 # local includes
 import rcm
 import client.logic.rcm_utils as rcm_utils
+import client.logic.cipher as cipher
 import client.logic.thread as thread
 import client.logic.rcm_protocol_client as rcm_protocol_client
 from client.utils.pyinstaller_utils import resource_path
@@ -205,7 +206,7 @@ class RemoteConnectionManager:
         return ret
 
     def newconn(self, queue, geometry, sessionname='', vnc_id='turbovnc_vnc'):
-        rcm_cipher = rcm_utils.rcm_cipher()
+        rcm_cipher = cipher.RCMCipher()
         vncpassword = rcm_cipher.vncpassword
         vncpassword_crypted = rcm_cipher.encrypt()
 
@@ -254,7 +255,7 @@ class RemoteConnectionManager:
             vncpassword = session.hash.get('vncpassword', '')
 
             # Decrypt password
-            rcm_cipher = rcm_utils.rcm_cipher()
+            rcm_cipher = cipher.RCMCipher()
             vncpassword_decrypted = rcm_cipher.decrypt(vncpassword)
 
             logic_logger.debug("portnumber --> " + str(portnumber) + " node --> " + str(node) + " nodelogin --> "
@@ -329,7 +330,6 @@ class RemoteConnectionManager:
 
 
 if __name__ == '__main__':
-    rcm_utils.configure_logging()
     print("vncviewer-->" + rcm_utils.which('vncviewer'))
 
     remote_connection_manager = RemoteConnectionManager()
