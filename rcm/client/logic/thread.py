@@ -24,8 +24,10 @@ class SessionThread(threading.Thread):
                  vncpassword='',
                  otp='',
                  gui_cmd=None,
-                 configFile=''):
+                 configFile='',
+                 auth_method=''):
 
+        self.auth_method = auth_method
         self.tunnel_command = tunnel_cmd
         self.vnc_command = vnc_cmd
         self.gui_cmd = gui_cmd
@@ -38,7 +40,7 @@ class SessionThread(threading.Thread):
         threading.Thread.__init__(self)
         self.threadnum = SessionThread.threadscount
         SessionThread.threadscount += 1
-        logic_logger.debug('This is thread ' + str(self.threadnum) + ' init.')
+        logic_logger.debug('Thread ' + str(self.threadnum) + ' is initialized')
 
     def terminate(self):
         self.gui_cmd = None
@@ -60,7 +62,7 @@ class SessionThread(threading.Thread):
             self.tunnel_process = None
 
     def run(self):
-        logic_logger.debug('This is thread ' + str(self.threadnum) + ' run.')
+        logic_logger.debug('Thread ' + str(self.threadnum) + ' is started')
 
         if self.gui_cmd:
             self.gui_cmd(active=True)
@@ -83,8 +85,12 @@ class SessionThread(threading.Thread):
         else:
             if sys.platform == 'win32':
                 if self.tunnel_command != '':
-                    logic_logger.debug('This is thread ' + str(self.threadnum) + "executing-->" +
-                                        self.tunnel_command.replace(self.password, "****") + "<--")
+                    tunnel_command_without_password = self.tunnel_command
+                    if self.auth_method == 'password':
+                        tunnel_command_without_password = self.tunnel_command.replace(self.password, "****")
+
+                    logic_logger.debug('Thread ' + str(self.threadnum) + " executing " +
+                                       tunnel_command_without_password)
                     self.tunnel_process = subprocess.Popen(self.tunnel_command,
                                                            bufsize=1,
                                                            stdout=subprocess.PIPE,
@@ -105,9 +111,8 @@ class SessionThread(threading.Thread):
 
                 a = self.vnc_command.split("|")
 
-                logic_logger.debug("starting vncviewer-->" +
-                                    self.vnc_command.replace(self.password, "****") + "<--")
-                logic_logger.debug("splitting-->"+str(a)+"<--")
+                logic_logger.debug("starting vncviewer")
+                logic_logger.debug("splitting" + str(a))
 
                 if len(a) > 1:
                     tmppass = a[0].strip().split()[1].strip()
@@ -138,9 +143,6 @@ class SessionThread(threading.Thread):
                 self.vnc_process = None
 
             elif sys.platform.startswith('darwin'):
-                logic_logger.debug('This is thread ' + str(self.threadnum) +
-                                    " executing-->" + self.vnc_command.replace(self.password, "****") + "<--")
-
                 if self.tunnel_command != '':
                     ssh_newkey = 'Are you sure you want to continue connecting'
                     logic_logger.debug('Tunnel commands: ' + str(self.tunnel_command))
@@ -184,12 +186,6 @@ class SessionThread(threading.Thread):
 
             else:
                 # linux
-                logic_logger.info('This is thread ' +
-                                    str(self.threadnum) +
-                                    " executing-->" +
-                                    self.vnc_command.replace(self.password, "****") +
-                                    "<-vncpass->" + self.vncpassword + "<--")
-
                 child = pexpect.spawn(self.vnc_command,
                                       timeout=50)
                 self.vnc_process = child

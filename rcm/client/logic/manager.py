@@ -34,6 +34,7 @@ class RemoteConnectionManager:
     """
 
     def __init__(self, pack_info=None):
+        self.auth_method = ''
         self.session_thread = []
         self.commandnode = ''
         self.protocol = rcm_protocol_client.get_protocol()
@@ -154,6 +155,8 @@ class RemoteConnectionManager:
             logic_logger.warning("ERROR {0}: ".format(e) + "in ssh.connect to node->" +
                                   commandnode + "< user->" + self.remoteuser + "<")
             return('')
+
+        self.auth_method = ssh.get_transport().auth_handler.auth_method
 
         stdin, stdout, stderr = ssh.exec_command(self.config['remote_rcm_server'] + ' ' + cmd)
         myout = ''.join(stdout)
@@ -293,7 +296,8 @@ class RemoteConnectionManager:
                                   vncpassword_decrypted,
                                   otp,
                                   gui_cmd,
-                                  configFile)
+                                  configFile,
+                                  self.auth_method)
 
         logic_logger.debug("session  thread--->" + str(st) + "<--- num thread:" + str(len(self.session_thread)))
         self.session_thread.append(st)

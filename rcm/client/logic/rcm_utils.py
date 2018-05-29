@@ -114,7 +114,7 @@ def get_threads_exceptions():
 def get_server_command(host, user, passwd=''):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    logic_logger.info("getting server command host->"+host+"< user->"+user+"<")
+    logic_logger.info("getting server command from host " + host + " with user " + user)
     try:
         ssh.connect(host, username=user, password=passwd)
     except Exception as e:
