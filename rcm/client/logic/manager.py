@@ -18,6 +18,7 @@ sys.path.append(os.path.join(root_rcm_path, 'server'))
 # local includes
 import rcm
 import client.logic.rcm_utils as rcm_utils
+import client.logic.vnc_client as vnc_client
 import client.logic.cipher as cipher
 import client.logic.thread as thread
 import client.logic.rcm_protocol_client as rcm_protocol_client
@@ -49,16 +50,11 @@ class RemoteConnectionManager:
         self.basedir = self.pack_info.basedir
         self.config = dict()
         self.config['ssh'] = dict()
-        self.config['vnc'] = dict()
         self.config['ssh']['win32'] = ("PLINK.EXE", " -ssh", "echo yes | ")
-        self.config['vnc']['win32'] = ("vncviewer.exe", "")
         self.config['ssh']['linux2'] = ("ssh", "", "")
-        self.config['vnc']['linux2'] = ("vncviewer", "")
         # for python3
         self.config['ssh']['linux'] = ("ssh", "", "")
-        self.config['vnc']['linux'] = ("vncviewer", "")
         self.config['ssh']['darwin'] = ("ssh", "", "")
-        self.config['vnc']['darwin'] = ("vncviewer_java/Contents/MacOS/JavaApplicationStub", "")
         self.config['remote_rcm_server'] = "module load rcm; python $RCM_HOME/bin/server/rcm_new_server.py"
 
         self.activeConnectionsList = []
@@ -70,8 +66,8 @@ class RemoteConnectionManager:
             # of the built-in vnc viewer and plink (windows only)
             os.environ['JAVA_HOME'] = resource_path('turbovnc')
             os.environ['PATH'] = os.path.join(os.environ['JAVA_HOME'], 'bin') + os.pathsep + os.environ['PATH']
-            logic_logger.debug(os.environ['JAVA_HOME'])
-            logic_logger.debug(os.environ['PATH'])
+            logic_logger.debug("JAVA_HOME: " + str(os.environ['JAVA_HOME']))
+        logic_logger.debug("PATH: " + str(os.environ['PATH']))
 
         # ssh executable
         if sys.platform == 'win32':
@@ -92,15 +88,8 @@ class RemoteConnectionManager:
                            self.config['ssh'][sys.platform][1]
         logic_logger.debug("ssh command: " + self.ssh_command)
 
-        vncexe = rcm_utils.which('vncviewer')
-        if not vncexe:
-            logic_logger.error("vncviewer not found! Check the PATH environment variable.")
-            sys.exit()
-        if sys.platform == 'win32':
-            # if the executable path contains spaces, it has to be put inside apexes
-            vncexe = "\"" + vncexe + "\""
-        self.vncexe = vncexe
-        logic_logger.debug("vncviewer path: " + self.vncexe)
+        self.vnc_cmdline_builder = vnc_client.VNCClientCommandLineBuilder()
+        self.vnc_cmdline_builder.build()
 
     def login_setup(self, host='', remoteuser='', password=None):
         self.proxynode = host
@@ -262,15 +251,18 @@ class RemoteConnectionManager:
                                 + str(nodelogin) + " tunnel --> " + str(tunnel))
 
             if sys.platform.startswith('darwin'):
-                vnc_command = self.vncexe + " -quality 80 -subsampling 2X" + " -password " + vncpassword_decrypted
+                vnc_command = self.vnc_cmdline_builder.get_executable_path() + " -quality 80 -subsampling 2X" \
+                              + " -password " + vncpassword_decrypted
                 vnc_command += " -loglevel " + str(rcm_utils.vnc_loglevel)
             elif sys.platform == 'win32':
-                vnc_command = "echo " + vncpassword_decrypted + " | " + self.vncexe + " -autopass -nounixlogin"
+                vnc_command = "echo " + vncpassword_decrypted + " | " + self.vnc_cmdline_builder.get_executable_path() \
+                              + " -autopass -nounixlogin"
                 vnc_command += " -logfile " + os.path.join(rcm_utils.log_folder(), 'vncviewer_' + nodelogin + '_' +
                                                            session.hash.get('sessionid', '') + '.log')
                 vnc_command += " -loglevel " + str(rcm_utils.vnc_loglevel)
             else:
-                vnc_command = self.vncexe + " -quality 80 " + " -password " + vncpassword_decrypted
+                vnc_command = self.vnc_cmdline_builder.get_executable_path() + " -quality 80 " \
+                              + " -password " + vncpassword_decrypted
 
             if sys.platform == 'win32' or sys.platform.startswith('darwin'):
                 if tunnel == 'y':
@@ -290,11 +282,10 @@ class RemoteConnectionManager:
                 else:
                     vnc_command += ' ' + nodelogin + ":" + session.hash['display']
         else:
-
-            vnc_command = self.vncexe + " -config "
+            vnc_command = self.vnc_cmdline_builder.get_executable_path() + " -config "
 
         logic_logger.debug("tunnel->" + tunnel_command.replace(self.passwd, "****") +
-                            "< vnc->" + vnc_command + "< conffile->" + str(configFile) + "<")
+                           "< vnc->" + vnc_command + "< conffile->" + str(configFile) + "<")
 
         st = thread.SessionThread(tunnel_command,
                                   vnc_command,
