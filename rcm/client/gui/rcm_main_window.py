@@ -274,6 +274,7 @@ class MainWidget(QWidget):
                                         QTabBar.RightSide,
                                         kill_btn)
         self.add_new_tab("", False)
+        self.tabs.setCurrentIndex(last_tab)
 
     def add_new_tab(self, session_name, show_close_btn=True):
         """
@@ -319,7 +320,7 @@ class MainWidget(QWidget):
         for tab_id in range(0, self.tabs.count()):
             widget = self.tabs.widget(tab_id)
             if widget.uuid == uuid:
-                if self.tabs.currentIndex() == self.tabs.count() - 2:
+                if self.tabs.currentIndex() == tab_id:
                     self.tabs.setCurrentIndex(tab_id - 1)
                 # kill all the pending threads
                 if widget.remote_connection_manager:
