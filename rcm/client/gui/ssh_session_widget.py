@@ -3,13 +3,17 @@ import json
 import uuid
 import os.path
 import collections
+import sys
+import time
+import tempfile
+import subprocess
 
 # pyqt5
 from PyQt5.QtCore import QSize, pyqtSignal, Qt
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
     QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, \
-    QStyle, QProgressBar
+    QStyle, QProgressBar, QMessageBox
 
 # local includes
 from client.gui.display_dialog import QDisplayDialog
@@ -21,6 +25,8 @@ from client.logic import manager
 from client.gui.thread import LoginThread, ReloadThread
 from client.gui.worker import Worker
 from client.utils.rcm_enum import Status
+import client.logic.rcm_utils as rcm_utils
+import client.utils.pyinstaller_utils as pyinstaller_utils
 
 
 class QSSHSessionWidget(QWidget):
@@ -348,6 +354,9 @@ class QSSHSessionWidget(QWidget):
             # update config file
             self.update_config_file(self.session_name)
 
+            # check if a new version is available
+            self.update_executable()
+
             # Emit the logged_in signal.
             self.logged_in.emit(self.session_name)
 
@@ -358,6 +367,81 @@ class QSSHSessionWidget(QWidget):
             self.containerLoginWidget.show()
             self.containerSessionWidget.hide()
             self.containerWaitingWidget.hide()
+
+    def update_executable(self):
+        # update the executable only if we are running in a bundle
+        if not pyinstaller_utils.is_bundled():
+            return
+
+        logger.info("Checking if a new client version is available...")
+        current_exe_checksum = rcm_utils.compute_checksum(sys.executable)
+        logger.debug("Current client checksum: " + str(current_exe_checksum))
+
+        last_exe_checksum = self.platform_config.get_version()[0]
+        last_exe_url = self.platform_config.get_version()[1]
+        logger.debug("New client checksum: " + str(last_exe_checksum))
+
+        if current_exe_checksum != last_exe_checksum:
+            question_title = "Release download"
+            question_text = "A new version of the \"Remote Connection Manager\" is available at: **. " \
+                            "It is highly recommended to install the new version to keep working properly. " \
+                            "Do you want to install it now?"
+
+            buttonReply = QMessageBox.question(self, question_title, question_text,
+                                               QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+            if buttonReply == QMessageBox.No:
+                return
+
+            logger.info('Downloading the new client version...')
+            exe_dir = os.path.dirname(sys.executable)
+            tmp_dir = tempfile.gettempdir()
+            last_exe_path = os.path.join(tmp_dir, os.path.basename(sys.executable))
+            rcm_utils.download_file(last_exe_url, last_exe_path)
+            downloaded_exe_checksum = rcm_utils.compute_checksum(last_exe_path)
+            time.sleep(5)
+
+            if downloaded_exe_checksum != last_exe_checksum:
+                logger.warning('Downloaded file checksum mismatched. '
+                               'Expected: ' + str(last_exe_path) + '. Found: '
+                               + str(downloaded_exe_checksum) + '. Update stopped.')
+                os.remove(last_exe_path)
+            else:
+                if sys.platform == 'win32':
+                    batch_filename = os.path.join(tmp_dir, "RCM_update.bat")
+                    with open(batch_filename, 'w') as batch_file:
+                        batch_file.write("rem start update bat" + "\n")
+                        batch_file.write("cd /D " + exe_dir + "\n")
+                        batch_file.write("copy mybatch.bat mybatch.txt\n")
+                        batch_file.write('ping -n 3 localhost >nul 2>&1' + "\n")
+                        batch_file.write("del mybatch.txt\n")
+                        batch_file.write("ren " + os.path.basename(sys.executable) +
+                                         " _" + os.path.basename(sys.executable) + "\n")
+                        batch_file.write("copy " + last_exe_path + "\n")
+                        batch_file.write("del " + " _" + os.path.basename(sys.executable) + "\n")
+                        batch_file.write("del " + last_exe_path + "\n")
+                        batch_file.write("start " + os.path.basename(sys.executable) + "\n")
+                        batch_file.write("del " + batch_filename + "\n")
+                        batch_file.write("exit\n")
+
+                    logger.info("The application will be closed and the new one will start in a while.")
+                    os.startfile(batch_filename)
+                else:
+                    batch_filename = os.path.join(tmp_dir, "RCM_update.sh")
+                    with open(batch_filename, 'w') as batch_file:
+                        batch_file.write("#!/bin/bash\n")
+                        batch_file.write("#start update bat" + "\n")
+                        batch_file.write("cd " + exe_dir + "\n")
+                        batch_file.write("sleep 3 \n")
+                        batch_file.write("rm " + os.path.basename(sys.executable) + "\n")
+                        batch_file.write("cp " + last_exe_path + " .\n")
+                        batch_file.write("chmod a+x " + os.path.basename(sys.executable) + "\n")
+                        batch_file.write("sleep 2 \n")
+                        batch_file.write("./" + os.path.basename(sys.executable) + "\n")
+
+                    logger.info("The application will be closed and the new one will start in a while!")
+                    subprocess.Popen(["sh", batch_filename])
+        else:
+            logger.info('The client is up-to-date')
 
     def add_new_display(self):
         # cannot have more than 5 sessions

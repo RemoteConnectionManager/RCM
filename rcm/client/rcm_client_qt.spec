@@ -7,14 +7,22 @@ import platform
 import shutil
 basepath = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(SPEC))))
 
-exe_name = 'RCM' + '_' + str(sys.platform) + '_' + str(platform.architecture()[0])
+version = "1.2.300"
+platform = str(sys.platform) + '_' + str(platform.architecture()[0])
+exe_name = 'RCM' + '_' + platform
 exe_path = os.path.join('dist', exe_name)
+
+build_platform_filename = os.path.join(basepath, 'build_platform.txt')
+with open(build_platform_filename, "w") as f:
+    f.write(platform + '\n')
+    f.write(version)
 
 a = Analysis(['rcm_client_qt.py'],
              pathex=[(os.path.join(basepath, 'rcm/server'))],
              binaries=[],
              datas=[(os.path.join(basepath, 'rcm/client/gui/icons/*.png'), 'gui/icons/'),
-                    (os.path.join(basepath, 'rcm/client/external/turbovnc'), 'turbovnc')],
+                    (os.path.join(basepath, 'rcm/client/external/turbovnc'), 'turbovnc'),
+                    (os.path.join(basepath, 'build_platform.txt'), '')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],

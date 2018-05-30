@@ -24,6 +24,7 @@ import client.logic.thread as thread
 import client.logic.rcm_protocol_client as rcm_protocol_client
 from client.utils.pyinstaller_utils import resource_path
 from client.miscellaneous.logger import logic_logger
+import client.utils.pyinstaller_utils as pyinstaller_utils
 
 
 class RemoteConnectionManager:
@@ -48,7 +49,6 @@ class RemoteConnectionManager:
         else:
             self.pack_info = pack_info
 
-        self.basedir = self.pack_info.basedir
         self.config = dict()
         self.config['ssh'] = dict()
         self.config['ssh']['win32'] = ("PLINK.EXE", " -ssh", "echo yes | ")
@@ -103,7 +103,7 @@ class RemoteConnectionManager:
         else:
             self.remoteuser = remoteuser
 
-        keyfile = os.path.join(self.basedir, 'keys', self.remoteuser + '.ppk')
+        keyfile = pyinstaller_utils.resource_path(os.path.join('keys', self.remoteuser + '.ppk'))
         if os.path.exists(keyfile):
             if sys.platform == 'win32':
                 self.login_options = " -i " + keyfile + " " + self.remoteuser

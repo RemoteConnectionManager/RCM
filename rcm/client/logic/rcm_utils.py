@@ -6,15 +6,44 @@ import sys
 import paramiko
 import socket
 import queue
+import hashlib
+import urllib.request
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root_rcm_path)
 
 # local includes
 from client.miscellaneous.logger import logic_logger
+import client.utils.pyinstaller_utils as pyinstaller_utils
 
 
 exceptionformat = " {1}"
 vnc_loglevel = 0
+
+
+def compute_checksum(filename):
+    fh = open(filename, 'rb')
+    m = hashlib.md5()
+    while True:
+        data = fh.read(8192)
+        if not data:
+            break
+        m.update(data)
+    return m.hexdigest()
+
+
+def download_file(url, outfile):
+    req_info = urllib.request.urlopen(url)
+    file_size = int(req_info.headers['Content-Length'])
+    with open(outfile, 'wb') as f:
+        file_size_dl = 0
+        block_sz = 8192
+        while True:
+            buffer = req_info.read(block_sz)
+            if not buffer:
+                break
+            file_size_dl += len(buffer)
+            f.write(buffer)
+            p = float(file_size_dl) / file_size
 
 
 def which(*args, **kwargs):
@@ -64,26 +93,19 @@ def log_folder():
 
 class pack_info:
     def __init__(self):
-        if 'frozen' in dir(sys):
-            if hasattr(sys, '_MEIPASS'):
-                # PyInstaller >= 1.6
-                self.basedir = os.path.abspath(sys._MEIPASS)
-            elif '_MEIPASS2' in os.environ:
-                self.basedir = os.path.abspath(os.environ['_MEIPASS2'])
-            else:
-                self.basedir = os.path.dirname(os.path.abspath(sys.executable))
-        else:
-            self.basedir = os.path.dirname(os.path.abspath(__file__))
-
         # Read file containing the platform on which the client were build
-        buildPlatform = os.path.join(self.basedir, "external","build_platform.txt")
+        build_platform_filename = pyinstaller_utils.resource_path("build_platform.txt")
+
         self.buildPlatformString = ""
         self.rcmVersion = ""
-        if os.path.exists(buildPlatform):
-            in_file = open(buildPlatform, "r")
-            self.buildPlatformString = in_file.readline()
-            self.rcmVersion = in_file.readline()
-            in_file.close()
+
+        if os.path.exists(build_platform_filename):
+            logic_logger.debug("Reading build platform file " + build_platform_filename)
+            with open(build_platform_filename, "r") as f:
+                self.buildPlatformString = f.readline()
+                self.rcmVersion = f.readline()
+                logic_logger.debug(self.buildPlatformString)
+                logic_logger.debug(self.rcmVersion)
 
 
 def get_unused_portnumber():
