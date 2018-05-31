@@ -7,7 +7,11 @@ import platform
 import shutil
 basepath = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(SPEC))))
 
-version = "1.2.300"
+version = "1.0"
+if len(sys.argv) > 2:
+    version = str(sys.argv[2])
+    print("RCM version: " + version)
+
 platform = str(sys.platform) + '_' + str(platform.architecture()[0])
 exe_name = 'RCM' + '_' + platform
 exe_path = os.path.join('dist', exe_name)
