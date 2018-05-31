@@ -303,9 +303,6 @@ class RemoteConnectionManager:
         self.session_thread.append(st)
         st.start()
 
-    def __del__(self):
-        self.vncsession_kill()
-
     def vncsession_kill(self):
         try:
             if self.session_thread:

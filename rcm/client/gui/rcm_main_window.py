@@ -166,7 +166,16 @@ class RCMMainWindow(QMainWindow):
             else:
                 current_session_widget.remote_connection_manager.vncsession(configFile=filename)
 
+    def closeEvent(self, QCloseEvent):
+        self.exit()
+
     def exit(self):
+        """
+        kill all the pending threads, then close the application
+        """
+        for tab_id in range(0, self.main_widget.tabs.count()):
+            widget = self.main_widget.tabs.widget(tab_id)
+            widget.kill_all_threads()
         self.close()
 
     def edit_settings(self):
