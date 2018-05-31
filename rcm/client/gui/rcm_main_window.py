@@ -15,6 +15,7 @@ from client.gui.edit_settings_dialog import QEditSettingsDialog
 from client.utils.pyinstaller_utils import resource_path
 from client.miscellaneous.logger import text_log_handler, logger, logic_logger, ssh_logger
 import server.rcm as rcm
+import client.logic.rcm_utils as rcm_utils
 
 
 class RCMMainWindow(QMainWindow):
@@ -22,7 +23,9 @@ class RCMMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        title = "Remote Connection Manager - CINECA - v0.01_alpha"
+        pack_info = rcm_utils.pack_info()
+
+        title = "Remote Connection Manager - CINECA - v" + pack_info.rcmVersion
         self.setWindowTitle(title)
 
         width = 1000
