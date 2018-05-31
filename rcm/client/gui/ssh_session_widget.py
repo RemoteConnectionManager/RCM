@@ -383,7 +383,8 @@ class QSSHSessionWidget(QWidget):
 
         if current_exe_checksum != last_exe_checksum:
             question_title = "Release download"
-            question_text = "A new version of the \"Remote Connection Manager\" is available at: **. " \
+            question_text = "A new version of the \"Remote Connection Manager\" is available at: " \
+                            + last_exe_url + ". " \
                             "It is highly recommended to install the new version to keep working properly. " \
                             "Do you want to install it now?"
 
