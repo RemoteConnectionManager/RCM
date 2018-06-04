@@ -1,10 +1,10 @@
 # std lib
 import os
 import json
-import logging
+import sys
 
 # pyqt5
-from PyQt5.QtWidgets import QLabel, QDialog, \
+from PyQt5.QtWidgets import QLabel, QDialog, QRadioButton, \
     QHBoxLayout, QVBoxLayout, QGroupBox, QPushButton, QCheckBox
 
 # local includes
@@ -36,17 +36,48 @@ class QEditSettingsDialog(QDialog):
         # Create a group box containing the settings
         group_box = QGroupBox("Settings:")
 
+        # debug log level
         log_level_hlayout = QHBoxLayout()
         log_level = QLabel(self)
         log_level.setText('Debug log level:')
         log_level_hlayout.addWidget(log_level)
 
         log_level_hlayout.addSpacing(250)
+        log_level_hlayout.addStretch(1)
         log_level_checkbox = QCheckBox("", self)
         log_level_checkbox.setObjectName('debug_log_level')
         log_level_checkbox.setChecked(self.settings['debug_log_level'])
         log_level_checkbox.toggled.connect(self.on_log_level_change)
         log_level_hlayout.addWidget(log_level_checkbox)
+
+        # ssh client
+        ssh_client_label = QLabel(self)
+        ssh_client_label.setText('SSH client:')
+
+        ssh_client_group_box = QGroupBox(self)
+        self.ssh_client_btn_int = QRadioButton("internal")
+        self.ssh_client_btn_ext = QRadioButton("external")
+        self.ssh_client_btn_via = QRadioButton("via")
+        if self.settings['ssh_client'] == "internal":
+            self.ssh_client_btn_int.setChecked(True)
+        elif self.settings['ssh_client'] == "external":
+            self.ssh_client_btn_ext.setChecked(True)
+        else:
+            self.ssh_client_btn_via.setChecked(True)
+
+        ssh_client_vbox = QVBoxLayout()
+        ssh_client_vbox.addWidget(self.ssh_client_btn_int)
+        ssh_client_vbox.addWidget(self.ssh_client_btn_ext)
+        if sys.platform != 'win32':
+            ssh_client_vbox.addWidget(self.ssh_client_btn_via)
+        ssh_client_vbox.addStretch(1)
+        ssh_client_group_box.setLayout(ssh_client_vbox)
+
+        ssh_client_hlayout = QHBoxLayout()
+        ssh_client_hlayout.addWidget(ssh_client_label)
+        ssh_client_hlayout.addSpacing(250)
+        ssh_client_hlayout.addStretch(1)
+        ssh_client_hlayout.addWidget(ssh_client_group_box)
 
         # Save button
         last_hor_layout = QHBoxLayout()
@@ -61,6 +92,7 @@ class QEditSettingsDialog(QDialog):
         last_hor_layout.addWidget(cancel_button)
 
         inner_vlayout.addLayout(log_level_hlayout)
+        inner_vlayout.addLayout(ssh_client_hlayout)
 
         group_box.setLayout(inner_vlayout)
         outer_grid_layout.addWidget(group_box)
@@ -76,7 +108,12 @@ class QEditSettingsDialog(QDialog):
             debug_log_level = json.loads(parser.get('Settings', 'debug_log_level'))
             self.settings['debug_log_level'] = debug_log_level
         except Exception:
-            self.use_default_settings()
+            self.settings['debug_log_level'] = False
+        try:
+            ssh_client = json.loads(parser.get('Settings', 'ssh_client'))
+            self.settings['ssh_client'] = ssh_client
+        except Exception:
+            self.settings['ssh_client'] = "internal"
 
     def on_save(self):
         if not parser.has_section('Settings'):
@@ -86,6 +123,7 @@ class QEditSettingsDialog(QDialog):
         self.update_and_apply_settings()
 
         parser.set('Settings', 'debug_log_level', json.dumps(self.settings['debug_log_level']))
+        parser.set('Settings', 'ssh_client', json.dumps(self.settings['ssh_client']))
 
         try:
             config_file_dir = os.path.dirname(config_file_name)
@@ -101,6 +139,13 @@ class QEditSettingsDialog(QDialog):
 
     def use_default_settings(self):
         self.settings['debug_log_level'] = False
+        self.settings['ssh_client'] = "internal"
 
     def update_and_apply_settings(self):
         self.settings['debug_log_level'] = self.findChild(QCheckBox, 'debug_log_level').isChecked()
+        if self.ssh_client_btn_int.isChecked():
+            self.settings['ssh_client'] = "internal"
+        elif self.ssh_client_btn_ext.isChecked():
+            self.settings['ssh_client'] = "external"
+        else:
+            self.settings['ssh_client'] = "via"

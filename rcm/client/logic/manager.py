@@ -2,13 +2,11 @@
 
 # std lib
 import sys
-import platform
+import json
 import os 
 import getpass
 import socket
 import paramiko
-if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
-    import pexpect
 
 # in order to parse the pickle message coming from the server, we need to import rcm as below
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,6 +23,7 @@ import client.logic.rcm_protocol_client as rcm_protocol_client
 from client.utils.pyinstaller_utils import resource_path
 from client.miscellaneous.logger import logic_logger
 import client.utils.pyinstaller_utils as pyinstaller_utils
+from client.miscellaneous.config_parser import parser
 
 
 class RemoteConnectionManager:
@@ -241,7 +240,11 @@ class RemoteConnectionManager:
         tunnel_command = ''
         vnc_command = ''
         vncpassword_decrypted = ''
-        tunnelling_method = 'internal'
+        try:
+            tunnelling_method = json.loads(parser.get('Settings', 'ssh_client'))
+        except Exception:
+            tunnelling_method = "internal"
+        logic_logger.info("Using " + str(tunnelling_method) + " ssh tunnelling")
 
         if session:
             portnumber = 5900 + int(session.hash['display'])
@@ -294,7 +297,7 @@ class RemoteConnectionManager:
                         vnc_command += " -via '" + self.login_options + "@" + nodelogin + "' " \
                                        + node + ":" + str(session.hash['display'])
                     else:
-                        logic_logger.error(tunnelling_method + 'is not a valid option')
+                        logic_logger.error(tunnelling_method + ' is not a valid option')
                         return
                 else:
                     vnc_command += ' ' + nodelogin + ":" + session.hash['display']
