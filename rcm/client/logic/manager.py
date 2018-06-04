@@ -35,7 +35,11 @@ class RemoteConnectionManager:
     """
 
     def __init__(self, pack_info=None):
+        self.proxynode = ''
+        self.remoteuser = ''
+        self.passwd = ''
         self.auth_method = ''
+
         self.session_thread = []
         self.commandnode = ''
         self.protocol = rcm_protocol_client.get_protocol()
@@ -92,7 +96,7 @@ class RemoteConnectionManager:
         self.vnc_cmdline_builder = vnc_client.VNCClientCommandLineBuilder()
         self.vnc_cmdline_builder.build()
 
-    def login_setup(self, host='', remoteuser='', password=None):
+    def login_setup(self, host, remoteuser, password=None):
         self.proxynode = host
 
         if remoteuser == '':
@@ -237,6 +241,7 @@ class RemoteConnectionManager:
         tunnel_command = ''
         vnc_command = ''
         vncpassword_decrypted = ''
+        tunnelling_method = 'internal'
 
         if session:
             portnumber = 5900 + int(session.hash['display'])
@@ -280,8 +285,17 @@ class RemoteConnectionManager:
                     vnc_command += " " + nodelogin + ":" + str(portnumber)
             else:
                 if tunnel == 'y':
-                    vnc_command += " -via '" + self.login_options + "@" + nodelogin + "' " \
-                                   + node + ":" + str(session.hash['display'])
+                    if tunnelling_method == 'internal':
+                        vnc_command += " 127.0.0.1:" + str(local_portnumber)
+                    elif tunnelling_method == 'external':
+                        tunnel_command = self.ssh_command + " -L 127.0.0.1:" + str(local_portnumber) + ":" + node + ":" \
+                                         + str(portnumber) + " " + self.login_options + "@" + nodelogin
+                    elif tunnelling_method == 'via':
+                        vnc_command += " -via '" + self.login_options + "@" + nodelogin + "' " \
+                                       + node + ":" + str(session.hash['display'])
+                    else:
+                        logic_logger.error(tunnelling_method + 'is not a valid option')
+                        return
                 else:
                     vnc_command += ' ' + nodelogin + ":" + session.hash['display']
         else:
@@ -292,12 +306,18 @@ class RemoteConnectionManager:
 
         st = thread.SessionThread(tunnel_command,
                                   vnc_command,
+                                  self.proxynode,
+                                  self.remoteuser,
                                   self.passwd,
                                   vncpassword_decrypted,
                                   otp,
                                   gui_cmd,
                                   configFile,
-                                  self.auth_method)
+                                  self.auth_method,
+                                  local_portnumber,
+                                  node,
+                                  portnumber,
+                                  tunnelling_method)
 
         logic_logger.debug("session  thread--->" + str(st) + "<--- num thread:" + str(len(self.session_thread)))
         self.session_thread.append(st)
