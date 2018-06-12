@@ -69,8 +69,15 @@ class RemoteConnectionManager:
             # if running in a bundle, we hardcode the path
             # of the built-in vnc viewer and plink (windows only)
             os.environ['JAVA_HOME'] = resource_path('turbovnc')
+            os.environ['JDK_HOME'] = os.environ['JAVA_HOME']
+            os.environ['JRE_HOME'] = os.path.join(os.environ['JAVA_HOME'], 'jre')
+            os.environ['CLASSPATH'] = os.path.join(os.environ['JAVA_HOME'], 'lib') + \
+                os.pathsep + os.path.join(os.environ['JRE_HOME'], 'lib')
             os.environ['PATH'] = os.path.join(os.environ['JAVA_HOME'], 'bin') + os.pathsep + os.environ['PATH']
             logic_logger.debug("JAVA_HOME: " + str(os.environ['JAVA_HOME']))
+            logic_logger.debug("JRE_HOME: " + str(os.environ['JRE_HOME']))
+            logic_logger.debug("JDK_HOME: " + str(os.environ['JDK_HOME']))
+            logic_logger.debug("CLASSPATH: " + str(os.environ['CLASSPATH']))
         logic_logger.debug("PATH: " + str(os.environ['PATH']))
 
         # ssh executable
