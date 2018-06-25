@@ -13,7 +13,7 @@ For the python-qt part, instructions are below:
 ```sh
 mkdir <new_folder>
 cd <new_folder>
-git clone git clone https://github.com/RemoteConnectionManager/RCM.git
+git clone https://github.com/RemoteConnectionManager/RCM.git
 sudo apt-get install virtualenv -y
 virtualenv -p python3 py3env
 source py3env/bin/activate
