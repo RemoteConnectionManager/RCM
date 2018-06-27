@@ -140,11 +140,8 @@ class RemoteConnectionManager:
         self.ssh_remote_exec_command = self.ssh_command + " " + self.login_options
         self.ssh_remote_exec_command_withproxy = self.ssh_command + " " + self.login_options_withproxy
 
-        check_cred = self.checkCredential()
-        if check_cred:
-            self.subnet = '.'.join(socket.gethostbyname(self.proxynode).split('.')[0:-1])
-            logic_logger.debug("Login host: " + self.proxynode + " subnet: " + self.subnet)
-        return check_cred 
+        self.subnet = '.'.join(socket.gethostbyname(self.proxynode).split('.')[0:-1])
+        logic_logger.debug("Login host: " + self.proxynode + " subnet: " + self.subnet)
         
     def prex(self, cmd, commandnode = ''):
         if self.commandnode == '':
@@ -341,15 +338,6 @@ class RemoteConnectionManager:
             self.session_thread = None
         except Exception:
             print('error: failed to kill a session thread still alive')
-
-    def checkCredential(self):
-        rcm_server_command = rcm_utils.get_server_command(self.proxynode,
-                                                          self.remoteuser,
-                                                          passwd=self.passwd)
-        if rcm_server_command != '':
-            self.config['remote_rcm_server'] = rcm_server_command
-        return True
-
 
 if __name__ == '__main__':
     print("vncviewer-->" + rcm_utils.which('vncviewer'))
