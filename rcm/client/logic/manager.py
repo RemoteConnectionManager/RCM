@@ -59,7 +59,7 @@ class RemoteConnectionManager:
         # for python3
         self.config['ssh']['linux'] = ("ssh", "", "")
         self.config['ssh']['darwin'] = ("ssh", "", "")
-        self.config['remote_rcm_server'] = "module load rcm; python $RCM_HOME/bin/server/rcm_new_server.py"
+        self.config['remote_rcm_server'] = json.loads(parser.get('Settings', 'preload_command')) + "module load rcm; python $RCM_HOME/bin/server/rcm_new_server.py"
 
         self.activeConnectionsList = []
 
