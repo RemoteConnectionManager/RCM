@@ -15,8 +15,8 @@ sys.path.append(os.path.join(source_root, 'rcm'))
 
 # local includes
 from rcm.client.gui.ssh_session_widget import QSSHSessionWidget
-from client.utils.rcm_enum import Mode
-from client.log.logger import configure_logger
+
+from client.miscellaneous.logger import configure_logger
 
 app = QApplication(sys.argv)
 
