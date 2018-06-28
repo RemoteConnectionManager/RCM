@@ -1,7 +1,8 @@
 import unittest
 import uuid
+import re
 import getpass
-import datetime
+from datetime import datetime, timedelta
 
 from client.logic.manager import RemoteConnectionManager
 from client.logic.cipher import RCMCipher
@@ -36,7 +37,7 @@ class TestManager(unittest.TestCase):
         out = remote_connection_manager.list()
         out.write(2)
 
-        #'created' (140376348444016) = {str} '20180627-14:29:09'
+    #   #'created' (140376348444016) = {str} '20180627-14:29:09'
         #'display' (140376348444240) = {str} '1'
         #'file' (140376348361592) = {str} ''
         #'jobid' (140376348444072) = {str} '95553.io01'
@@ -54,8 +55,14 @@ class TestManager(unittest.TestCase):
         #'walltime' (140376348421616) = {str} '12:00:00'
         #__len__ = {int} 16
 
-        print(session.hash['created'])
-        print(datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S"))
+        created = datetime.strptime(session.hash['created'],"%Y%m%d-%H:%M:%S")
+        now = datetime.now()
+
+        print(created.strftime("%Y%m%d-%H:%M:%S"))
+        print(now.strftime("%Y%m%d-%H:%M:%S"))
+
+        self.assertTrue(re.search("([0-9]{8})((\D[0-9]{2}){3})", session.hash['created']))
+        self.assertTrue(created - timedelta(minutes=2) < now or created + timedelta(minutes=2) > now)
 
         self.assertEqual(session.hash['nodelogin'],host)
         self.assertEqual(session.hash['session name'], sessionname)
@@ -83,7 +90,6 @@ class TestManager(unittest.TestCase):
             self.assertEqual(vncpassword, rcm_cipher.decrypt(rcm_cipher.encrypt(vncpassword)))
         else:
             self.assertEqual(vncpassword, rcm_cipher.encrypt(rcm_cipher.decrypt(vncpassword)))
-
 
 if __name__ == '__main__':
     configure_logger(mode=Mode.TEST, debug=False)
