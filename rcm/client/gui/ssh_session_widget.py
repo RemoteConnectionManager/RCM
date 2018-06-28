@@ -281,6 +281,7 @@ class QSSHSessionWidget(QWidget):
         reload_btn.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
         reload_btn.setToolTip('Reload the page')
         reload_btn.clicked.connect(self.reload)
+        reload_btn.setShortcut("F5")
 
         new_display_layout = QHBoxLayout()
         new_display_layout.addSpacing(70)
