@@ -4,6 +4,7 @@ import getpass
 import datetime
 
 from client.logic.manager import RemoteConnectionManager
+from client.logic.cipher import RCMCipher
 import client.logic.rcm_utils as rcm_utils
 
 class TestManager(unittest.TestCase):
@@ -16,8 +17,10 @@ class TestManager(unittest.TestCase):
         user = "a08tra01" #input("User:")
         pswd = "8gwCj7dzTuhSU92N" #getpass.getpass('Password:')
         sessionname = str(uuid.uuid4())
+        queues = ["light_2gb_1cor","medium_8gb_1core","med_16gb_2core","alarge_32gb_4core","xtralarge_64gb_8c","zfull_120gb_16c"]
+        state = ["pending", "valid", "killing"]
 
-        remote_connection_manager.login_setup(host=host, remoteuser=user, password=pswd) #missing 1 required positional argument: 'remoteuser'
+        remote_connection_manager.login_setup(host=host, remoteuser=user, password=pswd)
         print("open sessions on " + host)
         out = remote_connection_manager.list()
         out.write(2)
@@ -53,7 +56,7 @@ class TestManager(unittest.TestCase):
         self.assertEqual(session.hash['tunnel'], "y")
         self.assertEqual(session.hash['sessiontype'], "pbs") #deve essere slurm
         self.assertEqual(session.hash['username'], user)
-        #self.assertEqual(session.has['vncpassword'])
+        self.test_vnccipher(session.hash['vncpassword'])
 
         print("created session -->",
               session.hash['sessionid'],
@@ -69,6 +72,16 @@ class TestManager(unittest.TestCase):
         remote_connection_manager.kill(session)
         out = remote_connection_manager.list()
         out.write(2)
+
+    def test_vnccipher(self, vncpassword=""):
+        rcm_cipher = RCMCipher()
+        if not vncpassword:
+            vncpassword = rcm_cipher.vncpassword
+
+        vncpassword_decrypt = rcm_cipher.decrypt(vncpassword)
+        print(vncpassword + "-->" + vncpassword_decrypt)
+
+        self.assertEqual(vncpassword, rcm_cipher.encrypt(vncpassword_decrypt))
 
 if __name__ == '__main__':
     unittest.main()
