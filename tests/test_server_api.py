@@ -61,7 +61,7 @@ class TestManager(unittest.TestCase):
         print(created.strftime("%Y%m%d-%H:%M:%S"))
         print(now.strftime("%Y%m%d-%H:%M:%S"))
 
-        self.assertTrue(re.search("([0-9]{8})((\D[0-9]{2}){3})", session.hash['created']))
+        self.assertTrue(re.search("([0-9]{8}\-)(([0-9]{2}\:){2})([0-9]{2})", session.hash['created']))
         self.assertTrue(created - timedelta(minutes=2) < now or created + timedelta(minutes=2) > now)
 
         self.assertEqual(session.hash['nodelogin'],host)
