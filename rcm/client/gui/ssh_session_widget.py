@@ -276,6 +276,7 @@ class QSSHSessionWidget(QWidget):
         new_display_btn.setIcon(new_display_ico)
         new_display_btn.setToolTip('Create a new display session')
         new_display_btn.clicked.connect(self.add_new_display)
+        new_display_btn.setShortcut(Qt.Key_Plus)
 
         reload_btn = QPushButton()
         reload_btn.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
