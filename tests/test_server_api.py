@@ -48,7 +48,7 @@ class TestManager(unittest.TestCase):
         #'display' (140376348444240) = {str} '1'
         #'file' (140376348361592) = {str} ''
         #'jobid' (140376348444072) = {str} '95553.io01'
-        #'node' (140376348361368) = {str} 'node168' \d\d\d
+    #   #'node' (140376348361368) = {str} 'node168' \d\d\d
     #   #'nodelogin' (140376348380464) = {str} 'login.galileo.cineca.it'
         #'otp' (140376348443792) = {str} ''
     #   #'session name' (140376348439088) = {str} uuid
@@ -65,18 +65,15 @@ class TestManager(unittest.TestCase):
         created = datetime.strptime(session.hash['created'],"%Y%m%d-%H:%M:%S")
         now = datetime.now()
 
-        print(created.strftime("%Y%m%d-%H:%M:%S"))
-        print(now.strftime("%Y%m%d-%H:%M:%S"))
-
         self.assertTrue(re.search("([0-9]{8}\-)(([0-9]{2}\:){2})([0-9]{2})", session.hash['created']))
         self.assertTrue(created - timedelta(minutes=2) < now or created + timedelta(minutes=2) > now)
 
-
+        self.assertTrue(re.search("(node)([0-9]{1,3})", session.hash['node']))
         self.assertEqual(session.hash['nodelogin'],host)
         self.assertEqual(session.hash['session name'], sessionname)
         self.assertTrue(session.hash['sessionid'][:-1] == '{0}-{1}-'.format(user,session.hash['sessiontype'])
                         and
-                        re.search(".*([1-9]|10)$", session.hash['sessionid']))
+                        re.search(".*([1-9]|(10))$", session.hash['sessionid']))
         self.assertEqual(session.hash['sessiontype'], "pbs")
         self.assertTrue(session.hash['state'] in state)
         self.assertEqual(session.hash['tunnel'], "y")
