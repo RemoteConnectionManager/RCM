@@ -74,9 +74,9 @@ class TestManager(unittest.TestCase):
 
         self.assertEqual(session.hash['nodelogin'],host)
         self.assertEqual(session.hash['session name'], sessionname)
-        self.assertTrue(session.hash['sessionid'][:-1] == '{0}-{1}-'.format(user,session.hash['sessointype'])
+        self.assertTrue(session.hash['sessionid'][:-1] == '{0}-{1}-'.format(user,session.hash['sessiontype'])
                         and
-                        re.search([1 - 9]), session.hash['sessionid'][-1])
+                        re.search(".*([1-9]|10)$", session.hash['sessionid']))
         self.assertEqual(session.hash['sessiontype'], "pbs")
         self.assertTrue(session.hash['state'] in state)
         self.assertEqual(session.hash['tunnel'], "y")
