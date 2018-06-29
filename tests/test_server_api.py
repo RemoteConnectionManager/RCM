@@ -52,7 +52,7 @@ class TestManager(unittest.TestCase):
     #   #'nodelogin' (140376348380464) = {str} 'login.galileo.cineca.it'
         #'otp' (140376348443792) = {str} ''
     #   #'session name' (140376348439088) = {str} uuid
-    #BUG#'sessionid' (140376348420592) = {str} 'a------1-pbs-8' [1-9]
+    #BUG#'sessionid' (140376348420592) = {str} 'a------1-pbs-8' [1-10]
     #   #'sessiontype' (140376348420720) = {str} 'pbs'
     #   #'state' (140376348444128) = {str} 'valid'
     #   #'timeleft' (140376348439280) = {str} '12:00:00'
@@ -78,6 +78,8 @@ class TestManager(unittest.TestCase):
         self.assertTrue(session.hash['state'] in state)
         self.assertEqual(session.hash['tunnel'], "y")
         self.assertEqual(session.hash['username'], user)
+        self.assertTrue(datetime.strptime(session.hash['timeleft'], "%H:%M:%S")
+                        <= datetime.strptime(session.hash['walltime'], "%H:%M:%S"))
 
         print("created session -->",
               session.hash['sessionid'],
