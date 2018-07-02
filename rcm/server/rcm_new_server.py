@@ -22,7 +22,7 @@ if __name__ == '__main__':
     # init loggger
     logger_name = 'basic'
     logger = logging.getLogger(logger_name)
-    logger.setLevel( os.environ.get("RCM_DEBUG_LEVEL","info").upper())
+    logger.setLevel( os.environ.get("RCM_DEBUG_LEVEL","debug").upper())
     ch = logging.StreamHandler(sys.stdout)
     username=pwd.getpwuid(os.geteuid())[0]
     rcmdir=os.path.expanduser("~%s/.rcm" % username)
@@ -40,21 +40,13 @@ if __name__ == '__main__':
 
     #logger.addHandler(ch)
     logger.addHandler(fh)
-    
-    num_loglevel_debug=getattr(logging, "debug".upper(), 0)
-    if num_loglevel_debug==logger.level:
-        string="--------new command-------------\n"
-        string+="python->"+sys.executable+"\n"
-        string+="script-->"+sys.argv[0]+"\nargs->"
-    else:
-        string="--->"+__file__+" "
+
+    string_info="run--->"+__file__+" "
     for a in sys.argv[1:]:
-        string+=a+" "
-    if num_loglevel_debug==logger.level:
-        string+="\n--------------------------------\n"
-        logger.debug(string)
-    else:
-        logger.info(string)
+        string_info+=a+" "
+    string_debug = "python->" + sys.executable
+    logger.info(string_info)
+    logger.debug(string_debug)
 
     #launch rcm
     p=platformconfig.platformconfig()
