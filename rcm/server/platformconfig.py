@@ -96,10 +96,7 @@ class platformconfig(baseconfig):
     def get_queues(self): 
         logger = logging.getLogger("basic")    
         logger.debug("get_queues")
-        logger.debug( self.sections)
-        logger.debug("???????????????????")
         logger.debug(self.sections['jobscript'])
-        logger.debug("???????????????????")
         return self.sections['jobscript']
     
     def get_queue_par(self,parname=''): 
