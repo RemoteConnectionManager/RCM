@@ -108,9 +108,14 @@ class platformconfig(baseconfig):
         pars=dict()
         for q in self.get_queues():
             par=self.confdict.get((parname,q),None)
-            if(par): pars[q]=par
+            logger.debug("q:" + q)
+            logger.debug("parname:" + parname)
+            if par:
+                pars[q] = par
+            logger.debug("pars:" + str(pars))
         return pars
-    
+
+
     def get_testjobs(self): 
         logger = logging.getLogger("basic")    
         logger.debug("get_testjobs")
