@@ -3,8 +3,7 @@ import pwd
 import sys
 import logging.handlers
 
-logger_name = 'basic'
-logger = logging.getLogger(logger_name)
+logger = logging.getLogger('basic')
 logger.setLevel( os.environ.get("RCM_DEBUG_LEVEL","debug").upper())
 ch = logging.StreamHandler(sys.stdout)
 username=pwd.getpwuid(os.geteuid())[0]
