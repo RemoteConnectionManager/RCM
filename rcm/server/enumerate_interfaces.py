@@ -6,10 +6,9 @@ import fcntl
 import struct
 import array
 import re
-import logging
+from  logger_server import logger
 
-def all_interfaces(): 
-    logger = logging.getLogger("basic")    
+def all_interfaces():
     logger.debug("all_interfaces")
     max_possible = 128  # arbitrary. raise if needed.
     bytes = max_possible * 32
@@ -28,16 +27,14 @@ def all_interfaces():
         lst.append((name, ip))
     return lst
 
-def format_ip(addr): 
-    logger = logging.getLogger("basic")    
+def format_ip(addr):
     logger.debug("format_ip")
     return str(ord(addr[0])) + '.' + \
            str(ord(addr[1])) + '.' + \
            str(ord(addr[2])) + '.' + \
            str(ord(addr[3]))
 
-def external_name(subnet): 
-  logger = logging.getLogger("basic")    
+def external_name(subnet):
   logger.debug("external_name")
   ifs = all_interfaces()
   for i in ifs:
