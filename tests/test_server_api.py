@@ -6,6 +6,8 @@ import datetime
 from client.logic.manager import RemoteConnectionManager
 from client.logic.cipher import RCMCipher
 import client.logic.rcm_utils as rcm_utils
+from client.miscellaneous.logger import configure_logger
+from client.utils.rcm_enum import Mode
 
 class TestManager(unittest.TestCase):
 
@@ -30,6 +32,10 @@ class TestManager(unittest.TestCase):
                                                     sessionname=sessionname,
                                                     vnc_id='fluxbox_turbovnc_vnc')
 
+        remote_connection_manager.vncsession(session)
+        out = remote_connection_manager.list()
+        out.write(2)
+
         #'created' (140376348444016) = {str} '20180627-14:29:09'
         #'display' (140376348444240) = {str} '1'
         #'file' (140376348361592) = {str} ''
@@ -40,19 +46,20 @@ class TestManager(unittest.TestCase):
     #   #'session name' (140376348439088) = {str} uuid
         #'sessionid' (140376348420592) = {str} 'a08tra01-pbs-8'
    #BUG #'sessiontype' (140376348420720) = {str} 'pbs'
-        #'state' (140376348444128) = {str} 'valid'
+    #   #'state' (140376348444128) = {str} 'valid'
         #'timeleft' (140376348439280) = {str} '12:00:00'
     #   #'tunnel' (140376348443904) = {str} 'y'
     #   #'username' (140376348377136) = {str} 'a08tra01'
-        #'vncpassword' (140376348406128) = {str} 'bc4df1a9bfa87305'
+    #   #'vncpassword' (140376348406128) = {str} 'bc4df1a9bfa87305'
         #'walltime' (140376348421616) = {str} '12:00:00'
         #__len__ = {int} 16
 
         print(session.hash['created'])
-        print(datetime.datetime.now())
+        print(datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S"))
 
         self.assertEqual(session.hash['nodelogin'],host)
         self.assertEqual(session.hash['session name'], sessionname)
+        self.assertTrue(session.hash['state'] in state)
         self.assertEqual(session.hash['tunnel'], "y")
         self.assertEqual(session.hash['sessiontype'], "pbs") #deve essere slurm
         self.assertEqual(session.hash['username'], user)
@@ -65,23 +72,19 @@ class TestManager(unittest.TestCase):
               "<-- node-->",
               session.hash['node'])
 
-        remote_connection_manager.vncsession(session)
-        out = remote_connection_manager.list()
-        out.write(2)
-
         remote_connection_manager.kill(session)
         out = remote_connection_manager.list()
         out.write(2)
 
-    def test_vnccipher(self, vncpassword=""):
+    def test_vnccipher(self, vncpassword = None):
         rcm_cipher = RCMCipher()
         if not vncpassword:
             vncpassword = rcm_cipher.vncpassword
+            self.assertEqual(vncpassword, rcm_cipher.decrypt(rcm_cipher.encrypt(vncpassword)))
+        else:
+            self.assertEqual(vncpassword, rcm_cipher.encrypt(rcm_cipher.decrypt(vncpassword)))
 
-        vncpassword_decrypt = rcm_cipher.decrypt(vncpassword)
-        print(vncpassword + "-->" + vncpassword_decrypt)
-
-        self.assertEqual(vncpassword, rcm_cipher.encrypt(vncpassword_decrypt))
 
 if __name__ == '__main__':
-    unittest.main()
+    configure_logger(mode=Mode.TEST, debug=False)
+    unittest.main(verbosity=2)
