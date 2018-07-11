@@ -3,7 +3,7 @@
 # std lib
 import sys
 import json
-import os 
+import os
 import getpass
 import socket
 import paramiko
@@ -117,11 +117,11 @@ class RemoteConnectionManager:
         if os.path.exists(keyfile):
             if sys.platform == 'win32':
                 self.login_options = " -i " + keyfile + " " + self.remoteuser
-                
+
             else:
                 logic_logger.warning("PASSING PRIVATE KEY FILE NOT IMPLEMENTED ON PLATFORM -->" + sys.platform + "<--")
                 self.login_options = " -i " + keyfile + " " + self.remoteuser
-                
+
         else:
             if sys.platform == 'win32':
                 if password is None:
@@ -144,8 +144,8 @@ class RemoteConnectionManager:
         if check_cred:
             self.subnet = '.'.join(socket.gethostbyname(self.proxynode).split('.')[0:-1])
             logic_logger.debug("Login host: " + self.proxynode + " subnet: " + self.subnet)
-        return check_cred 
-        
+        return check_cred
+
     def prex(self, cmd, commandnode = ''):
         if self.commandnode == '':
             commandnode = self.proxynode
@@ -153,15 +153,15 @@ class RemoteConnectionManager:
             commandnode = self.commandnode
             self.commandnode = ''
         fullcommand = self.ssh_remote_exec_command + "@" + commandnode + ' ' + cmd
-        
+
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        
+
         logic_logger.debug("on " + commandnode + " run-->" + self.config['remote_rcm_server'] + ' ' + cmd + "<")
 
         try:
             ssh.connect(commandnode, username=self.remoteuser, password=self.passwd, timeout=10)
-        except Exception as e: 
+        except Exception as e:
             logic_logger.warning("ERROR {0}: ".format(e) + "in ssh.connect to node->" +
                                   commandnode + "< user->" + self.remoteuser + "<")
             return('')
@@ -221,7 +221,7 @@ class RemoteConnectionManager:
                               vnc_id=vnc_id)
 
         session = rcm.rcm_session(o)
-        return session 
+        return session
 
     def kill(self, session):
         sessionid = session.hash['sessionid']
@@ -242,7 +242,7 @@ class RemoteConnectionManager:
     def vncs(self):
         vncs = self.server_config.config.get('vnc_commands', [])
         return vncs
-                
+
     def vncsession(self, session=None, otp='', gui_cmd=None, configFile=None):
         tunnel_command = ''
         vnc_command = ''
@@ -286,9 +286,9 @@ class RemoteConnectionManager:
                 if tunnel == 'y':
                     tunnel_command = self.ssh_command + " -L 127.0.0.1:" + str(local_portnumber) + ":" + node + ":" \
                                      + str(portnumber) + " " + self.login_options + "@" + nodelogin
-                    if sys.platform.startswith('darwin'): 
+                    if sys.platform.startswith('darwin'):
                         tunnel_command += " echo 'rcm_tunnel'; sleep 20"
-                    else: 
+                    else:
                         tunnel_command += " echo 'rcm_tunnel'; sleep 10"
                     vnc_command += " 127.0.0.1:" + str(local_portnumber)
                 else:
@@ -349,33 +349,3 @@ class RemoteConnectionManager:
         if rcm_server_command != '':
             self.config['remote_rcm_server'] = rcm_server_command
         return True
-
-
-if __name__ == '__main__':
-    print("vncviewer-->" + rcm_utils.which('vncviewer'))
-
-    remote_connection_manager = RemoteConnectionManager()
-    host = 'login.marconi.cineca.it'
-    remote_connection_manager.login_setup(host=host)
-    print("open sessions on " + host)
-    out = remote_connection_manager.list()
-    out.write(2)
-
-    session = remote_connection_manager.newconn(queue='4core_18_gb_1h_slurm',
-                                                geometry='1200x1000',
-                                                sessionname='test',
-                                                vnc_id='fluxbox_turbovnc_vnc')
-    print("created session -->",
-          session.hash['sessionid'],
-          "<- display->",
-          session.hash['display'],
-          "<-- node-->",
-          session.hash['node'])
-
-    remote_connection_manager.vncsession(session)
-    out = remote_connection_manager.list()
-    out.write(2)
-
-    remote_connection_manager.kill(session)
-    out = remote_connection_manager.list()
-    out.write(2)
