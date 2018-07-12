@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import socket
@@ -8,10 +7,10 @@ import string
 import inspect
 import json 
 from  baseconfig import baseconfig
+from  logger_server import logger
 
 class platformconfig(baseconfig):
-    def __init__(self): 
-        logger = logging.getLogger("basic")
+    def __init__(self):
         logger.debug("platform config init")
         baseconfig.__init__(self)
         self.confdict[('platform','nodepostfix')]=''
@@ -21,21 +20,18 @@ class platformconfig(baseconfig):
         self.find_scheduler()
         self.import_scheduler()
         
-    def max_user_session(self): 
-        logger = logging.getLogger("basic")    
+    def max_user_session(self):
         logger.debug("max_user_session")
         #print "maxUserSessions-->",self.confdict.get(('platform','maxusersessions'),2)
         return int(self.confdict.get(('platform','maxusersessions'),2))
     
-    def find_scheduler(self): 
-        logger = logging.getLogger("basic")    
+    def find_scheduler(self):
         logger.debug("find_scheduler")
         self.hostname = socket.gethostname()
         #print "hostname-->"+hostname+"<--"
         self.scheduler_name=self.confdict.get(('platform',self.hostname),self.default_scheduler_name)
         
-    def get_vnc_menu(self): 
-        logger = logging.getLogger("basic")    
+    def get_vnc_menu(self):
         logger.debug("get_vnc_menu")
         menu=dict()
         for vnc_id in self.sections['vnc_menu']:
@@ -50,8 +46,7 @@ class platformconfig(baseconfig):
             menu[vnc_id]=(item,info)
         return(menu)
 
-    def vnc_attribute(self,vnc_id,section): 
-        logger = logging.getLogger("basic")    
+    def vnc_attribute(self,vnc_id,section):
         logger.debug("vnc_attribute")
         names=vnc_id.split('_')
         prev=names[0]
@@ -69,8 +64,7 @@ class platformconfig(baseconfig):
             prev=name
         return ''
   
-    def vnc_subst(self,vnc_id): 
-        logger = logging.getLogger("basic")    
+    def vnc_subst(self,vnc_id):
         logger.debug("vnc_subst")
         subst=dict()
         for s in self.sections:
@@ -78,8 +72,7 @@ class platformconfig(baseconfig):
                 subst[s]=self.vnc_attribute(vnc_id,s)
         return subst
           
-    def vnc_attrib_subst(self,vnc_id,section,subst=dict()): 
-        logger = logging.getLogger("basic")    
+    def vnc_attrib_subst(self,vnc_id,section,subst=dict()):
         logger.debug("vnc_attrib_subst")
         if self.sections.has_key(section):
             v_subst=self.vnc_subst(vnc_id)
@@ -93,44 +86,40 @@ class platformconfig(baseconfig):
                 return ret
         return ''
 
-    def get_queues(self): 
-        logger = logging.getLogger("basic")    
+    def get_queues(self):
         logger.debug("get_queues")
-        logger.debug( self.sections)
-        logger.debug("???????????????????")
         logger.debug(self.sections['jobscript'])
-        logger.debug("???????????????????")
         return self.sections['jobscript']
     
-    def get_queue_par(self,parname=''): 
-        logger = logging.getLogger("basic")    
+    def get_queue_par(self,parname=''):
         logger.debug("get_queue_par")
         pars=dict()
         for q in self.get_queues():
             par=self.confdict.get((parname,q),None)
-            if(par): pars[q]=par
+            logger.debug("q:" + q)
+            logger.debug("parname:" + parname)
+            if par:
+                pars[q] = par
+            logger.debug("pars:" + str(pars))
         return pars
-    
-    def get_testjobs(self): 
-        logger = logging.getLogger("basic")    
+
+
+    def get_testjobs(self):
         logger.debug("get_testjobs")
         return self.get_queue_par('testjobscript')
     
-    def get_jobscript(self,queue): 
-        logger = logging.getLogger("basic")    
+    def get_jobscript(self,queue):
         logger.debug("get_jobscript")
         return self.confdict.get(('jobscript',queue),self.confdict.get(('jobscript',self.default_scheduler_name),''))
     
-    def get_queue(self,queue): 
-        logger = logging.getLogger("basic")    
+    def get_queue(self,queue):
         logger.debug("get_queue")
         q=dict()
         for tag in self.options.get(queue,[]):
             q[tag]=self.confdict.get((tag,queue),None)
         return q
     
-    def import_scheduler(self): 
-        logger = logging.getLogger("basic")    
+    def import_scheduler(self):
         logger.debug("import_scheduler")
     #sys.stderr.write("####### importing scheduler####-->"+self.scheduler_name)
         if(self.default_scheduler_name == self.scheduler_name):
@@ -141,18 +130,15 @@ class platformconfig(baseconfig):
         self.scheduler=rcm_scheduler
 #    return (rcm_scheduler,session_tag)
     
-    def get_rcm_server(self): 
-        logger = logging.getLogger("basic")    
+    def get_rcm_server(self):
         logger.debug("get_rcm_server")
         return self.scheduler.rcm_server(self)
     
-    def hack_login(self,subnet,nodelogin): 
-        logger = logging.getLogger("basic")    
+    def hack_login(self,subnet,nodelogin):
         logger.debug("hack_login")
         return self.confdict.get((subnet,nodelogin),nodelogin)
     
-    def get_login(self,subnet=''): 
-        logger = logging.getLogger("basic")    
+    def get_login(self,subnet=''):
         logger.debug("get_login")
         nodelogin=''
         if(subnet):

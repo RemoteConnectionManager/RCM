@@ -1,16 +1,14 @@
 import os
 import sys
 import rcm
-import logging
+from  logger_server import logger
 
 class rcm_protocol:
-    def __init__(self,rcm_server=None): 
-        logger = logging.getLogger("basic")
+    def __init__(self,rcm_server=None):
         if(rcm_server):
             self.rcm_server=rcm_server
 
     def config(self,build_platform=''):
-        logger = logging.getLogger("basic")    
         logger.debug("config")
         conf=rcm.rcm_config()
         if(build_platform):
@@ -24,8 +22,7 @@ class rcm_protocol:
         conf.serialize()
 
 
-    def version(self,build_platform=''): 
-        logger = logging.getLogger("basic")    
+    def version(self,build_platform=''):
         logger.debug("version")
         print("get version")
         if (self.client_sendfunc):
@@ -33,7 +30,6 @@ class rcm_protocol:
 
 
     def loginlist(self,subnet=''): 
-        logger = logging.getLogger("basic")    
         logger.debug("loginlist")
 #	import socket
         self.rcm_server.subnet = subnet
@@ -47,7 +43,6 @@ class rcm_protocol:
         sys.stdout.flush()
 
     def list(self,subnet=''): 
-        logger = logging.getLogger("basic")    
         logger.debug("list")
         self.rcm_server.subnet = subnet
         
@@ -60,7 +55,6 @@ class rcm_protocol:
         sys.stdout.flush()
     
     def new(self,geometry='',queue='',sessionname='',subnet='',vncpassword='',vncpassword_crypted='',vnc_id=''): 
-        logger = logging.getLogger("basic")    
         logger.debug("new")
         print("create new vnc display session")
         if(subnet): self.rcm_server.subnet = subnet
@@ -75,7 +69,6 @@ class rcm_protocol:
     
     
     def kill(self,session_id=''): 
-        logger = logging.getLogger("basic")    
         logger.debug("kill")
         self.rcm_server.load_sessions()
         if(session_id):

@@ -6,22 +6,20 @@ import glob
 import string
 import time
 import datetime
-import logging
 import rcm_base_server
+from  logger_server import logger
+
 class rcm_server(rcm_base_server.rcm_base_server):
 
-  def vnc_command_in_background(self): 
-    logger = logging.getLogger("basic")    
+  def vnc_command_in_background(self):
     logger.debug("vnc_command_in_background")
     return True
 
   def timeleft_string(self,sid): 
-    logger = logging.getLogger("basic")    
     logger.debug("timeleft_string")
     return self.notimeleft_string
 # get group to be used submitting a job
-  #def getQueueGroup(self,queue): 
-    logger = logging.getLogger("basic")    
+  #def getQueueGroup(self,queue):
     logger.debug("getQueueGroup")
     #if len(self.accountList) == 0:
       #return ''
@@ -33,8 +31,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
         #group="cin_visual"
       #return group
 
-  def prex(self,cmd): 
-    logger = logging.getLogger("basic")    
+  def prex(self,cmd):
     logger.debug("prex")
     cmdstring=cmd[0]
     for p in cmd[1:]:
@@ -48,7 +45,6 @@ class rcm_server(rcm_base_server.rcm_base_server):
     return (myprocess.returncode,stdout,stderr)
   
   def cprex(self,cmd): 
-    logger = logging.getLogger("basic")    
     logger.debug("cprex")
     (r,o,e)=self.prex(cmd)
     if (r != 0):
@@ -59,7 +55,6 @@ class rcm_server(rcm_base_server.rcm_base_server):
 # submit a LL job
 # stdout and stderr are separated in 2 files
   def submit_job(self,sid,rcm_dirs,jobScript): 
-    logger = logging.getLogger("basic")    
     logger.debug("submit_job")
     #cineca deployment dependencies
     self.ssh_template=jobScript
@@ -113,7 +108,6 @@ class rcm_server(rcm_base_server.rcm_base_server):
 
 # kill a PBS job
   def kill_job(self,jid): 
-    logger = logging.getLogger("basic")    
     logger.debug("kill_job")
     #cprex(['qdel',jid])
     #cprex(['kill '+ jid])
@@ -125,7 +119,6 @@ class rcm_server(rcm_base_server.rcm_base_server):
     
 # get available queues for the user (ssh in no job scheduler)
   def get_queue(self,testJobScriptDict=None): 
-    logger = logging.getLogger("basic")    
     logger.debug("get_queue")
     queueList = []
     queueList.append("ssh")
