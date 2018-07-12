@@ -18,7 +18,7 @@ class rcm_session:
             self.hash=pickle.load(open(fromfile,"rb"))
             self.hash['file']=fromfile
         elif (fromstring != ''):
-            print("pikl fromstring-->"+fromstring)
+            #print("pikl fromstring-->"+fromstring)
             self.hash=pickle.loads(fromstring.encode('utf-8'))
         else:
             self.hash={'file':file, 'session name':sessionname ,'state':state, 'node':node, 'tunnel':tunnel, 'sessiontype':sessiontype, 'nodelogin':nodelogin,  'display':display, 'jobid':jobid, 'sessionid':sessionid, 'username':username, 'walltime':walltime,'timeleft':walltime, 'otp':otp, 'vncpassword':vncpassword}
