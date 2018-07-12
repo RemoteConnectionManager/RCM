@@ -38,7 +38,7 @@ class platformconfig(baseconfig):
         logger = logging.getLogger("basic")    
         logger.debug("get_vnc_menu")
         menu=dict()
-        for vnc_id in self.sections['vnc_menu']:
+        for vnc_id in self.sections.get('vnc_menu',[]):
             menu_item_string=self.confdict[('vnc_menu',vnc_id)]
             m=menu_item_string.split('|',1)
             if ( len(m) > 1 ) :
