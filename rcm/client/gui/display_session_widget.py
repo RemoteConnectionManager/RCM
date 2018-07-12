@@ -46,7 +46,6 @@ class QDisplaySessionWidget(QWidget):
                                           minutes=strp_time.minute,
                                           seconds=strp_time.second)
             except:
-                print("timeleft: "+str(timeleft))
                 self.timeleft=None
         else:
             self.timeleft = timeleft
@@ -253,7 +252,6 @@ class QDisplaySessionWidget(QWidget):
                                           minutes=strp_time.minute,
                                           seconds=strp_time.second)
                 except:
-                    print("timeleft---: "+str(timeleft))
                     self.timeleft=None
                 self.resources_label.setText(str(self.session.hash['node']))
             else:
