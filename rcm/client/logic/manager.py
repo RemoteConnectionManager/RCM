@@ -186,6 +186,7 @@ class RemoteConnectionManager:
         # get list of nodes to check of possible sessions
         rcm_utils.get_threads_exceptions()
 
+        # here we remotely call loginlist function of rcm_protocol_server
         o = self.protocol.loginlist(subnet=self.subnet)
         sessions = rcm.rcm_sessions(o)
 
@@ -199,6 +200,7 @@ class RemoteConnectionManager:
             if proxynode != '' and not proxynode in nodeloginList and state != 'killed':
                 nodeloginList.append(proxynode)
                 self.commandnode = proxynode
+                # here we call list of rcm_protocol_server to get the sessions
                 o = self.protocol.list(subnet=self.subnet)
                 if o:
                     tmp = rcm.rcm_sessions(o)

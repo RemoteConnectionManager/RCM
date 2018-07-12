@@ -4,6 +4,12 @@ import rcm
 from  logger_server import logger
 
 class rcm_protocol:
+    """
+    This is the class that wraps remote procedures call protocol of RCM
+    funcions are wrapped by protocol parser to produce the command line interface as well as by
+    client rcm_protocol_client to expose a protocol class stub for remote call
+    return data are objects efined in rcm, wrapped currently in pickle and packed on stdout
+    """
     def __init__(self,rcm_server=None):
         if(rcm_server):
             self.rcm_server=rcm_server
