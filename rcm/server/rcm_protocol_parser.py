@@ -71,9 +71,9 @@ if __name__ == '__main__':
     print "testing rcm_protocol_parser .................................."
 
 
-    import dummy_rcm_server
+    import dummy_rcm_scheduler
     import rcm_protocol_server
-    r=rcm_protocol_server.rcm_protocol(dummy_rcm_server)
+    r=rcm_protocol_server.rcm_protocol(dummy_rcm_scheduler.rcm_server())
     c=CommandParser(r)
     c.handle(["list"])
     c.handle(["--command=config","--build_platform=uffa"])

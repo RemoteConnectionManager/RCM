@@ -23,6 +23,9 @@ class rcm_protocol:
             conf.add_vnc(vnc_id,menu_entry)
         conf.serialize()
 
+    def config_xml(self,build_platform=''):
+        logger = logging.getLogger("basic")    
+        logger.debug("config_xml")
 
     def version(self,build_platform=''): 
         logger = logging.getLogger("basic")    
