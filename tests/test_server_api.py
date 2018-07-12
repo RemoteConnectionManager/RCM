@@ -1,8 +1,16 @@
+import sys
+import os
 import unittest
 import uuid
 import re
 import getpass
 from datetime import datetime, timedelta
+
+# add python paths
+source_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(source_root)
+sys.path.append(os.path.join(source_root, 'rcm'))
+
 
 from client.logic.manager import RemoteConnectionManager
 from client.miscellaneous.logger import configure_logger
@@ -18,8 +26,8 @@ class TestManager(unittest.TestCase):
 
         remote_connection_manager = RemoteConnectionManager()
         host = 'login.galileo.cineca.it' #marconi o galileo
-        user = "a08tra01" #input("User:")
-        pswd = "8gwCj7dzTuhSU92N" #getpass.getpass('Password:')
+        user = input("User:")
+        pswd = getpass.getpass('Password:')
         sessionname = str(uuid.uuid4())
         queues = ["light_2gb_1cor",
                   "medium_8gb_1core",
