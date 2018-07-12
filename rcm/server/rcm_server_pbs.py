@@ -7,18 +7,17 @@ import glob
 import string
 import time
 import datetime
-import logging
 import rcm_base_server
+from  logger_server import logger
+
 class rcm_server(rcm_base_server.rcm_base_server):
 
  def vnc_command_in_background(self): 
-    logger = logging.getLogger("basic")    
     logger.debug("vnc_command_in_background")
     return False
 
 # get group to be used submitting a job
  def getQueueGroup(self,queue): 
-    logger = logging.getLogger("basic")    
     logger.debug("getQueueGroup")
     self.accountList = self.getUserAccounts()
     if len(self.accountList) == 0:
@@ -32,7 +31,6 @@ class rcm_server(rcm_base_server.rcm_base_server):
       return group
 
  def prex(self,cmd): 
-    logger = logging.getLogger("basic")    
     logger.debug("prex")
     cmdstring=cmd[0]
     for p in cmd[1:]:
@@ -44,7 +42,6 @@ class rcm_server(rcm_base_server.rcm_base_server):
     return (myprocess.returncode,stdout,stderr)     
   
  def cprex(self,cmd): 
-    logger = logging.getLogger("basic")    
     logger.debug("cprex cmd="+str(cmd))
     (r,o,e)=self.prex(cmd)
     if (r != 0):
@@ -54,7 +51,6 @@ class rcm_server(rcm_base_server.rcm_base_server):
 
 # submit a PBS job
  def submit_job(self,sid,rcm_dirs,jobScript): 
-    logger = logging.getLogger("basic")    
     logger.debug("submit_job")
     #icineca deployment dependencies
     self.qsub_template=jobScript
@@ -141,14 +137,12 @@ class rcm_server(rcm_base_server.rcm_base_server):
 
 # kill a PBS job
  def kill_job(self,jid): 
-    logger = logging.getLogger("basic")    
     logger.debug("kill_job")
     self.cprex(['qdel',jid])
     
     
 # get available queues for the user
  def get_queue(self,testJobScriptDict=None): 
-    logger = logging.getLogger("basic")    
     logger.debug("get_queue")
     group=os.environ.get('ACCOUNT_NUMBER',os.path.basename(os.environ.get('WORK','')))
     logger.debug("account : "+group)

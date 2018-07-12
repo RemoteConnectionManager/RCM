@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import socket
@@ -6,7 +5,8 @@ import ConfigParser
 import enumerate_interfaces
 import string
 import inspect
-import json 
+import json
+from  logger_server import logger
 
 class baseconfig:
     def __init__(self): 
@@ -16,9 +16,7 @@ class baseconfig:
         self.options=dict()
         
 
-    def parse(self,configfile=''): 
-        print logging.__file__
-        logger = logging.getLogger(name='basic')    
+    def parse(self,configfile=''):
         logger.debug("parse")
         config = ConfigParser.RawConfigParser()
         if(not configfile):
