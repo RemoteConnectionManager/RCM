@@ -60,12 +60,12 @@ class TestManager(unittest.TestCase):
     #   #'nodelogin' (140376348380464) = {str} 'login.galileo.cineca.it'
         #'otp' (140376348443792) = {str} ''
     #   #'session name' (140376348439088) = {str} uuid
-    #BUG#'sessionid' (140376348420592) = {str} 'a------1-pbs-8' [1-10]
+    #BUG#'sessionid' (140376348420592) = {str} 'a08tra01-pbs-8' [1-10]
     #   #'sessiontype' (140376348420720) = {str} 'pbs'
     #   #'state' (140376348444128) = {str} 'valid'
     #   #'timeleft' (140376348439280) = {str} '12:00:00'
 #DIPENDE#'tunnel' (140376348443904) = {str} 'y'
-    #   #'username' (140376348377136) = {str} 'a------1'
+    #   #'username' (140376348377136) = {str} 'a08tra01'
         #'vncpassword' (140376348406128) = {str} 'bc4df1a9bfa87305'
     #   #'walltime' (140376348421616) = {str} '12:00:00'
         #__len__ = {int} 16
