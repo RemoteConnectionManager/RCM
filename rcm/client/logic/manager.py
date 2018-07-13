@@ -41,6 +41,10 @@ class RemoteConnectionManager:
 
         self.session_thread = []
         self.commandnode = ''
+
+        # here we instatiate the remote procedure call stub, it will automatically
+        # have all the methods of rcm_protoclo_server.rcm_protocol class
+        # --- TO BE DONE --- handle automatically output type
         self.protocol = rcm_protocol_client.get_protocol()
 
         def mycall(command):
@@ -147,6 +151,11 @@ class RemoteConnectionManager:
         return check_cred
 
     def prex(self, cmd, commandnode = ''):
+        """
+        This is the function that wrap all the remote comman execution, accept the input command
+        and return the remote server output that comes after the rcm.serverOutputString separation
+        string
+        """
         if self.commandnode == '':
             commandnode = self.proxynode
         else:
