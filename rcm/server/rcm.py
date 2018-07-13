@@ -1,12 +1,16 @@
 #!/bin/env python
 import pickle
+import json
 import datetime
 import sys
 import os
 from  logger_server import logger
 
 sys.path.append( os.path.dirname(os.path.abspath(__file__))  )
-
+"""
+Decide which format should use
+"""
+format_default = 'json'
 serverOutputString = "server output->"
 
 class rcm_session:
@@ -15,23 +19,34 @@ class rcm_session:
         self.hash={'file':'','session name':'', 'state':'', 'node':'','tunnel':'','sessiontype':'', 'nodelogin':'', 'display':'', 'jobid':'', 'sessionid':'', 'username':'', 'walltime':'00:00:00','timeleft':'00:00:00', 'otp':'', 'vncpassword':''}
         print("pikl init -----------------------------")
         if (fromfile != ''):
-            self.hash=pickle.load(open(fromfile,"rb"))
+            if format_default == 'pickle':
+                self.hash = pickle.load(open(fromfile,"rb"))
+            elif format_default == 'json':
+                self.hash = json.load(open(fromfile, "r"))
             self.hash['file']=fromfile
         elif (fromstring != ''):
             #print("pikl fromstring-->"+fromstring)
-            self.hash=pickle.loads(fromstring.encode('utf-8'))
+            if format_default == 'pickle':
+                self.hash = pickle.loads(fromstring.encode('utf-8'))
+            elif format_default == 'json':
+                self.hash = json.loads(fromstring)
         else:
             self.hash={'file':file, 'session name':sessionname ,'state':state, 'node':node, 'tunnel':tunnel, 'sessiontype':sessiontype, 'nodelogin':nodelogin,  'display':display, 'jobid':jobid, 'sessionid':sessionid, 'username':username, 'walltime':walltime,'timeleft':walltime, 'otp':otp, 'vncpassword':vncpassword}
             self.hash['created']=datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
             
-    def serialize(self,file):     
+    def serialize(self,file, format=format_default):
         logger.debug("serialize")
-        pickle.dump(self.hash, open( file, "wb" ) )
-    
-    def get_string(self): 
-        # logger = logging.getLogger("basic")    
-        # logger.debug("get_string")
-        return pickle.dumps(self.hash)
+        if format == 'pickle':
+            pickle.dump(self.hash, open( file, "wb" ) )
+        elif format == 'json':
+            json.dump(self.hash, open(file,'w'), ensure_ascii=False, sort_keys=True, indent=4)
+
+    def get_string(self, format=format_default):
+        logger.debug("get_string")
+        if format == 'pickle':
+            return pickle.dumps(self.hash)
+        elif format == 'json':
+            return json.dumps(self.hash)
 
     def write(self,format):     
         logger.debug("write")
@@ -56,19 +71,31 @@ class rcm_sessions:
     
          
         if (fromfile != ''):
-            self.array=pickle.load(fromfile)
+            if format_default == 'pickle':
+                self.array = pickle.load(open(fromfile,"rb"))
+            elif format_default == 'json':
+                self.array = json.load(open(fromfile, "r"))
         elif (fromstring != ''):
-            self.array=pickle.loads(fromstring.encode('utf-8'))
+            if format_default == 'pickle':
+                self.array = pickle.loads(fromstring.encode('utf-8'))
+            elif format_default == 'json':
+                self.array = json.loads(fromstring)
         else:
             self.array=sessions
 
-    def serialize(self,file):
+    def serialize(self,file,format):
         logger.debug("serialize")
-        pickle.dump(self.array, open( file, "wb" ) )
+        if format == 'pickle':
+            pickle.dump(self.array, open( file, "wb" ) )
+        elif format == 'json':
+            json.dump(self.array, open(file,'w'), ensure_ascii=False, sort_keys=True, indent=4)
 
-    def get_string(self):
+    def get_string(self, format=format_default):
         logger.debug("get_string")
-        return pickle.dumps(self.array)
+        if format == 'pickle':
+            return pickle.dumps(self.array)
+        elif format == 'json':
+            return json.dumps(self.array)
 
     def write(self,format=0):
         logger.debug("write")
@@ -92,9 +119,15 @@ class rcm_config:
     def __init__(self,fromstring='',fromfile=''): 
 
         if (fromfile != ''):
-            self.config=pickle.load(open(fromfile,"rb"))
+            if format_default == 'pickle':
+                self.config = pickle.load(open(fromfile,"rb"))
+            elif format_default == 'json':
+                self.config = json.load(open(fromfile, "r"))
         elif (fromstring != ''):
-            self.config=pickle.loads(fromstring.encode('utf-8'))
+            if format_default == 'pickle':
+                self.config = pickle.loads(fromstring.encode('utf-8'))
+            elif format_default == 'json':
+                self.config = json.loads(fromstring)
         else:
             self.config={'version':{'checksum':'','url':''},'queues':dict(),'vnc_commands':dict()}
         
@@ -117,14 +150,20 @@ class rcm_config:
             entry=(vnc,'')
         self.config['vnc_commands'][vnc]=entry
 
-    def get_string(self):
+    def get_string(self, format=format_default):
         logger.debug("get_string")
-        return pickle.dumps(self.config)
+        if format == 'pickle':
+            return pickle.dumps(self.config)
+        elif format == 'json':
+            return json.dumps(self.config)
 
-    def serialize(self,file=''):
+    def serialize(self,file='',format=format_default):
         logger.debug("serialize")
         if (file != ''):
-            pickle.dump(self.config, open( file, "wb" ) )
+            if format == 'pickle':
+                pickle.dump(self.config, open( file, "wb" ) )
+            elif format == 'json':
+                json.dump(self.config, open(file, 'w'), ensure_ascii=False, sort_keys=True, indent=4)
         else:
             #print pickle.dumps(self.config)
             sys.stdout.write(serverOutputString+self.get_string())
