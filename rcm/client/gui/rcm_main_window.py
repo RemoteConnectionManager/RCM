@@ -231,9 +231,6 @@ class MainWidget(QWidget):
 
         # configure logging
         text_log_handler.logger_signals.log_message.connect(self.on_log)
-        logger.addHandler(text_log_handler)
-        logic_logger.addHandler(text_log_handler)
-        ssh_logger.addHandler(text_log_handler)
 
         # add the splitter to the main layout
         self.main_layout.addWidget(splitter)
