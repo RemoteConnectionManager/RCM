@@ -1,0 +1,62 @@
+{
+  "schedulers":
+
+    {
+
+      "PBS":
+      {
+        "coda_ex":{
+          "min_mem":1,
+          "max_mem":8,
+          "value":1
+        }
+      },
+
+      "Slurm":
+      {
+        "gll_all_serial":
+          {
+            "min_mem":1,
+            "max_mem":16,
+            "value":1
+          },
+        "gll_all_rcm":
+          {
+
+          },
+        "gll_meteo_prod":
+          {
+
+          },
+        "gll_spc_prod":
+          {
+
+          },
+        "gll_sys_test":
+          {
+
+          },
+        "gll_usr_gpudev":
+          {
+
+          },
+        "gll_usr_gpuprod":
+          {
+
+          },
+        "gll_usr_prod":
+          {
+
+          }
+      },
+
+      "SSH":
+      {
+        "default":{
+
+        }
+      }
+
+    }
+
+}
