@@ -319,9 +319,12 @@ class MainWidget(QWidget):
         new_tab.sessions_changed.connect(self.on_sessions_changed)
         logger.debug("Added new tab " + str(uuid))
 
-    @pyqtSlot(str)
-    def on_login(self, session_name):
-        self.tabs.setTabText(self.tabs.currentIndex(), session_name)
+    @pyqtSlot(str, str)
+    def on_login(self, session_name, uuid):
+        for tab_id in range(0, self.tabs.count()):
+            widget = self.tabs.widget(tab_id)
+            if widget.uuid == uuid:
+                self.tabs.setTabText(tab_id, session_name)
 
     @pyqtSlot()
     def on_close(self, uuid):

@@ -36,7 +36,7 @@ class QSSHSessionWidget(QWidget):
     """
 
     # define a signal when the user successful log in
-    logged_in = pyqtSignal(str)
+    logged_in = pyqtSignal(str, str)
 
     sessions_changed = pyqtSignal(collections.deque)
 
@@ -360,7 +360,7 @@ class QSSHSessionWidget(QWidget):
             self.update_executable()
 
             # Emit the logged_in signal.
-            self.logged_in.emit(self.session_name)
+            self.logged_in.emit(self.session_name, self.uuid)
 
             # update the session list to be shown
             self.reload()
