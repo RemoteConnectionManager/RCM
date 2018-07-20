@@ -27,8 +27,8 @@ class QDisplayDialog(QDialog):
     def __init__(self, dictionary):
         QDialog.__init__(self)
 
-        self.schedulers = OrderedDict(sorted(dictionary["schedulers"].items()))
-        #self.queues = {}
+        self.schedulers = OrderedDict(sorted(dictionary["Scheduler"].items()))
+        # self.queues = {}
 
         self.vnc = {"fluxbox_turbovnc",
                     "kde_turbovnc"}
@@ -69,123 +69,114 @@ class QDisplayDialog(QDialog):
 class QJobWidget(QWidget):
     def __init__(self, schedulers):
         QWidget.__init__(self)
+        self.switcher = {
+            'Account': self.ComboBox,
+            'CPU': lambda values: self.Slider(values, value_type="c"),
+            'Queue': lambda values: self.ComboBox(values, iscomplex=True),
+            'Memory': lambda values: self.Slider(values, value_type="Gb"),
+            'Scheduler': lambda values: self.ComboBox(values, iscomplex=True),
+        }
         self.schedulers = schedulers
-        self.queues = {}
+        self.widgets = {}
 
-        self.init_ui()
+        self.main_layout = QVBoxLayout()
 
-    def init_ui(self):
-        # Initialize JobWidget UI
-        job_layout = QVBoxLayout()
+        self.recursive_init_ui(self.schedulers)
+        self.setLayout(self.main_layout)
 
-        # Scheduler name
-        scheduler_layout = QHBoxLayout()
-        scheduler_name = QLabel("Scheduler:")
-        scheduler_combo = QComboBox(self)
-        scheduler_combo.addItems(self.schedulers.keys())
-        scheduler_combo.currentIndexChanged.connect(
-            lambda: self.scheduler_change(scheduler_combo.currentText()))
-
-        scheduler_layout.addWidget(scheduler_name)
-        scheduler_layout.addWidget(scheduler_combo)
-
-        job_layout.addLayout(scheduler_layout)
-
-        # Queue name
-        queue_name = QLabel("Queue:")
-        self.queue_combo = QComboBox(self)
-
-        # self.scheduler_change(scheduler_combo.currentText())
-        #
-        # self.queue_combo.addItems(OrderedDict(sorted(self.schedulers[scheduler_combo.currentText()].items())))
-        #
-        # self.queues = OrderedDict(sorted(self.schedulers[scheduler_combo.currentText()].items()))
-        # self.queue_combo.addItems(self.queues)
-
-        self.queue_combo.currentIndexChanged.connect(
-            lambda: self.queue_change(self.queue_combo.currentText()))
-
-        queue_layout = QHBoxLayout()
-        queue_layout.addWidget(queue_name)
-        queue_layout.addWidget(self.queue_combo)
-
-        job_layout.addLayout(queue_layout)
-
-        # Parameters Box
-        par_group_box = QGroupBox()
-        par_group_box_layout = QVBoxLayout(par_group_box)
-
-        # Memory Slider
-        self.memory_label = QLabel("1Gb")
-        par_group_box_layout.addWidget(self.memory_label)
-
-        self.memory_slider = QSlider(Qt.Horizontal)
-        self.memory_slider.setMinimum(1)
-        self.memory_slider.setMaximum(16)
-        self.memory_slider.valueChanged.connect(
-            lambda: self.slider_change(self.memory_slider, self.memory_label))
-        par_group_box_layout.addWidget(self.memory_slider)
-
-        # Core Slider
-        self.core_label = QLabel("1c")
-        par_group_box_layout.addWidget(self.core_label)
-
-        self.core_slider = QSlider(Qt.Horizontal)
-        self.core_slider.setMinimum(1)
-        self.core_slider.setMaximum(8)
-        self.core_slider.valueChanged.connect(
-            lambda: self.slider_change(self.core_slider, self.core_label))
-        par_group_box_layout.addWidget(self.core_slider)
-
-        # Time Limit
-        time_limit_layout = QHBoxLayout()
-        time_limit_label = QLabel("Time Limit:")
-        self.time_limit_edit = QTimeEdit()
-
-        time_max = QTime()
-        time_max.setHMS(12, 0, 0)
-        time_min = QTime()
-        time_min.setHMS(0, 0, 1)
-        self.time_limit_edit.setDisplayFormat("HH:mm:ss")
-        self.time_limit_edit.setTimeRange(time_min, time_max)
-        # self.time_limit_edit.timeChanged.connect(lambda: self.time_edit_change(self.time_limit_edit))
-
-        time_limit_layout.addWidget(time_limit_label)
-        time_limit_layout.addWidget(self.time_limit_edit)
-        par_group_box_layout.addLayout(time_limit_layout)
-
-        # Add "Parameter Box"
-        job_layout.addWidget(par_group_box)
-
-        self.setLayout(job_layout)
-        self.scheduler_change(scheduler_combo.currentText())
-
-    @pyqtSlot()
-    def scheduler_change(self, key=None):
-        self.queues = OrderedDict(sorted(self.schedulers[key].items()))
-        self.queue_combo.clear()
-        self.queue_combo.addItems(self.queues)
-
-    @pyqtSlot()
-    def queue_change(self,key=None):
+    def recursive_init_ui(self, d):
         try:
-            queue = OrderedDict(sorted(self.queues[key].items()))
-            self.memory_slider.show()
-            self.memory_label.show()
-            self.memory_slider.setMinimum(queue["min_mem"])
-            self.memory_slider.setMaximum(queue["max_mem"])
-            self.memory_slider.setValue(queue["value"])
+            if 'values' in d:
+                self.create_widget(d.get('type'), d.get('values'))
+            elif 'sons' in d:
+                self.create_widget(d.get('type'), d.get('sons'))
+                for k in d.get('sons'):
+                    self.recursive_init_ui(d.get('sons')[k])
+            else:
+                return
         except Exception as e:
-            self.memory_slider.hide()
-            self.memory_label.hide()
+            print("Exception:{0}"
+                  "\n{1}".format(type(e), e))
 
-    @pyqtSlot()
-    def slider_change(self, slider, label):
-        text = str(slider.value()) + re.search("[a-zA-Z]+$", label.text()).group(0)
-        label.setText(text)
+    def create_widget(self, type=None, par=None):
+        if type is not None:
+            label = QLabel("%s:" % type)
 
-    def time_edit_change(self):
-        pass
+            main_widget = QWidget()
+            layout = QHBoxLayout(main_widget)
+            layout.addWidget(label)
+            layout.addWidget(self.switcher[type](par))
+
+            self.main_layout.addWidget(main_widget)
+            self.widgets['type'] = main_widget
+
+    def remove_widget(self, id):
+        self.widgets[id].hide()
+
+        # then we remove it from the layout and from the dictionary
+        self.main_layout.removeWidget(self.widgets[id])
+        self.widgets[id].setParent(None)
+        del self.widgets[id]
+
+    class ComboBox(QComboBox):
+        def __init__(self, values=None, iscomplex=False):
+            QComboBox.__init__(self)
+            print(values)
+            self.son = values
+            if iscomplex:
+
+                self.currentIndexChanged.connect(lambda: self.combo_box_change(self.son))
+            self.addItems(values)
+            self.setCurrentIndex(0)
+
+        @pyqtSlot()
+        def combo_box_change(self, values):
+            if self.currentText() in values:
+                print("RECURISVE!")
+                # self.recursive_init_ui(values.get(self.currentText()))
+
+    class Slider(QWidget):
+        def __init__(self, values=None, value_type=""):
+            QWidget.__init__(self)
+            print(values)
+            main_layout = QHBoxLayout()
+
+            self.slider_edit = QLineEdit()
+            self.slider_edit.setText("{0}{1}".format(values.get('min'), value_type))
+
+            self.slider = QSlider(Qt.Horizontal)
+            self.slider.setMinimum(values.get('min'))
+            self.slider.setMaximum(values.get('max'))
+
+            self.slider_edit.editingFinished.connect(lambda: self.slider_edit_change(value_type))
+            self.slider.valueChanged.connect(lambda: self.slider_change(value_type))
+
+            main_layout.addWidget(self.slider_edit)
+            main_layout.addWidget(self.slider)
+
+            self.setLayout(main_layout)
+
+        @pyqtSlot()
+        def slider_edit_change(self, value_type=""):
+            num = re.search("[0-9]*", self.sender().text()).group(0)
+            if not num:
+                return
+            elif int(num) < self.slider.minimum():
+                num = str(self.slider.minimum())
+            elif int(num) > self.slider.maximum():
+                num = str(self.slider.maximum())
+            text = "{0}{1}".format(num, value_type)
+            self.sender().setText(text)
+            self.slider.blockSignals(True)
+            self.slider.setValue(int(num))
+            self.slider.blockSignals(False)
+
+        @pyqtSlot()
+        def slider_change(self, line_edit, value_type=""):
+            text = "{0}{1}".format(self.slider.value(), value_type)
+            self.slider_edit.blockSignals(True)
+            self.slider_edit.setText(text)
+            self.slider_edit.blockSignals(False)
 
 
 class QServiceWidget(QWidget):
@@ -225,7 +216,7 @@ class QServiceWidget(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    dictionary = json.load(open("scheduler.json"))
+    dictionary = json.load(open("scheduler.json"), object_pairs_hook=OrderedDict)
     dictionary = OrderedDict(sorted(dictionary.items()))
 
     display_dialog = QDisplayDialog(dictionary)
