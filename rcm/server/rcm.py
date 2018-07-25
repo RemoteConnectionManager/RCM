@@ -23,7 +23,9 @@ class rcm_session:
     def __init__(self,fromstring='',fromfile='',file='',sessionname='',state='',node='',tunnel='',sessiontype='',nodelogin='',display='',jobid='',sessionid='',username='',walltime='',otp='', vncpassword=''):
         self.hash={'file':'','session name':'', 'state':'', 'node':'','tunnel':'','sessiontype':'', 'nodelogin':'', 'display':'', 'jobid':'', 'sessionid':'', 'username':'', 'walltime':'00:00:00','timeleft':'00:00:00', 'otp':'', 'vncpassword':''}
         if (fromfile != ''):
-            if format_default == 'pickle':
+            with open(fromfile, 'r') as content_file:
+                fromstring = content_file.read()
+            if fromstring[0] == '(':
                 logger.debug("USING PIKLE for rcm_session fromfile " + fromfile)
                 self.hash = pickle.load(open(fromfile,"rb"))
             elif format_default == 'json':
@@ -76,34 +78,60 @@ class rcm_sessions:
 
     def __init__(self,fromstring='',fromfile='',sessions=[]): 
     
-         
+        self._array=[] 
         if (fromfile != ''):
             if format_default == 'pickle':
-                self.array = pickle.load(open(fromfile,"rb"))
+                self._array = pickle.load(open(fromfile,"rb"))
             elif format_default == 'json':
-                self.array = json.load(open(fromfile, "r"))
+                self._array = json.load(open(fromfile, "r"))
         elif (fromstring != ''):
             if fromstring[0] == '(':
                 logger.debug("USING PIKLE for rcm_sessions fromstring--"+fromstring[0])
-                self.array = pickle.loads(fromstring.encode('utf-8'))
+                #self._array = pickle.loads(fromstring.encode('utf-8'))
+                old_sessions = pickle.loads(fromstring.encode('utf-8'))
+                for s in old_sessions:
+                    self._array.append(s.hash)
             elif format_default == 'json':
-                self.array = json.loads(fromstring)
+                logger.debug("USING JSON for rcm_sessions fromstring--"+fromstring[0])
+                hashes=json.loads(fromstring)
+                for h in hashes:
+                    self._array.append(h)
+                #self._array = json.loads(fromstring)
         else:
-            self.array=sessions
+            self._array=sessions
 
     def serialize(self, file, format):
         logger.debug("USING "+ format + " for rcm_sessions.serialize on file " + file)
         if format == 'pickle':
-            pickle.dump(self.array, open( file, "wb" ) )
+            pickle.dump(self._array, open( file, "wb" ) )
         elif format == 'json':
-            json.dump(self.array, open(file,'w'), ensure_ascii=False, sort_keys=True, indent=4)
+            json.dump(self._array, open(file,'w'), ensure_ascii=False, sort_keys=True, indent=4)
 
     def get_string(self, format=format_default):
         logger.debug("USING "+ format + " for rcm_sessions.get_string " )
         if format == 'pickle':
-            return pickle.dumps(self.array)
+            return pickle.dumps(self._array)
         elif format == 'json':
-            return json.dumps(self.array)
+            return json.dumps(self._array)
+
+    def add_session(self,new_session):
+        present=False
+        for hash in self._array:
+            if str(hash) == str(new_session.hash):
+                logger.debug("Adding duplicate session "+ str(new_session.hash)  )
+                present=True
+                break
+        if not present:
+            self._array.append(new_session.hash)
+
+    def get_sessions(self):
+        out_sess=[]
+        for h in self._array:
+            print(h)
+            s=rcm_session
+            s.hash=h
+            out_sess.append(s)
+        return out_sess
 
     def write(self,format=0):
         logger.debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ rcm_sessions.write @@@@@@@@@@@@@@@@@")
@@ -112,13 +140,13 @@ class rcm_sessions:
             sys.stdout.write(serverOutputString+self.get_string())
         #print pickle.dumps(self.array)
         elif ( format == 1):
-            for k in self.array:
+            for k in self._array:
                 print("---------------------")
                 k.write(1)
         elif ( format == 2):
             c=rcm_session()
             print(";".join(sorted(c.hash.keys())))
-            for k in self.array:
+            for k in self._array:
                 k.write(2)
 
  

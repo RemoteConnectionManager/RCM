@@ -46,7 +46,8 @@ class rcm_protocol:
         self.rcm_server.fill_sessions_hash()
         s=rcm.rcm_sessions()
         for sid, ses in list(self.rcm_server.sessions.items()):
-            s.array.append(self.rcm_server.sessions[sid])
+            s.add_session(ses)
+            #s.array.append(self.rcm_server.sessions[sid])
         sys.stdout.write(rcm.serverOutputString)
         sys.stdout.write(s.get_string())
         sys.stdout.flush()

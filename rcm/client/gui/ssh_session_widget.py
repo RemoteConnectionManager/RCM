@@ -534,7 +534,7 @@ class QSSHSessionWidget(QWidget):
             # kill not existing sessions
             for display_id in list(self.displays.keys()):
                 missing = True
-                for session in self.display_sessions.array:
+                for session in self.display_sessions.get_sessions():
                     if str(display_id) == str(session.hash['session name']):
                         missing = False
                         break
@@ -542,7 +542,7 @@ class QSSHSessionWidget(QWidget):
                     self.remove_display(display_id)
 
             # update or create from scratch new sessions
-            for session in self.display_sessions.array:
+            for session in self.display_sessions.get_sessions():
                 display_id = str(session.hash['session name'])
                 display_state = str(session.hash['state'])
                 display_node = str(session.hash['node'])

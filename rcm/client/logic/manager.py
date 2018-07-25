@@ -197,13 +197,17 @@ class RemoteConnectionManager:
 
         # here we remotely call loginlist function of rcm_protocol_server
         o = self.protocol.loginlist(subnet=self.subnet)
+        print("------------------sessions----------")
+        print(type(o))
+        print(o)
         sessions = rcm.rcm_sessions(o)
+        print(sessions)
 
-        a = []
+        merged_sessions = rcm.rcm_sessions()
         nodeloginList = []
         proxynode = ''
         state = ''
-        for ses in sessions.array:
+        for ses in sessions.get_sessions():
             proxynode = ses.hash.get('nodelogin', '')
             state = ses.hash.get('state', 'killed')
             if proxynode != '' and not proxynode in nodeloginList and state != 'killed':
@@ -213,10 +217,13 @@ class RemoteConnectionManager:
                 o = self.protocol.list(subnet=self.subnet)
                 if o:
                     tmp = rcm.rcm_sessions(o)
-                    a.extend(tmp.array)
-        ret = rcm.rcm_sessions()
-        ret.array = a
-        return ret
+                    #a.extend(tmp.array)
+                    for sess in tmp.get_sessions():
+                        merged_sessions.add_session(sess)
+
+        #ret = rcm.rcm_sessions()
+        #ret.array = a
+        return merged_sessions
 
     def newconn(self, queue, geometry, sessionname='', vnc_id='turbovnc_vnc'):
         rcm_cipher = cipher.RCMCipher()
