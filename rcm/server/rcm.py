@@ -128,7 +128,7 @@ class rcm_sessions:
         out_sess=[]
         for h in self._array:
             print(h)
-            s=rcm_session
+            s=rcm_session()
             s.hash=h
             out_sess.append(s)
         return out_sess

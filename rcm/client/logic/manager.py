@@ -203,7 +203,7 @@ class RemoteConnectionManager:
         sessions = rcm.rcm_sessions(o)
         print(sessions)
 
-        merged_sessions = rcm.rcm_sessions()
+        merged_sessions = rcm.rcm_sessions(fromstring='{}')
         nodeloginList = []
         proxynode = ''
         state = ''
