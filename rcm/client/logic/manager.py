@@ -197,11 +197,7 @@ class RemoteConnectionManager:
 
         # here we remotely call loginlist function of rcm_protocol_server
         o = self.protocol.loginlist(subnet=self.subnet)
-        print("------------------sessions----------")
-        print(type(o))
-        print(o)
         sessions = rcm.rcm_sessions(o)
-        print(sessions)
 
         merged_sessions = rcm.rcm_sessions(fromstring='{}')
         nodeloginList = []
@@ -358,7 +354,7 @@ class RemoteConnectionManager:
                     thread.terminate()
             self.session_thread = None
         except Exception:
-            print('error: failed to kill a session thread still alive')
+            logic_logger.error('error: failed to kill a session thread still alive')
 
     def checkCredential(self):
         rcm_server_command = rcm_utils.get_server_command(self.proxynode,

@@ -127,7 +127,6 @@ class rcm_sessions:
     def get_sessions(self):
         out_sess=[]
         for h in self._array:
-            print(h)
             s=rcm_session()
             s.hash=h
             out_sess.append(s)
@@ -138,7 +137,6 @@ class rcm_sessions:
         #print "server output->"
         if ( format == 0):
             sys.stdout.write(serverOutputString+self.get_string())
-        #print pickle.dumps(self.array)
         elif ( format == 1):
             for k in self._array:
                 print("---------------------")
