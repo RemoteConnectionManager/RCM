@@ -170,6 +170,7 @@ class rcm_base_server:
 
     def fill_sessions_hash(self, U=False):
 
+        logger.debug("fill_sessions_hash")
         udirs=self.get_rcmdirs(U)
         if (U):
             ure='\w+'
@@ -188,9 +189,11 @@ class rcm_base_server:
                         user=ro.group(2)
                         sid=ro.group(1)
                         tag=ro.group(3)
-                        #print "file-->",file
+                        logger.debug("session file-- "+file)
                         try:
+                            logger.debug("prima di fromfile:"+file)
                             self.sessions[sid]=rcm.rcm_session(fromfile=file)
+                            logger.debug("dopo di fromfile:"+file)
                             logger.debug("file:"+self.sessions[sid].hash['file'])
                             #need the following lines to map nodes with different hostname from different subnet
                             originalNodeLogin = self.sessions[sid].hash.get('nodelogin','')
