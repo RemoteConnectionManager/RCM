@@ -118,7 +118,7 @@ class rcm_sessions:
         present=False
         for hash in self._array:
             if str(hash) == str(new_session.hash):
-                logger.debug("Adding duplicate session "+ str(new_session.hash)  )
+                logger.debug("Skipping duplicate session "+ str(new_session.hash)  )
                 present=True
                 break
         if not present:
@@ -132,20 +132,12 @@ class rcm_sessions:
             out_sess.append(s)
         return out_sess
 
-    def write(self,format=0):
-        logger.debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ rcm_sessions.write @@@@@@@@@@@@@@@@@")
-        #print "server output->"
-        if ( format == 0):
-            sys.stdout.write(serverOutputString+self.get_string())
-        elif ( format == 1):
-            for k in self._array:
-                print("---------------------")
-                k.write(1)
-        elif ( format == 2):
-            c=rcm_session()
-            print(";".join(sorted(c.hash.keys())))
-            for k in self._array:
-                k.write(2)
+    def write(self,outstream=sys.stdout):
+        logger.debug("WRITE sessions rcm_sessions.write ")
+        outstream.write(serverOutputString)
+        outstream.write(self.get_string())
+        outstream.flush()
+
 
  
 class rcm_config:

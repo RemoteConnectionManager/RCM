@@ -48,9 +48,7 @@ class rcm_protocol:
         for sid, ses in list(self.rcm_server.sessions.items()):
             s.add_session(ses)
             #s.array.append(self.rcm_server.sessions[sid])
-        sys.stdout.write(rcm.serverOutputString)
-        sys.stdout.write(s.get_string())
-        sys.stdout.flush()
+        s.write()
 
     def list(self,subnet=''): 
         logger.debug("list")
@@ -60,9 +58,8 @@ class rcm_protocol:
         s=rcm.rcm_sessions()
         for sid in self.rcm_server.sids['run']:
             s.array.append(self.rcm_server.sessions[sid])
-        sys.stdout.write(rcm.serverOutputString)
-        sys.stdout.write(s.get_string())
-        sys.stdout.flush()
+        s.write()
+
     
     def new(self,geometry='',queue='',sessionname='',subnet='',vncpassword='',vncpassword_crypted='',vnc_id=''): 
         logger.debug("new")
