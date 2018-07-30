@@ -58,8 +58,11 @@ class rcm_protocol:
         
         self.rcm_server.load_sessions()
         s=rcm.rcm_sessions()
+        logger.debug("list run session ")
         for sid in self.rcm_server.sids['run']:
-            s.array.append(self.rcm_server.sessions[sid])
+            logger.debug("list find run session "+ sid)
+            s.add_session(self.rcm_server.sessions[sid])
+            #s.array.append(self.rcm_server.sessions[sid])
         sys.stdout.write(rcm.serverOutputString)
         sys.stdout.write(s.get_string())
         sys.stdout.flush()
