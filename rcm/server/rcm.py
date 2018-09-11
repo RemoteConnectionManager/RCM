@@ -57,21 +57,11 @@ class rcm_session:
         elif format == 'json':
             return json.dumps(self.hash)
 
-    def write(self,format):     
-        logger.debug("write")
-        #print "server output->"
-        if ( format == 0):
-            sys.stdout.write(serverOutputString+self.get_string())
-        elif ( format == 1):
-            for k in self.hash.keys():
-                print("%s;%s" % ( k , self.hash[k] ))
-        elif ( format == 2):
-            x=[]
-            #for k in sorted(self.hash.keys()):
-            for k in self.hash.keys():
-                x.append(self.hash[k])
-            print(";".join(x))
-
+    def write(self,outstream=sys.stdout):
+        logger.debug("WRITE session rcm_session.write ")
+        outstream.write(serverOutputString)
+        outstream.write(self.get_string())
+        outstream.flush()
 
 
 class rcm_sessions:

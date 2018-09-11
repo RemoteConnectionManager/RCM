@@ -402,9 +402,7 @@ done"""
         c=rcm.rcm_session(state='valid', sessionname=self.sessionname, walltime=self.par_w, node=n, tunnel=tunnel, sessiontype=self.session_tag, nodelogin=self.nodelogin, display=d, jobid=jid, sessionid=sid, username=self.username, otp=otp, vncpassword=self.vncpassword_crypted)
         
         c.serialize(file)
-        c.write(0)
-	sys.stdout.flush()
-        #sys.exit(0)
+        return c
 
 if __name__ == '__main__':
 	s=rcm_base_server()
