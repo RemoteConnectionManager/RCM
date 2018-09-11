@@ -181,7 +181,7 @@ class RemoteConnectionManager:
         myout = ''.join(stdout)
         myerr = stderr.readlines()
         if myerr:
-            logic_logger.warning("Server report error:\n {0}".format(myerr))
+            logic_logger.warning("Server report error: {0}".format(myerr))
 
         # find where the real server output starts
         index = myout.find(rcm.serverOutputString)
