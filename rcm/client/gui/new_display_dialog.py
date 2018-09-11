@@ -51,26 +51,24 @@ class QDisplayDialog(QDialog):
 class QJobWidget(QWidget):
     def __init__(self, display_dialog_ui):
         QWidget.__init__(self)
-        self.switcher = {
-            'combobox': self.ComboBox,
-            'slider': self.Slider,
-            'divider': self.Divider
-        }
+        self.container_widgets = {}
+        self.display_dialog_ui = display_dialog_ui
+        self.main_layout = None
 
-        self.hided_widgets = {}
-        self.gui_widgets = []
+        self.init_ui()
+
+    def init_ui(self):
+        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         self.main_layout = QVBoxLayout()
 
-        for key, value in display_dialog_ui.items():
-            self.recursive_init_ui(value, self.main_layout, [], key)
+        for key, childs in self.display_dialog_ui.items():
+            self.recursive_init_ui(childs, self.main_layout, [], key)
 
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.main_layout.addStretch(1)
-
         self.setLayout(self.main_layout)
 
-    def recursive_init_ui(self, d, parent_layout, parent_values=[], path=" "):
+    def recursive_init_ui(self, d, parent_layout, parent_values=[], path=""):
         try:
             values = d.get('values', [])
             if not values:
@@ -79,13 +77,12 @@ class QJobWidget(QWidget):
                     values = choices.keys()
 
             if values:
-                gui_widget = self.create_widget(parent_layout,
-                                                d.get('label'),
-                                                d.get('type'),
-                                                values,
-                                                path)
+                gui_widget = create_hor_composite_widget(parent_layout,
+                                                         d.get('label'),
+                                                         d.get('type'),
+                                                         values,
+                                                         path)
                 gui_widget.parent = self
-                self.gui_widgets.append(gui_widget)
 
             if 'list' in d or 'choices' in d:
                 count = 0
@@ -118,7 +115,7 @@ class QJobWidget(QWidget):
 
                         widget_path = path + "." + key
                         print("choice: " + widget_path)
-                        self.hided_widgets[widget_path] = hided_widget
+                        self.container_widgets[widget_path] = hided_widget
 
                         self.recursive_init_ui(value, hided_ver_layout, values, path + "." + key)
                     # list
@@ -129,23 +126,47 @@ class QJobWidget(QWidget):
         except Exception as e:
              print(e)
 
-    def create_widget(self, parent_layout, label=None, type=None, par=None, path=''):
-        if type is not None:
-            main_widget = QWidget()
-            hor_layout = QHBoxLayout()
 
-            if label:
-                label_widget = QLabel("%s:" % label)
-                hor_layout.addWidget(label_widget)
+def create_hor_composite_widget(parent_layout,
+                                label=None,
+                                widget_type=None,
+                                parameters=None,
+                                path=''):
+    """
+    Create a horizontal composite widget to be added in the main vertical layout
+    The composite widget is made of a qlabel + an interactive gui widget
+    :param parent_layout:
+    :param label:
+    :param widget_type:
+    :param parameters:
+    :param path:
+    :return:
+    """
+    if widget_type:
+        main_widget = QWidget()
+        hor_layout = QHBoxLayout()
 
-            inner_widget = self.switcher[type](par, path)
+        if label:
+            label_widget = QLabel("%s:" % label)
+            hor_layout.addWidget(label_widget)
 
-            hor_layout.addWidget(inner_widget)
-            main_widget.setLayout(hor_layout)
-            parent_layout.addWidget(main_widget)
+        qvar_widget = widget_factory(widget_type)(parameters, path)
 
-            return inner_widget
+        hor_layout.addWidget(qvar_widget)
+        main_widget.setLayout(hor_layout)
+        parent_layout.addWidget(main_widget)
 
+        return qvar_widget
+
+
+def widget_factory(widget_type):
+    """
+    Create a interactive gui widget from string (factory pattern)
+    :param widget_type:
+    :return:
+    """
+
+    # nested class
     class ComboBox(QComboBox):
         def __init__(self, values=None, path=''):
             QComboBox.__init__(self)
@@ -163,14 +184,14 @@ class QJobWidget(QWidget):
                 print("switched to " + key)
 
                 if self.parent:
-                    if key in self.parent.hided_widgets:
-                        self.parent.hided_widgets[key].show()
+                    if key in self.parent.container_widgets:
+                        self.parent.container_widgets[key].show()
 
                     for choice in self.choices:
                         if choice != self.currentText():
                             new_key = self.path + "." + choice
-                            if new_key in self.parent.hided_widgets:
-                                self.parent.hided_widgets[new_key].hide()
+                            if new_key in self.parent.container_widgets:
+                                self.parent.container_widgets[new_key].hide()
 
     class Divider(QFrame):
         def __init__(self, values=None, path=''):
@@ -219,6 +240,14 @@ class QJobWidget(QWidget):
         def slider_change(self):
             text = str(self.slider.value())
             self.slider_edit.setText(text)
+
+    # factory build commands
+    if widget_type == "combobox":
+        return ComboBox
+    if widget_type == "slider":
+        return Slider
+    if widget_type == "divider":
+        return Divider
 
 
 if __name__ == "__main__":
