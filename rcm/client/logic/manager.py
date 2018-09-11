@@ -181,14 +181,17 @@ class RemoteConnectionManager:
         myout = ''.join(stdout)
         myerr = stderr.readlines()
         if myerr:
-            logic_logger.error(myerr)
-            raise Exception("Server error: {0}".format(myerr))
+            logic_logger.warning("Server report error:\n {0}".format(myerr))
 
         # find where the real server output starts
         index = myout.find(rcm.serverOutputString)
         if index != -1:
             index += len(rcm.serverOutputString)
             myout = myout[index:]
+        else:
+            logic_logger.error("Missing serverOutputString: {0} in server output".format(rcm.serverOutputString))
+            if myerr:
+                raise Exception("Server error: {0}".format(myerr))
         return myout
 
     def list(self):
