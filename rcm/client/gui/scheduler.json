@@ -1,27 +1,35 @@
 {
-    "Scheduler": {
-        "type": "Scheduler",
-        "sons": {
+    "SCHEDULER": {
+        "name": "Scheduler",
+        "type": "combobox",
+        "choices": {
             "PBS": {
-                "sons": {
+                "list": {
                     "ACCOUNT": {
-                        "type": "Account",
-                        "values": ["lcalori0", "a08tra01"]
+                        "name": "Account",
+                        "type": "combobox",
+                        "values": [
+                            "lcalori0",
+                            "a08tra01"
+                        ]
                     },
                     "QUEUE": {
-                        "type": "Queue",
-                        "sons": {
-                            "gll_usr_prod": {
-                                "sons": {
+                        "name": "Queue",
+                        "type": "combobox",
+                        "choices": {
+                            "gll_usr_prd": {
+                                "list": {
                                     "MEMORY": {
-                                        "type": "Memory",
+                                        "name": "Memory",
+                                        "type": "slider",
                                         "values": {
                                             "min": 1,
                                             "max": 120
                                         }
                                     },
                                     "CPU": {
-                                        "type": "CPU",
+                                        "name": "CPU",
+                                        "type": "slider",
                                         "values":{
                                             "min": 1,
                                             "max": 32
@@ -29,20 +37,22 @@
                                     }
                                 }
                             },
-                            "gll_sys_prod": {
-                                "sons": {
+                            "gll_sys_prd": {
+                                "list": {
                                     "MEMORY": {
-                                        "type": "Memory",
+                                        "name": "Memory",
+                                        "type": "slider",
                                         "values": {
                                             "min": 1,
                                             "max": 120
                                         }
                                     },
                                     "CPU": {
-                                        "type": "CPU",
+                                        "name": "CPU",
+                                        "type": "slider",
                                         "values":{
                                             "min": 1,
-                                            "max": 32
+                                            "max": 16
                                         }
                                     }
                                 }
@@ -50,19 +60,65 @@
                         }
                     }
                 }
-
             },
-
-
-
             "Slurm": {
-                "sons": {
-                    "gpu": {
-
+                "list": {
+                    "ACCOUNT": {
+                        "name": "Account",
+                        "type": "combobox",
+                        "values": [
+                            "sbna0000",
+                            "pipo0000"
+                        ]
+                    },
+                    "QUEUE": {
+                        "name": "Queue",
+                        "type": "combobox",
+                        "choices": {
+                            "dav_usr_prd": {
+                                "list": {
+                                    "MEMORY": {
+                                        "name": "Memory",
+                                        "type": "slider",
+                                        "values": {
+                                            "min": 14,
+                                            "max": 105
+                                        }
+                                    },
+                                    "CPU": {
+                                        "name": "CPU",
+                                        "type": "slider",
+                                        "values": {
+                                            "min": 1,
+                                            "max": 33
+                                        }
+                                    }
+                                }
+                            },
+                            "dav_sys_prd": {
+                                "list": {
+                                    "MEMORY": {
+                                        "name": "Memory",
+                                        "type": "slider",
+                                        "values": {
+                                            "min": 1,
+                                            "max": 121
+                                        }
+                                    },
+                                    "CPU": {
+                                        "name": "CPU",
+                                        "type": "slider",
+                                        "values": {
+                                            "min": 1,
+                                            "max": 17
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
-
         }
     }
 }

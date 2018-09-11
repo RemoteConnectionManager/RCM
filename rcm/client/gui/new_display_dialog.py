@@ -1,25 +1,14 @@
 # stdlib
 import json
 import sys
-import logging
-import os
 import re
 from collections import OrderedDict
 
 # pyqt5
-from PyQt5.QtCore import Qt, pyqtSlot,QTime
-
+from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
-    QHBoxLayout, QVBoxLayout, QGroupBox, QPushButton, \
-    QApplication, QTabWidget, QWidget, QSlider, QTimeEdit
-
-# logger init
-# logger = logging.getLogger('basic')
-# logger.setLevel("DEBUG")
-# ch = logging.StreamHandler(sys.stdout)
-# formatter = logging.Formatter('[%(levelname)s] %(asctime)s (%(module)s:%(lineno)d %(funcName)s) : %(message)s')
-# ch.setFormatter(formatter)
-# logger.addHandler(ch)
+    QHBoxLayout, QVBoxLayout, QPushButton, \
+    QApplication, QTabWidget, QWidget, QSlider
 
 
 class QDisplayDialog(QDialog):
@@ -27,9 +16,7 @@ class QDisplayDialog(QDialog):
     def __init__(self, dictionary):
         QDialog.__init__(self)
 
-        self.schedulers = OrderedDict(sorted(dictionary["Scheduler"].items()))
-        # self.queues = {}
-
+        self.schedulers = OrderedDict(sorted(dictionary["SCHEDULER"].items()))
         self.vnc = {"fluxbox_turbovnc",
                     "kde_turbovnc"}
 
@@ -50,17 +37,14 @@ class QDisplayDialog(QDialog):
         # Ok button
         hor_layout = QHBoxLayout()
         ok_button = QPushButton('Ok', self)
-        # ok_button.clicked.connect(self.on_ok)
         hor_layout.addStretch(1)
         hor_layout.addWidget(ok_button)
 
         # Cancel button
         cancel_button = QPushButton('Cancel', self)
-        # cancel_button.clicked.connect(self.reject)
         hor_layout.addWidget(cancel_button)
         hor_layout.addStretch(1)
 
-        # main_layout.addWidget(service)
         main_layout.addWidget(self.tabs)
         main_layout.addLayout(hor_layout)
         self.setLayout(main_layout)
@@ -70,45 +54,101 @@ class QJobWidget(QWidget):
     def __init__(self, schedulers):
         QWidget.__init__(self)
         self.switcher = {
-            'Account': self.ComboBox,
-            'CPU': lambda values: self.Slider(values, value_type="c"),
-            'Queue': lambda values: self.ComboBox(values, iscomplex=True),
-            'Memory': lambda values: self.Slider(values, value_type="Gb"),
-            'Scheduler': lambda values: self.ComboBox(values, iscomplex=True),
+            'combobox': self.ComboBox,
+            'slider': self.Slider
         }
         self.schedulers = schedulers
-        self.widgets = {}
+        self.hided_widgets = {}
+        self.gui_widgets = []
 
         self.main_layout = QVBoxLayout()
 
-        self.recursive_init_ui(self.schedulers)
+        self.recursive_init_ui(self.schedulers, self.main_layout, [], "SCHEDULER")
+
+        print(self.hided_widgets.keys())
         self.setLayout(self.main_layout)
 
-    def recursive_init_ui(self, d):
+    def recursive_init_ui(self, d, parent_layout, parent_values=[], path=" "):
         try:
-            if 'values' in d:
-                self.create_widget(d.get('type'), d.get('values'))
-            elif 'sons' in d:
-                self.create_widget(d.get('type'), d.get('sons'))
-                for k in d.get('sons'):
-                    self.recursive_init_ui(d.get('sons')[k])
+            values = d.get('values', [])
+            if not values:
+                choices = d.get('choices', [])
+                if choices:
+                    values = choices.keys()
+
+            if values:
+                gui_widget = self.create_widget(parent_layout,
+                                                d.get('name'),
+                                                d.get('type'),
+                                                values,
+                                                path)
+                gui_widget.parent = self
+                self.gui_widgets.append(gui_widget)
+
+            if 'list' in d or 'choices' in d:
+                count = 0
+
+                if 'list' in d:
+                    items = d['list']
+                else:
+                    items = d['choices']
+
+                nested_widget = QWidget()
+                nested_ver_layout = QVBoxLayout()
+                nested_ver_layout.setContentsMargins(0, 0, 0, 0)
+                # nested_ver_layout.setSpacing(10)
+                nested_widget.setLayout(nested_ver_layout)
+                parent_layout.addWidget(nested_widget)
+
+                for key, value in items.items():
+                    # choices
+                    if 'choices' in d:
+                        count += 1
+                        hided_widget = QWidget()
+                        hided_ver_layout = QVBoxLayout()
+                        hided_ver_layout.setContentsMargins(0, 0, 0, 0)
+                        # hided_ver_layout.setSpacing(10)
+                        hided_widget.setLayout(hided_ver_layout)
+                        nested_ver_layout.addWidget(hided_widget)
+
+                        if count > 1:
+                            hided_widget.hide()
+
+                        widget_path = path + "." + key
+                        print("choice: " + widget_path)
+                        self.hided_widgets[widget_path] = hided_widget
+
+                        self.recursive_init_ui(value, hided_ver_layout, values, path + "." + key)
+                    # list
+                    else:
+                        self.recursive_init_ui(value, nested_ver_layout, values, path + "." + key)
             else:
                 return
         except Exception as e:
-            print("Exception:{0}"
-                  "\n{1}".format(type(e), e))
+             print(e)
 
-    def create_widget(self, type=None, par=None):
+    def create_widget(self, parent_layout, name=None, type=None, par=None, path=''):
         if type is not None:
-            label = QLabel("%s:" % type)
 
+            # create a new widget
             main_widget = QWidget()
-            layout = QHBoxLayout(main_widget)
-            layout.addWidget(label)
-            layout.addWidget(self.switcher[type](par))
 
-            self.main_layout.addWidget(main_widget)
-            self.widgets['type'] = main_widget
+            # create a new layout
+            hor_layout = QHBoxLayout()
+
+            # create the inner widgets (label, combobox or slider)
+            label_widget = QLabel("%s:" % name)
+            inner_widget = self.switcher[type](par, path)
+
+            # layouts the widget
+            hor_layout.addWidget(label_widget)
+            hor_layout.addWidget(inner_widget)
+
+            main_widget.setLayout(hor_layout)
+
+            parent_layout.addWidget(main_widget)
+
+            return inner_widget
 
     def remove_widget(self, id):
         self.widgets[id].hide()
@@ -119,26 +159,36 @@ class QJobWidget(QWidget):
         del self.widgets[id]
 
     class ComboBox(QComboBox):
-        def __init__(self, values=None, iscomplex=False):
+        def __init__(self, values=None, path=''):
             QComboBox.__init__(self)
-            print(values)
-            self.son = values
-            if iscomplex:
-
-                self.currentIndexChanged.connect(lambda: self.combo_box_change(self.son))
+            self.parent = None
+            self.choices = values
+            self.path = path
+            self.currentIndexChanged.connect(lambda: self.combo_box_change(self.choices))
             self.addItems(values)
             self.setCurrentIndex(0)
 
         @pyqtSlot()
         def combo_box_change(self, values):
             if self.currentText() in values:
-                print("RECURISVE!")
-                # self.recursive_init_ui(values.get(self.currentText()))
+                key = self.path + "." + self.currentText()
+                print("switched to " + key)
+
+                if self.parent:
+                    if key in self.parent.hided_widgets:
+                        self.parent.hided_widgets[key].show()
+
+                    for choice in self.choices:
+                        if choice != self.currentText():
+                            new_key = self.path + "." + choice
+                            if new_key in self.parent.hided_widgets:
+                                self.parent.hided_widgets[new_key].hide()
 
     class Slider(QWidget):
-        def __init__(self, values=None, value_type=""):
+        def __init__(self, values=None, path='', value_type=""):
             QWidget.__init__(self)
-            print(values)
+            self.parent = None
+
             main_layout = QHBoxLayout()
 
             self.slider_edit = QLineEdit()
