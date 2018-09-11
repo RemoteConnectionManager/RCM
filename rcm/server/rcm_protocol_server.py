@@ -72,7 +72,8 @@ class rcm_protocol:
 	
         self.rcm_server.substitutions['RCM_GEOMETRY'] = geometry	
         self.rcm_server.set_vnc_setup(vnc_id)
-        self.rcm_server.execute_new()
+        new_session=self.rcm_server.execute_new()
+        new_session.write()
     
     
     def kill(self,session_id=''): 
@@ -86,6 +87,7 @@ class rcm_protocol:
                 c=rcm.rcm_session(fromfile=file)
                 c.hash['state']='killing'
                 c.serialize(file)
+                c.write()
             else:
                 sys.stderr.write("Not running session: %s\n" % (session_id))
                 sys.stderr.flush()
