@@ -1,0 +1,20 @@
+# these are the definitions of the possible arguments
+
+composites:
+    schedulers :
+      PBS :
+        other_stuff :
+        accounts :
+          - lcalori0
+          - a08tra01
+      Slurm :
+        queues :
+          gll_usr_prd :
+            MEMORY :
+              min : 14
+              max : 105
+            CPU :
+              max : 33
+          gll_sys_prd :
+
+

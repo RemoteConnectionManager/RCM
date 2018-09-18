@@ -1,0 +1,30 @@
+# these are defaults for RCM new sessions json is
+
+
+defaults:
+  SCHEDULER:
+    label : 'Scheduler'
+    type : 'combobox'
+    list :
+      ACCOUNT :
+        label : 'Account'
+        type : 'combobox'
+
+  #composites
+      QUEUE :
+        label : 'Queue'
+        type : 'combobox'
+        list :
+          MEMORY :
+            label : 'Memory'
+            type : 'slider'
+            values :
+              min : 1
+              max : 120
+          CPU :
+            label : 'CPU'
+            type : 'slider'
+            values :
+              min : 1
+              max : 36
+
