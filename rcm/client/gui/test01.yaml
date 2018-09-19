@@ -2,11 +2,6 @@
 
 composites:
     schedulers :
-      PBS :
-        other_stuff :
-        accounts :
-          - lcalori0
-          - a08tra01
       Slurm :
         queues :
           gll_usr_prd :
@@ -16,5 +11,13 @@ composites:
             CPU :
               max : 33
           gll_sys_prd :
+        accounts :
+          - sbna0000
+          - pipo0000
+      PBS :
+        other_stuff :
+        accounts :
+          - lcalori0
+          - a08tra01
 
 
