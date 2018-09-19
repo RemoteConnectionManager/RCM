@@ -84,6 +84,7 @@ class BaseScheduler:
         if(accounts) :
             out['list']['ACCOUNT']['values']=accounts
 
+        return out
         print ("scheduler: ",self.NAME, "-->" + json.dumps(out,indent=4))
 
     @classmethod
@@ -93,6 +94,11 @@ class BaseScheduler:
 
 class SlurmScheduler(BaseScheduler):
      NAME = 'Slurm'
+
+
+class PBSScheduler(BaseScheduler):
+    NAME = 'PBS'
+
 
 if __name__ == '__main__':
 
