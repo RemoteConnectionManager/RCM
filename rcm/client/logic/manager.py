@@ -270,6 +270,10 @@ class RemoteConnectionManager:
             tunnelling_method = "internal"
         logic_logger.info("Using " + str(tunnelling_method) + " ssh tunnelling")
 
+        local_portnumber = 0
+        portnumber = 0
+        node = None
+
         if session:
             portnumber = 5900 + int(session.hash['display'])
             local_portnumber = rcm_utils.get_unused_portnumber()

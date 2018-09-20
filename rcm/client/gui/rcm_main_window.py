@@ -125,6 +125,9 @@ class RCMMainWindow(QMainWindow):
 
             current_session_widget = self.main_widget.tabs.currentWidget()
 
+            if not current_session_widget.is_logged:
+                logger.error("You are not logged in the current session. Please log in.")
+                return
             if filename:
                 # check if session needs tunneling
                 file = open(filename, 'r')
@@ -133,9 +136,6 @@ class RCMMainWindow(QMainWindow):
                     lines = file.readlines()
                     for line in lines:
                         if 'rcm_tunnel' in line:
-                            if not current_session_widget.is_logged:
-                                logger.error("You are not logged in the current session. Please log in.")
-                                return
                             node = line.split('=')[1].rstrip()
                             subnet = node.split('.', 1)[1]
                             current_subnet = current_session_widget.host.split('.', 1)[1].rstrip()
