@@ -62,20 +62,22 @@ class BaseScheduler:
     def get_gui_options(self,accounts=[],queues=[]):
         if not accounts:
             accounts=self.preset().get('accounts',[])
+
+        queue_preset =self.preset().get('queues',OrderedDict())
         if not queues:
-           queue_list =self.preset().get('queues',OrderedDict())
+            queues=queue_preset
         print("accounts: ",accounts)
-        print("queues  : ",queue_list)
+        print("queues  : ",queue_preset)
         queue_schema=copy.deepcopy(self.schema['list']['QUEUE'])
         queue_choices=OrderedDict()
-        for q in queue_list :
-            print(q,queue_list[q])
+        for q in queues :
+            #print(q,queue_preset[q])
             l=copy.deepcopy(queue_schema['list'])
-            if queue_list[q] :
-                for w in queue_list.get(q,dict()):
-                    print(w,queue_list[q][w])
-                    for m in queue_list[q][w]:
-                        l[w]['values'][m]=queue_list[q][w][m]
+            if queue_preset.get(q,dict()) :
+                for w in queue_preset.get(q,dict()):
+                    print(w,queue_preset[q][w])
+                    for m in queue_preset[q][w]:
+                        l[w]['values'][m]=queue_preset[q][w][m]
             queue_choices[q] = {'list' : l}
         queue_schema['choices']=queue_choices
         del queue_schema['list']
@@ -85,7 +87,7 @@ class BaseScheduler:
             out['list']['ACCOUNT']['values']=accounts
 
         return out
-        print ("scheduler: ",self.NAME, "-->" + json.dumps(out,indent=4))
+
 
     @classmethod
     def preset(cls):
@@ -95,6 +97,14 @@ class BaseScheduler:
 class SlurmScheduler(BaseScheduler):
      NAME = 'Slurm'
 
+     def get_accounts(self):
+         return ['acct1', 'acct2', 'acct3']
+
+     def get_queues(self):
+         return ['gll_user_prd', 'zqueue1', 'gll_sys_prd','aqueue2']
+
+     def get_gui_options(self,accounts=[],queues=[]):
+         return BaseScheduler.get_gui_options(self,accounts=self.get_accounts(), queues=self.get_queues())
 
 class PBSScheduler(BaseScheduler):
     NAME = 'PBS'
@@ -105,7 +115,9 @@ if __name__ == '__main__':
     config=CascadeYamlConfig()
 
     sched=SlurmScheduler()
-    sched.get_gui_options()
+
+    out=sched.get_gui_options(accounts=['minnie','clarabella'],queues=['prima_coda_indefinita','gll_user_prd'])
+    print("Slurm-->" + json.dumps(out, indent=4))
 #scheduler composition
 
 #scheduler=copy.deepcopy(conf['defaults']['SCHEDULER'])
