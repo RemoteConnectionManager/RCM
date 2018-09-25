@@ -129,13 +129,14 @@ class RCMMainWindow(QMainWindow):
                 # check if session needs tunneling
                 file = open(filename, 'r')
                 if 'rcm_tunnel' in file.read():
+                    if not current_session_widget.is_logged:
+                        logger.error("You are not logged in the current session. Please log in.")
+                        return
+
                     file.seek(0)
                     lines = file.readlines()
                     for line in lines:
                         if 'rcm_tunnel' in line:
-                            if not current_session_widget.is_logged:
-                                logger.error("You are not logged in the current session. Please log in.")
-                                return
                             node = line.split('=')[1].rstrip()
                             subnet = node.split('.', 1)[1]
                             current_subnet = current_session_widget.host.split('.', 1)[1].rstrip()
@@ -164,6 +165,7 @@ class RCMMainWindow(QMainWindow):
                                 str(display) + " on " + node +
                                 " as " + str(user) + " with tunnel")
                 else:
+                    current_session_widget.create_remote_connection_manager()
                     current_session_widget.remote_connection_manager.vncsession(configFile=filename)
         except Exception as e:
             logger.error(e)

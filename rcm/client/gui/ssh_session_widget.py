@@ -309,6 +309,10 @@ class QSSHSessionWidget(QWidget):
         except ValueError:
             pass
 
+    def create_remote_connection_manager(self):
+        if not self.remote_connection_manager:
+            self.remote_connection_manager = manager.RemoteConnectionManager()
+
     def login(self):
         self.user = str(self.user_line.text())
         self.host = str(self.host_line.text())
