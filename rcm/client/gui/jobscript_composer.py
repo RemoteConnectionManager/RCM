@@ -11,8 +11,13 @@ sys.path.append(root_rcm_path)
 
 import utils
 
-#singleton config class that parse cascading yaml files
+
 class CascadeYamlConfig:
+    """
+    singleton ( pattern from https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html )
+    config class that parse cascading yaml files with hiyapyco
+    constructor take a list of files that are parsed hierachically by parse method
+    """
     class __CascadeYamlConfig:
         def __init__(self,listpaths=[]):
             self.conf=OrderedDict()
@@ -25,8 +30,6 @@ class CascadeYamlConfig:
             print("CascadeYamlConfig: parsing: ",self.listpaths)
             if(self.listpaths):
                 self.conf = utils.hiyapyco.load(
-            #        *[os.path.join(argfile_parser.parse_known_args()[0].config_paths,'defaults.yaml'),
-            #        argfile_parser.parse_known_args()[0].args_file],
                     *self.listpaths,
                     interpolate=True,
                     method=utils.hiyapyco.METHOD_MERGE,
@@ -34,6 +37,11 @@ class CascadeYamlConfig:
                     )
 
         def get_copy(self,nested_key_list=[]):
+            """
+            this funchion access parsed config as loaded from hiyapyco
+            :param nested_key_list: list of the nested keys to retrieve
+            :return: deep copy of OrderedDict
+            """
             val=self.conf
             for k in nested_key_list:
                 val=val.get(k,dict())
@@ -48,12 +56,18 @@ class CascadeYamlConfig:
     def __getattr__(self, name):
         return getattr(self.instance, name)
 
-#Base scheduler class
-class BaseScheduler:
 
+class BaseScheduler(object):
+    """
+    Base scheduler class, pattern taken form https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Factory.html
+    """
     NAME = None
 
     def __init__(self,schema=None):
+        """
+        General scheduler class,
+        :param schema: accept a schema to override defaults that are retrieved through CascadeYamlConfig singleton
+        """
         if schema:
             self.schema=schema
         else:
@@ -91,20 +105,51 @@ class BaseScheduler:
 
     @classmethod
     def preset(cls):
+        """
+        This retrieve the specific preset for the scheduler from the config singleton based on scheduler NAME
+        :return: return the preset nested OrderedDict from specific key, see test yaml files
+        """
         if cls.NAME :
             return  CascadeYamlConfig().get_copy(['composites','schedulers', cls.NAME])
 
 class SlurmScheduler(BaseScheduler):
      NAME = 'Slurm'
 
+     def __init__(self,schema=None):
+         super(SlurmScheduler, self).__init__(schema=schema)
+         #super().__init__(schema=schema)
+         #BaseScheduler.__init__(self,schema=schema)
+         self.commands={'sshare': None,'sacctmgr': None}
+         for c in self.commands :
+             exe=utils.which(c)
+             if exe :
+                 self.commands[c] = exe
+             else:
+                 print("command: ",c," Not Found")
+
+
      def get_accounts(self):
-         return ['acct1', 'acct2', 'acct3']
+         #sshare --parsable -a
+         #Eric: sshare --parsable --format %
+         #saldo -b
+         #Lstat.py
+         sshare = self.commands.get('sshare',None)
+         if sshare :
+             out = sshare(
+                 '--parsable'
+             )
+             print (out)
+         else:
+            return ['acct1', 'acct2', 'acct3']
 
      def get_queues(self):
+         #hints on useful slurm commands
+         # sacctmgr show qos
+
          return ['gll_user_prd', 'zqueue1', 'gll_sys_prd','aqueue2']
 
      def get_gui_options(self,accounts=[],queues=[]):
-         return BaseScheduler.get_gui_options(self,accounts=self.get_accounts(), queues=self.get_queues())
+         return super(SlurmScheduler, self).get_gui_options(accounts=self.get_accounts(), queues=self.get_queues())
 
 class PBSScheduler(BaseScheduler):
     NAME = 'PBS'
