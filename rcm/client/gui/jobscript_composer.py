@@ -136,9 +136,13 @@ class SlurmScheduler(BaseScheduler):
          sshare = self.commands.get('sshare',None)
          if sshare :
              out = sshare(
-                 '--parsable'
+                 '--parsable',
+                 output=str
              )
-             print (out)
+             accounts=[]
+             for l in out.splitlines()[1:]:
+                 accounts.append(l.split('|')[0])
+             return accounts
          else:
             return ['acct1', 'acct2', 'acct3']
 
