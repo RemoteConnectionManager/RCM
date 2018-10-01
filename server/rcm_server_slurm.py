@@ -150,7 +150,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
       def get_jobs(self, U=False):
           logger = logging.getLogger("basic")    
           logger.debug("get_jobs")
-          (retval,stdout,stderr)=self.prex(['squeue', '-o %i#%t#%j#%a','-h','-p','bdw_usr_dbg','-u',self.username])
+          (retval,stdout,stderr)=self.prex(['squeue', '-o %i#%t#%j#%a','-h','-u',self.username])
           logger.debug("squeue output: "+str(retval)+" \n"+str(stdout)+" \n"+str(stderr))
           
           check_rcm_job_string = self.username+"-slurm"
