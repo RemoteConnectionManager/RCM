@@ -401,7 +401,7 @@ done"""
                 tunnel=self.get_use_tunnel()
             else:
                 tunnel='y'
-            #n+='ib0'
+            n+=self.pconfig.confdict.get(('platform','nodepostfix'),'')
 #        except Exception as e:
         except Exception,inst:
 	    sys.stderr.write("%s: %s RCM:EXCEPTION" % (inst, traceback.format_exc()))
