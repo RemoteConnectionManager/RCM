@@ -119,7 +119,7 @@ class SlurmScheduler(BaseScheduler):
          super(SlurmScheduler, self).__init__(schema=schema)
          #super().__init__(schema=schema)
          #BaseScheduler.__init__(self,schema=schema)
-         self.commands={'sshare': None,'sacctmgr': None}
+         self.commands={'sshare': None,'sinfo': None}
          for c in self.commands :
              exe=utils.which(c)
              if exe :
@@ -128,7 +128,7 @@ class SlurmScheduler(BaseScheduler):
                  print("command: ",c," Not Found")
 
 
-     def get_accounts(self):
+     def get_all_accounts(self):
          #sshare --parsable -a
          #Eric: sshare --parsable --format %
          #saldo -b
@@ -144,16 +144,35 @@ class SlurmScheduler(BaseScheduler):
                  accounts.append(l.split('|')[0])
              return accounts
          else:
-            return ['acct1', 'acct2', 'acct3']
+            return []
+
+     def validate_account(self,account):
+         return True
+
+     def valid_accounts(self):
+         accounts=[]
+         for a in self.get_all_accounts():
+             if self.validate_account(a): accounts.append(a)
 
      def get_queues(self):
          #hints on useful slurm commands
          # sacctmgr show qos
+         sinfo = self.commands.get('sinfo',None)
+         if sinfo :
+             out = sinfo(
+                 '--format=%P',
+                 output=str
+             )
+             partitions=[]
+             for l in out.splitlines()[1:]:
+                 partitions.append(l)
+             return partitions
+         else:
+            return []
 
-         return ['gll_user_prd', 'zqueue1', 'gll_sys_prd','aqueue2']
 
      def get_gui_options(self,accounts=[],queues=[]):
-         return super(SlurmScheduler, self).get_gui_options(accounts=self.get_accounts(), queues=self.get_queues())
+         return super(SlurmScheduler, self).get_gui_options(accounts=self.valid_accounts(), queues=self.get_queues())
 
 class PBSScheduler(BaseScheduler):
     NAME = 'PBS'
