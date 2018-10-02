@@ -16,8 +16,8 @@ composites:
           - pipo0000
       PBS :
         other_stuff :
-        accounts :
-          - lcalori0
-          - a08tra01
+      Local :
+        other_stuff :
+
 
 

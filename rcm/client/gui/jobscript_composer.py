@@ -68,6 +68,11 @@ class BaseScheduler(object):
         General scheduler class,
         :param schema: accept a schema to override defaults that are retrieved through CascadeYamlConfig singleton
         """
+        if self.preset():
+            self.working=True
+        else:
+            self.working=False
+
         if schema:
             self.schema=schema
         else:
@@ -112,6 +117,7 @@ class BaseScheduler(object):
         if cls.NAME :
             return  CascadeYamlConfig().get_copy(['composites','schedulers', cls.NAME])
 
+
 class SlurmScheduler(BaseScheduler):
      NAME = 'Slurm'
 
@@ -120,11 +126,13 @@ class SlurmScheduler(BaseScheduler):
          #super().__init__(schema=schema)
          #BaseScheduler.__init__(self,schema=schema)
          self.commands={'sshare': None,'sinfo': None}
+
          for c in self.commands :
              exe=utils.which(c)
              if exe :
                  self.commands[c] = exe
              else:
+                 self.working = self.working and False
                  print("command: ",c," Not Found")
 
 
@@ -177,15 +185,45 @@ class SlurmScheduler(BaseScheduler):
 class PBSScheduler(BaseScheduler):
     NAME = 'PBS'
 
+class LocalScheduler(BaseScheduler):
+    NAME = 'Local'
+
+class SSHScheduler(BaseScheduler):
+    NAME = 'SSH'
+
+class SchedulerManager(object):
+    SCHEDULERS = [SlurmScheduler, PBSScheduler, LocalScheduler]
+
+    def __init__(self):
+        self.config=CascadeYamlConfig()
+        self.available_schedulers=OrderedDict()
+        for sched_class in self.SCHEDULERS :
+            sched=sched_class()
+            if sched.working:
+                self.available_schedulers[sched.NAME]=sched
+
+    def get_gui_options(self):
+        schedulers_options=config.get_copy(['defaults','SCHEDULER'])
+        schedulers_choice=OrderedDict()
+        for (sched_name,sched) in self.available_schedulers.items():
+            schedulers_choice[sched_name]=sched.get_gui_options()
+        schedulers_options['choices']=schedulers_choice
+        del schedulers_options['list']
+        return schedulers_options
+
+
+
+
+
 
 if __name__ == '__main__':
 
     config=CascadeYamlConfig()
 
-    sched=SlurmScheduler()
-
-    out=sched.get_gui_options(accounts=['minnie','clarabella'],queues=['prima_coda_indefinita','gll_user_prd'])
-    print("Slurm-->" + json.dumps(out, indent=4))
+    schedulers=SchedulerManager()
+    out= schedulers.get_gui_options()
+    #out=sched.get_gui_options(accounts=['minnie','clarabella'],queues=['prima_coda_indefinita','gll_user_prd'])
+    print("Schedulers-->" + json.dumps(out, indent=4))
 #scheduler composition
 
 #scheduler=copy.deepcopy(conf['defaults']['SCHEDULER'])
