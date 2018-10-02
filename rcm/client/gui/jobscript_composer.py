@@ -224,37 +224,3 @@ if __name__ == '__main__':
     out= schedulers.get_gui_options()
     #out=sched.get_gui_options(accounts=['minnie','clarabella'],queues=['prima_coda_indefinita','gll_user_prd'])
     print("Schedulers-->" + json.dumps(out, indent=4))
-#scheduler composition
-
-#scheduler=copy.deepcopy(conf['defaults']['SCHEDULER'])
-scheduler=config.get_copy(['defaults','SCHEDULER'])
-scheduler_choices=OrderedDict()
-scheduler_list=config.get_copy(['composites','schedulers'])
-for s in scheduler_list:
-    if scheduler_list[s] :
-        accounts=copy.deepcopy(scheduler_list[s].get('accounts',[]))
-        print("accounts-->",accounts)
-        #queue=copy.deepcopy(conf['defaults']['SCHEDULER']['list']['QUEUE'])
-        queue=copy.deepcopy(scheduler['list']['QUEUE'])
-        queue_choices=OrderedDict()
-        queue_list=scheduler_list[s].get('queues',dict())
-        for q in queue_list :
-            print(q,queue_list[q])
-            l=copy.deepcopy(queue['list'])
-            if queue_list[q] :
-                for w in queue_list.get(q,dict()):
-                    print(w,queue_list[q][w])
-                    for m in queue_list[q][w]:
-                        l[w]['values'][m]=queue_list[q][w][m]
-            queue_choices[q] = {'list' : l}
-        queue['choices']=queue_choices
-        del queue['list']
-
-        scheduler_choices[s] = {'list' : copy.deepcopy(scheduler['list'])}
-        scheduler_choices[s]['list']['QUEUE']=queue
-        if(accounts) :
-            scheduler_choices[s]['list']['ACCOUNT']['values']=accounts
-scheduler['choices']=scheduler_choices
-del scheduler['list']
-
-print ("scheduler-->" + json.dumps(scheduler,indent=4))
