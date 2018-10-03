@@ -15,9 +15,27 @@ composites:
           - sbna0000
           - pipo0000
       PBS :
+        queues :
+          dummy_queue :
+            MEMORY :
+              min : 14
+              max : 105
+            CPU :
+              max : 33
         other_stuff :
       Local :
         other_stuff :
+
+    sessions :
+      services :
+        VNC :
+          WM :
+            - KDE
+            - Fluxbox
+          DISPLAY :
+            - 1024x968
+            - fullscreen
+
 
 
 

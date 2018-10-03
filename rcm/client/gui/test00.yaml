@@ -2,6 +2,12 @@
 
 
 defaults:
+
+  DIVIDER:
+    type: 'divider'
+    values:
+      style: "hline"
+
   SCHEDULER:
     label : 'Scheduler'
     type : 'combobox'
@@ -27,4 +33,21 @@ defaults:
             values :
               min : 1
               max : 36
+          TIME :
+            label : 'Time (sec)'
+            type : 'slider'
+            values :
+              min : 1
+              max : 360000
+
+  SESSION:
+    label: 'Session'
+    type: 'combobox'
+    list :
+      WM :
+        label : 'Window Manager'
+        type : 'combobox'
+      DISPLAY :
+        label : 'Display size'
+        type : 'combobox'
 

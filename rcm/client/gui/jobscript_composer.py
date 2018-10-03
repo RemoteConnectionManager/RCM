@@ -57,6 +57,52 @@ class CascadeYamlConfig:
         return getattr(self.instance, name)
 
 
+class BaseGuiComposer(object):
+
+    NAME = None
+
+    def __init__(self, schema=None, name=None):
+        if schema:
+            self.schema=schema
+        else:
+            if name: self.NAME= name
+            self.schema=CascadeYamlConfig().get_copy(['defaults',self.NAME])
+
+
+class LeafGuiComposer(BaseGuiComposer):
+
+    def get_gui_options(self):
+        return self.schema
+
+class CompositeComposer(BaseGuiComposer):
+
+    def __init__(self,name=None):
+        super(CompositeComposer, self).__init__(name=name)
+        self.children=[]
+
+    def add_child(self,child):
+        self.children.append(child)
+
+    def get_gui_options(self):
+        options=OrderedDict()
+        for child in self.children:
+            options[child.NAME]=child.get_gui_options()
+        return options
+
+class ChoiceGuiComposer(CompositeComposer):
+
+    def get_gui_options(self):
+        composer_options=self.schema
+        composer_choice=OrderedDict()
+        if self.children :
+            for child in self.children :
+                composer_choice[child.NAME]=child.get_gui_options()
+            composer_options['choices']=composer_choice
+        del composer_options['list']
+        return composer_options
+
+
+
 class BaseScheduler(object):
     """
     Base scheduler class, pattern taken form https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Factory.html
@@ -87,23 +133,30 @@ class BaseScheduler(object):
             queues=queue_preset
         print("accounts: ",accounts)
         print("queues  : ",queue_preset)
-        queue_schema=copy.deepcopy(self.schema['list']['QUEUE'])
-        queue_choices=OrderedDict()
-        for q in queues :
-            #print(q,queue_preset[q])
-            l=copy.deepcopy(queue_schema['list'])
-            if queue_preset.get(q,dict()) :
-                for w in queue_preset.get(q,dict()):
-                    print(w,queue_preset[q][w])
-                    for m in queue_preset[q][w]:
-                        l[w]['values'][m]=queue_preset[q][w][m]
-            queue_choices[q] = {'list' : l}
-        queue_schema['choices']=queue_choices
-        del queue_schema['list']
         out = {'list' : copy.deepcopy(self.schema['list'])}
-        out['list']['QUEUE']=queue_schema
+        if queues :
+            queue_schema=copy.deepcopy(self.schema['list']['QUEUE'])
+            queue_choices=OrderedDict()
+            for q in queues :
+                #print(q,queue_preset[q])
+                l=copy.deepcopy(queue_schema['list'])
+                if queue_preset.get(q,dict()) :
+                    for w in queue_preset.get(q,dict()):
+                        print(w,queue_preset[q][w])
+                        for m in queue_preset[q][w]:
+                            l[w]['values'][m]=queue_preset[q][w][m]
+                queue_choices[q] = {'list' : l}
+            queue_schema['choices']=queue_choices
+            del queue_schema['list']
+            out['list']['QUEUE']=queue_schema
+        else:
+            del out['list']['QUEUE']
         if(accounts) :
             out['list']['ACCOUNT']['values']=accounts
+        else:
+            del out['list']['ACCOUNT']
+        if not out['list'] :
+            del out['list']
 
         return out
 
@@ -191,27 +244,16 @@ class LocalScheduler(BaseScheduler):
 class SSHScheduler(BaseScheduler):
     NAME = 'SSH'
 
-class SchedulerManager(object):
+class SchedulerManager(ChoiceGuiComposer):
+    NAME='SCHEDULER'
     SCHEDULERS = [SlurmScheduler, PBSScheduler, LocalScheduler]
 
     def __init__(self):
-        self.config=CascadeYamlConfig()
-        self.available_schedulers=OrderedDict()
+        super(SchedulerManager, self).__init__()
         for sched_class in self.SCHEDULERS :
             sched=sched_class()
             if sched.working:
-                self.available_schedulers[sched.NAME]=sched
-
-    def get_gui_options(self):
-        schedulers_options=config.get_copy(['defaults','SCHEDULER'])
-        schedulers_choice=OrderedDict()
-        for (sched_name,sched) in self.available_schedulers.items():
-            schedulers_choice[sched_name]=sched.get_gui_options()
-        schedulers_options['choices']=schedulers_choice
-        del schedulers_options['list']
-        return schedulers_options
-
-
+                self.add_child(sched)
 
 
 
@@ -221,6 +263,10 @@ if __name__ == '__main__':
     config=CascadeYamlConfig()
 
     schedulers=SchedulerManager()
-    out= schedulers.get_gui_options()
+    root=CompositeComposer()
+    root.add_child(schedulers)
+    root.add_child(LeafGuiComposer(name='DIVIDER'))
+    root.add_child(ChoiceGuiComposer(name='SESSION'))
+    out= root.get_gui_options()
     #out=sched.get_gui_options(accounts=['minnie','clarabella'],queues=['prima_coda_indefinita','gll_user_prd'])
-    print("Schedulers-->" + json.dumps(out, indent=4))
+    print("Root-->" + json.dumps(out, indent=4))
