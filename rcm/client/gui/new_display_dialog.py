@@ -337,7 +337,15 @@ def widget_factory(widget_type):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    display_dialog_ui = json.load(open("scheduler.json"), object_pairs_hook=OrderedDict)
+    import jobscript_composer
+    #display_dialog_ui = json.load(open("scheduler.json"), object_pairs_hook=OrderedDict)
+    schedulers=jobscript_composer.SchedulerManager()
+    root=jobscript_composer.CompositeComposer()
+    root.add_child(schedulers)
+    root.add_child(jobscript_composer.LeafGuiComposer(name='DIVIDER'))
+    root.add_child(jobscript_composer.ChoiceGuiComposer(name='SESSION'))
+    display_dialog_ui= root.get_gui_options()
+
     display_dialog = QDisplayDialog(display_dialog_ui)
     display_dialog.show()
     sys.exit(app.exec_())
