@@ -1,13 +1,11 @@
 import os
-import pwd
 import sys
 import logging.handlers
 
 logger = logging.getLogger('basic')
 logger.setLevel( os.environ.get("RCM_DEBUG_LEVEL","debug").upper())
 ch = logging.StreamHandler(sys.stdout)
-username=pwd.getpwuid(os.geteuid())[0]
-rcmdir=os.path.expanduser("~%s/.rcm" % username)
+rcmdir = os.path.join(os.path.expanduser('~'), '.rcm')
 if ( not os.path.isdir(rcmdir) ):
     os.mkdir(rcmdir)
     os.chmod(rcmdir,755)
