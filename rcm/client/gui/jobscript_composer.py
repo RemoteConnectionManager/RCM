@@ -230,6 +230,7 @@ class SlurmScheduler(BaseScheduler):
         accounts = []
         for a in self.get_all_accounts():
             if self.validate_account(a): accounts.append(a)
+        return accounts
 
     def get_queues(self):
         # hints on useful slurm commands
