@@ -16,13 +16,26 @@ composites:
           - pipo0000
       PBS :
         queues :
-          dummy_queue :
+          dummy_queue_1 :
             MEMORY :
               min : 14
               max : 105
             CPU :
               max : 33
+            TIME :
+              max : 3600
+          dummy_queue_2 :
+            MEMORY :
+              min : 14
+              max : 105
+            CPU :
+              max : 33
+            TIME :
+              max : 10800
         other_stuff :
+        accounts :
+          - someone0
+          - someone1
       Local :
         other_stuff :
 
