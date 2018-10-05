@@ -1,9 +1,9 @@
 # these are the definitions of the possible arguments
 
 composites:
-    schedulers :
+    SCHEDULER :
       Slurm :
-        queues :
+        QUEUE :
           gll_usr_prd :
             MEMORY :
               min : 14
@@ -11,11 +11,11 @@ composites:
             CPU :
               max : 33
           gll_sys_prd :
-        accounts :
+        ACCOUNT :
           - sbna0000
           - pipo0000
       PBS :
-        queues :
+        QUEUE :
           dummy_queue_1 :
             MEMORY :
               min : 14
@@ -33,7 +33,7 @@ composites:
             TIME :
               max : 10800
         other_stuff :
-        accounts :
+        ACCOUNT :
           - someone0
           - someone1
       Local :

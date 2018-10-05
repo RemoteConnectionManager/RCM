@@ -141,9 +141,9 @@ class BaseScheduler(object):
     def get_gui_options(self, accounts=None, queues=None):
         print("preset--->",self.preset())
         if not accounts:
-            accounts = self.preset().get('accounts', [])
+            accounts = self.preset().get('ACCOUNT', [])
 
-        queue_preset = self.preset().get('queues', OrderedDict())
+        queue_preset = self.preset().get('QUEUE', OrderedDict())
         if not queues:
             queues = queue_preset
         print("accounts: ", accounts)
@@ -185,7 +185,7 @@ class BaseScheduler(object):
         if cls.NAME:
             #return  CascadeYamlConfig().get_copy(['composites','schedulers', cls.NAME])
 
-            return CascadeYamlConfig()['composites', 'schedulers', cls.NAME]
+            return CascadeYamlConfig()['composites', 'SCHEDULER', cls.NAME]
 
 
 class SlurmScheduler(BaseScheduler):
