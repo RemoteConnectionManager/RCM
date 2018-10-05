@@ -71,14 +71,18 @@ class CascadeYamlConfig:
 class BaseGuiComposer(object):
     NAME = None
 
-    def __init__(self, schema=None, name=None):
+    def __init__(self, schema=None, name=None, defaults=None):
+        if name:
+            self.NAME = name
         if schema:
             self.schema = schema
         else:
-            if name:
-                self.NAME = name
-            #self.schema = CascadeYamlConfig().get_copy(['defaults', self.NAME])
-            self.schema = CascadeYamlConfig()['defaults', self.NAME]
+            #self.schema = CascadeYamlConfig().get_copy(['schema', self.NAME])
+            self.schema = CascadeYamlConfig()['schema', self.NAME]
+        if defaults:
+            self.defaults = defaults
+        else:
+            self.defaults = CascadeYamlConfig()['defaults', self.NAME]
 
 
 class LeafGuiComposer(BaseGuiComposer):
@@ -117,33 +121,30 @@ class ChoiceGuiComposer(CompositeComposer):
         return composer_options
 
 
-class BaseScheduler(object):
+class BaseScheduler(BaseGuiComposer):
     """
     Base scheduler class, pattern taken form https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Factory.html
     """
     NAME = None
 
-    def __init__(self, schema=None):
+    def __init__(self, *args, **kwargs):
         """
         General scheduler class,
-        :param schema: accept a schema to override defaults that are retrieved through CascadeYamlConfig singleton
+        :param schema: accept a schema to override schema that are retrieved through CascadeYamlConfig singleton
         """
-        if self.preset():
+        super(BaseScheduler, self).__init__(*args, **kwargs)
+        if self.defaults:
             self.working = True
         else:
             self.working = False
+#        self.working = True
 
-        if schema:
-            self.schema = schema
-        else:
-            self.schema = CascadeYamlConfig()['defaults', 'SCHEDULER']
 
     def get_gui_options(self, accounts=None, queues=None):
-        print("preset--->",self.preset())
         if not accounts:
-            accounts = self.preset().get('ACCOUNT', [])
+            accounts = self.defaults.get('ACCOUNT', [])
 
-        queue_preset = self.preset().get('QUEUE', OrderedDict())
+        queue_preset = self.defaults.get('QUEUE', OrderedDict())
         if not queues:
             queues = queue_preset
         print("accounts: ", accounts)
@@ -176,23 +177,13 @@ class BaseScheduler(object):
 
         return out
 
-    @classmethod
-    def preset(cls):
-        """
-        This retrieve the specific preset for the scheduler from the config singleton based on scheduler NAME
-        :return: return the preset nested OrderedDict from specific key, see test yaml files
-        """
-        if cls.NAME:
-            #return  CascadeYamlConfig().get_copy(['composites','schedulers', cls.NAME])
-
-            return CascadeYamlConfig()['composites', 'SCHEDULER', cls.NAME]
 
 
 class SlurmScheduler(BaseScheduler):
     NAME = 'Slurm'
 
-    def __init__(self, schema=None):
-        super(SlurmScheduler, self).__init__(schema=schema)
+    def __init__(self, *args, **kwargs):
+        super(SlurmScheduler, self).__init__(*args, **kwargs)
         # super().__init__(schema=schema)
         # BaseScheduler.__init__(self,schema=schema)
         self.commands = {'sshare': None, 'sinfo': None}
@@ -268,10 +259,13 @@ class SchedulerManager(ChoiceGuiComposer):
     NAME = 'SCHEDULER'
     SCHEDULERS = [SlurmScheduler, PBSScheduler, LocalScheduler]
 
-    def __init__(self):
-        super(SchedulerManager, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(SchedulerManager, self).__init__(*args, **kwargs)
+        print("in ",__class__,"self.schema ",self.schema)
+        print("in ", __class__, "self.defaults ", self.defaults)
         for sched_class in self.SCHEDULERS:
-            sched = sched_class()
+            print ("constructin scheduler : ",sched_class.NAME)
+            sched = sched_class(schema=self.schema, defaults=self.defaults.get(sched_class.NAME,OrderedDict()))
             if sched.working:
                 self.add_child(sched)
 

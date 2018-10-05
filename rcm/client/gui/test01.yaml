@@ -1,6 +1,6 @@
 # these are the definitions of the possible arguments
 
-composites:
+defaults:
     SCHEDULER :
       Slurm :
         QUEUE :
@@ -39,15 +39,16 @@ composites:
       Local :
         other_stuff :
 
-    sessions :
-      services :
-        VNC :
-          WM :
-            - KDE
-            - Fluxbox
-          DISPLAY :
-            - 1024x968
-            - fullscreen
+    SERVICE :
+      VNC :
+        COMMAND :
+          TurboVNC :
+            WM :
+              - KDE
+              - Fluxbox
+            DISPLAY :
+              - 1024x968
+              - fullscreen
 
 
 
