@@ -40,9 +40,18 @@ defaults:
         other_stuff :
 
     SERVICE :
+      OtherService :
+        otherstuff :
       VNC :
         COMMAND :
           TurboVNC :
+            WM :
+              - KDE
+              - Fluxbox
+            DISPLAY :
+              - 1024x968
+              - fullscreen
+          OtherVNC :
             WM :
               - KDE
               - Fluxbox

@@ -343,7 +343,7 @@ if __name__ == "__main__":
     root=jobscript_composer.CompositeComposer()
     root.add_child(schedulers)
     root.add_child(jobscript_composer.LeafGuiComposer(name='DIVIDER'))
-    root.add_child(jobscript_composer.ChoiceGuiComposer(name='SESSION'))
+    root.add_child(jobscript_composer.ManagerChoiceGuiComposer(name='SERVICE'))
     display_dialog_ui= root.get_gui_options()
 
     display_dialog = QDisplayDialog(display_dialog_ui)

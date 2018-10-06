@@ -72,6 +72,7 @@ class BaseGuiComposer(object):
     NAME = None
 
     def __init__(self, schema=None, name=None, defaults=None):
+
         if name:
             self.NAME = name
         if schema:
@@ -84,6 +85,10 @@ class BaseGuiComposer(object):
         else:
             self.defaults = CascadeYamlConfig()['defaults', self.NAME]
 
+        print(self.__class__.__name__,": ",self.NAME)
+        print("self.schema ",self.schema)
+        print("self.defaults ", self.defaults)
+
 
 class LeafGuiComposer(BaseGuiComposer):
 
@@ -93,8 +98,8 @@ class LeafGuiComposer(BaseGuiComposer):
 
 class CompositeComposer(BaseGuiComposer):
 
-    def __init__(self, name=None):
-        super(CompositeComposer, self).__init__(name=name)
+    def __init__(self, *args, **kwargs):
+        super(CompositeComposer, self).__init__(*args, **kwargs)
         self.children = []
 
     def add_child(self, child):
@@ -119,6 +124,58 @@ class ChoiceGuiComposer(CompositeComposer):
         if 'list' in composer_options :
             del composer_options['list']
         return composer_options
+
+class ManagedChoiceGuiComposer(CompositeComposer):
+
+    def __init__(self, *args, **kwargs):
+        super(ManagedChoiceGuiComposer, self).__init__(*args, **kwargs)
+
+
+        for child_name in self.defaults:
+            if child_name in self.schema:
+                child_schema = copy.deepcopy(self.schema[child_name])
+                if 'list' in child_schema:
+                    child= ManagerChoiceGuiComposer(name=child_name,
+                                                    schema=copy.deepcopy(child_schema),
+                                                    defaults=copy.deepcopy(self.defaults[child_name]))
+                else:
+                    print("hadling leaf item-->", child_name)
+                    child = LeafGuiComposer(name=child_name,
+                                            schema=copy.deepcopy(child_schema),
+                                            defaults=copy.deepcopy(self.defaults[child_name]))
+                self.add_child(child)
+            else :
+                print("unknown leaf item-->", child_name)
+
+    def get_gui_options(self):
+        options = OrderedDict()
+        for child in self.children:
+            options[child.NAME] = child.get_gui_options()
+        return {'list' : options}
+
+
+
+class ManagerChoiceGuiComposer(ChoiceGuiComposer):
+
+    def __init__(self, *args, **kwargs):
+        super(ManagerChoiceGuiComposer, self).__init__(*args, **kwargs)
+        if 'list' in self.schema:
+            for class_name in self.defaults:
+                print ("handling child  : ",class_name)
+                child= ManagedChoiceGuiComposer(name=class_name,
+                                                schema=copy.deepcopy(self.schema['list']),
+                                                defaults=copy.deepcopy(self.defaults.get(class_name,OrderedDict())))
+                #par.add_child(child)
+                self.add_child(child)
+#--------------------------
+#            if 'list' in self.schema:
+#                for child_name in self.schema['list']:
+#                    print("hadling list item-->",child_name)
+#                    child= DefaultChoiceGuiComposer(name=child_name,
+#                                                    schema=copy.deepcopy(self.schema['list'][child_name]),
+#                                                    defaults=copy.deepcopy(self.defaults.get(class_name,OrderedDict()).get(child_name,OrderedDict())))
+#                    self.add_child(child)
+
 
 
 class BaseScheduler(BaseGuiComposer):
@@ -276,8 +333,9 @@ if __name__ == '__main__':
     schedulers = SchedulerManager()
     root = CompositeComposer()
     root.add_child(schedulers)
+    #root.add_child(ManagerChoiceGuiComposer(name='SCHEDULER'))
     root.add_child(LeafGuiComposer(name='DIVIDER'))
-    root.add_child(ChoiceGuiComposer(name='SESSION'))
+    root.add_child(ManagerChoiceGuiComposer(name='SERVICE'))
     out = root.get_gui_options()
     # out=sched.get_gui_options(accounts=['minnie','clarabella'],queues=['prima_coda_indefinita','gll_user_prd'])
     print("Root-->" + json.dumps(out, indent=4))

@@ -48,11 +48,9 @@ schema:
         label : 'Command'
         type : 'combobox'
         list :
-        list :
           WM :
             label : 'Window Manager'
             type : 'combobox'
           DISPLAY :
             label : 'Display size'
             type : 'combobox'
-
