@@ -348,7 +348,7 @@ class SchedulerManager(ChoiceGuiComposer):
 if __name__ == '__main__':
     config = CascadeYamlConfig()
     if True:
-        root=ManagedChoiceGuiComposer(schema=config.conf['schema'],defaults=config.conf['defaults'])
+        root=AutoChoiceGuiComposer(schema=config.conf['schema'],defaults=config.conf['defaults'])
     else:
         schedulers = SchedulerManager()
         root = CompositeComposer()
