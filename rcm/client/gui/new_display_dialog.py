@@ -20,8 +20,13 @@ class QContainer(QWidget):
 
 class QDisplayDialog(QDialog):
 
-    def __init__(self, display_dialog_ui):
+    def __init__(self, display_dialog_ui, callback=None):
         QDialog.__init__(self)
+
+        if callback :
+            self.callback = callback
+        else:
+            self.callback=self.print_callback
 
         self.display_dialog_ui = display_dialog_ui
         self.tabs = QTabWidget(self)
@@ -68,6 +73,9 @@ class QDisplayDialog(QDialog):
                 for key2, value2 in container_widget.choices.items():
                     choices[key2] = value2
 
+        self.callback(choices)
+
+    def print_callback(self,choices):
         for key, value in choices.items():
             print(key + " : " + value)
 
@@ -336,17 +344,23 @@ def widget_factory(widget_type):
 
 
 if __name__ == "__main__":
+
     app = QApplication(sys.argv)
     import jobscript_composer
     #display_dialog_ui = json.load(open("scheduler.json"), object_pairs_hook=OrderedDict)
-    schedulers=jobscript_composer.SchedulerManager()
-    root=jobscript_composer.CompositeComposer()
-    #root.add_child(schedulers)
-    root.add_child(jobscript_composer.ManagerChoiceGuiComposer(name='SCHEDULER'))
-    root.add_child(jobscript_composer.LeafGuiComposer(name='DIVIDER'))
-    root.add_child(jobscript_composer.ManagerChoiceGuiComposer(name='SERVICE'))
+    config = jobscript_composer.CascadeYamlConfig()
+    if True:
+        root=jobscript_composer.AutoChoiceGuiComposer(schema=config.conf['schema'],defaults=config.conf['defaults'])
+    else:
+    #schedulers=jobscript_composer.SchedulerManager()
+        root=jobscript_composer.CompositeComposer()
+        #root.add_child(schedulers)
+        root.add_child(jobscript_composer.ManagerChoiceGuiComposer(name='SCHEDULER'))
+        root.add_child(jobscript_composer.LeafGuiComposer(name='DIVIDER'))
+        root.add_child(jobscript_composer.ManagerChoiceGuiComposer(name='SERVICE'))
     display_dialog_ui= root.get_gui_options()
 
-    display_dialog = QDisplayDialog(display_dialog_ui)
+    display_dialog = QDisplayDialog(display_dialog_ui, callback=root.substitute)
     display_dialog.show()
     sys.exit(app.exec_())
+
