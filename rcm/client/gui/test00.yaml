@@ -3,11 +3,6 @@
 
 schema:
 
-  DIVIDER:
-    type: 'divider'
-    values:
-      style: "hline"
-
   SCHEDULER:
     label : 'Scheduler'
     type : 'combobox'
@@ -40,10 +35,19 @@ schema:
               min : 1
               max : 360000
 
+  DIVIDER:
+    type: 'divider'
+    values:
+      style: "hline"
+
   SERVICE :
     label : 'Service Type'
     type: 'combobox'
     list :
+      DIVIDER:
+        type: 'divider'
+        values:
+          style: "hline"
       COMMAND :
         label : 'Command'
         type : 'combobox'

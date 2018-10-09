@@ -2,6 +2,8 @@
 
 defaults:
     SCHEDULER :
+      AnotherLocal :
+        other_stuff :
       Slurm :
         QUEUE :
           gll_usr_prd :
