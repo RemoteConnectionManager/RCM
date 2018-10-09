@@ -93,8 +93,13 @@ class BaseGuiComposer(object):
 class LeafGuiComposer(BaseGuiComposer):
 
     def get_gui_options(self):
-        return self.schema
-
+        options = copy.deepcopy(self.schema)
+        if 'values' in options:
+            for preset in self.defaults:
+                options['values'][preset] = self.defaults[preset]
+        else :
+            options['values']=copy.deepcopy(self.defaults)
+        return options
 
 class CompositeComposer(BaseGuiComposer):
 
