@@ -89,6 +89,9 @@ class BaseGuiComposer(object):
         print("self.schema ",self.schema)
         print("self.defaults ", self.defaults)
 
+    def substitute(self,choices):
+        for key, value in choices.items():
+            print("substitute ", key + " : " + value)
 
 class LeafGuiComposer(BaseGuiComposer):
 
@@ -100,6 +103,7 @@ class LeafGuiComposer(BaseGuiComposer):
         else :
             options['values']=copy.deepcopy(self.defaults)
         return options
+
 
 class CompositeComposer(BaseGuiComposer):
 
@@ -130,15 +134,15 @@ class ChoiceGuiComposer(CompositeComposer):
             del composer_options['list']
         return composer_options
 
-class ManagedChoiceGuiComposer(CompositeComposer):
+class AutoChoiceGuiComposer(CompositeComposer):
 
     def __init__(self, *args, **kwargs):
-        super(ManagedChoiceGuiComposer, self).__init__(*args, **kwargs)
+        super(AutoChoiceGuiComposer, self).__init__(*args, **kwargs)
 
 
-        for child_name in self.defaults:
-            if child_name in self.schema:
-                child_schema = copy.deepcopy(self.schema[child_name])
+        for child_name in self.schema:
+            child_schema = copy.deepcopy(self.schema[child_name])
+            if child_name in self.defaults:
                 if 'list' in child_schema:
                     child= ManagerChoiceGuiComposer(name=child_name,
                                                     schema=copy.deepcopy(child_schema),
@@ -150,7 +154,16 @@ class ManagedChoiceGuiComposer(CompositeComposer):
                                             defaults=copy.deepcopy(self.defaults[child_name]))
                 self.add_child(child)
             else :
-                print("unknown leaf item-->", child_name)
+                if 'list' in child_schema:
+                    print("skipping complex item -->",child_name, "in schema but not in defaults")
+                else:
+                    print("adding leaf item -->", child_name, "without defaults")
+                    child = LeafGuiComposer(name=child_name,
+                                            schema=copy.deepcopy(child_schema),
+                                            defaults=OrderedDict())
+                    self.add_child(child)
+
+class ManagedChoiceGuiComposer(AutoChoiceGuiComposer):
 
     def get_gui_options(self):
         options = OrderedDict()
@@ -334,13 +347,15 @@ class SchedulerManager(ChoiceGuiComposer):
 
 if __name__ == '__main__':
     config = CascadeYamlConfig()
-
-    schedulers = SchedulerManager()
-    root = CompositeComposer()
-    root.add_child(schedulers)
-    #root.add_child(ManagerChoiceGuiComposer(name='SCHEDULER'))
-    root.add_child(LeafGuiComposer(name='DIVIDER'))
-    root.add_child(ManagerChoiceGuiComposer(name='SERVICE'))
+    if True:
+        root=ManagedChoiceGuiComposer(schema=config.conf['schema'],defaults=config.conf['defaults'])
+    else:
+        schedulers = SchedulerManager()
+        root = CompositeComposer()
+        root.add_child(schedulers)
+        #root.add_child(ManagerChoiceGuiComposer(name='SCHEDULER'))
+        root.add_child(LeafGuiComposer(name='DIVIDER'))
+        root.add_child(ManagerChoiceGuiComposer(name='SERVICE'))
     out = root.get_gui_options()
     # out=sched.get_gui_options(accounts=['minnie','clarabella'],queues=['prima_coda_indefinita','gll_user_prd'])
     print("Root-->" + json.dumps(out, indent=4))
