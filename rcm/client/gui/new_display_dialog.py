@@ -350,7 +350,7 @@ if __name__ == "__main__":
     #display_dialog_ui = json.load(open("scheduler.json"), object_pairs_hook=OrderedDict)
     config = jobscript_composer.CascadeYamlConfig()
     if True:
-        root=jobscript_composer.AutoChoiceGuiComposer(schema=config.conf['schema'],defaults=config.conf['defaults'])
+        root=jobscript_composer.AutoChoiceGuiComposer(schema=config.conf['schema'],defaults=config.conf['defaults'],class_table={'SCHEDULER': jobscript_composer.SchedulerManager})
     else:
     #schedulers=jobscript_composer.SchedulerManager()
         root=jobscript_composer.CompositeComposer()

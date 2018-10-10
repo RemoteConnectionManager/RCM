@@ -71,7 +71,7 @@ class CascadeYamlConfig:
 class BaseGuiComposer(object):
     NAME = None
 
-    def __init__(self, schema=None, name=None, defaults=None):
+    def __init__(self, schema=None, name=None, defaults=None, class_table=None):
 
         if name:
             self.NAME = name
@@ -84,7 +84,11 @@ class BaseGuiComposer(object):
             self.defaults = defaults
         else:
             self.defaults = CascadeYamlConfig()['defaults', self.NAME]
-
+        if class_table:
+            self.class_table=class_table
+        else:
+            self.class_table=dict()
+        self.working=True
         print(self.__class__.__name__, ": ", self.NAME)
         print("self.schema ", self.schema)
         print("self.defaults ", self.defaults)
@@ -157,7 +161,8 @@ class AutoChoiceGuiComposer(CompositeComposer):
             child_schema = copy.deepcopy(self.schema[child_name])
             if child_name in self.defaults:
                 if 'list' in child_schema:
-                    child = ManagerChoiceGuiComposer(name=child_name,
+                    manager_class=self.class_table.get(child_name,AutoManagerChoiceGuiComposer)
+                    child = manager_class(name=child_name,
                                                      schema=copy.deepcopy(child_schema),
                                                      defaults=copy.deepcopy(self.defaults[child_name]))
                 else:
@@ -206,18 +211,8 @@ class ManagedChoiceGuiComposer(AutoChoiceGuiComposer):
 
 class ManagerChoiceGuiComposer(ChoiceGuiComposer):
 
-    def __init__(self, *args, **kwargs):
-        super(ManagerChoiceGuiComposer, self).__init__(*args, **kwargs)
-        if 'list' in self.schema:
-            for class_name in self.defaults:
-                print("handling child  : ", class_name)
-                child = ManagedChoiceGuiComposer(name=class_name,
-                                                 schema=copy.deepcopy(self.schema['list']),
-                                                 defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
-                self.add_child(child)
-
     def substitute(self, choices):
-        #BaseGuiComposer.substitute(self, choices)
+        BaseGuiComposer.substitute(self, choices)
         child_subst=dict()
         active_child_name=choices.get(self.NAME,'')
         for child in self.children:
@@ -237,11 +232,23 @@ class ManagerChoiceGuiComposer(ChoiceGuiComposer):
                 #print(child_subst[child])
                 child.substitute(child_subst[child])
 
+class AutoManagerChoiceGuiComposer(ManagerChoiceGuiComposer):
+
+    def __init__(self, *args, **kwargs):
+        super(AutoManagerChoiceGuiComposer, self).__init__(*args, **kwargs)
+        if 'list' in self.schema:
+            for class_name in self.defaults:
+                print("handling child  : ", class_name)
+                child = ManagedChoiceGuiComposer(name=class_name,
+                                                 schema=copy.deepcopy(self.schema['list']),
+                                                 defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
+                self.add_child(child)
 
 
 
 
-class BaseScheduler(BaseGuiComposer):
+
+class BaseScheduler(ManagedChoiceGuiComposer):
     """
     Base scheduler class, pattern taken form https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Factory.html
     """
@@ -252,15 +259,28 @@ class BaseScheduler(BaseGuiComposer):
         General scheduler class,
         :param schema: accept a schema to override schema that are retrieved through CascadeYamlConfig singleton
         """
-        super(BaseScheduler, self).__init__(*args, **kwargs)
-        if self.defaults:
-            self.working = True
-        else:
-            self.working = False
+        merged_defaults=copy.deepcopy(kwargs['defaults'])
+        if 'accounts' in kwargs:
+            print("---------------------------------")
+            merged_defaults['ACCOUNT']=self.merge_accounts(merged_defaults.get('ACCOUNT',[]),kwargs.get('accounts',[]))
+            del kwargs['accounts']
+        if 'accounts' in kwargs:
+            print("---------------------------------")
+            merged_defaults['ACCOUNT']=self.merge_accounts(merged_defaults.get('ACCOUNT',[]),kwargs.get('accounts',[]))
+            del kwargs['accounts']
+        kwargs['defaults'] = merged_defaults
+        super(ManagedChoiceGuiComposer, self).__init__(*args, **kwargs)
 
-    #        self.working = True
+    def merge_accounts(self,preset,computed):
+        print("merging defaults:",preset,"----",computed)
+        out=preset
+        for a in computed:
+            if not a in out:
+                out.append(a)
+        print("mergied defaults:",out)
+        return out
 
-    def get_gui_options(self, accounts=None, queues=None):
+    def old_get_gui_options(self, accounts=None, queues=None):
         if not accounts:
             accounts = self.defaults.get('ACCOUNT', [])
 
@@ -365,6 +385,13 @@ class SlurmScheduler(BaseScheduler):
 class PBSScheduler(BaseScheduler):
     NAME = 'PBS'
 
+    def __init__(self, *args, **kwargs):
+        kwargs['accounts']=self.valid_accounts()
+        super(PBSScheduler, self).__init__(*args, **kwargs)
+
+    def valid_accounts(self):
+        return ['dummy_account_1', 'dummy_account_2']
+
 
 class LocalScheduler(BaseScheduler):
     NAME = 'Local'
@@ -374,11 +401,27 @@ class SSHScheduler(BaseScheduler):
     NAME = 'SSH'
 
 
-class SchedulerManager(ChoiceGuiComposer):
+class SchedulerManager(ManagerChoiceGuiComposer):
     NAME = 'SCHEDULER'
     SCHEDULERS = [SlurmScheduler, PBSScheduler, LocalScheduler]
 
     def __init__(self, *args, **kwargs):
+        super(SchedulerManager, self).__init__(*args, **kwargs)
+        if 'list' in self.schema:
+            for class_name in self.defaults:
+                print("handling child  : ", class_name)
+                managed_class=ManagedChoiceGuiComposer
+                for sched_class in self.SCHEDULERS:
+                    if sched_class.NAME == class_name:
+                        managed_class=sched_class
+                        break
+                child = managed_class(name=class_name,
+                                                 schema=copy.deepcopy(self.schema['list']),
+                                                 defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
+                if child.working:
+                    self.add_child(child)
+
+    def old__init__(self, *args, **kwargs):
         super(SchedulerManager, self).__init__(*args, **kwargs)
         print("in ", __class__, "self.schema ", self.schema)
         print("in ", __class__, "self.defaults ", self.defaults)
