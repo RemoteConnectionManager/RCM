@@ -90,8 +90,8 @@ class BaseGuiComposer(object):
         print("self.defaults ", self.defaults)
 
     def substitute(self, choices):
-        for key, value in choices.items():
-            print("substitute ", key + " : " + value)
+        print("class:",self.__class__.__name__, "name:", self.NAME, choices)
+
 
 
 class LeafGuiComposer(BaseGuiComposer):
@@ -104,6 +104,10 @@ class LeafGuiComposer(BaseGuiComposer):
         else:
             options['values'] = copy.deepcopy(self.defaults)
         return options
+
+    def substitute(self, choices):
+        for key, value in choices.items():
+            print("in leaf: ", self.NAME, "substitute ", key + " : " + value)
 
 
 class CompositeComposer(BaseGuiComposer):
@@ -121,6 +125,13 @@ class CompositeComposer(BaseGuiComposer):
             options[child.NAME] = child.get_gui_options()
         return options
 
+    def substitute(self, choices):
+        BaseGuiComposer.substitute(self, choices)
+        for child in self.children:
+            child.substitute(choices)
+
+
+
 
 class ChoiceGuiComposer(CompositeComposer):
 
@@ -134,6 +145,7 @@ class ChoiceGuiComposer(CompositeComposer):
         if 'list' in composer_options:
             del composer_options['list']
         return composer_options
+
 
 
 class AutoChoiceGuiComposer(CompositeComposer):
@@ -164,6 +176,24 @@ class AutoChoiceGuiComposer(CompositeComposer):
                                             defaults=OrderedDict())
                     self.add_child(child)
 
+    def substitute(self, choices):
+        BaseGuiComposer.substitute(self, choices)
+        child_subst=dict()
+        for child in self.children:
+            child_subst[child] = dict()
+        for key, value in choices.items():
+            #print("--in: ", self.NAME, "substitute ", key + " : " + value)
+            subkey=key.split('.')
+            #print(subkey)
+            for child in self.children:
+                if child.NAME == subkey[0]:
+                    #print("stripping subst", self.NAME, "--", '.'.join(subkey[1:]) )
+                    child_subst[child][key]=value
+        for child in self.children:
+            if child_subst[child]:
+                #print(child_subst[child])
+                child.substitute(child_subst[child])
+
 
 class ManagedChoiceGuiComposer(AutoChoiceGuiComposer):
 
@@ -184,18 +214,31 @@ class ManagerChoiceGuiComposer(ChoiceGuiComposer):
                 child = ManagedChoiceGuiComposer(name=class_name,
                                                  schema=copy.deepcopy(self.schema['list']),
                                                  defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
-                # par.add_child(child)
                 self.add_child(child)
 
+    def substitute(self, choices):
+        #BaseGuiComposer.substitute(self, choices)
+        child_subst=dict()
+        active_child_name=choices.get(self.NAME,'')
+        for child in self.children:
+            child_subst[child] = dict()
+        for key, value in choices.items():
+            #print("--in: ", self.NAME, "substitute ", key + " : " + value)
+            subkey=key.split('.')
+            #print(subkey)
+            if len(subkey) > 1 :
+                if self.NAME == subkey[0]:
+                    for child in self.children:
+                        if child.NAME == active_child_name:
+                            #print("stripping subst", self.NAME, "--", '.'.join(subkey[1:]) )
+                            child_subst[child]['.'.join(subkey[1:])]=value
+        for child in self.children:
+            if child_subst[child]:
+                #print(child_subst[child])
+                child.substitute(child_subst[child])
 
-# --------------------------
-#            if 'list' in self.schema:
-#                for child_name in self.schema['list']:
-#                    print("hadling list item-->",child_name)
-#                    child= DefaultChoiceGuiComposer(name=child_name,
-#                                                    schema=copy.deepcopy(self.schema['list'][child_name]),
-#                                                    defaults=copy.deepcopy(self.defaults.get(class_name,OrderedDict()).get(child_name,OrderedDict())))
-#                    self.add_child(child)
+
+
 
 
 class BaseScheduler(BaseGuiComposer):
