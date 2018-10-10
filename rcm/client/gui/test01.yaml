@@ -18,7 +18,7 @@ defaults:
           - pipo0000
       PBS :
         QUEUE :
-          dummy_queue_1 :
+          pbs_preset_queue_1 :
             MEMORY :
               min : 14
               max : 105

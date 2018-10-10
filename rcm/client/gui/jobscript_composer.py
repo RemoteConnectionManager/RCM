@@ -260,72 +260,49 @@ class BaseScheduler(ManagedChoiceGuiComposer):
         :param schema: accept a schema to override schema that are retrieved through CascadeYamlConfig singleton
         """
         merged_defaults=copy.deepcopy(kwargs['defaults'])
-        if 'accounts' in kwargs:
-            print("---------------------------------")
-            merged_defaults['ACCOUNT']=self.merge_accounts(merged_defaults.get('ACCOUNT',[]),kwargs.get('accounts',[]))
-            del kwargs['accounts']
-        if 'accounts' in kwargs:
-            print("---------------------------------")
-            merged_defaults['ACCOUNT']=self.merge_accounts(merged_defaults.get('ACCOUNT',[]),kwargs.get('accounts',[]))
-            del kwargs['accounts']
+        for param in ['ACCOUNT', 'QUEUE']:
+            if param in kwargs:
+                print("---------------------------------")
+                merged_defaults[param]=self.merge_list(merged_defaults.get(param,OrderedDict()),kwargs.get(param,[]))
+                del kwargs[param]
         kwargs['defaults'] = merged_defaults
-        super(ManagedChoiceGuiComposer, self).__init__(*args, **kwargs)
+        super(BaseScheduler, self).__init__(*args, **kwargs)
 
-    def merge_accounts(self,preset,computed):
-        print("merging defaults:",preset,"----",computed)
-        out=preset
+    def merge_list(self,preset,computed):
+        print("merging:",preset,"----",computed)
+        out=copy.deepcopy(preset)
         for a in computed:
             if not a in out:
-                out.append(a)
-        print("mergied defaults:",out)
-        return out
-
-    def old_get_gui_options(self, accounts=None, queues=None):
-        if not accounts:
-            accounts = self.defaults.get('ACCOUNT', [])
-
-        queue_preset = self.defaults.get('QUEUE', OrderedDict())
-        if not queues:
-            queues = queue_preset
-        print("accounts: ", accounts)
-        print("queues  : ", queue_preset)
-        out = {'list': copy.deepcopy(self.schema.get('list', OrderedDict()))}
-        if queues:
-            queue_schema = copy.deepcopy(self.schema['list']['QUEUE'])
-            queue_choices = OrderedDict()
-            for q in queues:
-                # print(q,queue_preset[q])
-                l = copy.deepcopy(queue_schema['list'])
-                if queue_preset.get(q, dict()):
-                    for w in queue_preset.get(q, dict()):
-                        print(w, queue_preset[q][w])
-                        for m in queue_preset[q][w]:
-                            l[w]['values'][m] = queue_preset[q][w][m]
-                queue_choices[q] = {'list': l}
-            queue_schema['choices'] = queue_choices
-            if 'list' in queue_schema:
-                del queue_schema['list']
-            out['list']['QUEUE'] = queue_schema
-        else:
-            del out['list']['QUEUE']
-        if accounts:
-            out['list']['ACCOUNT']['values'] = accounts
-        else:
-            del out['list']['ACCOUNT']
-        if not out['list']:
-            del out['list']
-
+                if hasattr(out, 'append'):
+                    out.append(a)
+                else:
+                    out[a]=OrderedDict()
+        print("merged:",out)
         return out
 
 
-class SlurmScheduler(BaseScheduler):
+class TrueScheduler(BaseScheduler):
+
+    def __init__(self, *args, **kwargs):
+        kwargs['ACCOUNT']=self.valid_accounts()
+        kwargs['QUEUE'] = self.get_queues()
+        super(TrueScheduler, self).__init__(*args, **kwargs)
+
+    def valid_accounts(self):
+        return ['dummy_account_1', 'dummy_account_2']
+
+    def get_queues(self):
+        return ['dummy_queue_1', 'dummy_queue_2']
+
+
+class SlurmScheduler(TrueScheduler):
     NAME = 'Slurm'
 
     def __init__(self, *args, **kwargs):
-        super(SlurmScheduler, self).__init__(*args, **kwargs)
         # super().__init__(schema=schema)
         # BaseScheduler.__init__(self,schema=schema)
         self.commands = {'sshare': None, 'sinfo': None}
+        super(SlurmScheduler, self).__init__(*args, **kwargs)
 
         for c in self.commands:
             exe = utils.which(c)
@@ -378,19 +355,9 @@ class SlurmScheduler(BaseScheduler):
         else:
             return []
 
-    def get_gui_options(self, accounts=[], queues=[]):
-        return super(SlurmScheduler, self).get_gui_options(accounts=self.valid_accounts(), queues=self.get_queues())
 
-
-class PBSScheduler(BaseScheduler):
+class PBSScheduler(TrueScheduler):
     NAME = 'PBS'
-
-    def __init__(self, *args, **kwargs):
-        kwargs['accounts']=self.valid_accounts()
-        super(PBSScheduler, self).__init__(*args, **kwargs)
-
-    def valid_accounts(self):
-        return ['dummy_account_1', 'dummy_account_2']
 
 
 class LocalScheduler(BaseScheduler):
@@ -420,16 +387,6 @@ class SchedulerManager(ManagerChoiceGuiComposer):
                                                  defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
                 if child.working:
                     self.add_child(child)
-
-    def old__init__(self, *args, **kwargs):
-        super(SchedulerManager, self).__init__(*args, **kwargs)
-        print("in ", __class__, "self.schema ", self.schema)
-        print("in ", __class__, "self.defaults ", self.defaults)
-        for sched_class in self.SCHEDULERS:
-            print("constructin scheduler : ", sched_class.NAME)
-            sched = sched_class(schema=self.schema, defaults=self.defaults.get(sched_class.NAME, OrderedDict()))
-            if sched.working:
-                self.add_child(sched)
 
 
 if __name__ == '__main__':
