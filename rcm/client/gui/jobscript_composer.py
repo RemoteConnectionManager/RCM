@@ -85,17 +85,16 @@ class BaseGuiComposer(object):
         else:
             self.defaults = CascadeYamlConfig()['defaults', self.NAME]
         if class_table:
-            self.class_table=class_table
+            self.class_table = class_table
         else:
-            self.class_table=dict()
-        self.working=True
+            self.class_table = dict()
+        self.working = True
         print(self.__class__.__name__, ": ", self.NAME)
         print("self.schema ", self.schema)
         print("self.defaults ", self.defaults)
 
     def substitute(self, choices):
-        print("class:",self.__class__.__name__, "name:", self.NAME, choices)
-
+        print("class:", self.__class__.__name__, "name:", self.NAME, choices)
 
 
 class LeafGuiComposer(BaseGuiComposer):
@@ -135,8 +134,6 @@ class CompositeComposer(BaseGuiComposer):
             child.substitute(choices)
 
 
-
-
 class ChoiceGuiComposer(CompositeComposer):
 
     def get_gui_options(self):
@@ -151,7 +148,6 @@ class ChoiceGuiComposer(CompositeComposer):
         return composer_options
 
 
-
 class AutoChoiceGuiComposer(CompositeComposer):
 
     def __init__(self, *args, **kwargs):
@@ -161,10 +157,10 @@ class AutoChoiceGuiComposer(CompositeComposer):
             child_schema = copy.deepcopy(self.schema[child_name])
             if child_name in self.defaults:
                 if 'list' in child_schema:
-                    manager_class=self.class_table.get(child_name,AutoManagerChoiceGuiComposer)
+                    manager_class = self.class_table.get(child_name, AutoManagerChoiceGuiComposer)
                     child = manager_class(name=child_name,
-                                                     schema=copy.deepcopy(child_schema),
-                                                     defaults=copy.deepcopy(self.defaults[child_name]))
+                                          schema=copy.deepcopy(child_schema),
+                                          defaults=copy.deepcopy(self.defaults[child_name]))
                 else:
                     print("hadling leaf item-->", child_name)
                     child = LeafGuiComposer(name=child_name,
@@ -183,20 +179,20 @@ class AutoChoiceGuiComposer(CompositeComposer):
 
     def substitute(self, choices):
         BaseGuiComposer.substitute(self, choices)
-        child_subst=dict()
+        child_subst = dict()
         for child in self.children:
             child_subst[child] = dict()
         for key, value in choices.items():
-            #print("--in: ", self.NAME, "substitute ", key + " : " + value)
-            subkey=key.split('.')
-            #print(subkey)
+            # print("--in: ", self.NAME, "substitute ", key + " : " + value)
+            subkey = key.split('.')
+            # print(subkey)
             for child in self.children:
                 if child.NAME == subkey[0]:
-                    #print("stripping subst", self.NAME, "--", '.'.join(subkey[1:]) )
-                    child_subst[child][key]=value
+                    # print("stripping subst", self.NAME, "--", '.'.join(subkey[1:]) )
+                    child_subst[child][key] = value
         for child in self.children:
             if child_subst[child]:
-                #print(child_subst[child])
+                # print(child_subst[child])
                 child.substitute(child_subst[child])
 
 
@@ -213,24 +209,25 @@ class ManagerChoiceGuiComposer(ChoiceGuiComposer):
 
     def substitute(self, choices):
         BaseGuiComposer.substitute(self, choices)
-        child_subst=dict()
-        active_child_name=choices.get(self.NAME,'')
+        child_subst = dict()
+        active_child_name = choices.get(self.NAME, '')
         for child in self.children:
             child_subst[child] = dict()
         for key, value in choices.items():
-            #print("--in: ", self.NAME, "substitute ", key + " : " + value)
-            subkey=key.split('.')
-            #print(subkey)
-            if len(subkey) > 1 :
+            # print("--in: ", self.NAME, "substitute ", key + " : " + value)
+            subkey = key.split('.')
+            # print(subkey)
+            if len(subkey) > 1:
                 if self.NAME == subkey[0]:
                     for child in self.children:
                         if child.NAME == active_child_name:
-                            #print("stripping subst", self.NAME, "--", '.'.join(subkey[1:]) )
-                            child_subst[child]['.'.join(subkey[1:])]=value
+                            # print("stripping subst", self.NAME, "--", '.'.join(subkey[1:]) )
+                            child_subst[child]['.'.join(subkey[1:])] = value
         for child in self.children:
             if child_subst[child]:
-                #print(child_subst[child])
+                # print(child_subst[child])
                 child.substitute(child_subst[child])
+
 
 class AutoManagerChoiceGuiComposer(ManagerChoiceGuiComposer):
 
@@ -245,9 +242,6 @@ class AutoManagerChoiceGuiComposer(ManagerChoiceGuiComposer):
                 self.add_child(child)
 
 
-
-
-
 class BaseScheduler(ManagedChoiceGuiComposer):
     """
     Base scheduler class, pattern taken form https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Factory.html
@@ -259,32 +253,33 @@ class BaseScheduler(ManagedChoiceGuiComposer):
         General scheduler class,
         :param schema: accept a schema to override schema that are retrieved through CascadeYamlConfig singleton
         """
-        merged_defaults=copy.deepcopy(kwargs['defaults'])
+        merged_defaults = copy.deepcopy(kwargs['defaults'])
         for param in ['ACCOUNT', 'QUEUE']:
             if param in kwargs:
                 print("---------------------------------")
-                merged_defaults[param]=self.merge_list(merged_defaults.get(param,OrderedDict()),kwargs.get(param,[]))
+                merged_defaults[param] = self.merge_list(merged_defaults.get(param, OrderedDict()),
+                                                         kwargs.get(param, []))
                 del kwargs[param]
         kwargs['defaults'] = merged_defaults
         super(BaseScheduler, self).__init__(*args, **kwargs)
 
-    def merge_list(self,preset,computed):
-        print("merging:",preset,"----",computed)
-        out=copy.deepcopy(preset)
+    def merge_list(self, preset, computed):
+        print("merging:", preset, "----", computed)
+        out = copy.deepcopy(preset)
         for a in computed:
-            if not a in out:
+            if a not in out:
                 if hasattr(out, 'append'):
                     out.append(a)
                 else:
-                    out[a]=OrderedDict()
-        print("merged:",out)
+                    out[a] = OrderedDict()
+        print("merged:", out)
         return out
 
 
 class TrueScheduler(BaseScheduler):
 
     def __init__(self, *args, **kwargs):
-        kwargs['ACCOUNT']=self.valid_accounts()
+        kwargs['ACCOUNT'] = self.valid_accounts()
         kwargs['QUEUE'] = self.get_queues()
         super(TrueScheduler, self).__init__(*args, **kwargs)
 
@@ -336,7 +331,8 @@ class SlurmScheduler(TrueScheduler):
     def valid_accounts(self):
         accounts = []
         for a in self.get_all_accounts():
-            if self.validate_account(a): accounts.append(a)
+            if self.validate_account(a):
+                accounts.append(a)
         return accounts
 
     def get_queues(self):
@@ -377,14 +373,14 @@ class SchedulerManager(ManagerChoiceGuiComposer):
         if 'list' in self.schema:
             for class_name in self.defaults:
                 print("handling child  : ", class_name)
-                managed_class=ManagedChoiceGuiComposer
+                managed_class = ManagedChoiceGuiComposer
                 for sched_class in self.SCHEDULERS:
                     if sched_class.NAME == class_name:
-                        managed_class=sched_class
+                        managed_class = sched_class
                         break
                 child = managed_class(name=class_name,
-                                                 schema=copy.deepcopy(self.schema['list']),
-                                                 defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
+                                      schema=copy.deepcopy(self.schema['list']),
+                                      defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
                 if child.working:
                     self.add_child(child)
 
