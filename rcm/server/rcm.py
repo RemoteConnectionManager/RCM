@@ -15,7 +15,7 @@ sys.path.append( os.path.dirname(os.path.abspath(__file__))  )
 """
 Decide which format should use
 """
-format_default = 'json'
+format_default = 'pickle'
 serverOutputString = "server output->"
 
 class rcm_session:
@@ -100,7 +100,12 @@ class rcm_sessions:
     def get_string(self, format=format_default):
         logger.debug("USING "+ format + " for rcm_sessions.get_string " )
         if format == 'pickle':
-            return pickle.dumps(self._array)
+            old_sessions=[]
+            for s in self._array:
+                old_sess=rcm_session()
+                old_sess.hash=s
+                old_sessions.append(old_sess)
+            return pickle.dumps(old_sessions)
         elif format == 'json':
             return json.dumps(self._array)
 
