@@ -70,6 +70,7 @@ class CascadeYamlConfig:
 
 class BaseGuiComposer(object):
     NAME = None
+    working = True
 
     def __init__(self, schema=None, name=None, defaults=None, class_table=None):
 
@@ -88,7 +89,6 @@ class BaseGuiComposer(object):
             self.class_table = class_table
         else:
             self.class_table = dict()
-        self.working = True
         print(self.__class__.__name__, ": ", self.NAME)
         print("self.schema ", self.schema)
         print("self.defaults ", self.defaults)
@@ -278,7 +278,17 @@ class BaseScheduler(ManagedChoiceGuiComposer):
 
 class TrueScheduler(BaseScheduler):
 
+    commands = {}
+
     def __init__(self, *args, **kwargs):
+        for c in self.commands:
+            exe = utils.which(c)
+            if exe:
+                self.commands[c] = exe
+                print("command: ", c, " Found !!!!")
+            else:
+                self.working = self.working and False
+                print("command: ", c, " Not Found !!!!")
         kwargs['ACCOUNT'] = self.valid_accounts()
         kwargs['QUEUE'] = self.get_queues()
         super(TrueScheduler, self).__init__(*args, **kwargs)
@@ -292,20 +302,14 @@ class TrueScheduler(BaseScheduler):
 
 class SlurmScheduler(TrueScheduler):
     NAME = 'Slurm'
+    commands = {'sshare': None, 'sinfo': None}
 
     def __init__(self, *args, **kwargs):
         # super().__init__(schema=schema)
         # BaseScheduler.__init__(self,schema=schema)
-        self.commands = {'sshare': None, 'sinfo': None}
+        #self.commands = {'sshare': None, 'sinfo': None}
         super(SlurmScheduler, self).__init__(*args, **kwargs)
 
-        for c in self.commands:
-            exe = utils.which(c)
-            if exe:
-                self.commands[c] = exe
-            else:
-                self.working = self.working and False
-                print("command: ", c, " Not Found")
 
     def get_all_accounts(self):
         # sshare --parsable -a
@@ -338,6 +342,7 @@ class SlurmScheduler(TrueScheduler):
     def get_queues(self):
         # hints on useful slurm commands
         # sacctmgr show qos
+        print("Slurm get queues !!!!")
         sinfo = self.commands.get('sinfo', None)
         if sinfo:
             out = sinfo(
@@ -347,14 +352,16 @@ class SlurmScheduler(TrueScheduler):
             partitions = []
             for l in out.splitlines()[1:]:
                 partitions.append(l)
+            print("Slurm found queues:", partitions, "!!!!")
             return partitions
         else:
+            print("warning !!!!!! sinfo:", sinfo)
             return []
 
 
 class PBSScheduler(TrueScheduler):
     NAME = 'PBS'
-
+    #commands = {'qstat': None}
 
 class LocalScheduler(BaseScheduler):
     NAME = 'Local'
