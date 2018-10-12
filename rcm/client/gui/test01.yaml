@@ -12,7 +12,9 @@ defaults:
               max : 105
             CPU :
               max : 33
-          gll_sys_prd :
+          skl_usr_prod :
+            TIME :
+              max : 3600
         ACCOUNT :
           - sbna0000
           - pipo0000
