@@ -276,7 +276,7 @@ class BaseScheduler(ManagedChoiceGuiComposer):
         return out
 
 
-class TrueScheduler(BaseScheduler):
+class BatchScheduler(BaseScheduler):
 
     commands = {}
 
@@ -291,7 +291,7 @@ class TrueScheduler(BaseScheduler):
                 print("command: ", c, " Not Found !!!!")
         kwargs['ACCOUNT'] = self.valid_accounts()
         kwargs['QUEUE'] = self.get_queues()
-        super(TrueScheduler, self).__init__(*args, **kwargs)
+        super(BatchScheduler, self).__init__(*args, **kwargs)
 
     def valid_accounts(self):
         return ['dummy_account_1', 'dummy_account_2']
@@ -300,7 +300,7 @@ class TrueScheduler(BaseScheduler):
         return ['dummy_queue_1', 'dummy_queue_2']
 
 
-class SlurmScheduler(TrueScheduler):
+class SlurmScheduler(BatchScheduler):
     NAME = 'Slurm'
     commands = {'sshare': None, 'sinfo': None}
 
@@ -359,7 +359,7 @@ class SlurmScheduler(TrueScheduler):
             return []
 
 
-class PBSScheduler(TrueScheduler):
+class PBSScheduler(BatchScheduler):
     NAME = 'PBS'
     #commands = {'qstat': None}
 
