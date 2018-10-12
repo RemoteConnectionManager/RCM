@@ -57,3 +57,7 @@ class ReloadThread(QThread):
         except Exception as e:
             logger.error("Failed to reload the display sessions")
             logger.error(e)
+            exc_info = (type(e), e, e.__traceback__)
+            logger.error('Exception occurred', exc_info=exc_info)
+
+
