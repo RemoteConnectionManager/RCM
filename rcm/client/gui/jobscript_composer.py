@@ -405,3 +405,4 @@ if __name__ == '__main__':
     out = root.get_gui_options()
     # out=sched.get_gui_options(accounts=['minnie','clarabella'],queues=['prima_coda_indefinita','gll_user_prd'])
     logger.info(" Root: " + json.dumps(out, indent=4))
+    root.substitute(config.conf['test'])
