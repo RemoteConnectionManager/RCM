@@ -1,5 +1,8 @@
 # these are defaults for RCM new sessions json is
 
+setup:
+  logging:
+    level: debug
 
 schema:
 

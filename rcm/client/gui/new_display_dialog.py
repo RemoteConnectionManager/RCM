@@ -347,17 +347,10 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     import jobscript_composer
-    #display_dialog_ui = json.load(open("scheduler.json"), object_pairs_hook=OrderedDict)
+    import logging
     config = jobscript_composer.CascadeYamlConfig()
-    if True:
-        root=jobscript_composer.AutoChoiceGuiComposer(schema=config.conf['schema'],defaults=config.conf['defaults'],class_table={'SCHEDULER': jobscript_composer.SchedulerManager})
-    else:
-    #schedulers=jobscript_composer.SchedulerManager()
-        root=jobscript_composer.CompositeComposer()
-        #root.add_child(schedulers)
-        root.add_child(jobscript_composer.ManagerChoiceGuiComposer(name='SCHEDULER'))
-        root.add_child(jobscript_composer.LeafGuiComposer(name='DIVIDER'))
-        root.add_child(jobscript_composer.ManagerChoiceGuiComposer(name='SERVICE'))
+    jobscript_composer.logger.setLevel(logging.INFO)
+    root=jobscript_composer.AutoChoiceGuiComposer(schema=config.conf['schema'],defaults=config.conf['defaults'],class_table={'SCHEDULER': jobscript_composer.SchedulerManager})
     display_dialog_ui= root.get_gui_options()
 
     display_dialog = QDisplayDialog(display_dialog_ui, callback=root.substitute)

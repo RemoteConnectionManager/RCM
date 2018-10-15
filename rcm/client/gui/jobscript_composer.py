@@ -1,7 +1,8 @@
 # stdlib
-import json
 import sys
 import os
+import logging
+import json
 import copy
 import glob
 from collections import OrderedDict
@@ -10,6 +11,9 @@ root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 sys.path.append(root_rcm_path)
 
 import utils
+
+
+logger = logging.getLogger('RCM.composer')
 
 
 class CascadeYamlConfig:
@@ -28,7 +32,7 @@ class CascadeYamlConfig:
                 self.list_paths = glob.glob(os.path.join(os.path.dirname(os.path.realpath(__file__)), "*.yaml"))
 
         def parse(self):
-            print("CascadeYamlConfig: parsing: ", self.list_paths)
+            logger.debug("CascadeYamlConfig: parsing: " + str(self.list_paths))
             if self.list_paths:
                 self._conf = utils.hiyapyco.load(
                     *self.list_paths,
@@ -39,7 +43,7 @@ class CascadeYamlConfig:
 
         @property
         def conf(self):
-            print("Getting value")
+            logger.debug("Getting value")
             return copy.deepcopy(self._conf)
 
         def __getitem__(self, nested_key_list=None):
@@ -89,12 +93,12 @@ class BaseGuiComposer(object):
             self.class_table = class_table
         else:
             self.class_table = dict()
-        print(self.__class__.__name__, ": ", self.NAME)
-        print("self.schema ", self.schema)
-        print("self.defaults ", self.defaults)
+        logger.debug(self.__class__.__name__ + ": " + str(self.NAME))
+        logger.debug("self.schema " + str(self.schema))
+        logger.debug("self.defaults " + str(self.defaults))
 
     def substitute(self, choices):
-        print("class:", self.__class__.__name__, "name:", self.NAME, choices)
+        logger.info(" " + self.__class__.__name__ + " : " + str(self.NAME) + " : " + str(choices))
 
 
 class LeafGuiComposer(BaseGuiComposer):
@@ -110,7 +114,7 @@ class LeafGuiComposer(BaseGuiComposer):
 
     def substitute(self, choices):
         for key, value in choices.items():
-            print("in leaf: ", self.NAME, "substitute ", key + " : " + value)
+            logger.info(" leaf: " + str(self.NAME) + " : " + str(key) + " ::> " + str(value))
 
 
 class CompositeComposer(BaseGuiComposer):
@@ -162,16 +166,16 @@ class AutoChoiceGuiComposer(CompositeComposer):
                                           schema=copy.deepcopy(child_schema),
                                           defaults=copy.deepcopy(self.defaults[child_name]))
                 else:
-                    print("hadling leaf item-->", child_name)
+                    logger.debug("hadling leaf item: " + child_name)
                     child = LeafGuiComposer(name=child_name,
                                             schema=copy.deepcopy(child_schema),
                                             defaults=copy.deepcopy(self.defaults[child_name]))
                 self.add_child(child)
             else:
                 if 'list' in child_schema:
-                    print("skipping complex item -->", child_name, "in schema but not in defaults")
+                    logger.debug("skipping complex item: " + child_name + "in schema but not in defaults")
                 else:
-                    print("adding leaf item -->", child_name, "without defaults")
+                    logger.debug("adding leaf item: " + child_name + "without defaults")
                     child = LeafGuiComposer(name=child_name,
                                             schema=copy.deepcopy(child_schema),
                                             defaults=OrderedDict())
@@ -183,16 +187,16 @@ class AutoChoiceGuiComposer(CompositeComposer):
         for child in self.children:
             child_subst[child] = dict()
         for key, value in choices.items():
-            # print("--in: ", self.NAME, "substitute ", key + " : " + value)
+            # logger.debug("--in: ", self.NAME, "substitute ", key + " : " + value)
             subkey = key.split('.')
-            # print(subkey)
+            # logger.debug(subkey)
             for child in self.children:
                 if child.NAME == subkey[0]:
-                    # print("stripping subst", self.NAME, "--", '.'.join(subkey[1:]) )
+                    # logger.debug("stripping subst", self.NAME, "--", '.'.join(subkey[1:]) )
                     child_subst[child][key] = value
         for child in self.children:
             if child_subst[child]:
-                # print(child_subst[child])
+                # logger.debug(child_subst[child])
                 child.substitute(child_subst[child])
 
 
@@ -214,18 +218,18 @@ class ManagerChoiceGuiComposer(ChoiceGuiComposer):
         for child in self.children:
             child_subst[child] = dict()
         for key, value in choices.items():
-            # print("--in: ", self.NAME, "substitute ", key + " : " + value)
+            # logger.debug("--in: ", self.NAME, "substitute ", key + " : " + value)
             subkey = key.split('.')
-            # print(subkey)
+            # logger.debug(subkey)
             if len(subkey) > 1:
                 if self.NAME == subkey[0]:
                     for child in self.children:
                         if child.NAME == active_child_name:
-                            # print("stripping subst", self.NAME, "--", '.'.join(subkey[1:]) )
+                            # logger.debug("stripping subst", self.NAME, "--", '.'.join(subkey[1:]) )
                             child_subst[child]['.'.join(subkey[1:])] = value
         for child in self.children:
             if child_subst[child]:
-                # print(child_subst[child])
+                # logger.debug(child_subst[child])
                 child.substitute(child_subst[child])
 
 
@@ -235,7 +239,7 @@ class AutoManagerChoiceGuiComposer(ManagerChoiceGuiComposer):
         super(AutoManagerChoiceGuiComposer, self).__init__(*args, **kwargs)
         if 'list' in self.schema:
             for class_name in self.defaults:
-                print("handling child  : ", class_name)
+                logger.debug("handling child  : " + class_name)
                 child = ManagedChoiceGuiComposer(name=class_name,
                                                  schema=copy.deepcopy(self.schema['list']),
                                                  defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
@@ -256,7 +260,7 @@ class BaseScheduler(ManagedChoiceGuiComposer):
         merged_defaults = copy.deepcopy(kwargs['defaults'])
         for param in ['ACCOUNT', 'QUEUE']:
             if param in kwargs:
-                print("---------------------------------")
+                logger.debug("---------------------------------")
                 merged_defaults[param] = self.merge_list(merged_defaults.get(param, OrderedDict()),
                                                          kwargs.get(param, []))
                 del kwargs[param]
@@ -264,7 +268,7 @@ class BaseScheduler(ManagedChoiceGuiComposer):
         super(BaseScheduler, self).__init__(*args, **kwargs)
 
     def merge_list(self, preset, computed):
-        print("merging:", preset, "----", computed)
+        logger.debug("merging:" + str(preset) + "----" + str(computed))
         out = copy.deepcopy(preset)
         for a in computed:
             if a not in out:
@@ -272,7 +276,7 @@ class BaseScheduler(ManagedChoiceGuiComposer):
                     out.append(a)
                 else:
                     out[a] = OrderedDict()
-        print("merged:", out)
+        logger.debug("merged:" + str(out))
         return out
 
 
@@ -285,10 +289,10 @@ class BatchScheduler(BaseScheduler):
             exe = utils.which(c)
             if exe:
                 self.commands[c] = exe
-                print("command: ", c, " Found !!!!")
+                logger.debug("command: " + c + " Found !!!!")
             else:
                 self.working = self.working and False
-                print("command: ", c, " Not Found !!!!")
+                logger.debug("command: " + c + " Not Found !!!!")
         kwargs['ACCOUNT'] = self.valid_accounts()
         kwargs['QUEUE'] = self.get_queues()
         super(BatchScheduler, self).__init__(*args, **kwargs)
@@ -307,7 +311,7 @@ class SlurmScheduler(BatchScheduler):
     def __init__(self, *args, **kwargs):
         # super().__init__(schema=schema)
         # BaseScheduler.__init__(self,schema=schema)
-        #self.commands = {'sshare': None, 'sinfo': None}
+        # self.commands = {'sshare': None, 'sinfo': None}
         super(SlurmScheduler, self).__init__(*args, **kwargs)
 
 
@@ -342,7 +346,7 @@ class SlurmScheduler(BatchScheduler):
     def get_queues(self):
         # hints on useful slurm commands
         # sacctmgr show qos
-        print("Slurm get queues !!!!")
+        logger.debug("Slurm get queues !!!!")
         sinfo = self.commands.get('sinfo', None)
         if sinfo:
             out = sinfo(
@@ -352,16 +356,17 @@ class SlurmScheduler(BatchScheduler):
             partitions = []
             for l in out.splitlines()[1:]:
                 partitions.append(l)
-            print("Slurm found queues:", partitions, "!!!!")
+            logger.debug("Slurm found queues:" + str(partitions) + "!!!!")
             return partitions
         else:
-            print("warning !!!!!! sinfo:", sinfo)
+            logger.debug("warning !!!!!! sinfo:"+ str(sinfo))
             return []
 
 
 class PBSScheduler(BatchScheduler):
     NAME = 'PBS'
-    #commands = {'qstat': None}
+    # commands = {'qstat': None}
+
 
 class LocalScheduler(BaseScheduler):
     NAME = 'Local'
@@ -379,7 +384,7 @@ class SchedulerManager(ManagerChoiceGuiComposer):
         super(SchedulerManager, self).__init__(*args, **kwargs)
         if 'list' in self.schema:
             for class_name in self.defaults:
-                print("handling child  : ", class_name)
+                logger.debug("handling child  : " + class_name)
                 managed_class = ManagedChoiceGuiComposer
                 for sched_class in self.SCHEDULERS:
                     if sched_class.NAME == class_name:
@@ -393,16 +398,10 @@ class SchedulerManager(ManagerChoiceGuiComposer):
 
 
 if __name__ == '__main__':
+
     config = CascadeYamlConfig()
-    if True:
-        root = AutoChoiceGuiComposer(schema=config.conf['schema'], defaults=config.conf['defaults'], class_table={'SCHEDULER': SchedulerManager})
-    else:
-        schedulers = SchedulerManager()
-        root = CompositeComposer()
-        root.add_child(schedulers)
-        # root.add_child(ManagerChoiceGuiComposer(name='SCHEDULER'))
-        root.add_child(LeafGuiComposer(name='DIVIDER'))
-        root.add_child(ManagerChoiceGuiComposer(name='SERVICE'))
+    logger.setLevel(logging.INFO)
+    root = AutoChoiceGuiComposer(schema=config.conf['schema'], defaults=config.conf['defaults'], class_table={'SCHEDULER': SchedulerManager})
     out = root.get_gui_options()
     # out=sched.get_gui_options(accounts=['minnie','clarabella'],queues=['prima_coda_indefinita','gll_user_prd'])
-    print("Root-->" + json.dumps(out, indent=4))
+    logger.info(" Root: " + json.dumps(out, indent=4))
