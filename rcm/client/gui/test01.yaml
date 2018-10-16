@@ -56,6 +56,10 @@ defaults:
     SERVICE :
       OtherService :
         otherstuff :
+        substitutions :
+          SERVICE_START : |
+            # Running -------
+
       VNC :
         COMMAND :
           TurboVNC :
@@ -76,6 +80,8 @@ defaults:
               - 1024x968
               - fullscreen
           OtherVNC :
+            substitutions :
+              COMMAND: "other_vncserver "
             DISPLAY :
               - 1024x968
               - fullscreen

@@ -9,13 +9,17 @@ schema:
   substitutions :
     SCRIPT: |
       #!/bin/bash
+      # Using scheduler @{SCHEDULER}
       @{SCHEDULER_HEADER}
+      # Starting service @{SERVICE}
       @{SERVICE_START}
 
   SCHEDULER:
     label : 'Scheduler'
     type : 'combobox'
     list :
+      substitutions :
+        SCHEDULER_HEADER : ""
       ACCOUNT :
         label : 'Account'
         type : 'combobox'
@@ -55,7 +59,7 @@ schema:
     list :
       substitutions :
         SERVICE_START : |
-          #Starting service
+          # Running command
           @{COMMAND}
 
 
