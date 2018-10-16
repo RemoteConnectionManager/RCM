@@ -97,8 +97,18 @@ class BaseGuiComposer(object):
         logger.debug("self.schema " + str(self.schema))
         logger.debug("self.defaults " + str(self.defaults))
 
+        self.templates = copy.deepcopy(self.schema.get('substitutions', OrderedDict()))
+        if hasattr(self.defaults, 'get'):
+            default_subst = copy.deepcopy(self.defaults.get('substitutions', OrderedDict()))
+            for k in default_subst:
+                self.templates[k] = default_subst[k]
+        logger.debug(" template: " + self.__class__.__name__ + ": " + str(self.NAME) + " " + str(self.templates))
+
     def substitute(self, choices):
-        logger.info(" " + self.__class__.__name__ + " : " + str(self.NAME) + " : " + str(choices))
+        t=""
+        if self.templates:
+            t=" -subst- "+str(self.templates)
+        logger.debug(" " + self.__class__.__name__ + " : " + str(self.NAME) + " : " + t + str(choices))
 
 
 class LeafGuiComposer(BaseGuiComposer):
@@ -113,8 +123,13 @@ class LeafGuiComposer(BaseGuiComposer):
         return options
 
     def substitute(self, choices):
-        for key, value in choices.items():
-            logger.info(" leaf: " + str(self.NAME) + " : " + str(key) + " ::> " + str(value))
+        out_subst=choices
+        for t in self.templates:
+            out_subst[t] = utils.stringtemplate(self.templates[t]).safe_substitute(choices)
+
+        for key, value in out_subst.items():
+            logger.debug(" leaf: " + str(self.NAME) + " : " + str(key) + " ::> " + str(value))
+        return out_subst
 
 
 class CompositeComposer(BaseGuiComposer):
@@ -182,6 +197,7 @@ class AutoChoiceGuiComposer(CompositeComposer):
                     self.add_child(child)
 
     def substitute(self, choices):
+        in_subst = copy.deepcopy(choices)
         BaseGuiComposer.substitute(self, choices)
         child_subst = dict()
         for child in self.children:
@@ -197,7 +213,21 @@ class AutoChoiceGuiComposer(CompositeComposer):
         for child in self.children:
             if child_subst[child]:
                 # logger.debug(child_subst[child])
-                child.substitute(child_subst[child])
+                subst = child.substitute(child_subst[child])
+                #print("child:",child.NAME," returned ",subst)
+                if subst :
+                    for key_sub in subst:
+                        in_subst[key_sub] = subst[key_sub]
+        #print("substitute:",in_subst,"into",self.templates)
+        out_subst=copy.deepcopy(self.templates)
+        for t in self.templates:
+            out_subst[t] = utils.stringtemplate(self.templates[t]).safe_substitute(in_subst)
+
+        for key, value in out_subst.items():
+            logger.debug(" AutoChoiceGuiComposer: " + str(self.NAME) + " : " + str(key) + " ::> " + str(value))
+
+        return out_subst
+
 
 
 class ManagedChoiceGuiComposer(AutoChoiceGuiComposer):
@@ -228,9 +258,13 @@ class ManagerChoiceGuiComposer(ChoiceGuiComposer):
                             # logger.debug("stripping subst", self.NAME, "--", '.'.join(subkey[1:]) )
                             child_subst[child]['.'.join(subkey[1:])] = value
         for child in self.children:
-            if child_subst[child]:
+            if child.NAME == active_child_name:
+                return child.substitute(child_subst[child])
+            #if child_subst[child]:
                 # logger.debug(child_subst[child])
-                child.substitute(child_subst[child])
+             #   child.substitute(child_subst[child])
+            #else:
+            #    print("skipping child:", child.NAME)
 
 
 class AutoManagerChoiceGuiComposer(ManagerChoiceGuiComposer):
@@ -404,5 +438,8 @@ if __name__ == '__main__':
     root = AutoChoiceGuiComposer(schema=config.conf['schema'], defaults=config.conf['defaults'], class_table={'SCHEDULER': SchedulerManager})
     out = root.get_gui_options()
     # out=sched.get_gui_options(accounts=['minnie','clarabella'],queues=['prima_coda_indefinita','gll_user_prd'])
-    logger.info(" Root: " + json.dumps(out, indent=4))
-    root.substitute(config.conf['test'])
+    logger.debug(" Root: " + json.dumps(out, indent=4))
+    res = root.substitute(config.conf['test'])
+    for k, v in res.items():
+        print(k, ":::>")
+        print(v)

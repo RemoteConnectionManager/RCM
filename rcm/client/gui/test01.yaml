@@ -36,10 +36,20 @@ defaults:
               max : 33
             TIME :
               max : 10800
-        other_stuff :
         ACCOUNT :
           - someone0
           - someone1
+        other_stuff :
+        substitutions :
+          SCHEDULER_HEADER: |
+            #PBS -A @{ACCOUNT}
+            #PBS -l walltime=@{QUEUE.TIME}
+            #PBS -N $RCM_SESSIONID
+            #PBS -o $RCM_JOBLOG
+            #PBS -l select=1:ncpus=@{QUEUE.CPU}:mem=@{QUEUE.MEMORY}Gb
+            #PBS -j oe
+            #PBS -q @{QUEUE}
+
       Local :
         other_stuff :
 
@@ -49,23 +59,30 @@ defaults:
       VNC :
         COMMAND :
           TurboVNC :
+            substitutions :
+              COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd @{WM} "
             WM :
-              - KDE
-              - Fluxbox
+              KDE :
+                substitutions :
+                  WM: "-xstartup ${RCM_HOME}/bin/config/xstartup.kde"
+              Fluxbox :
+                substitutions :
+                  WM: "-xstartup ${RCM_HOME}/bin/config/xstartup.fluxbox"
+              GnomeGL :
+                substitutions :
+                  WM: "-xstartup ${RCM_HOME}/bin/config/xstartup.gnomegl"
+                  WM_FLAGS: " -3dwm "
             DISPLAY :
               - 1024x968
               - fullscreen
           OtherVNC :
-            WM :
-              - KDE
-              - Fluxbox
             DISPLAY :
               - 1024x968
               - fullscreen
 
 
 test:
-  SERVICE.COMMAND.WM: KDE,
+  SERVICE.COMMAND.WM: KDE
   SCHEDULER.QUEUE.MEMORY: 14
   SCHEDULER.QUEUE.TIME: 1
   SERVICE: VNC

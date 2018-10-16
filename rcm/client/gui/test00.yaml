@@ -6,6 +6,12 @@ setup:
 
 schema:
 
+  substitutions :
+    SCRIPT: |
+      #!/bin/bash
+      @{SCHEDULER_HEADER}
+      @{SERVICE_START}
+
   SCHEDULER:
     label : 'Scheduler'
     type : 'combobox'
@@ -47,6 +53,12 @@ schema:
     label : 'Service Type'
     type: 'combobox'
     list :
+      substitutions :
+        SERVICE_START : |
+          #Starting service
+          @{COMMAND}
+
+
       DIVIDER:
         type: 'divider'
         values:
@@ -58,6 +70,11 @@ schema:
           WM :
             label : 'Window Manager'
             type : 'combobox'
+            list:
+              substitutions :
+                WM: ""
+                WM_FLAGS: ""
+
           DISPLAY :
             label : 'Display size'
             type : 'combobox'
