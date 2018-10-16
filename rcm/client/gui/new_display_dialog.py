@@ -350,16 +350,18 @@ if __name__ == "__main__":
     import logging
     config = jobscript_composer.CascadeYamlConfig()
     jobscript_composer.logger.setLevel(logging.INFO)
-    root=jobscript_composer.AutoChoiceGuiComposer(schema=config.conf['schema'],defaults=config.conf['defaults'],class_table={'SCHEDULER': jobscript_composer.SchedulerManager})
-    display_dialog_ui= root.get_gui_options()
+    root = jobscript_composer.AutoChoiceGuiComposer(schema=config.conf['schema'],
+                                                    defaults=config.conf['defaults'],
+                                                    class_table={'SCHEDULER': jobscript_composer.SchedulerManager})
+    display_dialog_ui = root.get_gui_options()
+
     def print_result(choices):
         print(json.dumps(choices, indent=4))
-        res=root.substitute(choices)
-        for k,v in res.items():
-            print(k,":::>")
+        res = root.substitute(choices)
+        for k, v in res.items():
+            print(k, ":::>")
             print(v)
 
     display_dialog = QDisplayDialog(display_dialog_ui, callback=print_result)
     display_dialog.show()
     sys.exit(app.exec_())
-

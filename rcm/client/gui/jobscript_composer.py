@@ -54,8 +54,8 @@ class CascadeYamlConfig:
             """
             val = self._conf
             if nested_key_list:
-                for k in nested_key_list:
-                    val = val.get(k, OrderedDict())
+                for key in nested_key_list:
+                    val = val.get(key, OrderedDict())
             return copy.deepcopy(val)
 
     instance = None
@@ -100,14 +100,14 @@ class BaseGuiComposer(object):
         self.templates = copy.deepcopy(self.schema.get('substitutions', OrderedDict()))
         if hasattr(self.defaults, 'get'):
             default_subst = copy.deepcopy(self.defaults.get('substitutions', OrderedDict()))
-            for k in default_subst:
-                self.templates[k] = default_subst[k]
+            for key in default_subst:
+                self.templates[key] = default_subst[key]
         logger.debug(" template: " + self.__class__.__name__ + ": " + str(self.NAME) + " " + str(self.templates))
 
     def substitute(self, choices):
-        t=""
+        t = ""
         if self.templates:
-            t=" -subst- "+str(self.templates)
+            t = " -subst- "+str(self.templates)
         logger.debug(" " + self.__class__.__name__ + " : " + str(self.NAME) + " : " + t + str(choices))
 
 
@@ -123,7 +123,7 @@ class LeafGuiComposer(BaseGuiComposer):
         return options
 
     def substitute(self, choices):
-        out_subst=choices
+        out_subst = choices
         for t in self.templates:
             out_subst[t] = utils.stringtemplate(self.templates[t]).safe_substitute(choices)
 
@@ -214,12 +214,12 @@ class AutoChoiceGuiComposer(CompositeComposer):
             if child_subst[child]:
                 # logger.debug(child_subst[child])
                 subst = child.substitute(child_subst[child])
-                #print("child:",child.NAME," returned ",subst)
-                if subst :
+                # print("child:",child.NAME," returned ",subst)
+                if subst:
                     for key_sub in subst:
                         in_subst[key_sub] = subst[key_sub]
-        #print("substitute:",in_subst,"into",self.templates)
-        out_subst=copy.deepcopy(self.templates)
+        # print("substitute:",in_subst,"into",self.templates)
+        out_subst = copy.deepcopy(self.templates)
         for t in self.templates:
             out_subst[t] = utils.stringtemplate(self.templates[t]).safe_substitute(in_subst)
 
@@ -227,7 +227,6 @@ class AutoChoiceGuiComposer(CompositeComposer):
             logger.debug(" AutoChoiceGuiComposer: " + str(self.NAME) + " : " + str(key) + " ::> " + str(value))
 
         return out_subst
-
 
 
 class ManagedChoiceGuiComposer(AutoChoiceGuiComposer):
@@ -260,11 +259,6 @@ class ManagerChoiceGuiComposer(ChoiceGuiComposer):
         for child in self.children:
             if child.NAME == active_child_name:
                 return child.substitute(child_subst[child])
-            #if child_subst[child]:
-                # logger.debug(child_subst[child])
-             #   child.substitute(child_subst[child])
-            #else:
-            #    print("skipping child:", child.NAME)
 
 
 class AutoManagerChoiceGuiComposer(ManagerChoiceGuiComposer):
@@ -301,7 +295,8 @@ class BaseScheduler(ManagedChoiceGuiComposer):
         kwargs['defaults'] = merged_defaults
         super(BaseScheduler, self).__init__(*args, **kwargs)
 
-    def merge_list(self, preset, computed):
+    @staticmethod
+    def merge_list(preset, computed):
         logger.debug("merging:" + str(preset) + "----" + str(computed))
         out = copy.deepcopy(preset)
         for a in computed:
@@ -348,7 +343,6 @@ class SlurmScheduler(BatchScheduler):
         # self.commands = {'sshare': None, 'sinfo': None}
         super(SlurmScheduler, self).__init__(*args, **kwargs)
 
-
     def get_all_accounts(self):
         # sshare --parsable -a
         # Eric: sshare --parsable --format %
@@ -383,17 +377,15 @@ class SlurmScheduler(BatchScheduler):
         logger.debug("Slurm get queues !!!!")
         sinfo = self.commands.get('sinfo', None)
         if sinfo:
-            out = sinfo(
-                '--format=%P',
-                output=str
-            )
+            raw_output = sinfo('--format=%P',
+                               output=str)
             partitions = []
-            for l in out.splitlines()[1:]:
+            for l in raw_output.splitlines()[1:]:
                 partitions.append(l)
             logger.debug("Slurm found queues:" + str(partitions) + "!!!!")
             return partitions
         else:
-            logger.debug("warning !!!!!! sinfo:"+ str(sinfo))
+            logger.debug("warning !!!!!! sinfo:" + str(sinfo))
             return []
 
 
@@ -435,7 +427,9 @@ if __name__ == '__main__':
 
     config = CascadeYamlConfig()
     logger.setLevel(logging.INFO)
-    root = AutoChoiceGuiComposer(schema=config.conf['schema'], defaults=config.conf['defaults'], class_table={'SCHEDULER': SchedulerManager})
+    root = AutoChoiceGuiComposer(schema=config.conf['schema'],
+                                 defaults=config.conf['defaults'],
+                                 class_table={'SCHEDULER': SchedulerManager})
     out = root.get_gui_options()
     # out=sched.get_gui_options(accounts=['minnie','clarabella'],queues=['prima_coda_indefinita','gll_user_prd'])
     logger.debug(" Root: " + json.dumps(out, indent=4))
