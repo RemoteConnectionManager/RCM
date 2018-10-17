@@ -346,7 +346,13 @@ def widget_factory(widget_type):
 if __name__ == "__main__":
 
     app = QApplication(sys.argv)
-    import jobscript_composer
+
+    import os
+    import sys
+    root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    sys.path.append(root_rcm_path)
+    from utils import jobscript_composer
+
     import logging
     config = jobscript_composer.CascadeYamlConfig()
     jobscript_composer.logger.setLevel(logging.INFO)

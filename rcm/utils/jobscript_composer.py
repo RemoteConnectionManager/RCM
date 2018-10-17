@@ -7,7 +7,7 @@ import copy
 import glob
 from collections import OrderedDict
 
-root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+root_rcm_path = os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root_rcm_path)
 
 import utils
@@ -29,7 +29,7 @@ class CascadeYamlConfig:
             if list_paths:
                 self.list_paths = list_paths
             else:
-                self.list_paths = glob.glob(os.path.join(os.path.dirname(os.path.realpath(__file__)), "*.yaml"))
+                self.list_paths = glob.glob(os.path.join(root_rcm_path,'etc','defaults', "*.yaml"))
 
         def parse(self):
             logger.debug("CascadeYamlConfig: parsing: " + str(self.list_paths))

@@ -109,3 +109,8 @@ ENV/
 spack-build.env
 spack-build.out
 spack_patched
+
+# Ignore everything in /rcm/etc except /rcm/etc/defaults
+/rcm/etc/*
+!/rcm/etc/defaults
+
