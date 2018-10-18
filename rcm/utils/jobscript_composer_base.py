@@ -1,17 +1,15 @@
 # stdlib
-import sys
-import os
+
 import logging
 import json
 import copy
-import glob
 from collections import OrderedDict
 
-root_rcm_path = os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(root_rcm_path)
+#root_rcm_path = os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
+#sys.path.append(root_rcm_path)
 
-import utils
-
+#import utils
+from utils.cascade_yaml_config import *
 
 logger = logging.getLogger('RCM.composer')
 
@@ -218,36 +216,3 @@ class AutoManagerChoiceGuiComposer(ManagerChoiceGuiComposer):
                 self.add_child(child)
 
 
-class BaseScheduler(ManagedChoiceGuiComposer):
-    """
-    Base scheduler class, pattern taken form https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Factory.html
-    """
-    NAME = None
-
-    def __init__(self, *args, **kwargs):
-        """
-        General scheduler class,
-        :param schema: accept a schema to override schema that are retrieved through CascadeYamlConfig singleton
-        """
-        merged_defaults = copy.deepcopy(kwargs['defaults'])
-        for param in ['ACCOUNT', 'QUEUE']:
-            if param in kwargs:
-                logger.debug("---------------------------------")
-                merged_defaults[param] = self.merge_list(merged_defaults.get(param, OrderedDict()),
-                                                         kwargs.get(param, []))
-                del kwargs[param]
-        kwargs['defaults'] = merged_defaults
-        super(BaseScheduler, self).__init__(*args, **kwargs)
-
-    @staticmethod
-    def merge_list(preset, computed):
-        logger.debug("merging:" + str(preset) + "----" + str(computed))
-        out = copy.deepcopy(preset)
-        for a in computed:
-            if a not in out:
-                if hasattr(out, 'append'):
-                    out.append(a)
-                else:
-                    out[a] = OrderedDict()
-        logger.debug("merged:" + str(out))
-        return out

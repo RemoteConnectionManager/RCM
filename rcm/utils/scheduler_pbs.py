@@ -4,14 +4,20 @@ import os
 import logging
 import json
 import copy
-import glob
+
 from collections import OrderedDict
 
 root_rcm_path = os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(root_rcm_path)
+if root_rcm_path not in sys.path:
+    sys.path.append(root_rcm_path)
 
-import utils
 
+
+from utils.jobscript_composer_base import *
+from utils.scheduler_base import *
+from utils.scheduler_slurm import *
+#from utils import  jobscript_composer_base
+#from utils import  scheduler_base
 
 logger = logging.getLogger('RCM.composer')
 
@@ -51,6 +57,9 @@ class SchedulerManager(ManagerChoiceGuiComposer):
 
 
 if __name__ == '__main__':
+
+    root_rcm_path = os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
+    sys.path.append(root_rcm_path)
 
     config = CascadeYamlConfig()
     logger.setLevel(logging.INFO)

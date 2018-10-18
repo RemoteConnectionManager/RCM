@@ -351,14 +351,20 @@ if __name__ == "__main__":
     import sys
     root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     sys.path.append(root_rcm_path)
-    from utils import jobscript_composer
+
 
     import logging
-    config = jobscript_composer.CascadeYamlConfig()
-    jobscript_composer.logger.setLevel(logging.INFO)
-    root = jobscript_composer.AutoChoiceGuiComposer(schema=config.conf['schema'],
+
+
+    from utils.cascade_yaml_config import *
+    from utils.jobscript_composer_base import *
+    from utils.scheduler_pbs import *
+
+    config = CascadeYamlConfig()
+    logger.setLevel(logging.INFO)
+    root = AutoChoiceGuiComposer(schema=config.conf['schema'],
                                                     defaults=config.conf['defaults'],
-                                                    class_table={'SCHEDULER': jobscript_composer.SchedulerManager})
+                                                    class_table={'SCHEDULER': SchedulerManager})
     display_dialog_ui = root.get_gui_options()
 
     def print_result(choices):

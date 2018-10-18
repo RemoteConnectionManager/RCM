@@ -1,17 +1,10 @@
 # stdlib
-import sys
-import os
 import logging
-import json
 import copy
-import glob
 from collections import OrderedDict
 
-root_rcm_path = os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(root_rcm_path)
 
-import utils
-
+from utils.jobscript_composer_base import *
 
 logger = logging.getLogger('RCM.composer')
 
