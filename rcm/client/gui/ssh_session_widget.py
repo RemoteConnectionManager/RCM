@@ -7,6 +7,7 @@ import sys
 import time
 import tempfile
 import subprocess
+import hashlib
 
 # pyqt5
 from PyQt5.QtCore import QSize, pyqtSignal, Qt
@@ -62,6 +63,7 @@ class QSSHSessionWidget(QWidget):
         self.host_line = QLineEdit(self)
         self.user_line = QLineEdit(self)
         self.pssw_line = QLineEdit(self)
+        self.preload_line = QLineEdit(self)
         self.login_button = None
 
         # containers
@@ -96,7 +98,7 @@ class QSSHSessionWidget(QWidget):
         session_label = QLabel(self)
         session_label.setText('Sessions:')
         self.session_combo.clear()
-        self.session_combo.addItems(self.sessions_list)
+        self.session_combo.addItems(self.sessions_list_names())
 
         self.session_combo.activated.connect(self.on_session_change)
         if self.sessions_list:
@@ -113,18 +115,21 @@ class QSSHSessionWidget(QWidget):
 
         user_label = QLabel(self)
         user_label.setText('User:')
-
         grid_login_layout.addWidget(user_label, 2, 0)
-        pssw_label = QLabel(self)
         grid_login_layout.addWidget(self.user_line, 2, 1)
 
+        pssw_label = QLabel(self)
         pssw_label.setText('Password:')
-
         self.pssw_line.setEchoMode(QLineEdit.Password)
         grid_login_layout.addWidget(pssw_label, 3, 0)
         grid_login_layout.addWidget(self.pssw_line, 3, 1)
 
-    # hor login layout
+        preload_label = QLabel(self)
+        preload_label.setText('Preload:')
+        grid_login_layout.addWidget(preload_label, 4, 0)
+        grid_login_layout.addWidget(self.preload_line, 4, 1)
+
+        # hor login layout
         self.login_button = QPushButton('Login', self)
         self.login_button.clicked.connect(self.login)
         self.login_button.setShortcut("Return")
@@ -303,9 +308,15 @@ class QSSHSessionWidget(QWidget):
         :return:
         """
         try:
-            user, host = self.session_combo.currentText().split('@')
+            curr_session = self.session_find(self.session_combo.currentText())
+            if curr_session:
+                host, user, preload = self.session_find(self.session_combo.currentText())
+            else:
+                user, host = (self.session_combo.currentText().split('@')[0], self.session_combo.currentText().split('@')[1].split('?')[0])
+                preload=''
             self.user_line.setText(user)
             self.host_line.setText(host)
+            self.preload_line.setText(preload)
         except ValueError:
             pass
 
@@ -316,6 +327,7 @@ class QSSHSessionWidget(QWidget):
     def login(self):
         self.user = str(self.user_line.text())
         self.host = str(self.host_line.text())
+        self.preload = str(self.preload_line.text())
         password = str(self.pssw_line.text())
 
         if not self.host:
@@ -326,7 +338,7 @@ class QSSHSessionWidget(QWidget):
             logger.warning("User field is empty")
             return
 
-        self.session_name = self.user + "@" + self.host
+        self.session_name = self.user + "@" + self.host + "?" + hashlib.md5(self.preload.encode()).hexdigest()[:4]
         logger.info("Logging into " + self.session_name)
 
         # Show the waiting widget
@@ -337,7 +349,7 @@ class QSSHSessionWidget(QWidget):
         self.remote_connection_manager = manager.RemoteConnectionManager()
         self.remote_connection_manager.debug = False
 
-        self.login_thread = LoginThread(self, self.host, self.user, password)
+        self.login_thread = LoginThread(self, self.host, self.user, password, preload=self.preload)
         self.login_thread.finished.connect(self.on_logged)
         self.login_thread.start()
 
@@ -351,11 +363,13 @@ class QSSHSessionWidget(QWidget):
             logger.info("Logged in " + self.session_name)
 
             # update sessions list
+
             if self.session_name in list(self.sessions_list):
-                self.sessions_list.remove(self.session_name)
+                self.sessions_list.remove(self.session_tuple())
             if self.session_name:
-                self.sessions_list.appendleft(self.session_name)
-                self.sessions_changed.emit(self.sessions_list)
+                self.sessions_list.appendleft(self.session_tuple())
+                #self.sessions_changed.emit(self.sessions_list)
+                self.sessions_changed.emit(self.sessions_list_names())
 
             # update config file
             self.update_config_file(self.session_name)
@@ -601,3 +615,21 @@ class QSSHSessionWidget(QWidget):
             if not self.reload_thread.isFinished():
                 logger.debug("killing reload thread")
                 self.reload_thread.terminate()
+
+    def sessions_list_names(self):
+
+        sessions_list_name=collections.deque()
+        for sess_name in self.sessions_list:
+            sessions_list_name.append(sess_name[0])
+        return sessions_list_name
+
+    def session_tuple(self):
+        return (self.session_name, self.host, self.user, self.preload)
+
+    def session_find(self,session_name):
+        found=None
+        for session in self.sessions_list:
+            if session[0] == session_name:
+                found=session[1:]
+                break
+        return found
