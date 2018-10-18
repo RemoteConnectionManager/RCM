@@ -362,6 +362,7 @@ if __name__ == "__main__":
 
     config = CascadeYamlConfig()
     logger.setLevel(logging.INFO)
+    SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
     root = AutoChoiceGuiComposer(schema=config.conf['schema'],
                                                     defaults=config.conf['defaults'],
                                                     class_table={'SCHEDULER': SchedulerManager})
