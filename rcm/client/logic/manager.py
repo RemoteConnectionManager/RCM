@@ -35,6 +35,7 @@ class RemoteConnectionManager:
 
     def __init__(self, pack_info=None):
         self.proxynode = ''
+        self.preload=''
         self.remoteuser = ''
         self.passwd = ''
         self.auth_method = ''
@@ -63,7 +64,9 @@ class RemoteConnectionManager:
         # for python3
         self.config['ssh']['linux'] = ("ssh", "", "")
         self.config['ssh']['darwin'] = ("ssh", "", "")
-        self.config['remote_rcm_server'] = json.loads(parser.get('Settings', 'preload_command', fallback='""')) + "module load rcm; python $RCM_HOME/bin/server/rcm_new_server.py"
+        self.config['remote_rcm_server'] = json.loads(parser.get('Settings', 'preload_command', fallback='""'))
+        if not self.config['remote_rcm_server']:
+            self.config['remote_rcm_server'] = 'module load rcm; python $RCM_HOME/bin/server/rcm_new_server.py'
 
         self.activeConnectionsList = []
 
@@ -106,8 +109,9 @@ class RemoteConnectionManager:
         self.vnc_cmdline_builder = vnc_client.VNCClientCommandLineBuilder()
         self.vnc_cmdline_builder.build()
 
-    def login_setup(self, host, remoteuser, password=None):
+    def login_setup(self, host, remoteuser, password=None, preload=''):
         self.proxynode = host
+        self.preload=preload
 
         if remoteuser == '':
             if sys.version_info >= (3, 0):
@@ -166,7 +170,7 @@ class RemoteConnectionManager:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        logic_logger.debug("on " + commandnode + " run-->" + self.config['remote_rcm_server'] + ' ' + cmd + "<")
+        logic_logger.debug("on " + commandnode + " run-->" + self.preload + " ; " + self.config['remote_rcm_server'] + ' ' + cmd + "<")
 
         try:
             ssh.connect(commandnode, username=self.remoteuser, password=self.passwd, timeout=10)
@@ -177,7 +181,7 @@ class RemoteConnectionManager:
 
         self.auth_method = ssh.get_transport().auth_handler.auth_method
 
-        stdin, stdout, stderr = ssh.exec_command(self.config['remote_rcm_server'] + ' ' + cmd)
+        stdin, stdout, stderr = ssh.exec_command(self.preload + " ; " +  self.config['remote_rcm_server'] + ' ' + cmd)
         myout = ''.join(stdout)
         myerr = stderr.readlines()
         if myerr:
