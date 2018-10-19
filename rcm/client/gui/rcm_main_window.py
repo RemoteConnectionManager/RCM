@@ -347,10 +347,12 @@ class MainWidget(QWidget):
                 widget.setParent(None)
                 return
 
-    @pyqtSlot(collections.deque)
-    def on_sessions_changed(self, sessions_list):
+    @pyqtSlot(collections.deque, collections.deque)
+    def on_sessions_changed(self, sessions_names, sessions_list):
         for tab_id in range(0, self.tabs.count()):
             widget = self.tabs.widget(tab_id)
             widget.session_combo.clear()
-            widget.session_combo.addItems(sessions_list)
+            widget.session_combo.addItems(sessions_names)
+            widget.sessions_list = sessions_list
             widget.session_combo.activated.emit(0)
+

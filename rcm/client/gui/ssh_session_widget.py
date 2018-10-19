@@ -39,7 +39,7 @@ class QSSHSessionWidget(QWidget):
     # define a signal when the user successful log in
     logged_in = pyqtSignal(str, str)
 
-    sessions_changed = pyqtSignal(collections.deque)
+    sessions_changed = pyqtSignal(collections.deque, collections.deque)
 
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
@@ -338,7 +338,9 @@ class QSSHSessionWidget(QWidget):
             logger.warning("User field is empty")
             return
 
-        self.session_name = self.user + "@" + self.host + "?" + hashlib.md5(self.preload.encode()).hexdigest()[:4]
+        self.session_name = self.user + "@" + self.host
+        if self.preload:
+            self.session_name += "?" + hashlib.md5(self.preload.encode()).hexdigest()[:4]
         logger.info("Logging into " + self.session_name)
 
         # Show the waiting widget
@@ -363,13 +365,11 @@ class QSSHSessionWidget(QWidget):
             logger.info("Logged in " + self.session_name)
 
             # update sessions list
-
-            if self.session_name in list(self.sessions_list):
-                self.sessions_list.remove(self.session_tuple())
-            if self.session_name:
+            # warning, json load turns tuple into list
+            if self.session_name and list(self.session_tuple()) not in list(self.sessions_list):
                 self.sessions_list.appendleft(self.session_tuple())
                 #self.sessions_changed.emit(self.sessions_list)
-                self.sessions_changed.emit(self.sessions_list_names())
+                self.sessions_changed.emit(self.sessions_list_names(), self.sessions_list)
 
             # update config file
             self.update_config_file(self.session_name)
@@ -629,7 +629,9 @@ class QSSHSessionWidget(QWidget):
     def session_find(self,session_name):
         found=None
         for session in self.sessions_list:
+            print("session>>>>>>>>",session[0])
             if session[0] == session_name:
                 found=session[1:]
                 break
+        print("session find:",found)
         return found
