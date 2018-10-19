@@ -115,10 +115,11 @@ class RCMMainWindow(QMainWindow):
 
     def open_vnc_session(self):
         try:
+            # use native dialogs only for portability issues
             options = QFileDialog.Options()
-            options |= QFileDialog.DontUseNativeDialog
+            # options |= QFileDialog.DontUseNativeDialog
             filename, _ = QFileDialog.getOpenFileName(self,
-                                                      "Open...",
+                                                      "Open VNC session file",
                                                       "",
                                                       "VNC Files (*.vnc);;All Files (*)",
                                                       options=options)
