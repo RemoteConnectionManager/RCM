@@ -25,6 +25,11 @@ class rcm_protocol:
             conf.add_queue(q)
         for vnc_id,menu_entry in self.rcm_server.pconfig.get_vnc_menu().items():
             conf.add_vnc(vnc_id,menu_entry)
+        # ########## new interface ############
+        jobscript_json_menu = self.rcm_server.pconfig.get_jobscript_json_menu()
+        if jobscript_json_menu :
+            conf.config['jobscript_json_menu']=jobscript_json_menu
+        # #####################################
         conf.serialize()
 
     def config_xml(self,build_platform=''):

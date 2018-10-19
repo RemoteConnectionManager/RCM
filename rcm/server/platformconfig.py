@@ -19,6 +19,9 @@ class platformconfig(baseconfig):
         self.parse()
         self.find_scheduler()
         self.import_scheduler()
+
+    def get_jobscript_json_menu(self):
+        return None
         
     def max_user_session(self):
         logger.debug("max_user_session")
