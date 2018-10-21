@@ -115,10 +115,11 @@ class RCMMainWindow(QMainWindow):
 
     def open_vnc_session(self):
         try:
+            # use native dialogs only for portability issues
             options = QFileDialog.Options()
-            options |= QFileDialog.DontUseNativeDialog
+            # options |= QFileDialog.DontUseNativeDialog
             filename, _ = QFileDialog.getOpenFileName(self,
-                                                      "Open...",
+                                                      "Open VNC session file",
                                                       "",
                                                       "VNC Files (*.vnc);;All Files (*)",
                                                       options=options)
@@ -346,10 +347,12 @@ class MainWidget(QWidget):
                 widget.setParent(None)
                 return
 
-    @pyqtSlot(collections.deque)
-    def on_sessions_changed(self, sessions_list):
+    @pyqtSlot(collections.deque, collections.deque)
+    def on_sessions_changed(self, sessions_names, sessions_list):
         for tab_id in range(0, self.tabs.count()):
             widget = self.tabs.widget(tab_id)
             widget.session_combo.clear()
-            widget.session_combo.addItems(sessions_list)
+            widget.session_combo.addItems(sessions_names)
+            widget.sessions_list = sessions_list
             widget.session_combo.activated.emit(0)
+

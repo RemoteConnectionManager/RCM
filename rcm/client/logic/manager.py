@@ -165,12 +165,11 @@ class RemoteConnectionManager:
         else:
             commandnode = self.commandnode
             self.commandnode = ''
-        fullcommand = self.ssh_remote_exec_command + "@" + commandnode + ' ' + cmd
+        ##unused##fullcommand = self.ssh_remote_exec_command + "@" + commandnode + ' ' + cmd
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        logic_logger.debug("on " + commandnode + " run-->" + self.preload + " ; " + self.config['remote_rcm_server'] + ' ' + cmd + "<")
 
         try:
             ssh.connect(commandnode, username=self.remoteuser, password=self.passwd, timeout=10)
@@ -181,7 +180,13 @@ class RemoteConnectionManager:
 
         self.auth_method = ssh.get_transport().auth_handler.auth_method
 
-        stdin, stdout, stderr = ssh.exec_command(self.preload + " ; " +  self.config['remote_rcm_server'] + ' ' + cmd)
+        fullcommand = ''
+        if self.preload :
+            fullcommand = self.preload + " ; "
+        fullcommand += self.config['remote_rcm_server'] + ' ' + cmd
+        logic_logger.debug("on " + commandnode + " run::>" + fullcommand + "<")
+
+        stdin, stdout, stderr = ssh.exec_command(fullcommand)
         myout = ''.join(stdout)
         myerr = stderr.readlines()
         if myerr:
@@ -252,9 +257,14 @@ class RemoteConnectionManager:
         o = self.protocol.kill(session_id=sessionid)
 
     def get_config(self):
-        o = self.protocol.config(build_platform=self.pack_info.buildPlatformString)
+        client_build_platform=self.pack_info.buildPlatformString
+        if not client_build_platform:
+            client_build_platform='new_client_devel'
+        o = self.protocol.config(build_platform=client_build_platform)
         self.server_config = rcm.rcm_config(o)
         logic_logger.debug("config---->" + str(self.server_config))
+        if 'jobscript_json_menu' in self.server_config.config:
+            logic_logger.debug("jobscript gui json:::>" + self.server_config.config.get('jobscript_json_menu', ''))
         return self.server_config
 
     def queues(self):
