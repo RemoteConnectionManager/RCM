@@ -21,7 +21,25 @@ class platformconfig(baseconfig):
         self.import_scheduler()
 
     def get_jobscript_json_menu(self):
-        return None
+    	root_rcm_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    	sys.path.append(root_rcm_path)
+
+
+    	import logging
+
+
+    	from utils.cascade_yaml_config import *
+    	from utils.jobscript_composer_base import *
+    	from utils.scheduler_pbs import *
+
+    	config = CascadeYamlConfig()
+    	logger.setLevel(logging.INFO)
+    	SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
+    	root = AutoChoiceGuiComposer(schema=config.conf['schema'],
+                                                    defaults=config.conf['defaults'],
+                                                    class_table={'SCHEDULER': SchedulerManager})
+        display_dialog_ui = root.get_gui_options()
+        return json.dumps(display_dialog_ui)
         
     def max_user_session(self):
         logger.debug("max_user_session")
