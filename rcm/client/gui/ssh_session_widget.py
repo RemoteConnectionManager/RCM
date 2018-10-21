@@ -9,6 +9,7 @@ import tempfile
 import subprocess
 import hashlib
 
+
 # pyqt5
 from PyQt5.QtCore import QSize, pyqtSignal, Qt
 from PyQt5.QtGui import QIcon, QFont
@@ -18,6 +19,7 @@ from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
 
 # local includes
 from client.gui.display_dialog import QDisplayDialog
+from client.gui.new_display_dialog import QDisplayDialog as QDisplayDialogDevel
 from client.gui.display_session_widget import QDisplaySessionWidget
 from client.utils.pyinstaller_utils import resource_path
 from client.miscellaneous.logger import logger
@@ -274,14 +276,19 @@ class QSSHSessionWidget(QWidget):
         plusbutton_layout.addWidget(x, 0, 4)
         plusbutton_layout.addWidget(x, 0, 5)
 
-        new_display_ico = QIcon()
-        new_display_ico.addFile(resource_path('gui/icons/plus.png'), QSize(16, 16))
+        self.new_display_ico = QIcon()
+        self.new_display_ico.addFile(resource_path('gui/icons/plus.png'), QSize(16, 16))
 
         new_display_btn = QPushButton()
-        new_display_btn.setIcon(new_display_ico)
+        new_display_btn.setIcon(self.new_display_ico)
         new_display_btn.setToolTip('Create a new display session')
         new_display_btn.clicked.connect(self.add_new_display)
         new_display_btn.setShortcut(Qt.Key_Plus)
+
+        self.devel_new_display_button = QPushButton()
+        self.devel_new_display_button.setIcon(self.new_display_ico)
+        self.devel_new_display_button.setToolTip('DEVEL:  new display session')
+        self.devel_new_display_button.clicked.connect(self.add_new_display_devel)
 
         reload_btn = QPushButton()
         reload_btn.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
@@ -289,12 +296,14 @@ class QSSHSessionWidget(QWidget):
         reload_btn.clicked.connect(self.reload)
         reload_btn.setShortcut("F5")
 
-        new_display_layout = QHBoxLayout()
-        new_display_layout.addSpacing(70)
-        new_display_layout.addWidget(reload_btn)
-        new_display_layout.addWidget(new_display_btn)
+        self.new_display_layout = QHBoxLayout()
+        self.new_display_layout.addSpacing(70)
+        self.new_display_layout.addWidget(reload_btn)
+        self.new_display_layout.addWidget(new_display_btn)
+        self.new_display_layout.addWidget(self.devel_new_display_button)
+        self.devel_new_display_button.hide()
 
-        plusbutton_layout.addLayout(new_display_layout, 0, 6)
+        plusbutton_layout.addLayout(self.new_display_layout, 0, 6)
 
         self.containerSessionWidget.setLayout(self.session_ver_layout)
         new_tab_main_layout.addWidget(self.containerSessionWidget)
@@ -496,6 +505,13 @@ class QSSHSessionWidget(QWidget):
 
         logger.info("Added new display")
 
+    def add_new_display_devel(self):
+        display_dialog_ui = json.loads(self.platform_config.config.get('jobscript_json_menu', '{}'), object_pairs_hook=collections.OrderedDict)
+        display_dialog = QDisplayDialogDevel(display_dialog_ui)
+        display_dialog.show()
+        if display_dialog.exec() != 1:
+            return
+
     def update_config_file(self, session_name):
         """
         Update the config file with the new session name
@@ -629,9 +645,7 @@ class QSSHSessionWidget(QWidget):
     def session_find(self,session_name):
         found=None
         for session in self.sessions_list:
-            print("session>>>>>>>>",session[0])
             if session[0] == session_name:
                 found=session[1:]
                 break
-        print("session find:",found)
         return found
