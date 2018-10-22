@@ -26,6 +26,8 @@ class QDisplayDialog(QDialog):
         self.display_dialog_ui = display_dialog_ui
         self.tabs = QTabWidget(self)
         self.job = None
+        self.choices = dict()
+        self.display_name = 'Devel'
 
         self.setWindowTitle("New display")
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -58,20 +60,22 @@ class QDisplayDialog(QDialog):
         ok_button.clicked.connect(self.on_ok)
 
     def on_ok(self):
-        choices = dict()
+        self.choices = dict()
 
         for key, value in self.job.choices.items():
-            choices[key] = value
+            self.choices[key] = value
 
         for key, container_widget in self.job.container_widgets.items():
             if not container_widget.isHidden():
                 for key2, value2 in container_widget.choices.items():
-                    choices[key2] = value2
+                    self.choices[key2] = value2
 
-        for key, value in choices.items():
+        for key, value in self.choices.items():
             print(key + " : " + value)
 
+        self.accept()
 
+        
 class QJobWidget(QWidget):
     def __init__(self, display_dialog_ui):
         QWidget.__init__(self)
