@@ -33,7 +33,8 @@ class Worker(QRunnable):
                  remote_connection_manager,
                  session_queue,
                  session_vnc,
-                 display_size):
+                 display_size,
+                 choices=None):
         super().__init__()
         self.display_widget = display_widget
         self.display_id = display_widget.display_id
@@ -42,17 +43,21 @@ class Worker(QRunnable):
         self.session_vnc = session_vnc
         self.display_size = display_size
         self.signals = WorkerSignals()
+        self.choices = choices
+
 
     @pyqtSlot()
     def run(self):
         try:
+
             logger.debug("Worker for display " + str(self.display_id) + " started")
             self.signals.status.emit(Status.PENDING)
 
             display_session = self.remote_connection_manager.newconn(queue=self.session_queue,
                                                                      geometry=self.display_size,
                                                                      sessionname=self.display_id,
-                                                                     vnc_id=self.session_vnc)
+                                                                     vnc_id=self.session_vnc,
+                                                                     choices=self.choices)
 
             self.signals.status.emit(Status.RUNNING)
 

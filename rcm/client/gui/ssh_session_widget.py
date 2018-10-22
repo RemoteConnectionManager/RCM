@@ -511,6 +511,25 @@ class QSSHSessionWidget(QWidget):
         display_dialog.show()
         if display_dialog.exec() != 1:
             return
+        display_name = display_dialog.display_name
+        display_id = '-'.join((display_name, str(uuid.uuid4())))
+        display_widget = QDisplaySessionWidget(self,
+                                               display_id=display_id,
+                                               display_name=display_name)
+        self.rows_ver_layout.addWidget(display_widget)
+        self.displays[display_id] = display_widget
+        # start the worker
+        worker = Worker(display_widget,
+                        self.remote_connection_manager,
+                        'dummy_queue',
+                        'dummy_vnc',
+                        'dummy_size',
+                        choices=display_dialog.choices)
+        worker.signals.status.connect(display_widget.on_status_change)
+        self.window().thread_pool.start(worker)
+
+        logger.info("Added new display")
+
 
     def update_config_file(self, session_name):
         """
