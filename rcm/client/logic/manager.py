@@ -233,18 +233,22 @@ class RemoteConnectionManager:
         #ret.array = a
         return merged_sessions
 
-    def newconn(self, queue, geometry, sessionname='', vnc_id='turbovnc_vnc'):
+    def newconn(self, queue, geometry, sessionname='', vnc_id='turbovnc_vnc', choices=None):
         rcm_cipher = cipher.RCMCipher()
         vncpassword = rcm_cipher.vncpassword
         vncpassword_crypted = rcm_cipher.encrypt()
-
+        choices_string=''
+        if choices:
+            choices_string = json.dumps(choices)
+            logic_logger.debug("HERE in Newconn, chooices:" + choices_string + " TODO!!!!!!!!!!!")
         o = self.protocol.new(geometry=geometry,
                               queue=queue,
                               sessionname='\'' + sessionname + '\'',
                               subnet=self.subnet,
                               vncpassword=vncpassword,
                               vncpassword_crypted=vncpassword_crypted,
-                              vnc_id=vnc_id)
+                              vnc_id=vnc_id,
+                              choices=choices_string)
 
         session = rcm.rcm_session(o)
         return session
