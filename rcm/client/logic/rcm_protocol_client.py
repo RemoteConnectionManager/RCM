@@ -29,7 +29,7 @@ def rcm_decorate(fn):
         command = '--command=' + name
         for p in list(kw.keys()):
             if p in argnames:
-                command += ' --' + p + '=' + kw[p]
+                command += ' --' + p + '=' + "'" + kw[p] + "'"
         logic_logger.debug("calling " + name + " argnames-> " + str(argnames))
         logic_logger.debug(str(kw) + " -- " + str(args))
         logic_logger.debug("self-->" + str(args[0]))
