@@ -79,7 +79,8 @@ class rcm_protocol:
             for k, v in res.items():
                 print(k, ":::>", file=sys.stderr)
                 print(v, file=sys.stderr)
-            return
+            dummy_session=rcm.rcm_session()
+            return dummy_session
 
         print("create new vnc display session")
         if(subnet): self.rcm_server.subnet = subnet
