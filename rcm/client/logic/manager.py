@@ -248,7 +248,7 @@ class RemoteConnectionManager:
                               vncpassword=vncpassword,
                               vncpassword_crypted=vncpassword_crypted,
                               vnc_id=vnc_id,
-                              choices=choices_string)
+                              choices_string=choices_string)
 
         session = rcm.rcm_session(o)
         return session
