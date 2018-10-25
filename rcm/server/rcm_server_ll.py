@@ -6,18 +6,17 @@ import glob
 import string
 import time
 import datetime
-import logging
 import rcm_base_server
+from  logger_server import logger
+
 class rcm_server(rcm_base_server.rcm_base_server):
 
  def vnc_command_in_background(self): 
-    logger = logging.getLogger("basic")    
     logger.debug("vnc_command_in_background")
     return False
 
 # get group to be used submitting a job
  def getQueueGroup(self,queue): 
-    logger = logging.getLogger("basic")    
     logger.debug("getQueueGroup")
     self.accountList = self.getUserAccounts()
     if len(self.accountList) == 0:
@@ -50,7 +49,6 @@ class rcm_server(rcm_base_server.rcm_base_server):
 # submit a LL job
 # stdout and stderr are separated in 2 files
  def submit_job(self,sid,rcm_dirs,jobScript): 
-    logger = logging.getLogger("basic")    
     logger.debug("submit_job")
     #cineca deployment dependencies
     self.qsub_template=jobScript
@@ -141,7 +139,6 @@ class rcm_server(rcm_base_server.rcm_base_server):
 
 # kill a PBS job
  def kill_job(self,jid): 
-    logger = logging.getLogger("basic")    
     logger.debug("kill_job")
     #cprex(['qdel',jid])
     self.cprex(['llcancel',jid])
@@ -149,7 +146,6 @@ class rcm_server(rcm_base_server.rcm_base_server):
    
 # get available queues for the user (on Fermi class is visual?!)
  def get_queue(self,testJobScriptDict=None): 
-    logger = logging.getLogger("basic")    
     logger.debug("get_queue")
     queueList = []
     #tutti gli utenti possono sottomettere nella cosa serial??

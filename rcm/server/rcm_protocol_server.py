@@ -1,16 +1,20 @@
 import os
 import sys
 import rcm
-import logging
+from  logger_server import logger
 
 class rcm_protocol:
-    def __init__(self,rcm_server=None): 
-        logger = logging.getLogger("basic")
+    """
+    This is the class that wraps remote procedures call protocol of RCM
+    funcions are wrapped by protocol parser to produce the command line interface as well as by
+    client rcm_protocol_client to expose a protocol class stub for remote call
+    return data are objects efined in rcm, wrapped currently in pickle and packed on stdout
+    """
+    def __init__(self,rcm_server=None):
         if(rcm_server):
             self.rcm_server=rcm_server
 
     def config(self,build_platform=''):
-        logger = logging.getLogger("basic")    
         logger.debug("config")
         conf=rcm.rcm_config()
         if(build_platform):
@@ -21,11 +25,18 @@ class rcm_protocol:
             conf.add_queue(q)
         for vnc_id,menu_entry in self.rcm_server.pconfig.get_vnc_menu().items():
             conf.add_vnc(vnc_id,menu_entry)
+        # ########## new interface ############
+        jobscript_json_menu = self.rcm_server.pconfig.get_jobscript_json_menu()
+        if jobscript_json_menu :
+            conf.config['jobscript_json_menu']=jobscript_json_menu
+        # #####################################
         conf.serialize()
 
-
-    def version(self,build_platform=''): 
+    def config_xml(self,build_platform=''):
         logger = logging.getLogger("basic")    
+        logger.debug("config_xml")
+
+    def version(self,build_platform=''):
         logger.debug("version")
         print("get version")
         if (self.client_sendfunc):
@@ -33,7 +44,6 @@ class rcm_protocol:
 
 
     def loginlist(self,subnet=''): 
-        logger = logging.getLogger("basic")    
         logger.debug("loginlist")
 #	import socket
         self.rcm_server.subnet = subnet
@@ -41,26 +51,22 @@ class rcm_protocol:
         self.rcm_server.fill_sessions_hash()
         s=rcm.rcm_sessions()
         for sid, ses in list(self.rcm_server.sessions.items()):
-            s.array.append(self.rcm_server.sessions[sid])
-        sys.stdout.write(rcm.serverOutputString)
-        sys.stdout.write(s.get_string())
-        sys.stdout.flush()
+            s.add_session(ses)
+            #s.array.append(self.rcm_server.sessions[sid])
+        s.write()
 
     def list(self,subnet=''): 
-        logger = logging.getLogger("basic")    
         logger.debug("list")
         self.rcm_server.subnet = subnet
         
         self.rcm_server.load_sessions()
         s=rcm.rcm_sessions()
+        logger.debug("list run session ")
         for sid in self.rcm_server.sids['run']:
-            s.array.append(self.rcm_server.sessions[sid])
-        sys.stdout.write(rcm.serverOutputString)
-        sys.stdout.write(s.get_string())
-        sys.stdout.flush()
-    
+            s.add_session(self.rcm_server.sessions[sid])
+        s.write()
+
     def new(self,geometry='',queue='',sessionname='',subnet='',vncpassword='',vncpassword_crypted='',vnc_id=''): 
-        logger = logging.getLogger("basic")    
         logger.debug("new")
         print("create new vnc display session")
         if(subnet): self.rcm_server.subnet = subnet
@@ -71,11 +77,11 @@ class rcm_protocol:
 	
         self.rcm_server.substitutions['RCM_GEOMETRY'] = geometry	
         self.rcm_server.set_vnc_setup(vnc_id)
-        self.rcm_server.execute_new()
+        new_session=self.rcm_server.execute_new()
+        new_session.write()
     
     
     def kill(self,session_id=''): 
-        logger = logging.getLogger("basic")    
         logger.debug("kill")
         self.rcm_server.load_sessions()
         if(session_id):
@@ -86,6 +92,7 @@ class rcm_protocol:
                 c=rcm.rcm_session(fromfile=file)
                 c.hash['state']='killing'
                 c.serialize(file)
+                c.write()
             else:
                 sys.stderr.write("Not running session: %s\n" % (session_id))
                 sys.stderr.flush()

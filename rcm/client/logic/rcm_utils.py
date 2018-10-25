@@ -134,6 +134,12 @@ def get_threads_exceptions():
 
 
 def get_server_command(host, user, passwd=''):
+    """
+    It call bare ssh server to  check if on login node, the user has defined a variable
+    named RCM_SERVER_COMMAND, in tht case the content of that variable overrides the default
+    rcm command string used for the remaining part of the server interaction
+     """
+
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     logic_logger.info("getting server command from host " + host + " with user " + user)

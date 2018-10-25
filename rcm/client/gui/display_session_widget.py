@@ -40,10 +40,13 @@ class QDisplaySessionWidget(QWidget):
         self.resources = resources
 
         if timeleft is not None:
-            strp_time = datetime.strptime(timeleft, "%H:%M:%S")
-            self.timeleft = timedelta(hours=strp_time.hour,
-                                      minutes=strp_time.minute,
-                                      seconds=strp_time.second)
+            try:
+                strp_time = datetime.strptime(timeleft, "%H:%M:%S")
+                self.timeleft = timedelta(hours=strp_time.hour,
+                                          minutes=strp_time.minute,
+                                          seconds=strp_time.second)
+            except:
+                self.timeleft=None
         else:
             self.timeleft = timeleft
 
@@ -199,8 +202,8 @@ class QDisplaySessionWidget(QWidget):
         if self.status is Status.RUNNING:
             if self.timeleft:
                 self.timeleft = self.timeleft - timedelta(seconds=1)
-            self.time.setText(str(self.timeleft))
-            self.time.update()
+                self.time.setText(str(self.timeleft))
+                self.time.update()
 
     def enable_connect_button(self, active):
         if active:
@@ -243,10 +246,13 @@ class QDisplaySessionWidget(QWidget):
                 timeleft = str(self.session.hash['timeleft'])
                 self.time.setText(timeleft)
 
-                strp_time = datetime.strptime(timeleft, "%H:%M:%S")
-                self.timeleft = timedelta(hours=strp_time.hour,
+                try:
+                    strp_time = datetime.strptime(timeleft, "%H:%M:%S")
+                    self.timeleft = timedelta(hours=strp_time.hour,
                                           minutes=strp_time.minute,
                                           seconds=strp_time.second)
+                except:
+                    self.timeleft=None
                 self.resources_label.setText(str(self.session.hash['node']))
             else:
                 self.time.setText('Not defined')
@@ -260,10 +266,13 @@ class QDisplaySessionWidget(QWidget):
                 timeleft = str(self.session.hash['timeleft'])
                 self.time.setText(timeleft)
 
-                strp_time = datetime.strptime(timeleft, "%H:%M:%S")
-                self.timeleft = timedelta(hours=strp_time.hour,
-                                          minutes=strp_time.minute,
-                                          seconds=strp_time.second)
+                try:
+                    strp_time = datetime.strptime(timeleft, "%H:%M:%S")
+                    self.timeleft = timedelta(hours=strp_time.hour,
+                                              minutes=strp_time.minute,
+                                              seconds=strp_time.second)
+                except:
+                    self.timeleft=None
                 self.resources_label.setText(str(self.session.hash['node']))
             else:
                 self.time.setText('Not defined')

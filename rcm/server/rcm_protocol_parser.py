@@ -3,7 +3,7 @@ import types
 import rcm_protocol_server
 import optparse
 import sys
-import logging
+from  logger_server import logger
 
 class CommandParser:
     args = ''
@@ -27,13 +27,11 @@ class CommandParser:
     for p in parameters.keys() :
       parser.add_option(parameters[p],default='',help='set the ' + p + ' parameter' )
 
-    def __init__(self,rcm_prot_instance): 
-        logger = logging.getLogger("basic")    
+    def __init__(self,rcm_prot_instance):
          
         self.protocol=rcm_prot_instance
 
-    def handle(self,args=None): 
-      logger = logging.getLogger("basic")    
+    def handle(self,args=None):
       logger.debug("handle")
       if(args):
         (o,a)=CommandParser.parser.parse_args(args)
@@ -71,9 +69,9 @@ if __name__ == '__main__':
     print "testing rcm_protocol_parser .................................."
 
 
-    import dummy_rcm_server
+    import dummy_rcm_scheduler
     import rcm_protocol_server
-    r=rcm_protocol_server.rcm_protocol(dummy_rcm_server)
+    r=rcm_protocol_server.rcm_protocol(dummy_rcm_scheduler.rcm_server())
     c=CommandParser(r)
     c.handle(["list"])
     c.handle(["--command=config","--build_platform=uffa"])

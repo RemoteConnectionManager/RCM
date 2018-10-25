@@ -7,20 +7,27 @@ from client.utils.rcm_enum import Status
 
 
 class LoginThread(QThread):
-    def __init__(self, session_widget, host, user, password):
+    def __init__(self, session_widget, host, user, password, preload=''):
         QThread.__init__(self)
 
         self.session_widget = session_widget
         self.host = host
         self.user = user
         self.password = password
+        self.preload=preload
 
     def run(self):
         try:
             self.session_widget.remote_connection_manager.login_setup(host=self.host,
                                                                       remoteuser=self.user,
-                                                                      password=self.password)
+                                                                      password=self.password,
+                                                                      preload=self.preload)
             self.session_widget.platform_config = self.session_widget.remote_connection_manager.get_config()
+            if self.session_widget.platform_config:
+                logger.debug("############## platform_config.config:::>" + str(self.session_widget.platform_config.config))
+                if 'jobscript_json_menu' in self.session_widget.platform_config.config:
+                    logger.info("--------------- connection with devel server: adding new session devel button")
+                    self.session_widget.devel_new_display_button.show()
             self.session_widget.is_logged = True
         except Exception as e:
             self.session_widget.is_logged = False
@@ -57,3 +64,7 @@ class ReloadThread(QThread):
         except Exception as e:
             logger.error("Failed to reload the display sessions")
             logger.error(e)
+            exc_info = (type(e), e, e.__traceback__)
+            logger.error('Exception occurred', exc_info=exc_info)
+
+

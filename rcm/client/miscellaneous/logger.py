@@ -8,6 +8,7 @@ import json
 from PyQt5.QtCore import pyqtSignal, QObject
 
 # local import
+import server.rcm
 from client.utils.rcm_enum import Mode
 
 rootLogger = logging.getLogger()
@@ -17,6 +18,7 @@ rootLogger.addHandler(consoleHandler)
 
 logger = logging.getLogger("RCM.gui")
 logic_logger = logging.getLogger('RCM.client')
+protocol_logger = logging.getLogger('RCM.protocol')
 ssh_logger = logging.getLogger('paramiko')
 
 
@@ -101,6 +103,7 @@ def configure_logger(mode=Mode.GUI, debug=False):
         if debug:
             logger.setLevel(logging.DEBUG)
             logic_logger.setLevel(logging.DEBUG)
+            protocol_logger.setLevel(logging.DEBUG)
             ssh_logger.setLevel(logging.INFO)
 
             text_log_handler.setFormatter(
@@ -112,11 +115,18 @@ def configure_logger(mode=Mode.GUI, debug=False):
             logger.setLevel(logging.INFO)
             logic_logger.setLevel(logging.INFO)
             ssh_logger.setLevel(logging.WARNING)
+            protocol_logger.setLevel(logging.WARNING)
             text_log_handler.setFormatter(logging.Formatter('%(asctime)-15s - %(levelname)s - %(message)s'))
     else:
         logger.setLevel(logging.ERROR)
         logic_logger.setLevel(logging.ERROR)
         ssh_logger.setLevel(logging.ERROR)
+
+    logger.addHandler(text_log_handler)
+    logic_logger.addHandler(text_log_handler)
+    protocol_logger.addHandler(text_log_handler)
+    server.rcm.logger.addHandler(text_log_handler)
+    ssh_logger.addHandler(text_log_handler)
 
 
 text_log_handler = QTextEditLoggerHandler()

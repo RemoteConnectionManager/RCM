@@ -114,57 +114,62 @@ class RCMMainWindow(QMainWindow):
         self.main_widget.add_new_tab("", False)
 
     def open_vnc_session(self):
+        try:
+            # use native dialogs only for portability issues
+            options = QFileDialog.Options()
+            # options |= QFileDialog.DontUseNativeDialog
+            filename, _ = QFileDialog.getOpenFileName(self,
+                                                      "Open VNC session file",
+                                                      "",
+                                                      "VNC Files (*.vnc);;All Files (*)",
+                                                      options=options)
 
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        filename, _ = QFileDialog.getOpenFileName(self,
-                                                  "Open...",
-                                                  "",
-                                                  "VNC Files (*.vnc);;All Files (*)",
-                                                  options=options)
+            current_session_widget = self.main_widget.tabs.currentWidget()
 
-        current_session_widget = self.main_widget.tabs.currentWidget()
+            if filename:
+                # check if session needs tunneling
+                file = open(filename, 'r')
+                if 'rcm_tunnel' in file.read():
+                    if not current_session_widget.is_logged:
+                        logger.error("You are not logged in the current session. Please log in.")
+                        return
 
-        if filename:
-            # check if session needs tunneling
-            file = open(filename, 'r')
-            if 'rcm_tunnel' in file.read():
-                file.seek(0)
-                lines = file.readlines()
-                for line in lines:
-                    if 'rcm_tunnel' in line:
-                        node = line.split('=')[1].rstrip()
-                        if not current_session_widget.is_logged:
-                            logger.error("You are not logged in the current session. Please log in.")
-                            return
-                        if node == current_session_widget.host:
+                    file.seek(0)
+                    lines = file.readlines()
+                    for line in lines:
+                        if 'rcm_tunnel' in line:
+                            node = line.split('=')[1].rstrip()
+                            subnet = node.split('.', 1)[1]
+                            current_subnet = current_session_widget.host.split('.', 1)[1].rstrip()
                             user = current_session_widget.user
-                        else:
-                            logger.error("The host of the current session (" +
-                                         current_session_widget.host +
-                                         ") is different from the host of the vnc file (" +
-                                         node + ")")
-                            return
-                    if 'host' in line:
-                        hostname = line.split('=')[1].rstrip()
-                    if 'port' in line:
-                        port = line.split('=')[1].rstrip()
-                        display = int(port) - 5900
-                    if 'password' in line:
-                        password = line.split('=')[1].rstrip()
+                            if current_subnet != subnet:
+                                logger.warning("The subnet of the current session (" +
+                                               current_subnet +
+                                               ") is different from the subnet of the vnc file (" +
+                                               subnet + ")")
+                        if 'host' in line:
+                            hostname = line.split('=')[1].rstrip()
+                        if 'port' in line:
+                            port = line.split('=')[1].rstrip()
+                            display = int(port) - 5900
+                        if 'password' in line:
+                            password = line.split('=')[1].rstrip()
 
-                session = rcm.rcm_session(node=hostname,
-                                          tunnel='y',
-                                          display=display,
-                                          nodelogin=node,
-                                          username=user,
-                                          vncpassword=password)
-                current_session_widget.remote_connection_manager.vncsession(session=session)
-                logger.info("Connected to remote display " +
-                            str(display) + " on " + node +
-                            " as " + str(user) + " with tunnel")
-            else:
-                current_session_widget.remote_connection_manager.vncsession(configFile=filename)
+                    session = rcm.rcm_session(node=hostname,
+                                              tunnel='y',
+                                              display=display,
+                                              nodelogin=node,
+                                              username=user,
+                                              vncpassword=password)
+                    current_session_widget.remote_connection_manager.vncsession(session=session)
+                    logger.info("Connected to remote display " +
+                                str(display) + " on " + node +
+                                " as " + str(user) + " with tunnel")
+                else:
+                    current_session_widget.create_remote_connection_manager()
+                    current_session_widget.remote_connection_manager.vncsession(configFile=filename)
+        except Exception as e:
+            logger.error(e)
 
     def closeEvent(self, QCloseEvent):
         self.exit()
@@ -231,9 +236,6 @@ class MainWidget(QWidget):
 
         # configure logging
         text_log_handler.logger_signals.log_message.connect(self.on_log)
-        logger.addHandler(text_log_handler)
-        logic_logger.addHandler(text_log_handler)
-        ssh_logger.addHandler(text_log_handler)
 
         # add the splitter to the main layout
         self.main_layout.addWidget(splitter)
@@ -322,9 +324,12 @@ class MainWidget(QWidget):
         new_tab.sessions_changed.connect(self.on_sessions_changed)
         logger.debug("Added new tab " + str(uuid))
 
-    @pyqtSlot(str)
-    def on_login(self, session_name):
-        self.tabs.setTabText(self.tabs.currentIndex(), session_name)
+    @pyqtSlot(str, str)
+    def on_login(self, session_name, uuid):
+        for tab_id in range(0, self.tabs.count()):
+            widget = self.tabs.widget(tab_id)
+            if widget.uuid == uuid:
+                self.tabs.setTabText(tab_id, session_name)
 
     @pyqtSlot()
     def on_close(self, uuid):
@@ -342,10 +347,12 @@ class MainWidget(QWidget):
                 widget.setParent(None)
                 return
 
-    @pyqtSlot(collections.deque)
-    def on_sessions_changed(self, sessions_list):
+    @pyqtSlot(collections.deque, collections.deque)
+    def on_sessions_changed(self, sessions_names, sessions_list):
         for tab_id in range(0, self.tabs.count()):
             widget = self.tabs.widget(tab_id)
             widget.session_combo.clear()
-            widget.session_combo.addItems(sessions_list)
+            widget.session_combo.addItems(sessions_names)
+            widget.sessions_list = sessions_list
             widget.session_combo.activated.emit(0)
+

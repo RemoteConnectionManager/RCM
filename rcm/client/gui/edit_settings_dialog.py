@@ -5,7 +5,7 @@ import sys
 
 # pyqt5
 from PyQt5.QtWidgets import QLabel, QDialog, QRadioButton, \
-    QHBoxLayout, QVBoxLayout, QGroupBox, QPushButton, QCheckBox
+    QHBoxLayout, QVBoxLayout, QGroupBox, QPushButton, QCheckBox, QLineEdit
 
 # local includes
 from client.miscellaneous.logger import logger, configure_logger
@@ -79,6 +79,19 @@ class QEditSettingsDialog(QDialog):
         ssh_client_hlayout.addStretch(1)
         ssh_client_hlayout.addWidget(ssh_client_group_box)
 
+        # Preload Command
+        preload_command_hlayout = QHBoxLayout()
+        preload_command = QLabel(self)
+        preload_command.setText('Insert Preload Command:')
+        preload_command_hlayout.addWidget(preload_command)
+
+        preload_command_hlayout.addSpacing(250)
+        preload_command_hlayout.addStretch(1)
+        preload_command_textbox = QLineEdit(self)
+        preload_command_textbox.setObjectName('preload_command')
+        preload_command_textbox.setText(self.settings['preload_command'])
+        preload_command_hlayout.addWidget(preload_command_textbox)
+
         # Save button
         last_hor_layout = QHBoxLayout()
         save_button = QPushButton('Save', self)
@@ -93,6 +106,7 @@ class QEditSettingsDialog(QDialog):
 
         inner_vlayout.addLayout(log_level_hlayout)
         inner_vlayout.addLayout(ssh_client_hlayout)
+        inner_vlayout.addLayout(preload_command_hlayout)
 
         group_box.setLayout(inner_vlayout)
         outer_grid_layout.addWidget(group_box)
@@ -114,6 +128,11 @@ class QEditSettingsDialog(QDialog):
             self.settings['ssh_client'] = ssh_client
         except Exception:
             self.settings['ssh_client'] = "internal"
+        try:
+            preload_command = json.loads(parser.get('Settings', 'preload_command'))
+            self.settings['preload_command'] = preload_command
+        except Exception:
+            self.settings['preload_command'] = ""
 
     def on_save(self):
         if not parser.has_section('Settings'):
@@ -124,6 +143,7 @@ class QEditSettingsDialog(QDialog):
 
         parser.set('Settings', 'debug_log_level', json.dumps(self.settings['debug_log_level']))
         parser.set('Settings', 'ssh_client', json.dumps(self.settings['ssh_client']))
+        parser.set('Settings', 'preload_command', json.dumps(self.settings['preload_command']))
 
         try:
             config_file_dir = os.path.dirname(config_file_name)
@@ -140,6 +160,7 @@ class QEditSettingsDialog(QDialog):
     def use_default_settings(self):
         self.settings['debug_log_level'] = False
         self.settings['ssh_client'] = "internal"
+        self.settings['preload_command'] = ""
 
     def update_and_apply_settings(self):
         self.settings['debug_log_level'] = self.findChild(QCheckBox, 'debug_log_level').isChecked()
@@ -149,3 +170,6 @@ class QEditSettingsDialog(QDialog):
             self.settings['ssh_client'] = "external"
         else:
             self.settings['ssh_client'] = "via"
+        self.settings['preload_command'] = self.findChild(QLineEdit, 'preload_command').text()
+        if not self.settings['preload_command'].endswith(";") and not self.settings['preload_command'] == "":
+            self.settings['preload_command'] += ";"

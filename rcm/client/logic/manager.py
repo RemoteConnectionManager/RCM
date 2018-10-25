@@ -3,7 +3,7 @@
 # std lib
 import sys
 import json
-import os 
+import os
 import getpass
 import socket
 import paramiko
@@ -35,12 +35,17 @@ class RemoteConnectionManager:
 
     def __init__(self, pack_info=None):
         self.proxynode = ''
+        self.preload=''
         self.remoteuser = ''
         self.passwd = ''
         self.auth_method = ''
 
         self.session_thread = []
         self.commandnode = ''
+
+        # here we instatiate the remote procedure call stub, it will automatically
+        # have all the methods of rcm_protoclo_server.rcm_protocol class
+        # --- TO BE DONE --- handle automatically output type
         self.protocol = rcm_protocol_client.get_protocol()
 
         def mycall(command):
@@ -59,7 +64,9 @@ class RemoteConnectionManager:
         # for python3
         self.config['ssh']['linux'] = ("ssh", "", "")
         self.config['ssh']['darwin'] = ("ssh", "", "")
-        self.config['remote_rcm_server'] = "module load rcm; python $RCM_HOME/bin/server/rcm_new_server.py"
+        self.config['remote_rcm_server'] = json.loads(parser.get('Settings', 'preload_command', fallback='""'))
+        if not self.config['remote_rcm_server']:
+            self.config['remote_rcm_server'] = 'module load rcm; python $RCM_HOME/bin/server/rcm_new_server.py'
 
         self.activeConnectionsList = []
 
@@ -102,8 +109,9 @@ class RemoteConnectionManager:
         self.vnc_cmdline_builder = vnc_client.VNCClientCommandLineBuilder()
         self.vnc_cmdline_builder.build()
 
-    def login_setup(self, host, remoteuser, password=None):
+    def login_setup(self, host, remoteuser, password=None, preload=''):
         self.proxynode = host
+        self.preload=preload
 
         if remoteuser == '':
             if sys.version_info >= (3, 0):
@@ -117,11 +125,11 @@ class RemoteConnectionManager:
         if os.path.exists(keyfile):
             if sys.platform == 'win32':
                 self.login_options = " -i " + keyfile + " " + self.remoteuser
-                
+
             else:
                 logic_logger.warning("PASSING PRIVATE KEY FILE NOT IMPLEMENTED ON PLATFORM -->" + sys.platform + "<--")
                 self.login_options = " -i " + keyfile + " " + self.remoteuser
-                
+
         else:
             if sys.platform == 'win32':
                 if password is None:
@@ -144,84 +152,106 @@ class RemoteConnectionManager:
         if check_cred:
             self.subnet = '.'.join(socket.gethostbyname(self.proxynode).split('.')[0:-1])
             logic_logger.debug("Login host: " + self.proxynode + " subnet: " + self.subnet)
-        return check_cred 
-        
+        return check_cred
+
     def prex(self, cmd, commandnode = ''):
+        """
+        This is the function that wrap all the remote comman execution, accept the input command
+        and return the remote server output that comes after the rcm.serverOutputString separation
+        string
+        """
         if self.commandnode == '':
             commandnode = self.proxynode
         else:
             commandnode = self.commandnode
             self.commandnode = ''
-        fullcommand = self.ssh_remote_exec_command + "@" + commandnode + ' ' + cmd
-        
+        ##unused##fullcommand = self.ssh_remote_exec_command + "@" + commandnode + ' ' + cmd
+
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        
-        logic_logger.debug("on " + commandnode + " run-->" + self.config['remote_rcm_server'] + ' ' + cmd + "<")
+
 
         try:
             ssh.connect(commandnode, username=self.remoteuser, password=self.passwd, timeout=10)
-        except Exception as e: 
+        except Exception as e:
             logic_logger.warning("ERROR {0}: ".format(e) + "in ssh.connect to node->" +
                                   commandnode + "< user->" + self.remoteuser + "<")
             return('')
 
         self.auth_method = ssh.get_transport().auth_handler.auth_method
 
-        stdin, stdout, stderr = ssh.exec_command(self.config['remote_rcm_server'] + ' ' + cmd)
+        fullcommand = ''
+        if self.preload :
+            fullcommand = self.preload + " ; "
+        fullcommand += self.config['remote_rcm_server'] + ' ' + cmd
+        logic_logger.debug("on " + commandnode + " run::>" + fullcommand + "<")
+
+        stdin, stdout, stderr = ssh.exec_command(fullcommand)
         myout = ''.join(stdout)
         myerr = stderr.readlines()
         if myerr:
-            logic_logger.error(myerr)
-            raise Exception("Server error: {0}".format(myerr))
+            logic_logger.warning("Server report error: {0}".format(myerr))
 
         # find where the real server output starts
         index = myout.find(rcm.serverOutputString)
         if index != -1:
             index += len(rcm.serverOutputString)
             myout = myout[index:]
+        else:
+            logic_logger.error("Missing serverOutputString: {0} in server output".format(rcm.serverOutputString))
+            if myerr:
+                raise Exception("Server error: {0}".format(myerr))
         return myout
 
     def list(self):
         # get list of nodes to check of possible sessions
         rcm_utils.get_threads_exceptions()
 
+        # here we remotely call loginlist function of rcm_protocol_server
         o = self.protocol.loginlist(subnet=self.subnet)
         sessions = rcm.rcm_sessions(o)
 
-        a = []
+        merged_sessions = rcm.rcm_sessions(fromstring='{}')
         nodeloginList = []
         proxynode = ''
         state = ''
-        for ses in sessions.array:
+        for ses in sessions.get_sessions():
             proxynode = ses.hash.get('nodelogin', '')
             state = ses.hash.get('state', 'killed')
             if proxynode != '' and not proxynode in nodeloginList and state != 'killed':
                 nodeloginList.append(proxynode)
                 self.commandnode = proxynode
+                # here we call list of rcm_protocol_server to get the sessions
                 o = self.protocol.list(subnet=self.subnet)
                 if o:
                     tmp = rcm.rcm_sessions(o)
-                    a.extend(tmp.array)
-        ret = rcm.rcm_sessions()
-        ret.array = a
-        return ret
+                    #a.extend(tmp.array)
+                    for sess in tmp.get_sessions():
+                        merged_sessions.add_session(sess)
 
-    def newconn(self, queue, geometry, sessionname='', vnc_id='turbovnc_vnc'):
+        #ret = rcm.rcm_sessions()
+        #ret.array = a
+        return merged_sessions
+
+    def newconn(self, queue, geometry, sessionname='', vnc_id='turbovnc_vnc', choices=None):
         rcm_cipher = cipher.RCMCipher()
         vncpassword = rcm_cipher.vncpassword
         vncpassword_crypted = rcm_cipher.encrypt()
-
+        choices_string=''
+        if choices:
+            choices_string = json.dumps(choices)
+            logic_logger.debug("HERE in Newconn, chooices:" + choices_string + " TODO!!!!!!!!!!!")
         o = self.protocol.new(geometry=geometry,
                               queue=queue,
                               sessionname='\'' + sessionname + '\'',
                               subnet=self.subnet,
                               vncpassword=vncpassword,
                               vncpassword_crypted=vncpassword_crypted,
-                              vnc_id=vnc_id)
+                              vnc_id=vnc_id,
+                              choices_string=choices_string)
 
         session = rcm.rcm_session(o)
-        return session 
+        return session
 
     def kill(self, session):
         sessionid = session.hash['sessionid']
@@ -231,9 +261,14 @@ class RemoteConnectionManager:
         o = self.protocol.kill(session_id=sessionid)
 
     def get_config(self):
-        o = self.protocol.config(build_platform=self.pack_info.buildPlatformString)
+        client_build_platform=self.pack_info.buildPlatformString
+        if not client_build_platform:
+            client_build_platform='new_client_devel'
+        o = self.protocol.config(build_platform=client_build_platform)
         self.server_config = rcm.rcm_config(o)
         logic_logger.debug("config---->" + str(self.server_config))
+        if 'jobscript_json_menu' in self.server_config.config:
+            logic_logger.debug("jobscript gui json:::>" + self.server_config.config.get('jobscript_json_menu', ''))
         return self.server_config
 
     def queues(self):
@@ -242,7 +277,7 @@ class RemoteConnectionManager:
     def vncs(self):
         vncs = self.server_config.config.get('vnc_commands', [])
         return vncs
-                
+
     def vncsession(self, session=None, otp='', gui_cmd=None, configFile=None):
         tunnel_command = ''
         vnc_command = ''
@@ -252,6 +287,10 @@ class RemoteConnectionManager:
         except Exception:
             tunnelling_method = "internal"
         logic_logger.info("Using " + str(tunnelling_method) + " ssh tunnelling")
+
+        local_portnumber = 0
+        portnumber = 0
+        node = None
 
         if session:
             portnumber = 5900 + int(session.hash['display'])
@@ -286,9 +325,9 @@ class RemoteConnectionManager:
                 if tunnel == 'y':
                     tunnel_command = self.ssh_command + " -L 127.0.0.1:" + str(local_portnumber) + ":" + node + ":" \
                                      + str(portnumber) + " " + self.login_options + "@" + nodelogin
-                    if sys.platform.startswith('darwin'): 
+                    if sys.platform.startswith('darwin'):
                         tunnel_command += " echo 'rcm_tunnel'; sleep 20"
-                    else: 
+                    else:
                         tunnel_command += " echo 'rcm_tunnel'; sleep 10"
                     vnc_command += " 127.0.0.1:" + str(local_portnumber)
                 else:
@@ -340,7 +379,7 @@ class RemoteConnectionManager:
                     thread.terminate()
             self.session_thread = None
         except Exception:
-            print('error: failed to kill a session thread still alive')
+            logic_logger.error('error: failed to kill a session thread still alive')
 
     def checkCredential(self):
         rcm_server_command = rcm_utils.get_server_command(self.proxynode,
@@ -349,33 +388,3 @@ class RemoteConnectionManager:
         if rcm_server_command != '':
             self.config['remote_rcm_server'] = rcm_server_command
         return True
-
-
-if __name__ == '__main__':
-    print("vncviewer-->" + rcm_utils.which('vncviewer'))
-
-    remote_connection_manager = RemoteConnectionManager()
-    host = 'login.marconi.cineca.it'
-    remote_connection_manager.login_setup(host=host)
-    print("open sessions on " + host)
-    out = remote_connection_manager.list()
-    out.write(2)
-
-    session = remote_connection_manager.newconn(queue='4core_18_gb_1h_slurm',
-                                                geometry='1200x1000',
-                                                sessionname='test',
-                                                vnc_id='fluxbox_turbovnc_vnc')
-    print("created session -->",
-          session.hash['sessionid'],
-          "<- display->",
-          session.hash['display'],
-          "<-- node-->",
-          session.hash['node'])
-
-    remote_connection_manager.vncsession(session)
-    out = remote_connection_manager.list()
-    out.write(2)
-
-    remote_connection_manager.kill(session)
-    out = remote_connection_manager.list()
-    out.write(2)

@@ -7,6 +7,8 @@ import sys
 import time
 import tempfile
 import subprocess
+import hashlib
+
 
 # pyqt5
 from PyQt5.QtCore import QSize, pyqtSignal, Qt
@@ -17,6 +19,7 @@ from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
 
 # local includes
 from client.gui.display_dialog import QDisplayDialog
+from client.gui.new_display_dialog import QDisplayDialog as QDisplayDialogDevel
 from client.gui.display_session_widget import QDisplaySessionWidget
 from client.utils.pyinstaller_utils import resource_path
 from client.miscellaneous.logger import logger
@@ -36,9 +39,9 @@ class QSSHSessionWidget(QWidget):
     """
 
     # define a signal when the user successful log in
-    logged_in = pyqtSignal(str)
+    logged_in = pyqtSignal(str, str)
 
-    sessions_changed = pyqtSignal(collections.deque)
+    sessions_changed = pyqtSignal(collections.deque, collections.deque)
 
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
@@ -62,6 +65,7 @@ class QSSHSessionWidget(QWidget):
         self.host_line = QLineEdit(self)
         self.user_line = QLineEdit(self)
         self.pssw_line = QLineEdit(self)
+        self.preload_line = QLineEdit(self)
         self.login_button = None
 
         # containers
@@ -96,7 +100,7 @@ class QSSHSessionWidget(QWidget):
         session_label = QLabel(self)
         session_label.setText('Sessions:')
         self.session_combo.clear()
-        self.session_combo.addItems(self.sessions_list)
+        self.session_combo.addItems(self.sessions_list_names())
 
         self.session_combo.activated.connect(self.on_session_change)
         if self.sessions_list:
@@ -113,18 +117,21 @@ class QSSHSessionWidget(QWidget):
 
         user_label = QLabel(self)
         user_label.setText('User:')
-
         grid_login_layout.addWidget(user_label, 2, 0)
-        pssw_label = QLabel(self)
         grid_login_layout.addWidget(self.user_line, 2, 1)
 
+        pssw_label = QLabel(self)
         pssw_label.setText('Password:')
-
         self.pssw_line.setEchoMode(QLineEdit.Password)
         grid_login_layout.addWidget(pssw_label, 3, 0)
         grid_login_layout.addWidget(self.pssw_line, 3, 1)
 
-    # hor login layout
+        preload_label = QLabel(self)
+        preload_label.setText('Preload:')
+        grid_login_layout.addWidget(preload_label, 4, 0)
+        grid_login_layout.addWidget(self.preload_line, 4, 1)
+
+        # hor login layout
         self.login_button = QPushButton('Login', self)
         self.login_button.clicked.connect(self.login)
         self.login_button.setShortcut("Return")
@@ -269,25 +276,34 @@ class QSSHSessionWidget(QWidget):
         plusbutton_layout.addWidget(x, 0, 4)
         plusbutton_layout.addWidget(x, 0, 5)
 
-        new_display_ico = QIcon()
-        new_display_ico.addFile(resource_path('gui/icons/plus.png'), QSize(16, 16))
+        self.new_display_ico = QIcon()
+        self.new_display_ico.addFile(resource_path('gui/icons/plus.png'), QSize(16, 16))
 
         new_display_btn = QPushButton()
-        new_display_btn.setIcon(new_display_ico)
+        new_display_btn.setIcon(self.new_display_ico)
         new_display_btn.setToolTip('Create a new display session')
         new_display_btn.clicked.connect(self.add_new_display)
+        new_display_btn.setShortcut(Qt.Key_Plus)
+
+        self.devel_new_display_button = QPushButton()
+        self.devel_new_display_button.setIcon(self.new_display_ico)
+        self.devel_new_display_button.setToolTip('DEVEL:  new display session')
+        self.devel_new_display_button.clicked.connect(self.add_new_display_devel)
 
         reload_btn = QPushButton()
         reload_btn.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
         reload_btn.setToolTip('Reload the page')
         reload_btn.clicked.connect(self.reload)
+        reload_btn.setShortcut("F5")
 
-        new_display_layout = QHBoxLayout()
-        new_display_layout.addSpacing(70)
-        new_display_layout.addWidget(reload_btn)
-        new_display_layout.addWidget(new_display_btn)
+        self.new_display_layout = QHBoxLayout()
+        self.new_display_layout.addSpacing(70)
+        self.new_display_layout.addWidget(reload_btn)
+        self.new_display_layout.addWidget(new_display_btn)
+        self.new_display_layout.addWidget(self.devel_new_display_button)
+        self.devel_new_display_button.hide()
 
-        plusbutton_layout.addLayout(new_display_layout, 0, 6)
+        plusbutton_layout.addLayout(self.new_display_layout, 0, 6)
 
         self.containerSessionWidget.setLayout(self.session_ver_layout)
         new_tab_main_layout.addWidget(self.containerSessionWidget)
@@ -301,15 +317,26 @@ class QSSHSessionWidget(QWidget):
         :return:
         """
         try:
-            user, host = self.session_combo.currentText().split('@')
+            curr_session = self.session_find(self.session_combo.currentText())
+            if curr_session:
+                host, user, preload = self.session_find(self.session_combo.currentText())
+            else:
+                user, host = (self.session_combo.currentText().split('@')[0], self.session_combo.currentText().split('@')[1].split('?')[0])
+                preload=''
             self.user_line.setText(user)
             self.host_line.setText(host)
+            self.preload_line.setText(preload)
         except ValueError:
             pass
+
+    def create_remote_connection_manager(self):
+        if not self.remote_connection_manager:
+            self.remote_connection_manager = manager.RemoteConnectionManager()
 
     def login(self):
         self.user = str(self.user_line.text())
         self.host = str(self.host_line.text())
+        self.preload = str(self.preload_line.text())
         password = str(self.pssw_line.text())
 
         if not self.host:
@@ -321,6 +348,8 @@ class QSSHSessionWidget(QWidget):
             return
 
         self.session_name = self.user + "@" + self.host
+        if self.preload:
+            self.session_name += "?" + hashlib.md5(self.preload.encode()).hexdigest()[:4]
         logger.info("Logging into " + self.session_name)
 
         # Show the waiting widget
@@ -331,7 +360,7 @@ class QSSHSessionWidget(QWidget):
         self.remote_connection_manager = manager.RemoteConnectionManager()
         self.remote_connection_manager.debug = False
 
-        self.login_thread = LoginThread(self, self.host, self.user, password)
+        self.login_thread = LoginThread(self, self.host, self.user, password, preload=self.preload)
         self.login_thread.finished.connect(self.on_logged)
         self.login_thread.start()
 
@@ -345,11 +374,11 @@ class QSSHSessionWidget(QWidget):
             logger.info("Logged in " + self.session_name)
 
             # update sessions list
-            if self.session_name in list(self.sessions_list):
-                self.sessions_list.remove(self.session_name)
-            if self.session_name:
-                self.sessions_list.appendleft(self.session_name)
-                self.sessions_changed.emit(self.sessions_list)
+            # warning, json load turns tuple into list
+            if self.session_name and list(self.session_tuple()) not in list(self.sessions_list):
+                self.sessions_list.appendleft(self.session_tuple())
+                #self.sessions_changed.emit(self.sessions_list)
+                self.sessions_changed.emit(self.sessions_list_names(), self.sessions_list)
 
             # update config file
             self.update_config_file(self.session_name)
@@ -358,7 +387,7 @@ class QSSHSessionWidget(QWidget):
             self.update_executable()
 
             # Emit the logged_in signal.
-            self.logged_in.emit(self.session_name)
+            self.logged_in.emit(self.session_name, self.uuid)
 
             # update the session list to be shown
             self.reload()
@@ -476,6 +505,32 @@ class QSSHSessionWidget(QWidget):
 
         logger.info("Added new display")
 
+    def add_new_display_devel(self):
+        display_dialog_ui = json.loads(self.platform_config.config.get('jobscript_json_menu', '{}'), object_pairs_hook=collections.OrderedDict)
+        display_dialog = QDisplayDialogDevel(display_dialog_ui)
+        display_dialog.show()
+        if display_dialog.exec() != 1:
+            return
+        display_name = display_dialog.display_name
+        display_id = '-'.join((display_name, str(uuid.uuid4())))
+        display_widget = QDisplaySessionWidget(self,
+                                               display_id=display_id,
+                                               display_name=display_name)
+        self.rows_ver_layout.addWidget(display_widget)
+        self.displays[display_id] = display_widget
+        # start the worker
+        worker = Worker(display_widget,
+                        self.remote_connection_manager,
+                        'dummy_queue',
+                        'dummy_vnc',
+                        'dummy_size',
+                        choices=display_dialog.choices)
+        worker.signals.status.connect(display_widget.on_status_change)
+        self.window().thread_pool.start(worker)
+
+        logger.info("Added new display")
+
+
     def update_config_file(self, session_name):
         """
         Update the config file with the new session name
@@ -532,7 +587,7 @@ class QSSHSessionWidget(QWidget):
             # kill not existing sessions
             for display_id in list(self.displays.keys()):
                 missing = True
-                for session in self.display_sessions.array:
+                for session in self.display_sessions.get_sessions():
                     if str(display_id) == str(session.hash['session name']):
                         missing = False
                         break
@@ -540,7 +595,7 @@ class QSSHSessionWidget(QWidget):
                     self.remove_display(display_id)
 
             # update or create from scratch new sessions
-            for session in self.display_sessions.array:
+            for session in self.display_sessions.get_sessions():
                 display_id = str(session.hash['session name'])
                 display_state = str(session.hash['state'])
                 display_node = str(session.hash['node'])
@@ -595,3 +650,21 @@ class QSSHSessionWidget(QWidget):
             if not self.reload_thread.isFinished():
                 logger.debug("killing reload thread")
                 self.reload_thread.terminate()
+
+    def sessions_list_names(self):
+
+        sessions_list_name=collections.deque()
+        for sess_name in self.sessions_list:
+            sessions_list_name.append(sess_name[0])
+        return sessions_list_name
+
+    def session_tuple(self):
+        return (self.session_name, self.host, self.user, self.preload)
+
+    def session_find(self,session_name):
+        found=None
+        for session in self.sessions_list:
+            if session[0] == session_name:
+                found=session[1:]
+                break
+        return found

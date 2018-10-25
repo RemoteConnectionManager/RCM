@@ -1,0 +1,156 @@
+{
+    "SCHEDULER": {
+        "label": "Scheduler",
+        "type": "combobox",
+        "choices": {
+            "PBS": {
+                "list": {
+                    "ACCOUNT": {
+                        "label": "Account",
+                        "type": "combobox",
+                        "values": [
+                            "lcalori0",
+                            "a08tra01"
+                        ]
+                    },
+                    "QUEUE": {
+                        "label": "Queue",
+                        "type": "combobox",
+                        "choices": {
+                            "gll_usr_prd": {
+                                "list": {
+                                    "MEMORY": {
+                                        "label": "Memory",
+                                        "type": "slider",
+                                        "values": {
+                                            "min": 1,
+                                            "max": 120
+                                        }
+                                    },
+                                    "CPU": {
+                                        "label": "CPU",
+                                        "type": "slider",
+                                        "values":{
+                                            "min": 1,
+                                            "max": 32
+                                        }
+                                    }
+                                }
+                            },
+                            "gll_sys_prd": {
+                                "list": {
+                                    "MEMORY": {
+                                        "label": "Memory",
+                                        "type": "slider",
+                                        "values": {
+                                            "min": 1,
+                                            "max": 120
+                                        }
+                                    },
+                                    "CPU": {
+                                        "label": "CPU",
+                                        "type": "slider",
+                                        "values":{
+                                            "min": 1,
+                                            "max": 16
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "Slurm": {
+                "list": {
+                    "ACCOUNT": {
+                        "label": "Account",
+                        "type": "combobox",
+                        "values": [
+                            "sbna0000",
+                            "pipo0000"
+                        ]
+                    },
+                    "QUEUE": {
+                        "label": "Queue",
+                        "type": "combobox",
+                        "choices": {
+                            "dav_usr_prd": {
+                                "list": {
+                                    "MEMORY": {
+                                        "label": "Memory",
+                                        "type": "slider",
+                                        "values": {
+                                            "min": 14,
+                                            "max": 105
+                                        }
+                                    },
+                                    "CPU": {
+                                        "label": "CPU",
+                                        "type": "slider",
+                                        "values": {
+                                            "min": 1,
+                                            "max": 33
+                                        }
+                                    }
+                                }
+                            },
+                            "dav_sys_prd": {
+                                "list": {
+                                    "MEMORY": {
+                                        "label": "Memory",
+                                        "type": "slider",
+                                        "values": {
+                                            "min": 1,
+                                            "max": 121
+                                        }
+                                    },
+                                    "CPU": {
+                                        "label": "CPU",
+                                        "type": "slider",
+                                        "values": {
+                                            "min": 1,
+                                            "max": 17
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "DIVIDER": {
+        "type": "divider",
+        "values": {
+            "style": "hline"
+        }
+    },
+    "SESSION": {
+        "label": "Session",
+        "type": "combobox",
+        "choices": {
+            "VNC": {
+                "list": {
+                    "WM": {
+                        "label": "Window Manager",
+                        "type": "combobox",
+                        "values": [
+                            "KDE",
+                            "Fluxbox"
+                        ]
+                    },
+                    "DISPLAY": {
+                        "label": "Display size",
+                        "type": "combobox",
+                        "values": [
+                            "1024x968",
+                            "fullscreen"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

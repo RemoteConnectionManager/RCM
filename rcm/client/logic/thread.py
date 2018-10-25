@@ -34,6 +34,7 @@ class SessionThread(threading.Thread):
                  portnumber=0,
                  tunnelling_method='internal'
                  ):
+        self.ssh_server = None
         self.tunnelling_method = tunnelling_method
         self.auth_method = auth_method
         self.tunnel_command = tunnel_cmd
@@ -57,22 +58,26 @@ class SessionThread(threading.Thread):
 
     def terminate(self):
         self.gui_cmd = None
-        logic_logger.debug('This is thread ' + str(self.threadnum) + ' TERMINATE.')
+        logic_logger.debug('Killing thread ' + str(self.threadnum))
+
+        if self.ssh_server:
+            self.ssh_server.stop()
+
         if self.vnc_process:
-            arguments = 'Args not available on Popen'
+            arguments = 'Args not available in Popen'
             if hasattr(self.vnc_process, 'args'):
                 arguments = str(self.vnc_process.args)
 
-            logic_logger.info("Killing vnc process " + str(self.vnc_process.pid) + " args->" + arguments + "<")
-            logic_logger.debug("Killing vnc process-->" + str(self.vnc_process.pid))
+            logic_logger.debug("Killing vnc process " +
+                               str(self.vnc_process.pid) +
+                               " with args " + arguments)
 
             self.vnc_process.terminate()
-            self.vnc_process = None
 
         if self.tunnel_process:
-            logic_logger.debug("Killing tunnel process-->" + str(self.tunnel_process.pid))
+            logic_logger.debug("Killing tunnel process" +
+                               str(self.tunnel_process.pid))
             self.tunnel_process.terminate()
-            self.tunnel_process = None
 
     def run(self):
         logic_logger.debug('Thread ' + str(self.threadnum) + ' is started')
@@ -113,17 +118,17 @@ class SessionThread(threading.Thread):
                 ssh_password=self.password,
                 remote_bind_address=(self.node, self.portnumber),
                 local_bind_address=('127.0.0.1', self.local_portnumber)
-        ) as tunnel:
-            self.tunnel_process = subprocess.Popen(self.vnc_command,
+        ) as self.ssh_server:
+            self.vnc_process = subprocess.Popen(self.vnc_command,
                                                    bufsize=1,
                                                    stdout=subprocess.PIPE,
                                                    stderr=subprocess.PIPE,
                                                    stdin=subprocess.PIPE,
                                                    shell=True,
                                                    universal_newlines=True)
-            self.tunnel_process.stdin.close()
-            while self.tunnel_process.poll() is None:
-                stdout = self.tunnel_process.stdout.readline()
+            self.vnc_process.stdin.close()
+            while self.vnc_process.poll() is None:
+                stdout = self.vnc_process.stdout.readline()
                 if stdout:
                     logic_logger.debug("output from process: " + stdout.strip())
 
