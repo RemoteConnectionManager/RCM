@@ -151,7 +151,7 @@ class rcm_server(rcm_base_server.rcm_base_server):
           logger = logging.getLogger("basic")    
           logger.debug("get_jobs")
           #bad.. why specify the queue?"(retval,stdout,stderr)=self.prex(['squeue', '-o %i#%t#%j#%a','-h','-p','bdw_usr_dbg','-u',self.username])
-          (retval,stdout,stderr)=self.prex(['squeue', '-o %i#%t#%j#%a','-h','-u',self.username])
+          (retval,stdout,stderr)=self.prex(['squeue', '-o %i#%t#%j#%a','-h', '-a', '-u',self.username])
           logger.debug("squeue output: "+str(retval)+" \n"+str(stdout)+" \n"+str(stderr))
           
           check_rcm_job_string = self.username+"-slurm"
