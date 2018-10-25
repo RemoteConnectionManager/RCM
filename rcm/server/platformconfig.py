@@ -168,6 +168,7 @@ class platformconfig(baseconfig):
 
 
 if __name__ == '__main__':
+    from  versionconfig import versionconfig
     v=versionconfig()
     #print v.sections
     #print v.options
