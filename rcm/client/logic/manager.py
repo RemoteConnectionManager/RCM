@@ -241,14 +241,24 @@ class RemoteConnectionManager:
         if choices:
             choices_string = json.dumps(choices)
             logic_logger.debug("HERE in Newconn, chooices:" + choices_string + " TODO!!!!!!!!!!!")
-        o = self.protocol.new(geometry=geometry,
-                              queue=queue,
-                              sessionname='\'' + sessionname + '\'',
-                              subnet=self.subnet,
-                              vncpassword=vncpassword,
-                              vncpassword_crypted=vncpassword_crypted,
-                              vnc_id=vnc_id,
-                              choices_string=choices_string)
+
+            o = self.protocol.new(geometry=geometry,
+                                  queue=queue,
+                                  sessionname='\'' + sessionname + '\'',
+                                  subnet=self.subnet,
+                                  vncpassword=vncpassword,
+                                  vncpassword_crypted=vncpassword_crypted,
+                                  vnc_id=vnc_id,
+                                  choices_string=choices_string)
+        else:
+            o = self.protocol.new(geometry=geometry,
+                                  queue=queue,
+                                  sessionname='\'' + sessionname + '\'',
+                                  subnet=self.subnet,
+                                  vncpassword=vncpassword,
+                                  vncpassword_crypted=vncpassword_crypted,
+                                  vnc_id=vnc_id)
+
 
         session = rcm.rcm_session(o)
         return session
