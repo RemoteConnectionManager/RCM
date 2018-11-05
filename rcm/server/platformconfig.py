@@ -1,7 +1,6 @@
 import os
 import sys
 import socket
-import ConfigParser
 import enumerate_interfaces
 import string
 import inspect
@@ -25,12 +24,16 @@ class platformconfig(baseconfig):
         self.default_scheduler_name='ssh'
         self.parse()
         self.find_scheduler()
-        self.import_scheduler()
 
-    	config = CascadeYamlConfig()
-    	logger.setLevel(logging.INFO)
-    	SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
-    	self.gui_composer = AutoChoiceGuiComposer(schema=config.conf['schema'],
+        try:
+            self.import_scheduler()
+        except:
+            logger.warning("### import scheduler Failed")
+
+        config = CascadeYamlConfig()
+        logger.setLevel(logging.INFO)
+        SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
+        self.gui_composer = AutoChoiceGuiComposer(schema=config.conf['schema'],
                                                     defaults=config.conf['defaults'],
                                                     class_table={'SCHEDULER': SchedulerManager})
 
@@ -106,8 +109,10 @@ class platformconfig(baseconfig):
 
     def get_queues(self):
         logger.debug("get_queues")
-        logger.debug(self.sections['jobscript'])
-        return self.sections['jobscript']
+        jobscripts=self.sections.get('jobscript',[])
+        logger.debug(jobscripts)
+
+        return jobscripts
     
     def get_queue_par(self,parname=''):
         logger.debug("get_queue_par")
@@ -172,38 +177,34 @@ if __name__ == '__main__':
     v=versionconfig()
     #print v.sections
     #print v.options
-    print "versions-->",v.get_checksum('linux_64bit')
+    print( "versions-->" + str(v.get_checksum('linux_64bit')))
     
     
     p=platformconfig()
     #print p.confdict
     #print p.sections
     #print p.options
-    print "scheduler_name-->"+p.scheduler_name
-    print "session_tag-->"+p.session_tag
-    print "scheduler-->",p.scheduler
+    print ("scheduler_name-->" + p.scheduler_name)
+
     s=dict()
     s['geometry']='100x100'
     s['authfile']='$HOME/myauth'
-    print "\n\n#########################\n\n"
-    for id,m in p.get_vnc_menu().iteritems():
-      print "item id ",id,m[0]," >>",m[1],"<< command>>",p.vnc_attrib_subst(id,'vnc_command',subst=s),"<< setup>>",p.vnc_attribute(id,'module_setup')
-    print "\n\n#########################\n\n"
+    print("\n\n#########################\n\n")
+    for id,m in p.get_vnc_menu().items():
+      print("item id ",id,m[0]," >>",m[1],"<< command>>",p.vnc_attrib_subst(id,'vnc_command',subst=s),"<< setup>>",p.vnc_attribute(id,'module_setup'))
+    print ("\n\n#########################\n\n")
     
-    print p.get_queues()
+    print(p.get_queues())
     for q in p.get_queues() +['inesistente']:
-        print "queue->"+q+"< has job\n--->"+p.get_jobscript(q)+"<------"
-    print "queue visual has:\n",p.get_queue('visual'),"\n---------------------------------"
-    print p.get_testjobs()
+        print("queue->"+q+"< has job\n--->"+p.get_jobscript(q)+"<------")
+    print("queue visual has:\n",p.get_queue('visual'),"\n---------------------------------")
+    print(p.get_testjobs())
     login='rvn03.plx.cineca.it'
     for subnet in ['10.139.7','130.186.1']:
-        print "hack login nameson subnet: ",subnet,login,"-->", p.hack_login(subnet,login)
-    print "get_login-->"+str(p.get_login(subnet))
-    print "instance a server"
-    s=p.get_rcm_server()
-    print "available queues-->"+str(s.get_queue(p.get_testjobs()))
-    
-    print "versions-->",v.get_checksum('linux_64bit')
+        print("hack login nameson subnet: ",subnet,login,"-->", p.hack_login(subnet,login))
+    print("get_login-->"+str(p.get_login(subnet)))
+
+    print("versions-->",v.get_checksum('linux_64bit'))
     
     
     
