@@ -4,16 +4,10 @@ import socket
 import enumerate_interfaces
 import string
 import inspect
-import json 
-import logging
+import json
 from  baseconfig import baseconfig
 from  logger_server import logger
 
-root_rcm_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(root_rcm_path)
-from utils.cascade_yaml_config import *
-from utils.jobscript_composer_base import *
-from utils.scheduler_pbs import *
 
 class platformconfig(baseconfig):
     def __init__(self):
@@ -30,12 +24,6 @@ class platformconfig(baseconfig):
         except:
             logger.warning("### import scheduler Failed")
 
-        config = CascadeYamlConfig()
-        logger.setLevel(logging.INFO)
-        SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
-        self.gui_composer = AutoChoiceGuiComposer(schema=config.conf['schema'],
-                                                    defaults=config.conf['defaults'],
-                                                    class_table={'SCHEDULER': SchedulerManager})
 
     def get_jobscript_json_menu(self):
         display_dialog_ui = self.gui_composer.get_gui_options()
@@ -173,6 +161,21 @@ class platformconfig(baseconfig):
 
 
 if __name__ == '__main__':
+
+    #This is needed, otherwise no default logging happen
+    from utils.jobscript_composer_base import *
+
+    logging.debug("Start test app")
+    for logger_name in ['RCM.composer', 'basic']:
+        logging.getLogger(logger_name).setLevel(logging.INFO)
+
+
+    list_paths = []
+    #list_paths.append(os.path.join(os.environ.get('HOME',''), '.rcm', 'config', 'config.yaml'))
+    list_paths.append('test')
+    config = CascadeYamlConfig(list_paths = list_paths)
+
+
     from  versionconfig import versionconfig
     v=versionconfig()
     #print v.sections

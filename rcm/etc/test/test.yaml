@@ -78,3 +78,17 @@ test:
   SCHEDULER.QUEUE: pbs_preset_queue_1
   SCHEDULER.QUEUE.CPU: 1
   SERVICE.COMMAND: TurboVNC
+
+old:
+  checksum:
+    linux_64bit: c06709a3578faa67672933b9f6c357b0
+    win32_64bit: 9d7d36422681a64011b6aeebc9575b7e
+  url:
+    linux_64bit: https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/RCM_linux_64bit?p=772
+    win32_64bit: https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/RCM_win32_64bit.exe?p=778
+
+  platform:
+    node167: slurm
+    nodepostfix: -ib1
+    maxUserSessions: 10
+    usetunnel: y
