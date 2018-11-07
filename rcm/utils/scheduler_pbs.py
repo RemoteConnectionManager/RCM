@@ -40,8 +40,12 @@ if __name__ == '__main__':
     root_rcm_path = os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
     sys.path.append(root_rcm_path)
 
-    config = CascadeYamlConfig()
+    #This is needed, otherwise no default logging happen
+    logging.debug("Start test app")
+    logger = logging.getLogger('RCM.composer')
     logger.setLevel(logging.INFO)
+
+    config = CascadeYamlConfig(list_paths = [os.path.join(os.environ.get('HOME',''), '.rcm', 'config', 'config.yaml')])
     SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
     root = AutoChoiceGuiComposer(schema=config.conf['schema'],
                                  defaults=config.conf['defaults'],
