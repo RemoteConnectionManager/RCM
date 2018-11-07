@@ -74,7 +74,7 @@ class SchedulerManager(ManagerChoiceGuiComposer):
 
     def __init__(self, *args, **kwargs):
         super(SchedulerManager, self).__init__(*args, **kwargs)
-        print("########### schedulers:", self.SCHEDULERS)
+        logger.debug("########### schedulers:" + str(self.SCHEDULERS))
         if 'list' in self.schema:
             for class_name in self.defaults:
                 logger.debug("handling child  : " + class_name)
@@ -92,7 +92,7 @@ class SchedulerManager(ManagerChoiceGuiComposer):
 
     @classmethod
     def register_scheduler(cls, sched_class_list):
-        print("#### setting class ",cls," to", sched_class_list)
+        logger.debug("#### setting class " + str(cls) + " to " +  str(sched_class_list))
         for sched_class in sched_class_list:
             if sched_class not in  cls.SCHEDULERS:
                 cls.SCHEDULERS.append(sched_class)
