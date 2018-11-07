@@ -2,22 +2,17 @@
 
 defaults:
     SCHEDULER :
-      AnotherLocal :
-        other_stuff :
       Slurm :
         QUEUE :
           gll_usr_prd :
             MEMORY :
               min : 14
-              max : 105
+              max : 115
             CPU :
               max : 33
           skl_usr_prod :
             TIME :
               max : 3600
-        ACCOUNT :
-          - sbna0000
-          - pipo0000
       PBS :
         QUEUE :
           pbs_preset_queue_1 :
@@ -36,10 +31,6 @@ defaults:
               max : 33
             TIME :
               max : 10800
-        ACCOUNT :
-          - someone0
-          - someone1
-        other_stuff :
         substitutions :
           SCHEDULER_HEADER: |
             #PBS -A @{ACCOUNT}
@@ -50,52 +41,15 @@ defaults:
             #PBS -j oe
             #PBS -q @{QUEUE}
 
-      Local :
-        other_stuff :
-
     SERVICE :
-      OtherService :
-        otherstuff :
-        substitutions :
-          SERVICE_START : |
-            # Running -------
-
       VNC :
         COMMAND :
           TurboVNC :
             substitutions :
-              COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd @{WM} "
+              COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd "
             WM :
-              KDE :
-                substitutions :
-                  WM: "-xstartup ${RCM_HOME}/bin/config/xstartup.kde"
               Fluxbox :
                 substitutions :
                   WM: "-xstartup ${RCM_HOME}/bin/config/xstartup.fluxbox"
-              GnomeGL :
-                substitutions :
-                  WM: "-xstartup ${RCM_HOME}/bin/config/xstartup.gnomegl"
-                  WM_FLAGS: " -3dwm "
             DISPLAY :
               - 1024x968
-              - fullscreen
-          OtherVNC :
-            substitutions :
-              COMMAND: "other_vncserver "
-            DISPLAY :
-              - 1024x968
-              - fullscreen
-
-
-test:
-  SERVICE.COMMAND.WM: KDE
-  SCHEDULER.QUEUE.MEMORY: 14
-  SCHEDULER.QUEUE.TIME: 1
-  SERVICE: VNC
-  SCHEDULER: PBS
-  SERVICE.COMMAND.DISPLAY: 1024x968
-  SCHEDULER.ACCOUNT: someone0
-  SCHEDULER.QUEUE: pbs_preset_queue_1
-  SCHEDULER.QUEUE.CPU: 1
-  SERVICE.COMMAND: TurboVNC
-
