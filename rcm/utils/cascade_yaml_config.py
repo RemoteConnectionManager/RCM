@@ -24,15 +24,28 @@ class CascadeYamlConfig:
     """
 
     class __CascadeYamlConfig:
-        def __init__(self, list_paths=None):
+        def __init__(self, list_paths=None, use_default_paths=True, glob_suffix="*.yaml"):
             self._conf = OrderedDict()
+            self.list_paths = []
             if list_paths:
-                self.list_paths = list_paths
+                logger.info("CascadeYamlConfig: list_paths: " + str(list_paths))
+                for path in list_paths:
+                    if os.path.isfile(path) and os.path.exists(path):
+                        self.list_paths.append(path)
+                    else:
+                        if os.path.isdir(path) and os.path.exists(path):
+                            self.list_paths.extend(glob.glob(os.path.join(path, glob_suffix)))
+                        else:
+                            if use_default_paths:
+                                self.list_paths.extend(glob.glob(os.path.join(root_rcm_path, 'etc', path, glob_suffix)))
             else:
-                self.list_paths = glob.glob(os.path.join(root_rcm_path,'etc','defaults', "*.yaml"))
+                use_default_paths = True
+            if use_default_paths:
+                for path in ['etc', os.path.join('etc','defaults')]:
+                    self.list_paths.extend(glob.glob(os.path.join(root_rcm_path, path, glob_suffix)))
 
         def parse(self):
-            logger.debug("CascadeYamlConfig: parsing: " + str(self.list_paths))
+            logger.info("CascadeYamlConfig: parsing: " + str(self.list_paths))
             if self.list_paths:
                 self._conf = utils.hiyapyco.load(
                     *self.list_paths,
@@ -60,9 +73,9 @@ class CascadeYamlConfig:
 
     instance = None
 
-    def __init__(self, listpaths=None):
+    def __init__(self, list_paths=None, use_default_paths=True, glob_suffix="*.yaml"):
         if not CascadeYamlConfig.instance:
-            CascadeYamlConfig.instance = CascadeYamlConfig.__CascadeYamlConfig(listpaths)
+            CascadeYamlConfig.instance = CascadeYamlConfig.__CascadeYamlConfig(list_paths=list_paths, use_default_paths=use_default_paths, glob_suffix=glob_suffix)
             CascadeYamlConfig.instance.parse()
 
     def __getattr__(self, name):
