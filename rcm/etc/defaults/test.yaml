@@ -1,0 +1,80 @@
+# these are the definitions of the possible arguments
+
+defaults:
+    SCHEDULER :
+      Dummy_scheduler_1 :
+        other_stuff :
+      Dummy_PBS :
+        QUEUE :
+          pbs_preset_queue_1 :
+            MEMORY :
+              min : 14
+              max : 105
+            CPU :
+              max : 33
+            TIME :
+              max : 3600
+          dummy_queue_2 :
+            MEMORY :
+              min : 14
+              max : 105
+            CPU :
+              max : 33
+            TIME :
+              max : 10800
+        ACCOUNT :
+          - someone0
+          - someone1
+        other_stuff :
+        substitutions :
+          SCHEDULER_HEADER: |
+            #PBS -A @{ACCOUNT}
+            #PBS -l walltime=@{QUEUE.TIME}
+            #PBS -N $RCM_SESSIONID
+            #PBS -o $RCM_JOBLOG
+            #PBS -l select=1:ncpus=@{QUEUE.CPU}:mem=@{QUEUE.MEMORY}Gb
+            #PBS -j oe
+            #PBS -q @{QUEUE}
+
+    SERVICE :
+      OtherService :
+        otherstuff :
+        substitutions :
+          SERVICE_START : |
+            # Running -------
+
+      VNC :
+        COMMAND :
+          TurboVNC :
+            substitutions :
+              COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd @{WM} "
+            WM :
+              KDE :
+                substitutions :
+                  WM: "-xstartup ${RCM_HOME}/bin/config/xstartup.kde"
+              GnomeGL :
+                substitutions :
+                  WM: "-xstartup ${RCM_HOME}/bin/config/xstartup.gnomegl"
+                  WM_FLAGS: " -3dwm "
+            DISPLAY :
+              - fullscreen
+          OtherVNC :
+            substitutions :
+              COMMAND: "other_vncserver "
+            DISPLAY :
+              - 1024x968
+              - fullscreen
+
+
+
+test:
+  SERVICE.COMMAND.WM: KDE
+  SCHEDULER.QUEUE.MEMORY: 14
+  SCHEDULER.QUEUE.TIME: 1
+  SERVICE: VNC
+  SCHEDULER: Dummy_PBS
+  SERVICE.COMMAND.DISPLAY: 1024x968
+  SCHEDULER.ACCOUNT: someone0
+  SCHEDULER.QUEUE: pbs_preset_queue_1
+  SCHEDULER.QUEUE.CPU: 1
+  SERVICE.COMMAND: TurboVNC
