@@ -364,11 +364,18 @@ if __name__ == "__main__":
     from utils.jobscript_composer_base import *
     from utils.scheduler_pbs import *
 
-    config = CascadeYamlConfig()
+    #This is needed, otherwise no default logging happen
+    logging.debug("Start test app")
+    logger = logging.getLogger('RCM.composer')
     logger.setLevel(logging.INFO)
+
+    list_paths = []
+    #list_paths.append(os.path.join(os.environ.get('HOME',''), '.rcm', 'config', 'config.yaml'))
+    list_paths.append('test')
+    config = CascadeYamlConfig(list_paths = list_paths)
     SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
     root = AutoChoiceGuiComposer(schema=config.conf['schema'],
-                                                    defaults=config.conf['defaults'],
+                                                    defaults=config.conf.get('defaults', None),
                                                     class_table={'SCHEDULER': SchedulerManager})
     display_dialog_ui = root.get_gui_options()
 

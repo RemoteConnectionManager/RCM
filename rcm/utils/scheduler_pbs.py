@@ -45,7 +45,10 @@ if __name__ == '__main__':
     logger = logging.getLogger('RCM.composer')
     logger.setLevel(logging.INFO)
 
-    config = CascadeYamlConfig(list_paths = [os.path.join(os.environ.get('HOME',''), '.rcm', 'config', 'config.yaml')])
+    list_paths = []
+    #list_paths.append(os.path.join(os.environ.get('HOME',''), '.rcm', 'config', 'config.yaml'))
+    list_paths.append('test')
+    config = CascadeYamlConfig(list_paths = list_paths)
     SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
     root = AutoChoiceGuiComposer(schema=config.conf['schema'],
                                  defaults=config.conf['defaults'],
