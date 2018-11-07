@@ -21,6 +21,8 @@ class BaseScheduler(ManagedChoiceGuiComposer):
         :param schema: accept a schema to override schema that are retrieved through CascadeYamlConfig singleton
         """
         merged_defaults = copy.deepcopy(kwargs['defaults'])
+        if merged_defaults == None:
+            merged_defaults = OrderedDict()
         for param in ['ACCOUNT', 'QUEUE']:
             if param in kwargs:
                 logger.debug("---------------------------------")
@@ -75,7 +77,7 @@ class SchedulerManager(ManagerChoiceGuiComposer):
     def __init__(self, *args, **kwargs):
         super(SchedulerManager, self).__init__(*args, **kwargs)
         logger.debug("########### schedulers:" + str(self.SCHEDULERS))
-        if 'list' in self.schema:
+        if 'list' in self.schema and hasattr(self.defaults, 'get'):
             for class_name in self.defaults:
                 logger.debug("handling child  : " + class_name)
                 managed_class = ManagedChoiceGuiComposer
