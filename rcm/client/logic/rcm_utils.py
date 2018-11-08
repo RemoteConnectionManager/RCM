@@ -102,10 +102,10 @@ class pack_info:
         if os.path.exists(build_platform_filename):
             logic_logger.debug("Reading build platform file " + build_platform_filename)
             with open(build_platform_filename, "r") as f:
-                self.buildPlatformString = f.readline()
+                self.buildPlatformString = f.readline().strip()
                 self.rcmVersion = f.readline()
-                logic_logger.debug(self.buildPlatformString)
-                logic_logger.debug(self.rcmVersion)
+                logic_logger.debug("buildPlatformString=>>" + self.buildPlatformString + "<")
+                logic_logger.debug("rcmVersion=>>" + self.rcmVersion + "<")
 
 
 def get_unused_portnumber():
