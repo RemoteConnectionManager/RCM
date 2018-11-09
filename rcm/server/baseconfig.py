@@ -74,10 +74,10 @@ class baseconfig:
             configfile = os.path.join(self.config_path, self.filename)
         logger.debug("config file : " + configfile)
         if not os.path.exists(configfile):
-            print("WARNING FIRST TRY missing platform file -->" + configfile)
+            logger.debug("WARNING FIRST TRY missing platform file -->" + configfile)
             configfile = os.path.join(self.config_path_other, self.filename)
             if not os.path.exists(configfile):
-                print("WARNING NO WAY missing platform file -->" + configfile)
+                logger.debug("WARNING NO WAY missing platform file -->" + configfile)
                 return False
 #    print "parsing configfile-->",configfile
         config.read(configfile)
