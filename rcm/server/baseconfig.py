@@ -8,14 +8,15 @@ if sys.version_info.major == 3:
 else:
     import ConfigParser
 
-from  logger_server import logger
 
-#new
+# new
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root_rcm_path)
 from utils.cascade_yaml_config import *
 from utils.jobscript_composer_base import *
 from utils.scheduler_pbs import *
+
+from  logger_server import logger
 
 
 class baseconfig:
@@ -24,7 +25,7 @@ class baseconfig:
         self.confdict = dict()
         self.sections = dict()
         self.options = dict()
-        self.filename =''
+        self.filename = ''
         self.config_path = os.path.join(
             os.path.dirname(
                 os.path.dirname(
