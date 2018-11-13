@@ -49,7 +49,7 @@ class rcm_base_server:
         self.substitutions['RCM_MODULE_SETUP']= self.vnc_setup
         self.substitutions['RCM_VNCSERVER'] = self.pconfig.vnc_attrib_subst(id,'vnc_command',subst=self.substitutions)
 
-	#print "set vnc_setup to-->"+self.vnc_setup
+       #print "set vnc_setup to-->"+self.vnc_setup
 
     
     def get_checksum(self,buildPlatformString=''):
@@ -94,8 +94,8 @@ class rcm_base_server:
                 group="cin_visual"
             return group
     def get_jobs(self, U=False):    
-	    sys.stderr.write( "\ncalled generic get_jobs: THIS SHOULD NEVER BE PRINTED!!!!!!")
-	    return dict()
+        sys.stderr.write( "\ncalled generic get_jobs: THIS SHOULD NEVER BE PRINTED!!!!!!")
+        return dict()
 
     def get_rcmdirs(self,U=False):
         logger.debug("get_rcmdirs")
@@ -122,11 +122,11 @@ class rcm_base_server:
                 timedelta = datetime.timedelta(0)
             timeleft = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
             return timeleft
-	
+       
 
-	except Exception,inst:
-		#sys.stderr.write("session->%s RCM:EXCEPTION %s: %s " % (sid,inst, traceback.format_exc()))
-                #print("exception in getting time:",type(inst),inst.args,file=sys.stderr)
+        except Exception,inst:
+            #sys.stderr.write("session->%s RCM:EXCEPTION %s: %s " % (sid,inst, traceback.format_exc()))
+            #print("exception in getting time:",type(inst),inst.args,file=sys.stderr)
 
    		return self.notimeleft_string
   
@@ -201,10 +201,10 @@ class rcm_base_server:
                                 #originalNodeLogin = self.sessions[sid].hash['nodelogin']
                                 self.sessions[sid].hash['nodelogin'] = self.pconfig.confdict.get((self.subnet,originalNodeLogin),originalNodeLogin)
 
-			    self.sessions[sid].hash['timeleft']=self.timeleft_string(sid)
+                            self.sessions[sid].hash['timeleft']=self.timeleft_string(sid)
                         except Exception,inst:
                                 #print("WARNING: not valid session file %s: %s\n" % (file, e),type(inst),inst.args,file=sys.stderr)
-				sys.stderr.write("%s: %s RCM:EXCEPTION" % (inst, traceback.format_exc()))
+        			            sys.stderr.write("%s: %s RCM:EXCEPTION" % (inst, traceback.format_exc()))
 #                            raise Exception("WARNING: not valid session file %s: %s\n" % (file, e))
 
          
@@ -339,11 +339,11 @@ class rcm_base_server:
         logger.debug("execute_new")
         self.clean_pids_string="""
 for d_p in $(vncserver  -list | grep ^: | cut -d: -f2 | cut -f 1,3 --output-delimiter=@); do
-	i=$(echo $d_p | cut -d@ -f2)
-	d=$(echo $d_p | cut -d@ -f1)
-	a=$(ps -p $i -o comm=)
-	if [ "x$a" == "x" ] ; then 
-	  vncserver -kill  :$d 1>/dev/null
+        i=$(echo $d_p | cut -d@ -f2)
+        d=$(echo $d_p | cut -d@ -f1)
+        a=$(ps -p $i -o comm=)
+        if [ "x$a" == "x" ] ; then 
+          vncserver -kill  :$d 1>/dev/null
  	fi
 done"""
         if(self.subnet): self.nodelogin = self.pconfig.get_login(self.subnet)
@@ -370,7 +370,7 @@ done"""
             #vncpasswd_command = self.vnc_setup +  "; echo -e " + self.vncpassword + " | vncpasswd -f > " + fileout
             vncpasswd_command = "/bin/bash -c '" + self.vnc_setup +  "; echo -e " + self.vncpassword + " | vncpasswd -f > " + fileout +"'"
             print vncpasswd_command
-	    myprocess = subprocess.Popen([vncpasswd_command],stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+            myprocess = subprocess.Popen([vncpasswd_command],stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
             stdout,stderr = myprocess.communicate()
             print "vncpasswd_command stdout" + stdout
             print "vncpasswd_command stderr" + stderr
@@ -384,15 +384,15 @@ done"""
             (n,d,otp)=self.wait_jobout(sid,240)
             #here we test if hostname returned by jobout is the same host (ssh case)
             if(n == socket.gethostname()): 
-		#print "setto il tunnel a ", self.get_use_tunnel()
+        	#print "setto il tunnel a ", self.get_use_tunnel()
                 tunnel=self.get_use_tunnel()
             else:
                 tunnel='y'
             n+=self.pconfig.confdict.get(('platform','nodepostfix'),'')
 #        except Exception as e:
         except Exception,inst:
-	    sys.stderr.write("%s: %s RCM:EXCEPTION" % (inst, traceback.format_exc()))
-		    
+            sys.stderr.write("%s: %s RCM:EXCEPTION" % (inst, traceback.format_exc()))
+        	    
             c=rcm.rcm_session(state='invalid',sessionid=sid)
             c.serialize(file)
             if (jid != 'NOT_SUBMITTED'):
@@ -405,9 +405,9 @@ done"""
         return c
 
 if __name__ == '__main__':
-	s=rcm_base_server()
-	print "accounts:",s.getUserAccounts()
-	print "rcmdirs:",s.get_rcmdirs()
-	print "fill_sessions_hash:",s.fill_sessions_hash()
-	print "load sessions:",s.load_sessions()
-	print "vnc_setup for turbovnc:",s.set_vnc_setup('kde_turbovnc_vnc')
+    s=rcm_base_server()
+    print "accounts:",s.getUserAccounts()
+    print "rcmdirs:",s.get_rcmdirs()
+    print "fill_sessions_hash:",s.fill_sessions_hash()
+    print "load sessions:",s.load_sessions()
+    print "vnc_setup for turbovnc:",s.set_vnc_setup('kde_turbovnc_vnc')
