@@ -3,7 +3,7 @@ import types
 import rcm_protocol_server
 import optparse
 import sys
-from  logger_server import logger
+from  logger_server import logger, logger_setup
 
 class CommandParser:
     args = ''
@@ -11,7 +11,7 @@ class CommandParser:
     functions=dict()
     parameters=dict()
     for name,fn in inspect.getmembers(rcm_protocol_server.rcm_protocol):
-        if isinstance(fn, types.UnboundMethodType) and name != '__init__':
+        if isinstance(fn, types.MethodType) and name != '__init__':
             f_args=inspect.getargspec(fn)[0]
             functions[str(name)]=(fn,f_args)
             help+="\n --command="+str(name)
@@ -23,6 +23,7 @@ class CommandParser:
     #print help
                 #setattr(rcm.rcm_protocol, name, dec2(fn))
     parser=optparse.OptionParser(usage=help)
+    parser.add_option("--debug", type='int', default=0, help='set debug level')
     parser.add_option("--command",default=False,help='set the api command '+ str(functions.keys()))
     for p in parameters.keys() :
       parser.add_option(parameters[p],default='',help='set the ' + p + ' parameter' )
@@ -39,6 +40,7 @@ class CommandParser:
         (o,a)=CommandParser.parser.parse_args()
       options=o.__dict__
 #      print "options-->",options
+      logger_setup(options['debug'])
 
  #      options=o.Values
       fname=options['command']
@@ -66,7 +68,7 @@ class CommandParser:
 if __name__ == '__main__':
 
 
-    print "testing rcm_protocol_parser .................................."
+    print("testing rcm_protocol_parser ..................................")
 
 
     import dummy_rcm_scheduler
