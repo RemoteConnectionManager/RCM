@@ -61,9 +61,9 @@ class baseconfig:
                     if value == self.confdict[(s, o)]:
                         logger.info("MATCH OK " + str((s, o)))
                     else:
-                        logger.info("MATCH FAIL " + str((s, o)) + "previous:" + str(self.confdict[(s, o)]) + "new:" + str(value))
+                        logger.warning("MATCH FAIL " + str((s, o)) + "previous:" + str(self.confdict[(s, o)]) + "new:" + str(value))
                 else:
-                    logger.info("NEW "+ str((s, o)) + "==>" + str(value))
+                    logger.debug("NEW "+ str((s, o)) + "==>" + str(value))
                 self.confdict[(s, o)] = value
                 self.sections[s] = self.sections.get(s, []) + [o]
                 self.options[o] = self.options.get(o, []) + [s]
