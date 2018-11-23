@@ -14,17 +14,21 @@ import rcm_protocol_server
 import rcm_protocol_parser
 import sys
 import platformconfig
-from  logger_server import logger, logger_setup
+
+import  logger_server
+import logging
+logger = logging.getLogger("RCM." + __name__)
+
 
 if __name__ == '__main__':
 
     #logger_setup(0)
-    string_info="run--->"+__file__+" "
+    string_info = " "
     for a in sys.argv[1:]:
         string_info+=a+" "
-    string_debug = "python->" + sys.executable
-    logger.info(string_info)
-    logger.debug(string_debug)
+
+    logger.info(__file__ + string_info)
+    logger.debug(sys.executable + " "+ os.path.abspath(__file__) + string_info)
 
     #launch rcm
     #logger_setup(1)

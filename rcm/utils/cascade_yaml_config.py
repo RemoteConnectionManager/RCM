@@ -28,6 +28,14 @@ class CascadeYamlConfig:
             self._conf = OrderedDict()
             self.list_paths = []
             if list_paths:
+                input_list_paths = list_paths
+            else:
+                input_list_paths = []
+            if use_default_paths:
+                env_config_path = os.environ.get("RCM_CONFIG_PATH", None)
+                if env_config_path:
+                    input_list_paths.append(env_config_path)
+            if list_paths:
                 logger.info("CascadeYamlConfig: list_paths: " + str(list_paths))
                 for path in list_paths:
                     if os.path.isfile(path) and os.path.exists(path):
@@ -41,8 +49,10 @@ class CascadeYamlConfig:
             else:
                 use_default_paths = True
             if use_default_paths:
-                for path in ['etc', os.path.join('etc','defaults')]:
+                for path in ['etc', os.path.join('etc', 'defaults')]:
                     self.list_paths.extend(glob.glob(os.path.join(root_rcm_path, path, glob_suffix)))
+
+            self.list_paths.reverse()
 
         def parse(self):
             logger.info("CascadeYamlConfig: parsing: " + str(self.list_paths))
@@ -56,7 +66,6 @@ class CascadeYamlConfig:
 
         @property
         def conf(self):
-            logger.debug("Getting value")
             return copy.deepcopy(self._conf)
 
         def __getitem__(self, nested_key_list=None):

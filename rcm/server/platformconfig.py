@@ -6,7 +6,10 @@ import string
 import inspect
 import json
 from  baseconfig import baseconfig
-from  logger_server import logger
+
+import logging
+logger = logging.getLogger("RCM." + __name__)
+#from  logger_server import logger
 
 
 class platformconfig(baseconfig):

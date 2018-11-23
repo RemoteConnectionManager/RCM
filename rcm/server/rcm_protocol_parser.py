@@ -3,7 +3,9 @@ import types
 import rcm_protocol_server
 import optparse
 import sys
-from  logger_server import logger, logger_setup
+import logger_server
+import logging
+logger = logging.getLogger("RCM." + __name__)
 
 class CommandParser:
     args = ''
@@ -40,7 +42,7 @@ class CommandParser:
         (o,a)=CommandParser.parser.parse_args()
       options=o.__dict__
 #      print "options-->",options
-      logger_setup(options['debug'])
+      logger_server.logger_server.logger_setup(options['debug'])
 
  #      options=o.Values
       fname=options['command']

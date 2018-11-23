@@ -16,7 +16,10 @@ from utils.cascade_yaml_config import *
 from utils.jobscript_composer_base import *
 from utils.scheduler_pbs import *
 
-from  logger_server import logger
+import  logger_server
+
+logger = logging.getLogger("RCM." + __name__)
+
 
 
 class baseconfig:
@@ -45,6 +48,8 @@ class baseconfig:
             list_paths.append(os.path.join(basepath, nodelogin + '.yaml'))
 
         self.cascade_config = CascadeYamlConfig(list_paths)
+        logger.debug("setting logging levels " + str(self.cascade_config.conf.get('logging',dict())))
+        logger_server.logger_server.config(self.cascade_config.conf.get('logging',dict()))
 
     def cascade_parse(self):
 
