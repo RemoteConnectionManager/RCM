@@ -12,8 +12,11 @@ class VNCClientCommandLineBuilder:
         self.command_line = ""
 
     def build(self):
+        if  sys.platform == 'darwin':
+            return
+            
         exe = rcm_utils.which('vncviewer')
-        if not exe:
+        if not exe :
             logic_logger.error("vncviewer not found! Check the PATH environment variable.")
             return
         if sys.platform == 'win32':
