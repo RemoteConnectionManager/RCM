@@ -1,0 +1,4 @@
+schedulers:
+  - 'lib.scheduler.SlurmScheduler'
+  - 'lib.scheduler.PBSScheduler'
+  - 'lib.scheduler.OSScheduler'
