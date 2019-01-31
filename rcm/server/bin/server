@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import argparse
+import copy
+import logging
+import logging.config
+
+
+# set prefix.
+current_file = os.path.realpath(os.path.expanduser(__file__))
+current_prefix = os.path.dirname(os.path.dirname(current_file))
+
+# Add lib folder in current prefix to default  import path
+current_lib_path = os.path.join(current_prefix, "lib")
+current_etc_path = os.path.join(current_prefix, "etc")
+sys.path.insert(0, current_lib_path)
+
+logging.config.fileConfig(os.path.join(current_etc_path, 'logging.conf'))
+
+# create logger
+logger = logging.getLogger('rcmServer')
+
+logger.debug("__file__:" + os.path.realpath(__file__))
