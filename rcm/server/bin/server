@@ -24,6 +24,8 @@ sys.path.insert(0, current_utils_path)
 
 # local import
 from manager import SessionManager
+from api import ServerAPI
+from cgi import CommandParser
 
 
 logging.config.fileConfig(os.path.join(current_etc_path, 'logging.conf'))
@@ -35,3 +37,7 @@ logger.debug("started server from file " + os.path.realpath(__file__))
 
 session_manager = SessionManager()
 session_manager.init()
+
+api = ServerAPI()
+parser = CommandParser(api)
+parser.handle()
