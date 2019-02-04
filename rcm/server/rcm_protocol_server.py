@@ -66,7 +66,7 @@ class rcm_protocol:
             s.add_session(self.rcm_server.sessions[sid])
         s.write()
 
-    def new(self,geometry='',queue='',sessionname='',subnet='',vncpassword='',vncpassword_crypted='',vnc_id=''): 
+    def new(self,geometry='',queue='',sessionname='',subnet='',vncpassword='',vncpassword_crypted='',vnc_id='', choices_string=''):
         logger.debug("new")
         print("create new vnc display session")
         if(subnet): self.rcm_server.subnet = subnet
