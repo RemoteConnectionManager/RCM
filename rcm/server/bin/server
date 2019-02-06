@@ -23,7 +23,7 @@ sys.path.insert(0, current_utils_path)
 
 import manager
 import api
-import cgi
+import parser
 
 
 logging.config.fileConfig(os.path.join(current_etc_path, 'logging.conf'))
@@ -37,6 +37,6 @@ session_manager = manager.SessionManager()
 session_manager.init()
 
 server_api = api.ServerAPIs()
-parser = cgi.CommandParser(server_api)
+parser = parser.CommandParser(server_api)
 # parser.handle()
 parser.handle(["--command=config","--build_platform=linux"])
