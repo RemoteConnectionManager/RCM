@@ -1,12 +1,12 @@
 #
 
 
-class Service:
+class Service(object):
     def __init__(self):
         self.name = ""
 
 
 class TurboVNCServer(Service):
     def __init__(self):
-        super().__init__()
+        super(TurboVNCServer, self).__init__()
         self.name = "TurboVNC"

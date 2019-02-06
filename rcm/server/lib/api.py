@@ -1,4 +1,9 @@
+# std import
 import logging
+
+# local import
+import manager
+import rcm
 
 logger = logging.getLogger('rcmServer')
 
@@ -15,24 +20,29 @@ class ServerAPIs:
       - kill a session
     """
 
-    def __init__(self, rcm_server=None):
-        self.rcm_server = rcm_server
+    def __init__(self):
+        self.session_manager = manager.SessionManager()
+        self.session_manager.init()
 
     def config(self, build_platform=''):
         logger.debug("calling api config")
-        # conf=rcm.rcm_config()
-        # if(build_platform):
-        #     (check,url)=self.rcm_server.get_checksum(build_platform)
-        #     conf.set_version(check,url)
+
+        conf = rcm.rcm_config()
+        if build_platform:
+            (checksum, url) = self.session_manager.get_checksum_and_url(build_platform)
+            conf.set_version(checksum, url)
+
+        # old code
         # queueList = self.rcm_server.get_queue()
         # for q in queueList:
         #     conf.add_queue(q)
         # for vnc_id,menu_entry in self.rcm_server.pconfig.get_vnc_menu().items():
         #     conf.add_vnc(vnc_id,menu_entry)
-        # jobscript_json_menu = self.rcm_server.pconfig.get_jobscript_json_menu()
-        # if jobscript_json_menu :
-        #     conf.config['jobscript_json_menu']=jobscript_json_menu
-        # conf.serialize()
+
+        jobscript_json_menu = self.session_manager.get_jobscript_json_menu()
+        if jobscript_json_menu:
+            conf.config['jobscript_json_menu'] = jobscript_json_menu
+        conf.serialize()
 
     def version(self, build_platform=''):
         logger.debug("calling api version")

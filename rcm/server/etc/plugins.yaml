@@ -1,7 +1,7 @@
 schedulers:
-  - 'lib.scheduler.SlurmScheduler'
-  - 'lib.scheduler.PBSScheduler'
-  - 'lib.scheduler.OSScheduler'
+  - 'scheduler.SlurmScheduler'
+  - 'scheduler.PBSScheduler'
+  - 'scheduler.OSScheduler'
 
 services:
-  - 'lib.service.TurboVNCServer'
+  - 'service.TurboVNCServer'
