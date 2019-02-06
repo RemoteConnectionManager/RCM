@@ -13,6 +13,12 @@ logger = logging.getLogger('rcmServer')
 
 
 class SessionManager:
+    """
+    The manager class.
+    It is responsible to load from file the scheduler and service plugins.
+    List of schedulers and services is written in a configuration yaml file
+    """
+
     def __init__(self):
         self.schedulers = dict()
         self.services = dict()
