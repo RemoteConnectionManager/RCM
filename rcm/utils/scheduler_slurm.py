@@ -52,7 +52,7 @@ class SlurmScheduler(BatchScheduler):
         logger.debug("Slurm get queues !!!!")
         sinfo = self.commands.get('sinfo', None)
         if sinfo:
-            raw_output = sinfo('--format=%P',
+            raw_output = sinfo('--format=%R',
                                output=str)
             partitions = []
             for l in raw_output.splitlines()[1:]:

@@ -4,15 +4,38 @@ defaults:
     SCHEDULER :
       Slurm :
         QUEUE :
-          gll_usr_prd :
+          gll_all_serial :
             MEMORY :
-              min : 14
-              max : 115
+              min : 4
+              max : 16
+            TIME :
+              max : 7200
             CPU :
-              max : 33
-          skl_usr_prod :
+              max : 2
+          gll_usr_gpuprod :
+            MEMORY :
+              min : 4
+              max : 16
             TIME :
               max : 3600
+            CPU :
+              min : 4
+              max : 24
+          gll_usr_prod :
+            TIME :
+              max : 3600
+            CPU :
+              max : 31
+        substitutions :
+          SCHEDULER_HEADER: |
+            #!/bin/bash
+            #SBATCH --time=@{QUEUE.TIME}
+            #SBATCH --job-name=$RCM_SESSIONID
+            #SBATCH --output $RCM_JOBLOG
+            #SBATCH -N 1 -n @{QUEUE.CPU} --mem=@{QUEUE.MEMORY}GB gres=gpu:kepler:1
+            #SBATCH -A @{ACCOUNT}
+            #SBATCH --partition=@{QUEUE}
+            #
       PBS :
         QUEUE :
           pbs_preset_queue_1 :
