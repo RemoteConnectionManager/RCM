@@ -10,7 +10,7 @@ import logging.config
 # set prefix.
 current_file = os.path.realpath(os.path.expanduser(__file__))
 current_path = os.path.dirname(os.path.dirname(current_file))
-dir_path = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
+dir_path = os.path.dirname(current_path)
 
 # Add lib folder in current prefix to default  import path
 current_lib_path = os.path.join(current_path, "lib")
@@ -19,13 +19,11 @@ current_utils_path = os.path.join(dir_path, "utils")
 
 sys.path.insert(0, current_path)
 sys.path.insert(0, current_lib_path)
-sys.path.insert(0, current_etc_path)
 sys.path.insert(0, current_utils_path)
 
-# local import
-from manager import SessionManager
-from api import ServerAPI
-from cgi import CommandParser
+import manager
+import api
+import cgi
 
 
 logging.config.fileConfig(os.path.join(current_etc_path, 'logging.conf'))
@@ -35,9 +33,9 @@ logger = logging.getLogger('rcmServer')
 
 logger.debug("started server from file " + os.path.realpath(__file__))
 
-session_manager = SessionManager()
+session_manager = manager.SessionManager()
 session_manager.init()
 
-api = ServerAPI()
-parser = CommandParser(api)
+server_api = api.ServerAPI()
+parser = cgi.CommandParser(server_api)
 parser.handle()
