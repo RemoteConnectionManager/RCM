@@ -42,8 +42,10 @@ class BaseGuiComposer(object):
         self.templates = copy.deepcopy(self.schema.get('substitutions', OrderedDict()))
         if hasattr(self.defaults, 'get'):
             default_subst = copy.deepcopy(self.defaults.get('substitutions', OrderedDict()))
-            for key in default_subst:
-                self.templates[key] = default_subst[key]
+            #needed to prevent crash when key susbstitutions has no following substitutions
+            if hasattr(default_subst, '__getitem__'):
+                for key in default_subst:
+                    self.templates[key] = default_subst[key]
         logger.debug(" template: " + self.__class__.__name__ + ": " + str(self.NAME) + " " + str(self.templates))
 
     def substitute(self, choices):
