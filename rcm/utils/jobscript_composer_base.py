@@ -47,6 +47,10 @@ class BaseGuiComposer(object):
                 for key in default_subst:
                     self.templates[key] = default_subst[key]
         logger.debug(" template: " + self.__class__.__name__ + ": " + str(self.NAME) + " " + str(self.templates))
+        for d in [self.schema, self.defaults]:
+            if 'substitutions' in d:
+                del d['substitutions']
+
 
     def substitute(self, choices):
         t = ""
