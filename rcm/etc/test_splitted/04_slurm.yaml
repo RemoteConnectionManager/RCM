@@ -1,0 +1,64 @@
+# these are the definitions of the possible arguments
+
+defaults:
+    SCHEDULER :
+      Slurm :
+        QUEUE :
+          substitutions:
+            QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES_STRING}"
+          gll_all_serial :
+            MEMORY :
+              min : 4
+              max : 16
+            TIME :
+              max : 7200
+            CPU :
+              max : 2
+          gll_usr_gpuprod :
+            MEMORY :
+              min : 4
+              max : 16
+            TIME :
+              max : 3600
+            CPU :
+              min : 4
+              max : 24
+            GRES :
+              Kepler :
+                substitutions :
+                  GRES_STRING: "gres=gpu:kepler:1"
+              Kepler2 :
+                substitutions :
+                  GRES_STRING: "gres=gpu:kepler:2"
+              None :
+                substitutions :
+                  GRES_STRING: ""
+          gll_usr_prod :
+            TIME :
+              max : 3600
+            CPU :
+              max : 31
+        substitutions :
+          SCHEDULER_HEADER: |
+            #!/bin/bash
+            #SBATCH --time=@{QUEUE.TIME}
+            #SBATCH --job-name=$RCM_SESSIONID
+            #SBATCH --output $RCM_JOBLOG
+            #SBATCHold  -N 1 -n @{QUEUE.CPU} --mem=@{QUEUE.MEMORY}GB @{QUEUE.GRES_STRING}
+            #SBATCHold1  -N 1 -n @{QUEUE.CPU} --mem=@{QUEUE.MEMORY}GB @{QUEUE.GRES.GRES_STRING}
+            #SBATCHnew -N 1 @{QUEUE_PAR} 
+            #SBATCH -A @{ACCOUNT}
+            #SBATCH --partition=@{QUEUE}
+            #
+
+    SERVICE :
+      VNC :
+        COMMAND :
+          X11VNC :
+            substitutions :
+              COMMAND: "x11vncserver $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd "
+            DISPLAY :
+              - 1024x968
+              - 1000x1000
+
+              

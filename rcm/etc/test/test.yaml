@@ -89,6 +89,6 @@ old:
 
   platform:
     node167: slurm
-    nodepostfix: -ib1
+#    nodepostfix: -ib1
     maxUserSessions: 10
     usetunnel: y

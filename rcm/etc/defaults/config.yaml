@@ -33,6 +33,10 @@ schema:
         label : 'Queue'
         type : 'combobox'
         list :
+          substitutions:
+            QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES_STRING}"
+            GRES_STRING: ""
+
           MEMORY :
             label : 'Memory'
             type : 'slider'
@@ -51,6 +55,12 @@ schema:
             values :
               min : 1
               max : 360000
+          GRES :
+            label : 'GPU'
+            type : 'combobox'
+            list :
+              substitutions :
+                GRES_STRING: ""
 
   DIVIDER:
     type: 'divider'
@@ -75,12 +85,15 @@ schema:
         label : 'Command'
         type : 'combobox'
         list :
+          substitutions :
+            COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd  @{WM_COMMAND "
+
           WM :
             label : 'Window Manager'
             type : 'combobox'
             list:
               substitutions :
-                WM: ""
+                WM_COMMAND: ""
                 WM_FLAGS: ""
 
           DISPLAY :

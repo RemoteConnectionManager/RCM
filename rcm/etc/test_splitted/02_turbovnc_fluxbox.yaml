@@ -1,0 +1,16 @@
+defaults:
+
+    SERVICE :
+      VNC :
+        COMMAND :
+          TurboVNC :
+            substitutions :
+              COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth  $RCM_JOBLOG.pwd  @{WM_COMMAND} "
+            WM :
+              Fluxbox :
+                substitutions :
+                  WM_COMMAND: "-xstartup ${RCM_HOME}/bin/config/xstartup.fluxbox"
+            DISPLAY :
+              - 1024x968
+              - 1000x1000
+
