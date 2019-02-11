@@ -369,16 +369,18 @@ if __name__ == "__main__":
     logger = logging.getLogger('RCM.composer')
     logger.setLevel(logging.INFO)
 
-    list_paths = []
+#    print("sys.argv",sys.argv[1:])
+
+    list_paths = sys.argv[1:]
     #list_paths.append(os.path.join(os.environ.get('HOME',''), '.rcm', 'config', 'config.yaml'))
-    list_paths.append('test')
     config = CascadeYamlConfig(list_paths = list_paths)
     SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
-    root = AutoChoiceGuiComposer(schema=config.conf['schema'],
+    root = AutoChoiceGuiComposer( schema=config.conf['schema'],
                                                     defaults=config.conf.get('defaults', None),
                                                     class_table={'SCHEDULER': SchedulerManager})
-    display_dialog_ui = root.get_gui_options()
 
+    display_dialog_ui = root.get_gui_options()
+    print(display_dialog_ui)
     def print_result(choices):
         print(json.dumps(choices, indent=4))
         res = root.substitute(choices)
