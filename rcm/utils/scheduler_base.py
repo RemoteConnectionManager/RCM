@@ -88,6 +88,9 @@ class SchedulerManager(ManagerChoiceGuiComposer):
                 child = managed_class(name=class_name,
                                       schema=copy.deepcopy(self.schema['list']),
                                       defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
+                # here we override child shema_name, as is neede to be different from instance class name
+                # WARNING.... external set of member variable outside object methods
+                child.schema_name=self.NAME
                 if child.working:
                     self.add_child(child)
 

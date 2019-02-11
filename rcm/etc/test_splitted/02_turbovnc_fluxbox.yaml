@@ -5,7 +5,7 @@ defaults:
         COMMAND :
           TurboVNC :
             substitutions :
-              COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth  $RCM_JOBLOG.pwd  @{WM_COMMAND} "
+              COMMAND_LINE: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth  $RCM_JOBLOG.pwd  @{WM_COMMAND} "
             WM :
               Fluxbox :
                 substitutions :

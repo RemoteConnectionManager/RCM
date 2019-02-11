@@ -11,6 +11,10 @@ logging:
 schema:
 
   substitutions :
+    SCHEDULER: ""
+    SCHEDULER_HEADER: ""
+    SERVICE: ""
+    SERVICE_START: ""
     SCRIPT: |
       #!/bin/bash
       # Using scheduler @{SCHEDULER}
@@ -60,7 +64,7 @@ schema:
             type : 'combobox'
             list :
               substitutions :
-                GRES_STRING: ""
+
 
   DIVIDER:
     type: 'divider'
@@ -72,9 +76,10 @@ schema:
     type: 'combobox'
     list :
       substitutions :
+        COMMAND_LINE: ""
         SERVICE_START : |
-          # Running command
-          @{COMMAND}
+          # Running service app @{COMMAND}
+          @{COMMAND_LINE}
 
 
       DIVIDER:
@@ -86,7 +91,7 @@ schema:
         type : 'combobox'
         list :
           substitutions :
-            COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd  @{WM_COMMAND "
+#            COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd  @{WM_COMMAND "
 
           WM :
             label : 'Window Manager'
