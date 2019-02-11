@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo "Account|User|RawShares|NormShares|RawUsage|EffectvUsage|FairShare|
+cin_staff|lcalori0|parent|0.595030|0|0.027607|0.968352|
+cin_staff_0|lcalori0|parent|0.000000|0|0.000000|0.000000|
+cin_staff_1|lcalori0|parent|0.000000|0|0.000000|0.000000|
+hbp_cdp21_it_1|lcalori0|parent|0.000487|0|0.000000|1.000000|
+"
+
