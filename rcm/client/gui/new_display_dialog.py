@@ -375,7 +375,7 @@ if __name__ == "__main__":
     #list_paths.append(os.path.join(os.environ.get('HOME',''), '.rcm', 'config', 'config.yaml'))
     config = CascadeYamlConfig(list_paths = list_paths)
     SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
-    root = AutoChoiceGuiComposer( schema=config.conf['schema'],
+    root = AutoChoiceGuiComposer(name='TOP', schema=config.conf['schema'],
                                                     defaults=config.conf.get('defaults', None),
                                                     class_table={'SCHEDULER': SchedulerManager})
 
@@ -384,6 +384,7 @@ if __name__ == "__main__":
     def print_result(choices):
         print(json.dumps(choices, indent=4))
         res = root.substitute(choices)
+        SchedulerManager._allInstances[0].active_scheduler()
         for k, v in res.items():
             print(k, ":::>")
             print(v)

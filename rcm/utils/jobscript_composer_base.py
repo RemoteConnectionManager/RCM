@@ -20,7 +20,7 @@ class BaseGuiComposer(object):
 
     def __init__(self, schema=None, name=None, defaults=None, class_table=None):
 
-        print(self.__class__.__name__, name)
+        #shut#print(self.__class__.__name__, name)
         if name:
             self.NAME = name
         if self.NAME:
@@ -93,6 +93,7 @@ class CompositeComposer(BaseGuiComposer):
     def __init__(self, *args, **kwargs):
         super(CompositeComposer, self).__init__(*args, **kwargs)
         self.children = []
+        self.active_child=None
 
     def add_child(self, child):
         self.children.append(child)
@@ -129,7 +130,7 @@ class AutoChoiceGuiComposer(CompositeComposer):
         super(AutoChoiceGuiComposer, self).__init__(*args, **kwargs)
 
         for child_name in self.schema:
-            print("#########",child_name)
+            #shut#print("#########",child_name)
             child_schema = copy.deepcopy(self.schema[child_name])
             if child_name in self.defaults:
                 if 'list' in child_schema:
@@ -172,21 +173,26 @@ class AutoChoiceGuiComposer(CompositeComposer):
                 if child.NAME == subkey[0]:
                     # logger.debug("stripping subst", self.NAME, "--", '.'.join(subkey[1:]) )
                     child_subst[child][key] = value
+        #bad#child_subst=OrderedDict()
         out_subst=OrderedDict()
         for child in self.children:
             if child_subst[child]:
                 # logger.debug(child_subst[child])
                 subst = child.substitute(child_subst[child])
-                print("child:",child.NAME," returned ",subst)
+                #shut#print("child:",child.NAME," returned ",subst)
                 if subst:
                     for key_sub in subst:
                         in_subst[key_sub] = subst[key_sub]
                         # substitutions coming from child are reported upstream by prepending
                         # self.schema_name, the current node schema name
                         out_subst[self.schema_name + '.' + key_sub] = subst[key_sub]
-        print("in", self.NAME, self.schema_name,  "substitute:",in_subst,"\ninto",self.templates)
-        #out_subst = copy.deepcopy(self.templates)
-        out_subst.update(copy.deepcopy(self.templates))
+                        #bad#child_subst[child.schema_name + '.' + key_sub] = subst[key_sub]
+        #shut#print("in", self.NAME, self.schema_name,  "substitute:",in_subst,"\ninto",self.templates)
+        #bad#out_subst = copy.deepcopy(self.templates)
+        #bad#out_subst.update(child_subst)
+        #bad#for t in out_subst:
+        #bad#    out_subst[t] = utils.stringtemplate(out_subst[t]).safe_substitute(in_subst)
+
         for t in self.templates:
             out_subst[t] = utils.stringtemplate(self.templates[t]).safe_substitute(in_subst)
 
@@ -225,6 +231,7 @@ class ManagerChoiceGuiComposer(ChoiceGuiComposer):
                             child_subst[child]['.'.join(subkey[1:])] = value
         for child in self.children:
             if child.NAME == active_child_name:
+                self.active_child=child
                 return child.substitute(child_subst[child])
 
 

@@ -74,8 +74,13 @@ class SchedulerManager(ManagerChoiceGuiComposer):
     NAME = 'SCHEDULER'
     SCHEDULERS = []
 
+    _allInstances = []
+
     def __init__(self, *args, **kwargs):
         super(SchedulerManager, self).__init__(*args, **kwargs)
+
+        SchedulerManager._allInstances.append(self)
+
         logger.debug("########### schedulers:" + str(self.SCHEDULERS))
         if 'list' in self.schema and hasattr(self.defaults, 'get'):
             for class_name in self.defaults:
@@ -94,6 +99,9 @@ class SchedulerManager(ManagerChoiceGuiComposer):
                 if child.working:
                     self.add_child(child)
 
+
+    def active_scheduler(self):
+        print("scheduler attivo:",self.active_child.NAME)
 
     @classmethod
     def register_scheduler(cls, sched_class_list):

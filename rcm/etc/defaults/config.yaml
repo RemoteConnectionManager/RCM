@@ -11,60 +11,21 @@ logging:
 schema:
 
   substitutions :
-    SCHEDULER: ""
+    SCHEDULER: "NO SCHEDULER DEFINED"
     SCHEDULER_HEADER: ""
-    SERVICE: ""
+    SERVICE: "NO SERVICE DEFINED"
     SERVICE_START: ""
     SCRIPT: |
       #!/bin/bash
       # Using scheduler @{SCHEDULER}
       @{SCHEDULER_HEADER}
-      # Starting service @{SERVICE}
+      # Service:  @{SERVICE}
       @{SERVICE_START}
 
   SCHEDULER:
     label : 'Scheduler'
     type : 'combobox'
     list :
-      substitutions :
-        SCHEDULER_HEADER : ""
-      ACCOUNT :
-        label : 'Account'
-        type : 'combobox'
-
-  #composites
-      QUEUE :
-        label : 'Queue'
-        type : 'combobox'
-        list :
-          substitutions:
-            QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES_STRING}"
-            GRES_STRING: ""
-
-          MEMORY :
-            label : 'Memory'
-            type : 'slider'
-            values :
-              min : 1
-              max : 120
-          CPU :
-            label : 'CPU'
-            type : 'slider'
-            values :
-              min : 1
-              max : 36
-          TIME :
-            label : 'Time (sec)'
-            type : 'slider'
-            values :
-              min : 1
-              max : 360000
-          GRES :
-            label : 'GPU'
-            type : 'combobox'
-            list :
-              substitutions :
-
 
   DIVIDER:
     type: 'divider'
@@ -75,32 +36,3 @@ schema:
     label : 'Service Type'
     type: 'combobox'
     list :
-      substitutions :
-        COMMAND_LINE: ""
-        SERVICE_START : |
-          # Running service app @{COMMAND}
-          @{COMMAND_LINE}
-
-
-      DIVIDER:
-        type: 'divider'
-        values:
-          style: "hline"
-      COMMAND :
-        label : 'Command'
-        type : 'combobox'
-        list :
-          substitutions :
-#            COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd  @{WM_COMMAND "
-
-          WM :
-            label : 'Window Manager'
-            type : 'combobox'
-            list:
-              substitutions :
-                WM_COMMAND: ""
-                WM_FLAGS: ""
-
-          DISPLAY :
-            label : 'Display size'
-            type : 'combobox'
