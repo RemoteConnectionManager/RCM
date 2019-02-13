@@ -1,0 +1,44 @@
+schema:
+
+  SCHEDULER:
+    label : 'Scheduler'
+    type : 'combobox'
+    list :
+      substitutions :
+        HEADER : ""
+      ACCOUNT :
+        label : 'Account'
+        type : 'combobox'
+
+  #composites
+      QUEUE :
+        label : 'Queue'
+        type : 'combobox'
+        list :
+          substitutions:
+            QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES_STRING}"
+            GRES_STRING: ""
+
+          MEMORY :
+            label : 'Memory'
+            type : 'slider'
+            values :
+              min : 1
+              max : 120
+          CPU :
+            label : 'CPU'
+            type : 'slider'
+            values :
+              min : 1
+              max : 36
+          TIME :
+            label : 'Time (sec)'
+            type : 'slider'
+            values :
+              min : 1
+              max : 360000
+          GRES :
+            label : 'GPU'
+            type : 'combobox'
+            list :
+              substitutions :

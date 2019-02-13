@@ -21,7 +21,7 @@ defaults:
             TIME :
               max : 10800
         substitutions :
-          SCHEDULER_HEADER: |
+          HEADER: |
             #PBS -A @{ACCOUNT}
             #PBS -l walltime=@{QUEUE.TIME}
             #PBS -N $RCM_SESSIONID

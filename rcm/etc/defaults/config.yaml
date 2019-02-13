@@ -12,15 +12,15 @@ schema:
 
   substitutions :
     SCHEDULER: "NO SCHEDULER DEFINED"
-    SCHEDULER_HEADER: ""
+    SCHEDULER.HEADER: ""
     SERVICE: "NO SERVICE DEFINED"
     SERVICE_START: ""
     SCRIPT: |
       #!/bin/bash
       # Using scheduler @{SCHEDULER}
-      @{SCHEDULER_HEADER}
+      @{SCHEDULER.HEADER}
       # Service:  @{SERVICE}
-      @{SERVICE_START}
+      @{SERVICE.START}
 
   SCHEDULER:
     label : 'Scheduler'

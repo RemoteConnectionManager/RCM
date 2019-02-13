@@ -372,7 +372,7 @@ if __name__ == "__main__":
 #    print("sys.argv",sys.argv[1:])
 
     list_paths = sys.argv[1:]
-    #list_paths.append(os.path.join(os.environ.get('HOME',''), '.rcm', 'config', 'config.yaml'))
+    #list_paths.append(os.path.join(os.environ.get('HOME',''), '.rcm', 'config', 'config.yaml'))                                CascadeYamlConfig.get()
     config = CascadeYamlConfig(list_paths = list_paths)
     SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
     root = AutoChoiceGuiComposer(name='TOP', schema=config.conf['schema'],

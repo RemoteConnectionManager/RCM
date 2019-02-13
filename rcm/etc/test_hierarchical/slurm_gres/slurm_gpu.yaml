@@ -1,11 +1,10 @@
-# these are the definitions of the possible arguments
-
 defaults:
     SCHEDULER :
       Slurm :
         QUEUE :
           substitutions:
             QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES_STRING}"
+
           gll_all_serial :
             MEMORY :
               min : 4
@@ -50,6 +49,3 @@ defaults:
             #SBATCH -A @{ACCOUNT}
             #SBATCH --partition=@{QUEUE}
             #
-
-
-              
