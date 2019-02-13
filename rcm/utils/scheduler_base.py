@@ -9,7 +9,7 @@ from utils.jobscript_composer_base import *
 logger = logging.getLogger('RCM.composer')
 
 
-class BaseScheduler(ManagedChoiceGuiComposer):
+class BaseScheduler(ManagedChoiceNode):
     """
     Base scheduler class, pattern taken form https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Factory.html
     """
@@ -70,7 +70,7 @@ class BatchScheduler(BaseScheduler):
         return ['dummy_queue_1', 'dummy_queue_2']
 
 
-class SchedulerManager(ManagerChoiceGuiComposer):
+class SchedulerManager(ManagerChoiceNode):
     NAME = 'SCHEDULER'
     SCHEDULERS = []
 
@@ -85,7 +85,7 @@ class SchedulerManager(ManagerChoiceGuiComposer):
         if 'list' in self.schema and hasattr(self.defaults, 'get'):
             for class_name in self.defaults:
                 logger.debug("handling child  : " + class_name)
-                managed_class = ManagedChoiceGuiComposer
+                managed_class = ManagedChoiceNode
                 for sched_class in self.SCHEDULERS:
                     if sched_class.NAME == class_name:
                         managed_class = sched_class

@@ -14,7 +14,7 @@ from utils.cascade_yaml_config import *
 logger = logging.getLogger('RCM.composer')
 
 
-class BaseGuiComposer(object):
+class Node(object):
     NAME = None
     working = True
 
@@ -67,7 +67,7 @@ class BaseGuiComposer(object):
         logger.debug(" " + self.__class__.__name__ + " : " + str(self.NAME) + " : " + t + str(choices))
 
 
-class LeafGuiComposer(BaseGuiComposer):
+class LeafNode(Node):
 
     def get_gui_options(self):
         options = copy.deepcopy(self.schema)
@@ -88,10 +88,10 @@ class LeafGuiComposer(BaseGuiComposer):
         return out_subst
 
 
-class CompositeComposer(BaseGuiComposer):
+class CompositeNode(Node):
 
     def __init__(self, *args, **kwargs):
-        super(CompositeComposer, self).__init__(*args, **kwargs)
+        super(CompositeNode, self).__init__(*args, **kwargs)
         self.children = []
         self.active_child=None
 
@@ -106,12 +106,12 @@ class CompositeComposer(BaseGuiComposer):
 
     def substitute(self, choices):
         print("@@@@@@@@@@@@@@  HERE")
-        BaseGuiComposer.substitute(self, choices)
+        Node.substitute(self, choices)
         for child in self.children:
             child.substitute(choices)
 
 
-class ChoiceGuiComposer(CompositeComposer):
+class ChoiceNode(CompositeNode):
 
     def get_gui_options(self):
         composer_options = self.schema
@@ -125,23 +125,23 @@ class ChoiceGuiComposer(CompositeComposer):
         return composer_options
 
 
-class AutoChoiceGuiComposer(CompositeComposer):
+class AutoChoiceNode(CompositeNode):
 
     def __init__(self, *args, **kwargs):
-        super(AutoChoiceGuiComposer, self).__init__(*args, **kwargs)
+        super(AutoChoiceNode, self).__init__(*args, **kwargs)
 
         for child_name in self.schema:
             #shut#print("#########",child_name)
             child_schema = copy.deepcopy(self.schema[child_name])
             if child_name in self.defaults:
                 if 'list' in child_schema:
-                    manager_class = self.class_table.get(child_name, AutoManagerChoiceGuiComposer)
+                    manager_class = self.class_table.get(child_name, AutoManagerChoiceNode)
                     child = manager_class(name=child_name,
                                           schema=copy.deepcopy(child_schema),
                                           defaults=copy.deepcopy(self.defaults[child_name]))
                 else:
                     logger.debug("hadling leaf item: " + child_name)
-                    child = LeafGuiComposer(name=child_name,
+                    child = LeafNode(name=child_name,
                                             schema=copy.deepcopy(child_schema),
                                             defaults=copy.deepcopy(self.defaults[child_name]))
                 self.add_child(child)
@@ -150,7 +150,7 @@ class AutoChoiceGuiComposer(CompositeComposer):
                     logger.debug("skipping complex item: " + child_name + "in schema but not in defaults")
                 else:
                     logger.debug("adding leaf item: " + child_name + "without defaults")
-                    child = LeafGuiComposer(name=child_name,
+                    child = LeafNode(name=child_name,
                                             schema=copy.deepcopy(child_schema),
                                             defaults=OrderedDict())
                     self.add_child(child)
@@ -160,7 +160,7 @@ class AutoChoiceGuiComposer(CompositeComposer):
         # these substs are initialized with self.templates ( current node defined susbstitutions)
         # to provide defaults that are overridden by choices
 
-        BaseGuiComposer.substitute(self, choices)
+        Node.substitute(self, choices)
         child_subst = dict()
         for child in self.children:
             child_subst[child] = dict()
@@ -204,12 +204,12 @@ class AutoChoiceGuiComposer(CompositeComposer):
         out_subst.update(copy.deepcopy(collected_subst))
 
         for key, value in out_subst.items():
-            logger.debug(" AutoChoiceGuiComposer: " + str(self.NAME) + " : " + str(key) + " ::> " + str(value))
+            logger.debug(" AutoChoiceNode: " + str(self.NAME) + " : " + str(key) + " ::> " + str(value))
 
         return out_subst
 
 
-class ManagedChoiceGuiComposer(AutoChoiceGuiComposer):
+class ManagedChoiceNode(AutoChoiceNode):
 
     def get_gui_options(self):
         options = OrderedDict()
@@ -218,10 +218,10 @@ class ManagedChoiceGuiComposer(AutoChoiceGuiComposer):
         return {'list': options}
 
 
-class ManagerChoiceGuiComposer(ChoiceGuiComposer):
+class ManagerChoiceNode(ChoiceNode):
 
     def substitute(self, choices):
-        BaseGuiComposer.substitute(self, choices)
+        Node.substitute(self, choices)
         child_subst = dict()
         active_child_name = choices.get(self.NAME, '')
         for child in self.children:
@@ -242,14 +242,14 @@ class ManagerChoiceGuiComposer(ChoiceGuiComposer):
                 return child.substitute(child_subst[child])
 
 
-class AutoManagerChoiceGuiComposer(ManagerChoiceGuiComposer):
+class AutoManagerChoiceNode(ManagerChoiceNode):
 
     def __init__(self, *args, **kwargs):
-        super(AutoManagerChoiceGuiComposer, self).__init__(*args, **kwargs)
+        super(AutoManagerChoiceNode, self).__init__(*args, **kwargs)
         if 'list' in self.schema:
             for class_name in self.defaults:
                 logger.debug("handling child  : " + class_name)
-                child = ManagedChoiceGuiComposer(name=class_name,
+                child = ManagedChoiceNode(name=class_name,
                                                  schema=copy.deepcopy(self.schema['list']),
                                                  defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
                 # here we override child shema_name, as is neede to be different from instance class name
