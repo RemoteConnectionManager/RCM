@@ -2,7 +2,7 @@
 
 import logging
 
-from utils.scheduler_base import *
+from scheduler_base import *
 
 logger = logging.getLogger('RCM.composer')
 

@@ -13,9 +13,9 @@ if root_rcm_path not in sys.path:
 
 
 
-from utils.jobscript_composer_base import *
-from utils.scheduler_base import *
-from utils.scheduler_slurm import *
+from jobscript_composer_base import *
+from scheduler_base import *
+from scheduler_slurm import *
 #from utils import  jobscript_composer_base
 #from utils import  scheduler_base
 

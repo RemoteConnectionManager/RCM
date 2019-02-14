@@ -9,7 +9,7 @@ from collections import OrderedDict
 #sys.path.append(root_rcm_path)
 
 #import utils
-from utils.cascade_yaml_config import *
+from cascade_yaml_config import *
 
 logger = logging.getLogger('RCM.composer')
 
@@ -59,6 +59,7 @@ class Node(object):
             if 'substitutions' in d:
                 del d['substitutions']
 
+        print("init of ",self.__class__.__name__,self.NAME)
 
     def substitute(self, choices):
         t = ""

@@ -4,7 +4,7 @@ import copy
 from collections import OrderedDict
 
 
-from utils.jobscript_composer_base import *
+from jobscript_composer_base import *
 
 logger = logging.getLogger('RCM.composer')
 
@@ -102,6 +102,7 @@ class SchedulerManager(ManagerChoiceNode):
 
     def active_scheduler(self):
         print("scheduler attivo:",self.active_child.NAME)
+        return self.active_child
 
     @classmethod
     def register_scheduler(cls, sched_class_list):
@@ -109,3 +110,6 @@ class SchedulerManager(ManagerChoiceNode):
         for sched_class in sched_class_list:
             if sched_class not in  cls.SCHEDULERS:
                 cls.SCHEDULERS.append(sched_class)
+
+
+

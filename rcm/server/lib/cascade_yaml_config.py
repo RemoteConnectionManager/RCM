@@ -6,7 +6,7 @@ import copy
 import glob
 from collections import OrderedDict
 
-root_rcm_path = os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
+root_rcm_path = os.path.dirname((os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 if root_rcm_path not in sys.path:
     sys.path.append(root_rcm_path)
 
