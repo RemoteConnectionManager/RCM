@@ -5,7 +5,7 @@ import copy
 from collections import OrderedDict
 
 # local import
-from cascade_yaml_config import *
+from config import *
 
 logger = logging.getLogger('RCM.composer')
 
