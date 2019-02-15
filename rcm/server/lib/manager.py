@@ -26,7 +26,7 @@ from external import hiyapyco
 logger = logging.getLogger('rcmServer')
 
 
-class SessionManager:
+class ServerManager:
     """
     The manager class.
     It is responsible to load from file the scheduler and service plugins.
@@ -113,7 +113,7 @@ class SessionManager:
 
         self.cascade_config = cascade_yaml_config.CascadeYamlConfig(list_paths)
 
-        gui_composer = jobscript_composer_base.AutoChoiceGuiComposer(
+        gui_composer = jobscript_composer_base.AutoChoiceNode(
             schema=self.cascade_config.conf['schema'],
             defaults=self.cascade_config.conf.get('defaults', None),
             class_table={'SCHEDULER': scheduler_base.SchedulerManager})

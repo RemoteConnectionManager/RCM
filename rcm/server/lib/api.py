@@ -21,15 +21,15 @@ class ServerAPIs:
     """
 
     def __init__(self):
-        self.session_manager = manager.SessionManager()
-        self.session_manager.init()
+        self.server_manager = manager.ServerManager()
+        self.server_manager.init()
 
     def config(self, build_platform=''):
         logger.debug("calling api config")
 
         conf = rcm.rcm_config()
         if build_platform:
-            (checksum, url) = self.session_manager.get_checksum_and_url(build_platform)
+            (checksum, url) = self.server_manager.get_checksum_and_url(build_platform)
             conf.set_version(checksum, url)
 
         # old code
@@ -39,7 +39,7 @@ class ServerAPIs:
         # for vnc_id,menu_entry in self.rcm_server.pconfig.get_vnc_menu().items():
         #     conf.add_vnc(vnc_id,menu_entry)
 
-        jobscript_json_menu = self.session_manager.get_jobscript_json_menu()
+        jobscript_json_menu = self.server_manager.get_jobscript_json_menu()
         if jobscript_json_menu:
             conf.config['jobscript_json_menu'] = jobscript_json_menu
         conf.serialize()
