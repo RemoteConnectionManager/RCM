@@ -1,14 +1,10 @@
-# stdlib
-
+# std import
 import logging
 import json
 import copy
 from collections import OrderedDict
 
-#root_rcm_path = os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
-#sys.path.append(root_rcm_path)
-
-#import utils
+# local import
 from cascade_yaml_config import *
 
 logger = logging.getLogger('RCM.composer')
@@ -257,5 +253,3 @@ class AutoManagerChoiceNode(ManagerChoiceNode):
                 # WARNING.... external set of member variable outside object methods
                 child.schema_name=self.NAME
                 self.add_child(child)
-
-

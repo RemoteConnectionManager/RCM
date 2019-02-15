@@ -1,12 +1,12 @@
-# stdlib
+# sstd import
 import logging
 import copy
 from collections import OrderedDict
 
+# local import
+from jobscript_builder import *
 
-from jobscript_composer_base import *
-
-logger = logging.getLogger('RCM.composer')
+logger = logging.getLogger('rcmServer')
 
 
 class BaseScheduler(ManagedChoiceNode):

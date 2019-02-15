@@ -15,7 +15,7 @@ sys.path.insert(0, current_path)
 sys.path.insert(0, current_lib_path)
 
 import cascade_yaml_config
-import jobscript_composer_base
+import jobscript_builder
 import scheduler_base
 import scheduler_pbs
 import scheduler_slurm
@@ -113,7 +113,7 @@ class ServerManager:
 
         self.cascade_config = cascade_yaml_config.CascadeYamlConfig(list_paths)
 
-        gui_composer = jobscript_composer_base.AutoChoiceNode(
+        gui_composer = jobscript_builder.AutoChoiceNode(
             schema=self.cascade_config.conf['schema'],
             defaults=self.cascade_config.conf.get('defaults', None),
             class_table={'SCHEDULER': scheduler_base.SchedulerManager})
