@@ -2,6 +2,8 @@ import logging
 import importlib
 import os
 import json
+import copy
+from collections import OrderedDict
 
 # set prefix.
 current_file = os.path.realpath(os.path.expanduser(__file__))
@@ -14,12 +16,11 @@ current_lib_path = os.path.join(current_path, "lib")
 sys.path.insert(0, current_path)
 sys.path.insert(0, current_lib_path)
 
+# local import
 import cascade_yaml_config
 import jobscript_builder
-import scheduler_base
-import scheduler_pbs
-import scheduler_slurm
-
+import manager
+import scheduler
 from external import hiyapyco
 
 
@@ -62,7 +63,7 @@ class ServerManager:
                     self.schedulers[class_name] = scheduler_obj
                     logger.debug('loaded scheduler plugin ' +
                                  scheduler_obj.__class__.__name__ +
-                                 " - " + scheduler_obj.name)
+                                 " - " + scheduler_obj.NAME)
                 except Exception as e:
                     logger.error("plugin loading failed")
                     logger.error(e)
@@ -96,10 +97,10 @@ class ServerManager:
         return checksum, downloadurl
 
     def get_jobscript_json_menu(self):
-        scheduler_base.SchedulerManager.register_scheduler([
-            scheduler_slurm.SlurmScheduler,
-            scheduler_pbs.PBSScheduler,
-            scheduler_pbs.LocalScheduler])
+        manager.SchedulerManager.register_scheduler([
+            scheduler.SlurmScheduler,
+            scheduler.PBSScheduler,
+            scheduler.LocalScheduler])
 
         list_paths = []
         self.config_path = ""
@@ -116,7 +117,49 @@ class ServerManager:
         gui_composer = jobscript_builder.AutoChoiceNode(
             schema=self.cascade_config.conf['schema'],
             defaults=self.cascade_config.conf.get('defaults', None),
-            class_table={'SCHEDULER': scheduler_base.SchedulerManager})
+            class_table={'SCHEDULER': manager.SchedulerManager})
 
         display_dialog_ui = gui_composer.get_gui_options()
         return json.dumps(display_dialog_ui)
+
+
+class SchedulerManager(jobscript_builder.ManagerChoiceNode):
+    NAME = 'SCHEDULER'
+    SCHEDULERS = []
+
+    _allInstances = []
+
+    def __init__(self, *args, **kwargs):
+        super(SchedulerManager, self).__init__(*args, **kwargs)
+
+        SchedulerManager._allInstances.append(self)
+
+        logger.debug("schedulers:" + str(self.SCHEDULERS))
+        if 'list' in self.schema and hasattr(self.defaults, 'get'):
+            for class_name in self.defaults:
+                logger.debug("handling child  : " + class_name)
+                managed_class = jobscript_builder.ManagedChoiceNode
+                for sched_class in self.SCHEDULERS:
+                    if sched_class.NAME == class_name:
+                        managed_class = sched_class
+                        break
+                child = managed_class(name=class_name,
+                                      schema=copy.deepcopy(self.schema['list']),
+                                      defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
+                # here we override child shema_name, as is neede to be different from instance class name
+                # WARNING.... external set of member variable outside object methods
+                child.schema_name=self.NAME
+                if child.working:
+                    self.add_child(child)
+
+
+    def active_scheduler(self):
+        print("scheduler attivo:",self.active_child.NAME)
+        return self.active_child
+
+    @classmethod
+    def register_scheduler(cls, sched_class_list):
+        logger.debug("setting class " + str(cls) + " to " +  str(sched_class_list))
+        for sched_class in sched_class_list:
+            if sched_class not in  cls.SCHEDULERS:
+                cls.SCHEDULERS.append(sched_class)
