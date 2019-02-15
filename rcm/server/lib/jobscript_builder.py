@@ -7,7 +7,7 @@ from collections import OrderedDict
 # local import
 from config import *
 
-logger = logging.getLogger('RCM.composer')
+logger = logging.getLogger('rcmServer')
 
 
 class Node(object):

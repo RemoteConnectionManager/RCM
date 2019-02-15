@@ -18,6 +18,8 @@ class Scheduler(jobscript_builder.ManagedChoiceNode):
         General scheduler class,
         :param schema: accept a schema to override schema that are retrieved through CascadeYamlConfig singleton
         """
+        self.is_working = False
+
         merged_defaults = copy.deepcopy(kwargs['defaults'])
         if merged_defaults == None:
             merged_defaults = OrderedDict()
@@ -49,23 +51,26 @@ class BatchScheduler(Scheduler):
     commands = {}
 
     def __init__(self, *args, **kwargs):
-        for c in self.commands:
-            exe = utils.which(c)
+        for command in self.commands:
+            exe = utils.which(command)
             if exe:
-                self.commands[c] = exe
-                logger.debug("command: " + c + " Found !!!!")
+                self.commands[command] = exe
+                logger.debug("command: " + command + " found")
             else:
-                self.working = self.working and False
-                logger.debug("command: " + c + " Not Found !!!!")
+                self.is_working = True
+                logger.error("command: " + command + " not found !!!!")
         kwargs['ACCOUNT'] = self.valid_accounts()
-        kwargs['QUEUE'] = self.get_queues()
+        kwargs['QUEUE'] = self.queues()
         super(BatchScheduler, self).__init__(*args, **kwargs)
 
-    def valid_accounts(self):
-        return ['dummy_account_1', 'dummy_account_2']
+    def all_accounts(self):
+        raise NotImplementedError()
 
-    def get_queues(self):
-        return ['dummy_queue_1', 'dummy_queue_2']
+    def valid_accounts(self):
+        raise NotImplementedError()
+
+    def queues(self):
+        raise NotImplementedError()
 
 
 class PBSScheduler(BatchScheduler):
@@ -82,15 +87,13 @@ class OSScheduler(Scheduler):
 
 class SlurmScheduler(BatchScheduler):
     NAME = 'Slurm'
-    commands = {'sshare': None, 'sinfo': None}
+    commands = {'sshare': None,
+                'sinfo': None}
 
     def __init__(self, *args, **kwargs):
-        # super().__init__(schema=schema)
-        # BaseScheduler.__init__(self,schema=schema)
-        # self.commands = {'sshare': None, 'sinfo': None}
         super(SlurmScheduler, self).__init__(*args, **kwargs)
 
-    def get_all_accounts(self):
+    def all_accounts(self):
         # sshare --parsable -a
         # Eric: sshare --parsable --format %
         # saldo -b
@@ -113,12 +116,12 @@ class SlurmScheduler(BatchScheduler):
 
     def valid_accounts(self):
         accounts = []
-        for a in self.get_all_accounts():
+        for a in self.all_accounts():
             if self.validate_account(a):
                 accounts.append(a)
         return accounts
 
-    def get_queues(self):
+    def queues(self):
         # hints on useful slurm commands
         # sacctmgr show qos
         logger.debug("Slurm get queues !!!!")
