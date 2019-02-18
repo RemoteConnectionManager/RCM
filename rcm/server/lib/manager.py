@@ -17,9 +17,9 @@ sys.path.insert(0, current_path)
 sys.path.insert(0, current_lib_path)
 
 # local import
-import cascade_yaml_config
+import config
 import jobscript_builder
-import manager
+#import manager
 import scheduler
 from external import hiyapyco
 
@@ -54,7 +54,7 @@ class ServerManager:
         )
 
         # load plugins
-        if 'services' in output and output['services']:
+        if 'schedulers' in output and output['schedulers']:
             for scheduler_str in output['schedulers']:
                 try:
                     module_name, class_name = scheduler_str.rsplit(".", 1)
@@ -97,7 +97,7 @@ class ServerManager:
         return checksum, downloadurl
 
     def get_jobscript_json_menu(self):
-        manager.SchedulerManager.register_scheduler([
+        SchedulerManager.register_scheduler([
             scheduler.SlurmScheduler,
             scheduler.PBSScheduler,
             scheduler.LocalScheduler])
@@ -112,12 +112,12 @@ class ServerManager:
             list_paths.append(os.path.join(basepath, 'config.yaml'))
             list_paths.append(os.path.join(basepath, nodelogin + '.yaml'))
 
-        self.cascade_config = cascade_yaml_config.CascadeYamlConfig(list_paths)
+        self.cascade_config = config.CascadeYamlConfig(list_paths)
 
         gui_composer = jobscript_builder.AutoChoiceNode(
             schema=self.cascade_config.conf['schema'],
             defaults=self.cascade_config.conf.get('defaults', None),
-            class_table={'SCHEDULER': manager.SchedulerManager})
+            class_table={'SCHEDULER': SchedulerManager})
 
         display_dialog_ui = gui_composer.get_gui_options()
         return json.dumps(display_dialog_ui)

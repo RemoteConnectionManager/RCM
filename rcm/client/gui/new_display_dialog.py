@@ -355,15 +355,17 @@ if __name__ == "__main__":
     import sys
     root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     sys.path.append(root_rcm_path)
+    sys.path.append(os.path.join(root_rcm_path, 'utils'))
     sys.path.append(os.path.join(root_rcm_path, 'server', 'lib'))
 
     import logging
 
 
-    from server.lib.cascade_yaml_config import *
-    from server.lib.jobscript_composer_base import *
-    from server.lib.scheduler_pbs import *
-    from server.lib.scheduler_slurm import *
+    from server.lib.config import *
+    from server.lib.jobscript_builder import *
+    from server.lib.scheduler import *
+    from server.lib.manager import *
+
 
     #This is needed, otherwise no default logging happen
     logging.debug("Start test app")
