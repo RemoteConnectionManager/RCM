@@ -16,8 +16,8 @@ schema:
         type : 'combobox'
         list :
           substitutions:
-            QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES_STRING}"
-            GRES_STRING: ""
+            QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES.GRES_STRING}"
+            GRES.GRES_STRING: ""
 
           MEMORY :
             label : 'Memory'

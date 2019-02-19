@@ -11,10 +11,13 @@ logger = logging.getLogger('rcmServer')
 
 
 class Node(object):
+    """
+    Base class for
+    """
     NAME = None
     working = True
 
-    def __init__(self, schema=None, name=None, defaults=None, class_table=None):
+    def __init__(self, schema=None, name=None, defaults=None, class_table=None, connected_plugin=None):
 
         #shut#print(self.__class__.__name__, name)
         if name:
@@ -33,9 +36,11 @@ class Node(object):
         else:
             self.defaults = CascadeYamlConfig()['defaults', self.NAME]
         if class_table:
+            print(self.__class__.__name__, name, class_table)
             self.class_table = class_table
         else:
             self.class_table = dict()
+        self.connected_plugin = connected_plugin
         logger.debug(self.__class__.__name__ + ": " + str(self.NAME))
         logger.debug("self.schema " + str(self.schema))
         logger.debug("self.defaults " + str(self.defaults))
@@ -132,10 +137,11 @@ class AutoChoiceNode(CompositeNode):
             child_schema = copy.deepcopy(self.schema[child_name])
             if child_name in self.defaults:
                 if 'list' in child_schema:
-                    manager_class = self.class_table.get(child_name, AutoManagerChoiceNode)
+                    (manager_class, plugin_instances) = self.class_table.get(child_name, (AutoManagerChoiceNode,None))
                     child = manager_class(name=child_name,
                                           schema=copy.deepcopy(child_schema),
-                                          defaults=copy.deepcopy(self.defaults[child_name]))
+                                          defaults=copy.deepcopy(self.defaults[child_name]),
+                                          class_table=plugin_instances)
                 else:
                     logger.debug("hadling leaf item: " + child_name)
                     child = LeafNode(name=child_name,
@@ -243,7 +249,7 @@ class AutoManagerChoiceNode(ManagerChoiceNode):
 
     def __init__(self, *args, **kwargs):
         super(AutoManagerChoiceNode, self).__init__(*args, **kwargs)
-        if 'list' in self.schema:
+        if 'list' in self.schema and hasattr(self.defaults, 'get'):
             for class_name in self.defaults:
                 logger.debug("handling child  : " + class_name)
                 child = ManagedChoiceNode(name=class_name,
@@ -253,3 +259,55 @@ class AutoManagerChoiceNode(ManagerChoiceNode):
                 # WARNING.... external set of member variable outside object methods
                 child.schema_name=self.NAME
                 self.add_child(child)
+
+
+class ConnectedManager(ManagerChoiceNode):
+
+    def __init__(self, *args, **kwargs):
+        super(ConnectedManager, self).__init__(*args, **kwargs)
+
+
+        if 'list' in self.schema and hasattr(self.defaults, 'get'):
+            for class_name in self.defaults:
+                print("handling child  : " + class_name)
+                if class_name in self.class_table:
+                    connected_plugin = self.class_table[class_name]
+                    plugin_params = self.class_table[class_name].PARAMS
+                    child = ManagedPlugin(name=class_name,
+                                          schema=copy.deepcopy(self.schema['list']),
+                                          defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())),
+                                          connected_plugin=self.class_table[class_name])
+                    # here we override child shema_name, as is neede to be different from instance class name
+                    # WARNING.... external set of member variable outside object methods
+                    child.schema_name=self.NAME
+                    self.add_child(child)
+
+class ManagedPlugin(ManagedChoiceNode):
+    NAME = None
+
+    def __init__(self, *args, **kwargs):
+        """
+        General scheduler class,
+        :param schema: accept a schema to override schema that are retrieved through CascadeYamlConfig singleton
+        """
+
+        merged_defaults = copy.deepcopy(kwargs['defaults'])
+        if merged_defaults == None:
+            merged_defaults = OrderedDict()
+        if 'connected_plugin' in kwargs:
+            self.connected_plugin = kwargs['connected_plugin']
+            if hasattr(self.connected_plugin, 'PARAMS'):
+                if hasattr(self.connected_plugin.PARAMS, 'get'):
+                    for param in self.connected_plugin.PARAMS:
+                        #print("asking connected plugin ", self.connected_plugin, "param", param)
+                        computed_param = self.connected_plugin.PARAMS[param]()
+                        #computed_param = getattr(self.connected_plugin, self.connected_plugin.PARAMS[param])()
+                        print("asking connected plugin ",self.connected_plugin, "param", param, "returned ", computed_param)
+
+
+
+                        logger.debug("---------------------------------")
+                        merged_defaults[param] = self.connected_plugin.merge_list(merged_defaults.get(param, OrderedDict()),
+                                                                                  computed_param)
+        kwargs['defaults'] = merged_defaults
+        super(ManagedPlugin, self).__init__(*args, **kwargs)

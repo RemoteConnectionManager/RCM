@@ -5,66 +5,60 @@ from collections import OrderedDict
 
 # local import
 import jobscript_builder
+import plugin
 import utils
 
 logger = logging.getLogger('rcmServer')
 
+#
+# class Scheduler(jobscript_builder.ManagedChoiceNode):
+#     NAME = None
+#
+#     def __init__(self, *args, **kwargs):
+#         """
+#         General scheduler class,
+#         :param schema: accept a schema to override schema that are retrieved through CascadeYamlConfig singleton
+#         """
+#         self.is_working = False
+#
+#         merged_defaults = copy.deepcopy(kwargs['defaults'])
+#         if merged_defaults == None:
+#             merged_defaults = OrderedDict()
+#         for param in ['ACCOUNT', 'QUEUE']:
+#             if param in kwargs:
+#                 logger.debug("---------------------------------")
+#                 merged_defaults[param] = self.merge_list(merged_defaults.get(param, OrderedDict()),
+#                                                          kwargs.get(param, []))
+#                 del kwargs[param]
+#         kwargs['defaults'] = merged_defaults
+#         super(Scheduler, self).__init__(*args, **kwargs)
+#
+#     @staticmethod
+#     def merge_list(preset, computed):
+#         logger.debug("merging:" + str(preset) + "----" + str(computed))
+#         out = copy.deepcopy(preset)
+#         for a in computed:
+#             if a not in out:
+#                 if hasattr(out, 'append'):
+#                     out.append(a)
+#                 else:
+#                     out[a] = OrderedDict()
+#         logger.debug("merged:" + str(out))
+#         return out
 
-class Scheduler(jobscript_builder.ManagedChoiceNode):
-    NAME = None
+
+class BatchScheduler(plugin.Plugin):
+
+    COMMANDS = {}
 
     def __init__(self, *args, **kwargs):
-        """
-        General scheduler class,
-        :param schema: accept a schema to override schema that are retrieved through CascadeYamlConfig singleton
-        """
-        self.is_working = False
-
-        merged_defaults = copy.deepcopy(kwargs['defaults'])
-        if merged_defaults == None:
-            merged_defaults = OrderedDict()
-        for param in ['ACCOUNT', 'QUEUE']:
-            if param in kwargs:
-                logger.debug("---------------------------------")
-                merged_defaults[param] = self.merge_list(merged_defaults.get(param, OrderedDict()),
-                                                         kwargs.get(param, []))
-                del kwargs[param]
-        kwargs['defaults'] = merged_defaults
-        super(Scheduler, self).__init__(*args, **kwargs)
-
-    @staticmethod
-    def merge_list(preset, computed):
-        logger.debug("merging:" + str(preset) + "----" + str(computed))
-        out = copy.deepcopy(preset)
-        for a in computed:
-            if a not in out:
-                if hasattr(out, 'append'):
-                    out.append(a)
-                else:
-                    out[a] = OrderedDict()
-        logger.debug("merged:" + str(out))
-        return out
-
-
-class BatchScheduler(Scheduler):
-
-    commands = {}
-
-    def __init__(self, *args, **kwargs):
-        for command in self.commands:
-            exe = utils.which(command)
-            if exe:
-                self.commands[command] = exe
-                logger.debug("command: " + command + " found")
-            else:
-                self.is_working = True
-                logger.error("command: " + command + " not found !!!!")
-        kwargs['ACCOUNT'] = self.valid_accounts()
-        kwargs['QUEUE'] = self.queues()
         super(BatchScheduler, self).__init__(*args, **kwargs)
+        self.PARAMS['ACCOUNT'] = self.valid_accounts
+        self.PARAMS['QUEUE'] = self.queues
 
     def all_accounts(self):
         raise NotImplementedError()
+
 
     def valid_accounts(self):
         raise NotImplementedError()
@@ -73,21 +67,23 @@ class BatchScheduler(Scheduler):
         raise NotImplementedError()
 
 
+
 class PBSScheduler(BatchScheduler):
     NAME = 'PBS'
+    COMMANDS = {'qstat': None}
 
 
-class LocalScheduler(Scheduler):
+class LocalScheduler(plugin.Plugin):
     NAME = 'Local'
 
 
-class OSScheduler(Scheduler):
+class OSScheduler(plugin.Plugin):
     NAME = 'SSH'
 
 
 class SlurmScheduler(BatchScheduler):
     NAME = 'Slurm'
-    commands = {'sshare': None,
+    COMMANDS = {'sshare': None,
                 'sinfo': None}
 
     def __init__(self, *args, **kwargs):
@@ -98,7 +94,7 @@ class SlurmScheduler(BatchScheduler):
         # Eric: sshare --parsable --format %
         # saldo -b
         # Lstat.py
-        sshare = self.commands.get('sshare', None)
+        sshare = self.COMMANDS.get('sshare', None)
         if sshare:
             out = sshare(
                 '--parsable',
@@ -110,6 +106,7 @@ class SlurmScheduler(BatchScheduler):
             return accounts
         else:
             return []
+
 
     def validate_account(self, account):
         return True
@@ -125,7 +122,7 @@ class SlurmScheduler(BatchScheduler):
         # hints on useful slurm commands
         # sacctmgr show qos
         logger.debug("Slurm get queues !!!!")
-        sinfo = self.commands.get('sinfo', None)
+        sinfo = self.COMMANDS.get('sinfo', None)
         if sinfo:
             raw_output = sinfo('--format=%R',
                                output=str)

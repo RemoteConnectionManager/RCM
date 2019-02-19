@@ -58,14 +58,17 @@ class ServerManager:
             for scheduler_str in output['schedulers']:
                 try:
                     module_name, class_name = scheduler_str.rsplit(".", 1)
+                    print("try allocating: ",module_name, class_name)
+
                     scheduler_class = getattr(importlib.import_module(module_name), class_name)
                     scheduler_obj = scheduler_class()
+                    print("ALLOCATING: ",class_name)
                     self.schedulers[class_name] = scheduler_obj
                     logger.debug('loaded scheduler plugin ' +
                                  scheduler_obj.__class__.__name__ +
                                  " - " + scheduler_obj.NAME)
                 except Exception as e:
-                    logger.error("plugin loading failed")
+                    logger.error("plugin " + scheduler_str + " loading failed")
                     logger.error(e)
 
         # load services

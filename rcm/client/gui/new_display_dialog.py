@@ -377,17 +377,29 @@ if __name__ == "__main__":
     list_paths = sys.argv[1:]
     #list_paths.append(os.path.join(os.environ.get('HOME',''), '.rcm', 'config', 'config.yaml'))                                CascadeYamlConfig.get()
     config = CascadeYamlConfig(list_paths = list_paths)
-    SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
+
+    manager = ServerManager()
+    manager.init()
+    print("####### manager.schedulers :", manager.schedulers)
+
+    class_table = dict()
+    plug_instances = dict()
+    for scheduler in manager.schedulers:
+        plug_instances[manager.schedulers[scheduler].NAME] = manager.schedulers[scheduler]
+    class_table['SCHEDULER'] = (ConnectedManager, plug_instances)
+
+
+    #SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
     root = AutoChoiceNode(name='TOP', schema=config.conf['schema'],
                                                     defaults=config.conf.get('defaults', None),
-                                                    class_table={'SCHEDULER': SchedulerManager})
+                                                    class_table=class_table)
 
     display_dialog_ui = root.get_gui_options()
     print(display_dialog_ui)
     def print_result(choices):
         print(json.dumps(choices, indent=4))
         res = root.substitute(choices)
-        SchedulerManager._allInstances[0].active_scheduler()
+        # SchedulerManager._allInstances[0].active_scheduler()
         for k, v in res.items():
             print(k, ":::>")
             print(v)

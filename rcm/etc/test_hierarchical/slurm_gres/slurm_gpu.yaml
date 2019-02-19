@@ -32,11 +32,6 @@ defaults:
               None :
                 substitutions :
                   GRES_STRING: ""
-          gll_usr_prod :
-            TIME :
-              max : 3600
-            CPU :
-              max : 31
         substitutions :
           QUEUE.GRES.GRES_STRING: ""
           HEADER: |
