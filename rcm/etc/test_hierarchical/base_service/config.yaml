@@ -3,7 +3,7 @@ schema:
   SERVICE :
     label : 'Service Type'
     type: 'combobox'
-    list :
+    children :
       substitutions :
         COMMAND_LINE: ""
         START : |
@@ -18,14 +18,14 @@ schema:
       COMMAND :
         label : 'Command'
         type : 'combobox'
-        list :
+        children :
           substitutions :
 #            COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd  @{WM_COMMAND "
 
           WM :
             label : 'Window Manager'
             type : 'combobox'
-            list:
+            children:
               substitutions :
                 WM_COMMAND: ""
                 WM_FLAGS: ""

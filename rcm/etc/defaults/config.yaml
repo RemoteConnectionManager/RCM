@@ -25,7 +25,7 @@ schema:
   SCHEDULER:
     label : 'Scheduler'
     type : 'combobox'
-    list :
+    children :
 
   DIVIDER:
     type: 'divider'
@@ -35,4 +35,4 @@ schema:
   SERVICE :
     label : 'Service Type'
     type: 'combobox'
-    list :
+    children :

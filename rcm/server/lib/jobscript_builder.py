@@ -126,9 +126,9 @@ class ChoiceNode(CompositeNode):
         if self.children:
             for child in self.children:
                 composer_choice[child.NAME] = child.get_gui_options()
-            composer_options['choices'] = composer_choice
-        if 'list' in composer_options:
-            del composer_options['list']
+            composer_options['values'] = composer_choice
+        if 'children' in composer_options:
+            del composer_options['children']
         return composer_options
 
 
@@ -141,7 +141,7 @@ class AutoChoiceNode(CompositeNode):
             #shut#print("#########",child_name)
             child_schema = copy.deepcopy(self.schema[child_name])
             if child_name in self.defaults:
-                if 'list' in child_schema:
+                if 'children' in child_schema:
                     (manager_class, plugin_instances) = self.class_table.get(child_name, (AutoManagerChoiceNode,None))
                     child = manager_class(name=child_name,
                                           schema=copy.deepcopy(child_schema),
@@ -154,7 +154,7 @@ class AutoChoiceNode(CompositeNode):
                                             defaults=copy.deepcopy(self.defaults[child_name]))
                 self.add_child(child)
             else:
-                if 'list' in child_schema:
+                if 'children' in child_schema:
                     logger.debug("skipping complex item: " + child_name + "in schema but not in defaults")
                 else:
                     logger.debug("adding leaf item: " + child_name + "without defaults")
@@ -223,7 +223,7 @@ class ManagedChoiceNode(AutoChoiceNode):
         options = OrderedDict()
         for child in self.children:
             options[child.NAME] = child.get_gui_options()
-        return {'list': options}
+        return {'children': options}
 
 
 class ManagerChoiceNode(ChoiceNode):
@@ -254,11 +254,11 @@ class AutoManagerChoiceNode(ManagerChoiceNode):
 
     def __init__(self, *args, **kwargs):
         super(AutoManagerChoiceNode, self).__init__(*args, **kwargs)
-        if 'list' in self.schema and hasattr(self.defaults, 'get'):
+        if 'children' in self.schema and hasattr(self.defaults, 'get'):
             for class_name in self.defaults:
                 logger.debug("handling child  : " + class_name)
                 child = ManagedChoiceNode(name=class_name,
-                                                 schema=copy.deepcopy(self.schema['list']),
+                                                 schema=copy.deepcopy(self.schema['children']),
                                                  defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
                 # here we override child shema_name, as is neede to be different from instance class name
                 # WARNING.... external set of member variable outside object methods
@@ -272,14 +272,14 @@ class ConnectedManager(ManagerChoiceNode):
         super(ConnectedManager, self).__init__(*args, **kwargs)
 
 
-        if 'list' in self.schema and hasattr(self.defaults, 'get'):
+        if 'children' in self.schema and hasattr(self.defaults, 'get'):
             for class_name in self.defaults:
                 print("handling child  : " + class_name)
                 if class_name in self.class_table:
                     connected_plugin = self.class_table[class_name]
                     plugin_params = self.class_table[class_name].PARAMS
                     child = ManagedPlugin(name=class_name,
-                                          schema=copy.deepcopy(self.schema['list']),
+                                          schema=copy.deepcopy(self.schema['children']),
                                           defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())),
                                           connected_plugin=self.class_table[class_name])
                     # here we override child shema_name, as is neede to be different from instance class name

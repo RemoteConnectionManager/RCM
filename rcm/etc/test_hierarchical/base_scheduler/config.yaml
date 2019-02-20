@@ -3,7 +3,7 @@ schema:
   SCHEDULER:
     label : 'Scheduler'
     type : 'combobox'
-    list :
+    children :
       substitutions :
         HEADER : ""
       ACCOUNT :
@@ -14,7 +14,7 @@ schema:
       QUEUE :
         label : 'Queue'
         type : 'combobox'
-        list :
+        children :
           substitutions:
             QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES.GRES_STRING}"
             GRES.GRES_STRING: ""
@@ -40,5 +40,5 @@ schema:
           GRES :
             label : 'GPU'
             type : 'combobox'
-            list :
+            children :
               substitutions :
