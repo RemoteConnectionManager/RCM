@@ -12,10 +12,14 @@ logger = logging.getLogger('rcmServer')
 
 class Node(object):
     """
-    Base class for
+    Base class for tree nodes representing jobscript composotion and gui widget hierarchy.
+    It instantiate a tree of nodes derived from this one, taking OrderedDict data loaded in yaml
+    format from CascadeYamlConfig or passed trough __init__ constructor params.
+    it also accept it' s name as input (the name can be specilizes such as Slurm, name of the queue or generic such as QUEUE or SCHEDULER
+    it keep also a schema name that if not redefined is equal to name, schema name can be redefines
+
     """
     NAME = None
-    working = True
 
     def __init__(self, schema=None, name=None, defaults=None, class_table=None, connected_plugin=None):
 
@@ -27,16 +31,17 @@ class Node(object):
         else:
             self.schema_name='UNKNOWN'
         if schema:
+            print("@@@@@@@@@@@@@@@@@@@@@@ getting input schema", schema)
             self.schema = schema
         else:
             # self.schema = CascadeYamlConfig().get_copy(['schema', self.NAME])
+            print("####################### getting schema from yaml in ", self.NAME)
             self.schema = CascadeYamlConfig()['schema', self.NAME]
         if defaults:
             self.defaults = defaults
         else:
             self.defaults = CascadeYamlConfig()['defaults', self.NAME]
         if class_table:
-            print(self.__class__.__name__, name, class_table)
             self.class_table = class_table
         else:
             self.class_table = dict()
@@ -60,7 +65,7 @@ class Node(object):
             if 'substitutions' in d:
                 del d['substitutions']
 
-        print("init of ",self.__class__.__name__,self.NAME)
+        # print("init of ",self.__class__.__name__,self.NAME)
 
     def substitute(self, choices):
         t = ""
