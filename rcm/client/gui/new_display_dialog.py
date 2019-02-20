@@ -108,12 +108,7 @@ class QJobWidget(QWidget):
 
     def recursive_init_ui(self, d, parent_widget, parent_layout, parent_values=[], path="", var=""):
         try:
-            values = d.get('values', [])
-            if not values:
-                choices = d.get('choices', [])
-                if choices:
-                    values = choices.keys()
-
+            values = d.get('values', None)
             if values:
                 gui_widget = create_hor_composite_widget(parent_widget,
                                                          parent_layout,
@@ -126,13 +121,13 @@ class QJobWidget(QWidget):
                 gui_widget.update()
                 self.gui_widgets.append(gui_widget)
 
-            if 'list' in d or 'choices' in d:
+            if 'children' in d or 'values' in d:
                 count = 0
 
-                if 'list' in d:
-                    items = d['list']
+                if 'children' in d:
+                    items = d['children']
                 else:
-                    items = d['choices']
+                    items = d['values']
 
                 nested_widget = QWidget()
                 nested_ver_layout = QVBoxLayout()
@@ -142,7 +137,7 @@ class QJobWidget(QWidget):
 
                 for key, value in items.items():
                     # choices
-                    if 'choices' in d:
+                    if 'values' in d:
                         count += 1
                         hided_widget = QContainer()
                         hided_ver_layout = QVBoxLayout()
