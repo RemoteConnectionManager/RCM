@@ -2,9 +2,9 @@
     "SCHEDULER": {
         "label": "Scheduler",
         "type": "combobox",
-        "choices": {
+        "values": {
             "PBS": {
-                "list": {
+                "children": {
                     "ACCOUNT": {
                         "label": "Account",
                         "type": "combobox",
@@ -16,42 +16,42 @@
                     "QUEUE": {
                         "label": "Queue",
                         "type": "combobox",
-                        "choices": {
+                        "values": {
                             "gll_usr_prd": {
-                                "list": {
+                                "children": {
                                     "MEMORY": {
                                         "label": "Memory",
                                         "type": "slider",
                                         "values": {
-                                            "min": 1,
-                                            "max": 120
+                                            "min": 2,
+                                            "max": 110
                                         }
                                     },
                                     "CPU": {
                                         "label": "CPU",
                                         "type": "slider",
                                         "values":{
-                                            "min": 1,
+                                            "min": 3,
                                             "max": 32
                                         }
                                     }
                                 }
                             },
                             "gll_sys_prd": {
-                                "list": {
+                                "children": {
                                     "MEMORY": {
                                         "label": "Memory",
                                         "type": "slider",
                                         "values": {
-                                            "min": 1,
-                                            "max": 120
+                                            "min": 4,
+                                            "max": 100
                                         }
                                     },
                                     "CPU": {
                                         "label": "CPU",
                                         "type": "slider",
                                         "values":{
-                                            "min": 1,
+                                            "min": 5,
                                             "max": 16
                                         }
                                     }
@@ -62,7 +62,7 @@
                 }
             },
             "Slurm": {
-                "list": {
+                "children": {
                     "ACCOUNT": {
                         "label": "Account",
                         "type": "combobox",
@@ -74,9 +74,9 @@
                     "QUEUE": {
                         "label": "Queue",
                         "type": "combobox",
-                        "choices": {
+                        "values": {
                             "dav_usr_prd": {
-                                "list": {
+                                "children": {
                                     "MEMORY": {
                                         "label": "Memory",
                                         "type": "slider",
@@ -89,19 +89,19 @@
                                         "label": "CPU",
                                         "type": "slider",
                                         "values": {
-                                            "min": 1,
+                                            "min": 10,
                                             "max": 33
                                         }
                                     }
                                 }
                             },
                             "dav_sys_prd": {
-                                "list": {
+                                "children": {
                                     "MEMORY": {
                                         "label": "Memory",
                                         "type": "slider",
                                         "values": {
-                                            "min": 1,
+                                            "min": 12,
                                             "max": 121
                                         }
                                     },
@@ -109,7 +109,7 @@
                                         "label": "CPU",
                                         "type": "slider",
                                         "values": {
-                                            "min": 1,
+                                            "min": 13,
                                             "max": 17
                                         }
                                     }
@@ -130,9 +130,9 @@
     "SESSION": {
         "label": "Session",
         "type": "combobox",
-        "choices": {
+        "values": {
             "VNC": {
-                "list": {
+                "children": {
                     "WM": {
                         "label": "Window Manager",
                         "type": "combobox",
