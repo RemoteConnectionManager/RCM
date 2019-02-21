@@ -3,9 +3,6 @@ defaults:
     SCHEDULER :
       Slurm :
         QUEUE :
-          substitutions:
-            QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES_STRING}"
-
           gll_all_serial :
             MEMORY :
               min : 4
@@ -15,6 +12,8 @@ defaults:
             CPU :
               max : 2
           gll_usr_gpuprod :
+            substitutions:
+              QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES_STRING} #from defaults"
             MEMORY :
               min : 4
               max : 16
@@ -37,6 +36,7 @@ defaults:
           QUEUE.GRES.GRES_STRING: ""
           HEADER: |
             #!/bin/bash
+            ## thisc come from defaults slurm_gpu
             #SBATCH --time=@{QUEUE.TIME}
             #SBATCH --job-name=$RCM_SESSIONID
             #SBATCH --output $RCM_JOBLOG
