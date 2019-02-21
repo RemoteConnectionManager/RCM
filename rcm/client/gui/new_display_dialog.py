@@ -108,12 +108,18 @@ class QJobWidget(QWidget):
 
     def recursive_init_ui(self, d, parent_widget, parent_layout, parent_values=[], path="", var=""):
         try:
+            if not isinstance(d, dict):
+                return
+
             values = d.get('values', None)
+            label = d.get('label', None)
+            widget_type = d.get('type', None)
+
             if values:
                 gui_widget = create_hor_composite_widget(parent_widget,
                                                          parent_layout,
-                                                         d.get('label'),
-                                                         d.get('type'),
+                                                         label,
+                                                         widget_type,
                                                          values,
                                                          path,
                                                          var)
@@ -121,22 +127,23 @@ class QJobWidget(QWidget):
                 gui_widget.update()
                 self.gui_widgets.append(gui_widget)
 
-            if 'children' in d or 'values' in d:
-                count = 0
+            if 'children' in d:
+                items = d['children']
+            elif 'values' in d:
+                items = d['values']
+            else:
+                return
 
-                if 'children' in d:
-                    items = d['children']
-                else:
-                    items = d['values']
+            count = 0
 
-                nested_widget = QWidget()
-                nested_ver_layout = QVBoxLayout()
-                nested_ver_layout.setContentsMargins(0, 0, 0, 0)
-                nested_widget.setLayout(nested_ver_layout)
-                parent_layout.addWidget(nested_widget)
+            nested_widget = QWidget()
+            nested_ver_layout = QVBoxLayout()
+            nested_ver_layout.setContentsMargins(0, 0, 0, 0)
+            nested_widget.setLayout(nested_ver_layout)
+            parent_layout.addWidget(nested_widget)
 
+            if isinstance(items, dict):
                 for key, value in items.items():
-                    # choices
                     if 'values' in d:
                         count += 1
                         hided_widget = QContainer()
@@ -152,8 +159,8 @@ class QJobWidget(QWidget):
                             hided_widget.hide()
 
                         widget_path = path + "." + key
-                        print("choice: " + widget_path)
                         self.container_widgets[widget_path] = hided_widget
+
                         if isinstance(parent_widget, QContainer):
                             parent_widget.childs.append(hided_widget)
 
@@ -163,7 +170,6 @@ class QJobWidget(QWidget):
                                                values,
                                                path + "." + key,
                                                var)
-                    # list
                     else:
                         self.recursive_init_ui(value,
                                                parent_widget,
@@ -171,8 +177,6 @@ class QJobWidget(QWidget):
                                                values,
                                                path + "." + key,
                                                var + "." + key)
-            else:
-                return
         except Exception as e:
             print(e)
 
