@@ -19,7 +19,7 @@ schema:
             type : 'combobox'
 
             substitutions:
-              QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES.GRES_STRING}"
+              QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES.GRES_STRING} #from schema"
               GRES.GRES_STRING: ""
 
             children :
