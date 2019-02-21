@@ -389,12 +389,16 @@ if __name__ == "__main__":
 
 
     #SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
-    root = AutoChoiceNode(name='TOP', schema=config.conf['schema'],
-                                                    defaults=config.conf.get('defaults', None),
-                                                    class_table=class_table)
+    root = AutoChoiceNode(name='TOP',
+                          #schema=config.conf['schema']['TOP'],
+                          #defaults=config.conf.get('defaults', OrderedDict()).get('TOP',None),
+                          class_table=class_table)
 
     display_dialog_ui = root.get_gui_options()
-    print(display_dialog_ui)
+    print("-----------------------------------")
+    print( json.dumps(display_dialog_ui, indent=4))
+    print("-----------------------------------")
+
     def print_result(choices):
         print(json.dumps(choices, indent=4))
         res = root.substitute(choices)

@@ -10,29 +10,31 @@ logging:
 
 schema:
 
-  substitutions :
-    SCHEDULER: "NO SCHEDULER DEFINED"
-    SCHEDULER.HEADER: ""
-    SERVICE: "NO SERVICE DEFINED"
-    SERVICE_START: ""
-    SCRIPT: |
-      #!/bin/bash
-      # Using scheduler @{SCHEDULER}
-      @{SCHEDULER.HEADER}
-      # Service:  @{SERVICE}
-      @{SERVICE.START}
+  TOP:
+    substitutions :
+      SCHEDULER: "NO SCHEDULER DEFINED"
+      SCHEDULER.HEADER: ""
+      SERVICE: "NO SERVICE DEFINED"
+      SERVICE.START: ""
+      SCRIPT: |
+        #!/bin/bash
+        # Using scheduler @{SCHEDULER}
+        @{SCHEDULER.HEADER}
+        # Service:  @{SERVICE}
+        @{SERVICE.START}
 
-  SCHEDULER:
-    label : 'Scheduler'
-    type : 'combobox'
-    list :
+    children:
+      SCHEDULER:
+        label : 'Scheduler'
+        type : 'combobox'
+        children :
 
-  DIVIDER:
-    type: 'divider'
-    values:
-      style: "hline"
+      DIVIDER:
+        type: 'divider'
+        values:
+          style: "hline"
 
-  SERVICE :
-    label : 'Service Type'
-    type: 'combobox'
-    list :
+      SERVICE :
+        label : 'Service Type'
+        type: 'combobox'
+        children :

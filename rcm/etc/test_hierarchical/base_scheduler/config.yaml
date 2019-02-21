@@ -1,44 +1,49 @@
 schema:
-
-  SCHEDULER:
-    label : 'Scheduler'
-    type : 'combobox'
-    list :
-      substitutions :
-        HEADER : ""
-      ACCOUNT :
-        label : 'Account'
+  TOP:
+    children:
+      SCHEDULER:
+        label : 'Scheduler'
         type : 'combobox'
 
-  #composites
-      QUEUE :
-        label : 'Queue'
-        type : 'combobox'
-        list :
-          substitutions:
-            QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES.GRES_STRING}"
-            GRES.GRES_STRING: ""
+        substitutions :
+          HEADER : ""
 
-          MEMORY :
-            label : 'Memory'
-            type : 'slider'
-            values :
-              min : 1
-              max : 120
-          CPU :
-            label : 'CPU'
-            type : 'slider'
-            values :
-              min : 1
-              max : 36
-          TIME :
-            label : 'Time (sec)'
-            type : 'slider'
-            values :
-              min : 1
-              max : 360000
-          GRES :
-            label : 'GPU'
+        children :
+          ACCOUNT :
+            label : 'Account'
             type : 'combobox'
-            list :
-              substitutions :
+
+      #composites
+          QUEUE :
+            label : 'Queue'
+            type : 'combobox'
+
+            substitutions:
+              QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES.GRES_STRING}"
+              GRES.GRES_STRING: ""
+
+            children :
+              MEMORY :
+                label : 'Memory'
+                type : 'slider'
+                values :
+                  min : 1
+                  max : 120
+              CPU :
+                label : 'CPU'
+                type : 'slider'
+                values :
+                  min : 1
+                  max : 36
+              TIME :
+                label : 'Time (sec)'
+                type : 'slider'
+                values :
+                  min : 1
+                  max : 360000
+              GRES :
+                label : 'GPU'
+                type : 'combobox'
+                substitutions :
+                children :
+

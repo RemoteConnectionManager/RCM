@@ -1,35 +1,35 @@
 schema:
+  TOP:
+    children:
+      SERVICE :
+        label : 'Service Type'
+        type: 'combobox'
 
-  SERVICE :
-    label : 'Service Type'
-    type: 'combobox'
-    list :
-      substitutions :
-        COMMAND_LINE: ""
-        START : |
-          # Running service app @{COMMAND}
-          @{COMMAND_LINE}
+        substitutions :
+          COMMAND_LINE: ""
+          START : |
+            # Running service app @{COMMAND}
+            @{COMMAND_LINE}
 
-
-      DIVIDER:
-        type: 'divider'
-        values:
-          style: "hline"
-      COMMAND :
-        label : 'Command'
-        type : 'combobox'
-        list :
-          substitutions :
-#            COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd  @{WM_COMMAND "
-
-          WM :
-            label : 'Window Manager'
+        children :
+          DIVIDER:
+            type: 'divider'
+            values:
+              style: "hline"
+          COMMAND :
+            label : 'Command'
             type : 'combobox'
-            list:
-              substitutions :
-                WM_COMMAND: ""
-                WM_FLAGS: ""
 
-          DISPLAY :
-            label : 'Display size'
-            type : 'combobox'
+            substitutions :
+  #            COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd  @{WM_COMMAND "
+            children :
+              WM :
+                label : 'Window Manager'
+                type : 'combobox'
+                substitutions :
+                  WM_COMMAND: ""
+                  WM_FLAGS: ""
+                children:
+              DISPLAY :
+                label : 'Display size'
+                type : 'combobox'

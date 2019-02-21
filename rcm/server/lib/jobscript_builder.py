@@ -12,10 +12,14 @@ logger = logging.getLogger('rcmServer')
 
 class Node(object):
     """
-    Base class for
+    Base class for tree nodes representing jobscript composotion and gui widget hierarchy.
+    It instantiate a tree of nodes derived from this one, taking OrderedDict data loaded in yaml
+    format from CascadeYamlConfig or passed trough __init__ constructor params.
+    it also accept it' s name as input (the name can be specilizes such as Slurm, name of the queue or generic such as QUEUE or SCHEDULER
+    it keep also a schema name that if not redefined is equal to name, schema name can be redefines
+
     """
     NAME = None
-    working = True
 
     def __init__(self, schema=None, name=None, defaults=None, class_table=None, connected_plugin=None):
 
@@ -27,16 +31,18 @@ class Node(object):
         else:
             self.schema_name='UNKNOWN'
         if schema:
+            print(self.__class__.__name__, "@@@@@@@@@@@@@@@@@@@@@@", self.NAME, "getting input schema", schema)
             self.schema = schema
         else:
             # self.schema = CascadeYamlConfig().get_copy(['schema', self.NAME])
             self.schema = CascadeYamlConfig()['schema', self.NAME]
+            print(self.__class__.__name__, "#######################", self.NAME, "getting yaml schema", self.schema )
+
         if defaults:
             self.defaults = defaults
         else:
             self.defaults = CascadeYamlConfig()['defaults', self.NAME]
         if class_table:
-            print(self.__class__.__name__, name, class_table)
             self.class_table = class_table
         else:
             self.class_table = dict()
@@ -46,21 +52,26 @@ class Node(object):
         logger.debug("self.defaults " + str(self.defaults))
 
         self.templates = copy.deepcopy(self.schema.get('substitutions', OrderedDict()))
+        print(self.__class__.__name__,"+++++++++++", self.NAME, "templates from schema",self.templates)
         # needed to prevent crash when key susbstitutions has no following substitutions
         if self.templates is None:
             self.templates = OrderedDict()
         if hasattr(self.defaults, 'get'):
             default_subst = copy.deepcopy(self.defaults.get('substitutions', OrderedDict()))
+            print(self.__class__.__name__,"----------", self.NAME, "templates from defaults",self.templates)
+        # needed to prevent crash when key susbstitutions has no following substitutions
             # needed to prevent crash when key susbstitutions has no following substitutions
             if hasattr(default_subst, '__getitem__'):
                 for key in default_subst:
                     self.templates[key] = default_subst[key]
-        logger.debug(" template: " + self.__class__.__name__ + ": " + str(self.NAME) + " " + str(self.templates))
-        for d in [self.schema, self.defaults]:
-            if 'substitutions' in d:
-                del d['substitutions']
 
-        print("init of ",self.__class__.__name__,self.NAME)
+        logger.debug(" template: " + self.__class__.__name__ + ": " + str(self.NAME) + " " + str(self.templates))
+        for d in [ self.defaults]:
+            if 'substitutions' in d:
+                print("*********** OLD removing susbstitutions from",d)
+                del d['substitutions']
+        print(self.__class__.__name__, "+-+-+-+-+-+-+-", self.NAME, "templates merged", self.templates)
+        # print("init of ",self.__class__.__name__,self.NAME)
 
     def substitute(self, choices):
         t = ""
@@ -78,6 +89,7 @@ class LeafNode(Node):
                 options['values'][preset] = self.defaults[preset]
         else:
             options['values'] = copy.deepcopy(self.defaults)
+        print(self.__class__.__name__, "°°°°°°°°°°°°°°° gui options",options)
         return options
 
     def substitute(self, choices):
@@ -104,6 +116,7 @@ class CompositeNode(Node):
         options = OrderedDict()
         for child in self.children:
             options[child.NAME] = child.get_gui_options()
+        print(self.__class__.__name__, "°°°°°°°°°°°°°°° gui options",options)
         return options
 
     def substitute(self, choices):
@@ -121,9 +134,10 @@ class ChoiceNode(CompositeNode):
         if self.children:
             for child in self.children:
                 composer_choice[child.NAME] = child.get_gui_options()
-            composer_options['choices'] = composer_choice
-        if 'list' in composer_options:
-            del composer_options['list']
+            composer_options['values'] = composer_choice
+        for keyword in ['children', 'substitutions']:
+            if keyword in composer_options:
+                del composer_options[keyword]
         return composer_options
 
 
@@ -132,31 +146,34 @@ class AutoChoiceNode(CompositeNode):
     def __init__(self, *args, **kwargs):
         super(AutoChoiceNode, self).__init__(*args, **kwargs)
 
-        for child_name in self.schema:
-            #shut#print("#########",child_name)
-            child_schema = copy.deepcopy(self.schema[child_name])
-            if child_name in self.defaults:
-                if 'list' in child_schema:
-                    (manager_class, plugin_instances) = self.class_table.get(child_name, (AutoManagerChoiceNode,None))
-                    child = manager_class(name=child_name,
-                                          schema=copy.deepcopy(child_schema),
-                                          defaults=copy.deepcopy(self.defaults[child_name]),
-                                          class_table=plugin_instances)
-                else:
-                    logger.debug("hadling leaf item: " + child_name)
-                    child = LeafNode(name=child_name,
-                                            schema=copy.deepcopy(child_schema),
-                                            defaults=copy.deepcopy(self.defaults[child_name]))
-                self.add_child(child)
-            else:
-                if 'list' in child_schema:
-                    logger.debug("skipping complex item: " + child_name + "in schema but not in defaults")
-                else:
-                    logger.debug("adding leaf item: " + child_name + "without defaults")
-                    child = LeafNode(name=child_name,
-                                            schema=copy.deepcopy(child_schema),
-                                            defaults=OrderedDict())
+        children_schema =  self.schema.get('children', OrderedDict())
+        if children_schema:
+            for child_name in children_schema:
+                #shut#print("#########",child_name)
+                child_schema = copy.deepcopy(children_schema[child_name])
+                if child_name in self.defaults:
+                    if 'children' in child_schema:
+                        (manager_class, plugin_instances) = self.class_table.get(child_name, (AutoManagerChoiceNode,None))
+                        child = manager_class(name=child_name,
+                                              schema=copy.deepcopy(child_schema),
+                                              defaults=copy.deepcopy(self.defaults[child_name]),
+                                              class_table=plugin_instances)
+                    else:
+                        logger.debug("hadling leaf item: " + child_name)
+                        child = LeafNode(name=child_name,
+                                                schema=copy.deepcopy(child_schema),
+                                                defaults=copy.deepcopy(self.defaults[child_name]))
                     self.add_child(child)
+                else:
+                    if child_schema:
+                        if 'children' in child_schema:
+                            logger.debug("skipping complex item: " + child_name + "in schema but not in defaults")
+                        else:
+                            logger.debug("adding leaf item: " + child_name + "without defaults")
+                            child = LeafNode(name=child_name,
+                                                    schema=copy.deepcopy(child_schema),
+                                                    defaults=OrderedDict())
+                            self.add_child(child)
 
     def substitute(self, choices):
         # in_subst is the dict of susbstitutions that are passed to child nodes
@@ -218,7 +235,10 @@ class ManagedChoiceNode(AutoChoiceNode):
         options = OrderedDict()
         for child in self.children:
             options[child.NAME] = child.get_gui_options()
-        return {'list': options}
+        if options:
+            return {'children': options}
+        else:
+            return options
 
 
 class ManagerChoiceNode(ChoiceNode):
@@ -249,11 +269,11 @@ class AutoManagerChoiceNode(ManagerChoiceNode):
 
     def __init__(self, *args, **kwargs):
         super(AutoManagerChoiceNode, self).__init__(*args, **kwargs)
-        if 'list' in self.schema and hasattr(self.defaults, 'get'):
+        if 'children' in self.schema and hasattr(self.defaults, 'get'):
             for class_name in self.defaults:
                 logger.debug("handling child  : " + class_name)
                 child = ManagedChoiceNode(name=class_name,
-                                                 schema=copy.deepcopy(self.schema['list']),
+                                                 schema=copy.deepcopy(self.schema),
                                                  defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
                 # here we override child shema_name, as is neede to be different from instance class name
                 # WARNING.... external set of member variable outside object methods
@@ -267,14 +287,14 @@ class ConnectedManager(ManagerChoiceNode):
         super(ConnectedManager, self).__init__(*args, **kwargs)
 
 
-        if 'list' in self.schema and hasattr(self.defaults, 'get'):
+        if 'children' in self.schema and hasattr(self.defaults, 'get'):
             for class_name in self.defaults:
                 print("handling child  : " + class_name)
                 if class_name in self.class_table:
                     connected_plugin = self.class_table[class_name]
                     plugin_params = self.class_table[class_name].PARAMS
                     child = ManagedPlugin(name=class_name,
-                                          schema=copy.deepcopy(self.schema['list']),
+                                          schema=copy.deepcopy(self.schema),
                                           defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())),
                                           connected_plugin=self.class_table[class_name])
                     # here we override child shema_name, as is neede to be different from instance class name
