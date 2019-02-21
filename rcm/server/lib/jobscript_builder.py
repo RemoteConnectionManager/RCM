@@ -39,9 +39,11 @@ class Node(object):
             print(self.__class__.__name__, "#######################", self.NAME, "getting yaml schema", self.schema )
 
         if defaults:
+            print(self.__class__.__name__, "@@@@@@@@@@@@@@@@@@@@@@", self.NAME, "getting input defaults", defaults)
             self.defaults = defaults
         else:
             self.defaults = CascadeYamlConfig()['defaults', self.NAME]
+            print(self.__class__.__name__, "#######################", self.NAME, "getting yaml defaults", self.defaults)
         if class_table:
             self.class_table = class_table
         else:
@@ -58,7 +60,7 @@ class Node(object):
             self.templates = OrderedDict()
         if hasattr(self.defaults, 'get'):
             default_subst = copy.deepcopy(self.defaults.get('substitutions', OrderedDict()))
-            print(self.__class__.__name__,"----------", self.NAME, "templates from defaults",self.templates)
+            print(self.__class__.__name__,"----------", self.NAME, "templates from defaults",default_subst)
         # needed to prevent crash when key susbstitutions has no following substitutions
             # needed to prevent crash when key susbstitutions has no following substitutions
             if hasattr(default_subst, '__getitem__'):
@@ -66,10 +68,6 @@ class Node(object):
                     self.templates[key] = default_subst[key]
 
         logger.debug(" template: " + self.__class__.__name__ + ": " + str(self.NAME) + " " + str(self.templates))
-        for d in [ self.defaults]:
-            if 'substitutions' in d:
-                print("*********** OLD removing susbstitutions from",d)
-                del d['substitutions']
         print(self.__class__.__name__, "+-+-+-+-+-+-+-", self.NAME, "templates merged", self.templates)
         # print("init of ",self.__class__.__name__,self.NAME)
 
@@ -116,6 +114,10 @@ class CompositeNode(Node):
         options = OrderedDict()
         for child in self.children:
             options[child.NAME] = child.get_gui_options()
+#        for keyword in ['children', 'substitutions']:
+#            if keyword in options:
+#                del options[keyword]
+
         print(self.__class__.__name__, "°°°°°°°°°°°°°°° gui options",options)
         return options
 
@@ -129,15 +131,16 @@ class CompositeNode(Node):
 class ChoiceNode(CompositeNode):
 
     def get_gui_options(self):
-        composer_options = self.schema
+        composer_options=OrderedDict()
+        excluded_keys = ['children', 'substitutions']
+        for keyword in self.schema:
+            if not keyword in excluded_keys:
+                composer_options[keyword] = self.schema[keyword]
         composer_choice = OrderedDict()
         if self.children:
             for child in self.children:
                 composer_choice[child.NAME] = child.get_gui_options()
             composer_options['values'] = composer_choice
-        for keyword in ['children', 'substitutions']:
-            if keyword in composer_options:
-                del composer_options[keyword]
         return composer_options
 
 
@@ -235,6 +238,11 @@ class ManagedChoiceNode(AutoChoiceNode):
         options = OrderedDict()
         for child in self.children:
             options[child.NAME] = child.get_gui_options()
+
+#        for keyword in ['children', 'substitutions']:
+#            if keyword in options:
+#                del options[keyword]
+
         if options:
             return {'children': options}
         else:
