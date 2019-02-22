@@ -78,6 +78,9 @@ class CascadeYamlConfig:
             if nested_key_list:
                 for key in nested_key_list:
                     val = val.get(key, OrderedDict())
+# this is needed to avoid crash on accessing empty keys
+                    if not val:
+                        val = OrderedDict()
             return copy.deepcopy(val)
 
     instance = None
