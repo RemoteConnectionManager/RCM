@@ -373,12 +373,19 @@ if __name__ == "__main__":
 
 #    print("sys.argv",sys.argv[1:])
 
-    list_paths = sys.argv[1:]
+    test_base_path = os.path.join(root_rcm_path, 'server', 'test', 'etc')
+    list_paths=[]
+    for path in sys.argv[1:]:
+        path = os.path.join(test_base_path, path)
+        if os.path.exists(path):
+            list_paths.append(path)
+        else:
+            print("WARNING path ", path, "not found")
     #list_paths.append(os.path.join(os.environ.get('HOME',''), '.rcm', 'config', 'config.yaml'))                                CascadeYamlConfig.get()
 
 
     manager = ServerManager()
-    manager.init( sys.argv[1:])
+    manager.init( list_paths)
 
     display_dialog_ui = manager.root_node.get_gui_options()
     print("-----------------------------------")
@@ -392,6 +399,7 @@ if __name__ == "__main__":
         for k, v in res.items():
             print(k, ":::>")
             print(v)
+            print("<:::::::::::::::::::::")
 
     display_dialog = QDisplayDialog(display_dialog_ui, callback=print_result)
     display_dialog.show()
