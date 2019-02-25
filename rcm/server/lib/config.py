@@ -45,12 +45,22 @@ class CascadeYamlConfig:
                             self.list_paths.extend(glob.glob(os.path.join(path, glob_suffix)))
                         else:
                             if use_default_paths:
-                                self.list_paths.extend(glob.glob(os.path.join(root_rcm_path, 'etc', path, glob_suffix)))
+                                abs_path = os.path.join(root_rcm_path,
+                                                        'server',
+                                                        'etc',
+                                                        path)
+                                if os.path.exists(abs_path):
+                                    self.list_paths.extend(glob.glob(os.path.join(abs_path, glob_suffix)))
+                                else:
+                                    logger.warning('use_default_path: ' + abs_path + ' not found')
             else:
                 use_default_paths = True
             if use_default_paths:
                 for path in ['etc', os.path.join('etc', 'defaults')]:
-                    self.list_paths.extend(glob.glob(os.path.join(root_rcm_path, path, glob_suffix)))
+                    self.list_paths.extend(glob.glob(os.path.join(root_rcm_path,
+                                                                  'server',
+                                                                  path,
+                                                                  glob_suffix)))
 
             self.list_paths.reverse()
 

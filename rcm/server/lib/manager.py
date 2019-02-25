@@ -9,7 +9,6 @@ from collections import OrderedDict
 # set prefix.
 current_file = os.path.realpath(os.path.expanduser(__file__))
 current_prefix = os.path.dirname(os.path.dirname(current_file))
-print("current_prefix", current_prefix)
 current_etc_path = os.path.join(current_prefix, "etc")
 
 import sys
