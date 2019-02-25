@@ -314,8 +314,8 @@ class ManagedPlugin(ManagedChoiceNode):
 
     def __init__(self, *args, **kwargs):
         """
-        General scheduler class,
-        :param schema: accept a schema to override schema that are retrieved through CascadeYamlConfig singleton
+        Node associated to a plugin class, on substitution, fill
+        the member templates of the associated plugin
         """
 
         merged_defaults = copy.deepcopy(kwargs['defaults'])
@@ -338,3 +338,9 @@ class ManagedPlugin(ManagedChoiceNode):
                                                                                   computed_param)
         kwargs['defaults'] = merged_defaults
         super(ManagedPlugin, self).__init__(*args, **kwargs)
+
+    def substitute(self,choices):
+        active_templates=super(ManagedPlugin, self).substitute(choices)
+        for templ in active_templates:
+            self.connected_plugin.templates[templ] = active_templates[templ]
+        return active_templates

@@ -77,6 +77,7 @@ class QDisplayDialog(QDialog):
 
         self.callback(self.choices)
 
+
     def print_callback(self,choices):
         for key, value in self.choices.items():
             print(key + " : " + value)
@@ -401,6 +402,14 @@ if __name__ == "__main__":
             print(v)
             print("<:::::::::::::::::::::")
 
+        for sched in manager.schedulers:
+            for templ in manager.schedulers[sched].templates:
+                print("@@@@scheduler", sched, templ, ":::>")
+                print(manager.schedulers[sched].templates[templ])
+                print("<:::::::::::::::::::::")
+
     display_dialog = QDisplayDialog(display_dialog_ui, callback=print_result)
     display_dialog.show()
     sys.exit(app.exec_())
+
+

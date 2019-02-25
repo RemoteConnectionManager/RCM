@@ -21,6 +21,8 @@ class Plugin(object):
                 logger.error("command: " + command + " not found !!!!")
                 raise RuntimeError("Plugin " + self.__class__.__name__ + " need command: " + command + " NOT FOUND")
 
+        self.templates = dict()
+
 
     @staticmethod
     def merge_list(preset, computed):

@@ -101,3 +101,8 @@ class ServerManager:
 
     def get_jobscript_json_menu(self):
         return json.dumps(self.root_node.get_gui_options())
+
+    def templates(self,choices_string):
+        choices=json.loads(choices_string)
+        templates = self.root_node.substitute(choices)
+        return templates
