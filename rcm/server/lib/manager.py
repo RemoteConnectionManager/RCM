@@ -40,6 +40,7 @@ class ServerManager:
         self.schedulers = dict()
         self.services = dict()
         self.downloads = dict()
+        self.root_node = None
 
     def init(self, config_paths=[]):
 
@@ -49,19 +50,15 @@ class ServerManager:
         logging.config.dictConfig(config.CascadeYamlConfig(list_paths = config_paths)[['logging_configs']])
 
         # load client download info
-        self.downloads = config.CascadeYamlConfig()[['plugins', 'schedulers']]
+        self.downloads = config.CascadeYamlConfig()[['download']]
 
         # load plugins
-
         for scheduler_str in config.CascadeYamlConfig()[['plugins', 'schedulers']]:
             try:
                 module_name, class_name = scheduler_str.rsplit(".", 1)
-                print("try allocating: ",module_name, class_name)
-
                 scheduler_class = getattr(importlib.import_module(module_name), class_name)
                 scheduler_obj = scheduler_class()
-                print("ALLOCATING: ",class_name)
-                self.schedulers[class_name] = scheduler_obj
+                self.schedulers[scheduler_obj.NAME] = scheduler_obj
                 logger.debug('loaded scheduler plugin ' +
                              scheduler_obj.__class__.__name__ +
                              " - " + scheduler_obj.NAME)
@@ -70,7 +67,6 @@ class ServerManager:
                 logger.error(e)
 
         # load services
-
         for service_str in config.CascadeYamlConfig()[['plugins', 'services']]:
             try:
                 module_name, class_name = service_str.rsplit(".", 1)
@@ -84,16 +80,10 @@ class ServerManager:
 
         # instantiate widget tree
         class_table = dict()
-        plug_instances = dict()
-        for scheduler in self.schedulers:
-            plug_instances[self.schedulers[scheduler].NAME] = self.schedulers[scheduler]
-        class_table['SCHEDULER'] = (jobscript_builder.ConnectedManager, plug_instances)
+        class_table['SCHEDULER'] = (jobscript_builder.ConnectedManager, self.schedulers)
 
-        # SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
-        self.widget_root = jobscript_builder.AutoChoiceNode(name='TOP',
-                              # schema=config.conf['schema']['TOP'],
-                              # defaults=config.conf.get('defaults', OrderedDict()).get('TOP',None),
-                              class_table=class_table)
+        self.root_node = jobscript_builder.AutoChoiceNode(name='TOP',
+                                                          class_table=class_table)
 
     def get_checksum_and_url(self, build_platform):
         checksum = ""
@@ -110,13 +100,5 @@ class ServerManager:
 
         return checksum, downloadurl
 
-    def get_gui_options(self):
-        return self.widget_root.get_gui_options()
-
     def get_jobscript_json_menu(self):
-        return json.dumps(self.get_gui_options())
-
-    def substitute(self,choices):
-        return self.widget_root.substitute(choices)
-
-
+        return json.dumps(self.root_node.get_gui_options())

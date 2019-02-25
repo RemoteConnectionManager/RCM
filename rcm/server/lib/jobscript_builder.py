@@ -87,7 +87,7 @@ class LeafNode(Node):
                 options['values'][preset] = self.defaults[preset]
         else:
             options['values'] = copy.deepcopy(self.defaults)
-        print(self.__class__.__name__, "°°°°°°°°°°°°°°° gui options",options)
+        print(self.__class__.__name__, "gui options",options)
         return options
 
     def substitute(self, choices):
@@ -118,7 +118,7 @@ class CompositeNode(Node):
 #            if keyword in options:
 #                del options[keyword]
 
-        print(self.__class__.__name__, "°°°°°°°°°°°°°°° gui options",options)
+        print(self.__class__.__name__, "gui options",options)
         return options
 
     def substitute(self, choices):
@@ -152,7 +152,6 @@ class AutoChoiceNode(CompositeNode):
         children_schema =  self.schema.get('children', OrderedDict())
         if children_schema:
             for child_name in children_schema:
-                #shut#print("#########",child_name)
                 child_schema = copy.deepcopy(children_schema[child_name])
                 if child_name in self.defaults:
                     if 'children' in child_schema:
@@ -164,8 +163,8 @@ class AutoChoiceNode(CompositeNode):
                     else:
                         logger.debug("hadling leaf item: " + child_name)
                         child = LeafNode(name=child_name,
-                                                schema=copy.deepcopy(child_schema),
-                                                defaults=copy.deepcopy(self.defaults[child_name]))
+                                         schema=copy.deepcopy(child_schema),
+                                         defaults=copy.deepcopy(self.defaults[child_name]))
                     self.add_child(child)
                 else:
                     if child_schema:
@@ -174,8 +173,8 @@ class AutoChoiceNode(CompositeNode):
                         else:
                             logger.debug("adding leaf item: " + child_name + "without defaults")
                             child = LeafNode(name=child_name,
-                                                    schema=copy.deepcopy(child_schema),
-                                                    defaults=OrderedDict())
+                                             schema=copy.deepcopy(child_schema),
+                                             defaults=OrderedDict())
                             self.add_child(child)
 
     def substitute(self, choices):

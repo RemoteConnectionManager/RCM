@@ -380,14 +380,14 @@ if __name__ == "__main__":
     manager = ServerManager()
     manager.init( sys.argv[1:])
 
-    display_dialog_ui = manager.get_gui_options()
+    display_dialog_ui = manager.root_node.get_gui_options()
     print("-----------------------------------")
     print( json.dumps(display_dialog_ui, indent=4))
     print("-----------------------------------")
 
     def print_result(choices):
         print(json.dumps(choices, indent=4))
-        res = manager.substitute(choices)
+        res = manager.root_node.substitute(choices)
         # SchedulerManager._allInstances[0].active_scheduler()
         for k, v in res.items():
             print(k, ":::>")
