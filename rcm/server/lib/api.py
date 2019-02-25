@@ -51,23 +51,33 @@ class ServerAPIs:
 
     def loginlist(self, subnet=''):
         logger.debug("calling api loginlist")
-        # self.rcm_server.subnet = subnet
-        # self.rcm_server.fill_sessions_hash()
-        # s=rcm.rcm_sessions()
-        # for sid, ses in list(self.rcm_server.sessions.items()):
-        #     s.add_session(ses)
-        # s.write()
+
+        import rcm_server_slurm
+        #import rcm_protocol_server
+
+        dummy_server=rcm_server_slurm.rcm_server()
+        #r=rcm_protocol_server.rcm_protocol(dummy_server)
+        dummy_server.subnet = subnet
+        dummy_server.fill_sessions_hash()
+        s=rcm.rcm_sessions()
+        for sid, ses in list(dummy_server.sessions.items()):
+            s.add_session(ses)
+        s.write()
 
     def list(self, subnet=''):
         logger.debug("calling api list")
+        import rcm_server_slurm
+        dummy_server = rcm_server_slurm.rcm_server()
+
         # self.rcm_server.subnet = subnet
+        dummy_server.subnet = subnet
         #
-        # self.rcm_server.load_sessions()
-        # s=rcm.rcm_sessions()
-        # logger.debug("list run session ")
-        # for sid in self.rcm_server.sids['run']:
-        #     s.add_session(self.rcm_server.sessions[sid])
-        # s.write()
+        dummy_server.load_sessions()
+        s=rcm.rcm_sessions()
+        logger.debug("list run session ")
+        for sid in dummy_server.sids['run']:
+            s.add_session(dummy_server.sessions[sid])
+        s.write()
 
     def new(self, geometry='',
             queue='',

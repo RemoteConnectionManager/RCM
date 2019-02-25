@@ -12,9 +12,9 @@ else:
 # new
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root_rcm_path)
-from utils.cascade_yaml_config import *
-from utils.jobscript_composer_base import *
-from utils.scheduler_pbs import *
+from config import *
+# from utils.jobscript_composer_base import *
+# from utils.scheduler_pbs import *
 
 import  logger_server
 
@@ -53,10 +53,10 @@ class baseconfig:
 
     def cascade_parse(self):
 
-        SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
-        self.gui_composer = AutoChoiceGuiComposer(schema=self.cascade_config.conf['schema'],
-                                                  defaults=self.cascade_config.conf.get('defaults', None),
-                                                  class_table={'SCHEDULER': SchedulerManager})
+        # SchedulerManager.register_scheduler([SlurmScheduler, PBSScheduler, LocalScheduler])
+        # self.gui_composer = AutoChoiceGuiComposer(schema=self.cascade_config.conf['schema'],
+        #                                           defaults=self.cascade_config.conf.get('defaults', None),
+        #                                           class_table={'SCHEDULER': SchedulerManager})
 
         config = self.cascade_config.conf.get('old', [])
         for s in config:
