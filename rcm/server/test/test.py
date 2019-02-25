@@ -1,15 +1,12 @@
 import unittest
 import os
 import sys
-import logging
 
 # set prefix.
 current_file = os.path.realpath(os.path.expanduser(__file__))
 current_path = os.path.dirname(os.path.dirname(current_file))
 rcm_root_path = os.path.dirname(current_path)
 root_path = os.path.dirname(os.path.dirname(current_path))
-
-print(current_path)
 
 # Add lib folder in current prefix to default  import path
 current_lib_path = os.path.join(current_path, "lib")
@@ -21,14 +18,19 @@ sys.path.insert(0, current_lib_path)
 sys.path.insert(0, current_utils_path)
 
 import manager
-import utils
+import tempfile
 import json
+import filecmp
 
-logger = logging.getLogger('rcmServer')
 
 class TestManager(unittest.TestCase):
-    def test_json_script(self):
+    """
+    The test loads the yaml files and build the json script.
+    This file is compared with the file stored in the data folder.
+    """
+    def test_jobscript_json_menu(self):
 
+        # A fake slurm is needed in order to load the corresponding plugin
         fake_slurm_path = os.path.join(root_path, 'tests', 'fake_slurm')
         os.environ['PATH'] = fake_slurm_path + os.pathsep + os.environ['PATH']
 
@@ -40,8 +42,12 @@ class TestManager(unittest.TestCase):
 
         server_manager.init(paths)
         display_dialog_ui = server_manager.root_node.get_gui_options()
-        print("-----------------------------------")
-        print(json.dumps(display_dialog_ui, indent=4))
+
+        with tempfile.NamedTemporaryFile() as outfile:
+            json.dump(display_dialog_ui, outfile, indent=4)
+            outfile.flush()
+            self.assertEqual(filecmp.cmp(os.path.join(current_path, "test/data/test_hierarchical.json"),
+                              outfile.name), True)
 
 
 if __name__ == '__main__':
