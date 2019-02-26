@@ -5,7 +5,8 @@ import copy
 from collections import OrderedDict
 
 # local import
-from config import *
+#from config import *
+import config
 
 logger = logging.getLogger('rcmServer')
 
@@ -34,15 +35,16 @@ class Node(object):
             print(self.__class__.__name__, "@@@@@@@@@@@@@@@@@@@@@@", self.NAME, "getting input schema", schema)
             self.schema = schema
         else:
-            # self.schema = CascadeYamlConfig().get_copy(['schema', self.NAME])
-            self.schema = CascadeYamlConfig()['schema', self.NAME]
+            # self.schema = config.CascadeYamlConfig()['schema', self.NAME]
+            self.schema = config.getConfig().get('schema').get(self.NAME, OrderedDict())
             print(self.__class__.__name__, "#######################", self.NAME, "getting yaml schema", self.schema )
 
         if defaults:
             print(self.__class__.__name__, "@@@@@@@@@@@@@@@@@@@@@@", self.NAME, "getting input defaults", defaults)
             self.defaults = defaults
         else:
-            self.defaults = CascadeYamlConfig()['defaults', self.NAME]
+            # self.defaults = config.CascadeYamlConfig()['defaults', self.NAME]
+            self.defaults = config.getConfig().get('defaults', OrderedDict()).get(self.NAME, OrderedDict())
             print(self.__class__.__name__, "#######################", self.NAME, "getting yaml defaults", self.defaults)
         if class_table:
             self.class_table = class_table

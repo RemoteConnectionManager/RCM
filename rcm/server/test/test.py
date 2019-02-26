@@ -21,7 +21,7 @@ import manager
 import tempfile
 import json
 import filecmp
-
+import config
 
 class TestManager(unittest.TestCase):
     """
@@ -34,13 +34,15 @@ class TestManager(unittest.TestCase):
         fake_slurm_path = os.path.join(root_path, 'tests', 'fake_slurm')
         os.environ['PATH'] = fake_slurm_path + os.pathsep + os.environ['PATH']
 
-        server_manager = manager.ServerManager()
         paths = [os.path.join(current_path, "test/etc/test_hierarchical/base_scheduler"),
                  os.path.join(current_path, "test/etc/test_hierarchical/base_service"),
                  os.path.join(current_path, "test/etc/test_hierarchical/slurm_gres")
                  ]
 
-        server_manager.init(paths)
+        config.getConfig('default', True, tuple(paths))
+
+        server_manager = manager.ServerManager()
+        server_manager.init()
         display_dialog_ui = server_manager.root_node.get_gui_options()
 
         with tempfile.NamedTemporaryFile() as outfile:

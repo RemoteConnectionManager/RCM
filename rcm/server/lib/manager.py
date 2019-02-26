@@ -41,18 +41,17 @@ class ServerManager:
         self.downloads = dict()
         self.root_node = None
 
-    def init(self, config_paths=[]):
+    def init(self):
+        configuration = config.getConfig('default')
 
-        # load and merge yaml config from config_paths by loading logging
-        # being a singleton , this first call define  the yaml files that are loaded
-        # subsequent calls, reuse the same info, even if change the list_paths
-        logging.config.dictConfig(config.CascadeYamlConfig(list_paths = config_paths)[['logging_configs']])
+        logging.config.dictConfig(configuration['logging_configs'])
 
         # load client download info
-        self.downloads = config.CascadeYamlConfig()[['download']]
+        self.downloads = configuration['download']
 
         # load plugins
-        for scheduler_str in config.CascadeYamlConfig()[['plugins', 'schedulers']]:
+        for scheduler_str in configuration['plugins']['schedulers']:
+            print(scheduler_str)
             try:
                 module_name, class_name = scheduler_str.rsplit(".", 1)
                 scheduler_class = getattr(importlib.import_module(module_name), class_name)
@@ -66,7 +65,7 @@ class ServerManager:
                 logger.error(e)
 
         # load services
-        for service_str in config.CascadeYamlConfig()[['plugins', 'services']]:
+        for service_str in configuration['plugins']['services']:
             try:
                 module_name, class_name = service_str.rsplit(".", 1)
                 service_class = getattr(importlib.import_module(module_name), class_name)

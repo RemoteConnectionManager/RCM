@@ -25,6 +25,7 @@ sys.path.insert(0, current_utils_path)
 import manager
 import api
 import parser
+import config
 
 
 logging.config.fileConfig(os.path.join(current_etc_path, 'logging.conf'))
@@ -34,9 +35,11 @@ logger = logging.getLogger('rcmServer')
 
 logger.debug("started server from file " + os.path.realpath(__file__))
 
+configuration = config.getConfig('default')
+
 server_api = api.ServerAPIs()
 parser = parser.CommandParser(server_api)
 parser.handle()
 # parser.handle(["--command=loginlist", "--subnet=10.3.3.2"])
 # parser.handle(["--command=list", "--subnet=10.3.3.2"])
-#parser.handle(["--command=config","--build_platform=linux_64bit"])
+# parser.handle(["--command=config","--build_platform=linux_64bit"])

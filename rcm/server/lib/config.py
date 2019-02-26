@@ -16,6 +16,58 @@ import utils
 logger = logging.getLogger('RCM.composer')
 
 
+dict_paths = dict()
+
+
+def getConfig(name="default", use_default_paths=True, paths=()):
+    # load and merge yaml config from config_paths by loading logging
+    # being a singleton , this first call define  the yaml files that are loaded
+    # subsequent calls, reuse the same info, even if change the list_paths
+
+    glob_suffix = "*.yaml"
+
+    if not isinstance(paths, tuple):
+        raise TypeError("paths must be a tuple")
+
+    if dict_paths.has_key(name):
+        return dict_paths[name]
+    else:
+        list_paths = list()
+
+        if use_default_paths:
+
+            # paths from the environment
+            env_config_path = os.environ.get("RCM_CONFIG_PATH", None)
+            if env_config_path:
+                list_paths.append(env_config_path)
+
+            # paths
+            for path in ['etc', os.path.join('etc', 'defaults')]:
+                list_paths.extend(glob.glob(os.path.join(root_rcm_path,
+                                                         'server',
+                                                         path,
+                                                         glob_suffix)))
+
+        for path in paths:
+            if os.path.isfile(path) and os.path.exists(path):
+                list_paths.append(path)
+            elif os.path.isdir(path) and os.path.exists(path):
+                list_paths.extend(glob.glob(os.path.join(path, glob_suffix)))
+            else:
+                print(path + " not found")
+
+        conf = utils.hiyapyco.load(
+            *list_paths,
+            interpolate=True,
+            method=utils.hiyapyco.METHOD_MERGE,
+            failonmissingfiles=False
+        )
+
+        dict_paths[name] = conf
+        return dict_paths[name]
+
+
+
 class CascadeYamlConfig:
     """
     singleton ( pattern from https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html )

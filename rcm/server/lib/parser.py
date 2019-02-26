@@ -39,7 +39,7 @@ class CommandParser:
                                  default=0,
                                  help='set debug level')
         self.parser.add_argument("--command",
-                                 default=False,
+                                 default='',
                                  help='set the api command ' + str(self.functions.keys()))
         for parameter in parameters.keys():
             self.parser.add_argument(parameters[parameter],
