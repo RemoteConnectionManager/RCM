@@ -7,6 +7,7 @@ from collections import OrderedDict
 # local import
 #from config import *
 import config
+import utils
 
 logger = logging.getLogger('rcmServer')
 
