@@ -16,7 +16,24 @@ import utils
 logger = logging.getLogger('RCM.composer')
 
 
-dict_paths = dict()
+class MyOrderedDict:
+    def __init__(self, configuration):
+        self.configuration = configuration
+
+    def __getitem__(self, key_list):
+        val = self.configuration
+        if key_list:
+            if isinstance(key_list, tuple):
+                for key in key_list:
+                    val = val.get(key, OrderedDict())
+                    if not val:
+                        val = OrderedDict()
+            else:
+                val = val.get(key_list, OrderedDict())
+            return copy.deepcopy(val)
+
+
+dict_paths = OrderedDict()
 
 
 def getConfig(name="default", use_default_paths=True, paths=()):
@@ -63,8 +80,8 @@ def getConfig(name="default", use_default_paths=True, paths=()):
             failonmissingfiles=False
         )
 
-        dict_paths[name] = conf
-        return dict_paths[name]
+        dict_paths[name] = MyOrderedDict(conf)
+        return copy.deepcopy(dict_paths[name])
 
 
 

@@ -36,7 +36,7 @@ class Node(object):
             self.schema = schema
         else:
             # self.schema = config.CascadeYamlConfig()['schema', self.NAME]
-            self.schema = config.getConfig().get('schema').get(self.NAME, OrderedDict())
+            self.schema = config.getConfig()['schema', self.NAME]
             print(self.__class__.__name__, "#######################", self.NAME, "getting yaml schema", self.schema )
 
         if defaults:
@@ -44,7 +44,7 @@ class Node(object):
             self.defaults = defaults
         else:
             # self.defaults = config.CascadeYamlConfig()['defaults', self.NAME]
-            self.defaults = config.getConfig().get('defaults', OrderedDict()).get(self.NAME, OrderedDict())
+            self.defaults = config.getConfig()['defaults', self.NAME]
             print(self.__class__.__name__, "#######################", self.NAME, "getting yaml defaults", self.defaults)
         if class_table:
             self.class_table = class_table
