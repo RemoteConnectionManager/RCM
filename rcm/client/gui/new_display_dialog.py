@@ -359,12 +359,14 @@ if __name__ == "__main__":
     sys.path.append(os.path.join(root_rcm_path, 'server', 'lib'))
 
     import logging
+    import os
 
 
-    from server.lib.config import *
+    #from server.lib.config import *
     from server.lib.jobscript_builder import *
     from server.lib.scheduler import *
     from server.lib.manager import *
+    import config
 
 
     #This is needed, otherwise no default logging happen
@@ -374,19 +376,22 @@ if __name__ == "__main__":
 
 #    print("sys.argv",sys.argv[1:])
 
-    test_base_path = os.path.join(root_rcm_path, 'server', 'test', 'etc')
-    list_paths=[]
-    for path in sys.argv[1:]:
-        path = os.path.join(test_base_path, path)
-        if os.path.exists(path):
-            list_paths.append(path)
-        else:
-            print("WARNING path ", path, "not found")
-    #list_paths.append(os.path.join(os.environ.get('HOME',''), '.rcm', 'config', 'config.yaml'))                                CascadeYamlConfig.get()
 
+    # test_base_path = os.path.join(root_rcm_path, 'server', 'test', 'etc')
+    # list_paths=[]
+    # for path in sys.argv[1:]:
+    #     path = os.path.join(test_base_path, path)
+    #     if os.path.exists(path):
+    #         list_paths.append(path)
+    #     else:
+    #         print("WARNING path ", path, "not found")
+    # #list_paths.append(os.path.join(os.environ.get('HOME',''), '.rcm', 'config', 'config.yaml'))                                CascadeYamlConfig.get()
 
+    # set up default test environment if not used
+
+    config.getConfig( )
     manager = ServerManager()
-    manager.init( list_paths)
+    manager.init()
 
     display_dialog_ui = manager.root_node.get_gui_options()
     print("-----------------------------------")

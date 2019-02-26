@@ -15,6 +15,43 @@ import utils
 
 logger = logging.getLogger('RCM.composer')
 
+def absolute_paths(relative_paths, search_paths=(), glob_suffix=None):
+    list_paths=[]
+    for path in relative_paths:
+        abs_path = os.path.abspath(path)
+
+        if os.path.isfile(abs_path):
+            list_paths.append(abs_path)
+            continue
+
+        if os.path.isdir(abs_path):
+            if glob_suffix:
+                list_paths.extend(glob.glob(os.path.join(abs_path, glob_suffix)))
+            else:
+                list_paths.apend(abs_path)
+            continue
+
+        # path not exist, searching it as relative path
+        found_path = None
+        for base_path in search_paths:
+            abs_path = os.path.abspath(os.path.join(base_path, path))
+            if os.path.exists(abs_path):
+                found_path = abs_path
+                break
+        if found_path:
+            if os.path.isfile(found_path):
+                list_paths.append(found_path)
+            else:
+                if os.path.isdir(found_path):
+                    if glob_suffix:
+                        list_paths.extend(glob.glob(os.path.join(found_path, glob_suffix)))
+                    else:
+                        list_paths.append(found_path)
+        else:
+            logger.warning('path: ' + path + ' not found in ' + str(search_paths))
+
+    return list_paths
+
 
 class MyOrderedDict:
     def __init__(self, configuration):
@@ -33,55 +70,52 @@ class MyOrderedDict:
             return copy.deepcopy(val)
 
 
-dict_paths = OrderedDict()
+dict_paths = dict()
 
 
-def getConfig(name="default", use_default_paths=True, paths=()):
+def getConfig(name="default", paths=(),  use_default_paths=True, glob_suffix="*.yaml"):
     # load and merge yaml config from config_paths by loading logging
     # being a singleton , this first call define  the yaml files that are loaded
     # subsequent calls, reuse the same info, even if change the list_paths
 
-    glob_suffix = "*.yaml"
-
-    if not isinstance(paths, tuple):
-        raise TypeError("paths must be a tuple")
-
-    if dict_paths.has_key(name):
+    if name in dict_paths:
         return dict_paths[name]
-    else:
-        list_paths = list()
 
-        if use_default_paths:
+    default_paths = [os.path.join('etc', 'defaults'), 'etc']
 
-            # paths from the environment
-            env_config_path = os.environ.get("RCM_CONFIG_PATH", None)
-            if env_config_path:
-                list_paths.append(env_config_path)
+    use_default_paths = os.environ.get("RCM_CONFIG_USE_DEFAULTS", use_default_paths)
+    env_config_base_path = os.environ.get("RCM_CONFIG_BASE_PATH", None)
+    env_config_paths = os.environ.get("RCM_CONFIG_PATHS", '').split(':')
 
-            # paths
-            for path in ['etc', os.path.join('etc', 'defaults')]:
-                list_paths.extend(glob.glob(os.path.join(root_rcm_path,
-                                                         'server',
-                                                         path,
-                                                         glob_suffix)))
+    search_paths = [os.path.join(root_rcm_path, 'server')]
 
-        for path in paths:
-            if os.path.isfile(path) and os.path.exists(path):
-                list_paths.append(path)
-            elif os.path.isdir(path) and os.path.exists(path):
-                list_paths.extend(glob.glob(os.path.join(path, glob_suffix)))
-            else:
-                print(path + " not found")
+    list_paths = list()
+    list_paths.extend(absolute_paths(default_paths, search_paths))
+    print("relative list paths after defaults : " + str(list_paths))
+    if env_config_base_path:
+        search_paths = absolute_paths([env_config_base_path], search_paths) + search_paths
+    list_paths.extend(absolute_paths(env_config_paths, search_paths))
+    print("relative list paths after environment: " + str(list_paths))
+    list_paths.extend(paths)
 
-        conf = utils.hiyapyco.load(
-            *list_paths,
-            interpolate=True,
-            method=utils.hiyapyco.METHOD_MERGE,
-            failonmissingfiles=False
-        )
+    print("relative list paths: " + str(list_paths))
+    list_paths = absolute_paths(list_paths, search_paths, glob_suffix)
 
-        dict_paths[name] = MyOrderedDict(conf)
-        return copy.deepcopy(dict_paths[name])
+    out='config: parsing: \n'
+    for path in list_paths:
+        out += '  ' + path + '\n'
+    logger.info(out)
+
+
+    conf = utils.hiyapyco.load(
+        *list_paths,
+        interpolate=True,
+        method=utils.hiyapyco.METHOD_MERGE,
+        failonmissingfiles=False
+    )
+
+    dict_paths[name] = MyOrderedDict(conf)
+    return copy.deepcopy(dict_paths[name])
 
 
 

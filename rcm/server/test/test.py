@@ -39,7 +39,7 @@ class TestManager(unittest.TestCase):
                  os.path.join(current_path, "test/etc/test_hierarchical/slurm_gres")
                  ]
 
-        config.getConfig('default', True, tuple(paths))
+        config.getConfig('default', tuple(paths), True)
 
         server_manager = manager.ServerManager()
         server_manager.init()
