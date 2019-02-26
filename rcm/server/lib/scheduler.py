@@ -70,7 +70,8 @@ class BatchScheduler(plugin.Plugin):
 
 class PBSScheduler(BatchScheduler):
     NAME = 'PBS'
-    COMMANDS = {'qstat': None}
+    COMMANDS = {'qstat': None,
+                'non_existing_command': None}
 
 
 class LocalScheduler(plugin.Plugin):
