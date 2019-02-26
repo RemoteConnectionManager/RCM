@@ -2,21 +2,25 @@
 import unittest
 import sys
 import os
+import uuid
+import re
+import getpass
+from datetime import datetime, timedelta
 
 # pyqt5
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 from PyQt5.QtTest import QTest
 
-# add python paths
-source_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(source_root)
-sys.path.append(os.path.join(source_root, 'rcm'))
+# add python path
+rcm_root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(rcm_root_path)
 
-# local includes
-from rcm.client.gui.ssh_session_widget import QSSHSessionWidget
+# local import
+from client.gui.ssh_session_widget import QSSHSessionWidget
+from client.logic.manager import RemoteConnectionManager
+from client.miscellaneous.logger import configure_logger
 from client.utils.rcm_enum import Mode
-from client.log.logger import configure_logger
 
 app = QApplication(sys.argv)
 
@@ -81,7 +85,7 @@ class TestSSHSessionWidget(unittest.TestCase):
 
 class TestAESCipher(unittest.TestCase):
     def test_encryption(self):
-        from rcm.client.logic.aes_cipher import AESCipher
+        from client.logic.aes_cipher import AESCipher
 
         rcm_cipher = AESCipher(key='hyTedDfs')
         message = "lorem_ipsum"
@@ -121,6 +125,76 @@ class TestRCMCipher(unittest.TestCase):
         self.assertEqual(rcm_cipher.decrypt(rcm_cipher.encrypt()), rcm_cipher.vncpassword)
         rcm_cipher = cipher.RCMCipher("hyTedDfs")
         self.assertEqual(rcm_cipher.decrypt(rcm_cipher.encrypt()), rcm_cipher.vncpassword)
+
+
+class TestManager(unittest.TestCase):
+
+    def test_newcon_api(self):
+        import client.logic.rcm_utils as rcm_utils
+
+        exe = rcm_utils.which('vncviewer')
+
+        if not exe:
+            self.fail("vncviewer not found")
+        print("vncviewer path: " + exe)
+
+        remote_connection_manager = RemoteConnectionManager()
+        host = 'login.galileo.cineca.it' # marconi o galileo
+        user = input("User:")
+        pswd = getpass.getpass('Password:')
+        sessionname = str(uuid.uuid4())
+        queues = ["light_2gb_1cor",
+                  "medium_8gb_1core",
+                  "med_16gb_2core",
+                  "alarge_32gb_4core",
+                  "xtralarge_64gb_8c",
+                  "zfull_120gb_16c"]
+
+        state = ["pending", "valid", "killing"]
+
+        remote_connection_manager.login_setup(host=host, remoteuser=user, password=pswd)
+        print("open sessions on " + host)
+        out = remote_connection_manager.list()
+        out.write(2)
+
+        session = remote_connection_manager.newconn(queue='light_2gb_1cor',
+                                                    geometry='1024x968',
+                                                    sessionname=sessionname,
+                                                    vnc_id='fluxbox_turbovnc_vnc')
+
+        remote_connection_manager.vncsession(session)
+        out = remote_connection_manager.list()
+        out.write(2)
+
+        created = datetime.strptime(session.hash['created'],"%Y%m%d-%H:%M:%S")
+        now = datetime.now()
+
+        self.assertTrue(re.search("([0-9]{8}\-)(([0-9]{2}\:){2})([0-9]{2})", session.hash['created']))
+        self.assertTrue(created - timedelta(minutes=2) < now or created + timedelta(minutes=2) > now)
+
+        self.assertTrue(re.search("(node)([0-9]{1,3})", session.hash['node']))
+        self.assertEqual(session.hash['nodelogin'],host)
+        self.assertEqual(session.hash['session name'], sessionname)
+        self.assertTrue(session.hash['sessionid'][:-1] == '{0}-{1}-'.format(user,session.hash['sessiontype'])
+                        and
+                        re.search(".*([1-9]|(10))$", session.hash['sessionid']))
+        self.assertEqual(session.hash['sessiontype'], "pbs")
+        self.assertTrue(session.hash['state'] in state)
+        self.assertEqual(session.hash['tunnel'], "y")
+        self.assertEqual(session.hash['username'], user)
+        self.assertTrue(datetime.strptime(session.hash['timeleft'], "%H:%M:%S")
+                        <= datetime.strptime(session.hash['walltime'], "%H:%M:%S"))
+
+        print("created session -->",
+              session.hash['sessionid'],
+              "<- display->",
+              session.hash['display'],
+              "<-- node-->",
+              session.hash['node'])
+
+        remote_connection_manager.kill(session)
+        out = remote_connection_manager.list()
+        out.write(2)
 
 
 if __name__ == '__main__':
