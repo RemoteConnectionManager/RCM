@@ -1,4 +1,5 @@
 # std import
+import sys
 import logging
 
 # local import
@@ -87,20 +88,21 @@ class ServerAPIs:
             vncpassword_crypted='',
             vnc_id='',
             choices_string=''):
+
         logger.debug("calling api new")
-        # if choices_string:
-        #     print("choices string:", choices_string, file=sys.stderr)
-        #     choices=json.loads(choices_string)
-        #     res=self.rcm_server.pconfig.gui_composer.substitute(choices)
+        if choices_string:
+            sys.stderr.write("choices string: "+ choices_string)
+            res = self.server_manager.templates(choices_string)
+
         #
-        #     for k, v in res.items():
-        #         print(k, ":::>", file=sys.stderr)
-        #         print(v, file=sys.stderr)
-        #     dummy_session=rcm.rcm_session()
-        #     return dummy_session
+            for k, v in res.items():
+                sys.stderr.write(str(k) +  ":::>\n")
+                ys.stderr.write(str(v) + '\n')
+            dummy_session=rcm.rcm_session()
+            return dummy_session
         #
-        # print("create new vnc display session")
-        # if(subnet): self.rcm_server.subnet = subnet
+        print("create new vnc display session")
+        if(subnet): self.rcm_server.subnet = subnet
         # if(queue): self.rcm_server.queue = queue
         # if(sessionname): self.rcm_server.sessionname = sessionname
         # if(vncpassword): self.rcm_server.vncpassword = vncpassword
