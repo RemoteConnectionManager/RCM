@@ -97,12 +97,12 @@ class ServerAPIs:
         #
             for k, v in res.items():
                 sys.stderr.write(str(k) +  ":::>\n")
-                ys.stderr.write(str(v) + '\n')
+                sys.stderr.write(str(v) + '\n')
             dummy_session=rcm.rcm_session()
             return dummy_session
         #
         print("create new vnc display session")
-        if(subnet): self.rcm_server.subnet = subnet
+        # if(subnet): self.rcm_server.subnet = subnet
         # if(queue): self.rcm_server.queue = queue
         # if(sessionname): self.rcm_server.sessionname = sessionname
         # if(vncpassword): self.rcm_server.vncpassword = vncpassword
