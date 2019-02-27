@@ -28,7 +28,7 @@ def absolute_paths(relative_paths, search_paths=(), glob_suffix=None):
             if glob_suffix:
                 list_paths.extend(glob.glob(os.path.join(abs_path, glob_suffix)))
             else:
-                list_paths.apend(abs_path)
+                list_paths.append(abs_path)
             continue
 
         # path not exist, searching it as relative path
