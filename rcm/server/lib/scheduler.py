@@ -10,44 +10,16 @@ import utils
 
 logger = logging.getLogger('rcmServer')
 
-#
-# class Scheduler(jobscript_builder.ManagedChoiceNode):
-#     NAME = None
-#
-#     def __init__(self, *args, **kwargs):
-#         """
-#         General scheduler class,
-#         :param schema: accept a schema to override schema that are retrieved through CascadeYamlConfig singleton
-#         """
-#         self.is_working = False
-#
-#         merged_defaults = copy.deepcopy(kwargs['defaults'])
-#         if merged_defaults == None:
-#             merged_defaults = OrderedDict()
-#         for param in ['ACCOUNT', 'QUEUE']:
-#             if param in kwargs:
-#                 logger.debug("---------------------------------")
-#                 merged_defaults[param] = self.merge_list(merged_defaults.get(param, OrderedDict()),
-#                                                          kwargs.get(param, []))
-#                 del kwargs[param]
-#         kwargs['defaults'] = merged_defaults
-#         super(Scheduler, self).__init__(*args, **kwargs)
-#
-#     @staticmethod
-#     def merge_list(preset, computed):
-#         logger.debug("merging:" + str(preset) + "----" + str(computed))
-#         out = copy.deepcopy(preset)
-#         for a in computed:
-#             if a not in out:
-#                 if hasattr(out, 'append'):
-#                     out.append(a)
-#                 else:
-#                     out[a] = OrderedDict()
-#         logger.debug("merged:" + str(out))
-#         return out
+class Scheduler(plugin.Plugin):
+
+    COMMANDS = {}
+
+    def submit(self):
+        raise NotImplementedError()
 
 
-class BatchScheduler(plugin.Plugin):
+
+class BatchScheduler(Scheduler):
 
     COMMANDS = {}
 
@@ -58,7 +30,6 @@ class BatchScheduler(plugin.Plugin):
 
     def all_accounts(self):
         raise NotImplementedError()
-
 
     def valid_accounts(self):
         raise NotImplementedError()
@@ -135,3 +106,7 @@ class SlurmScheduler(BatchScheduler):
         else:
             logger.debug("warning !!!!!! sinfo:" + str(sinfo))
             return []
+
+    def submit(self):
+        # function to submit
+        pass
