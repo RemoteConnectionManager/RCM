@@ -32,9 +32,9 @@ class StorageManager:
 
     def new_session(self,tag=''):
         time_id = datetime.datetime.now().isoformat()
-        session_id = tag + time_id
+        session_id = tag + time_id.replace(':', '_')
         session_folder = os.path.join(self.sessions_dir, session_id)
-        os.mkdir(session_folder)
+        os.makedirs(session_folder)
         c=rcm.rcm_session(state='init', sessionid=session_id)
         c.serialize(self.session_file(session_id))
         return session_id
