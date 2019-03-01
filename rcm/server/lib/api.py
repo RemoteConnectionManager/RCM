@@ -92,7 +92,6 @@ class ServerAPIs:
         logger.debug("calling api new")
         if choices_string:
             sys.stderr.write("choices string: "+ choices_string)
-            res = self.server_manager.templates(choices_string)
             self.server_manager.handle_choices(choices_string)
             self.server_manager.new_session()
 
