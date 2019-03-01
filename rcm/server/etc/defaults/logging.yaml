@@ -73,6 +73,7 @@ logging_configs:
     rcmServer.jobscript_builder:
       level: INFO
 #      handlers: [console]
+# handlers are list, so hyapico do not override but merge, so can result into the same log handled multiple times
       propagate: False
     utils.external.hiyapyco:
       handlers: [console]
