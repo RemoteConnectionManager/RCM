@@ -371,7 +371,7 @@ if __name__ == "__main__":
 
     #This is needed, otherwise no default logging happen
     logging.debug("Start test app")
-    logger = logging.getLogger('RCM.composer')
+    logger = logging.getLogger('RCM.test_gui')
     logger.setLevel(logging.INFO)
 
 #    print("sys.argv",sys.argv[1:])
@@ -394,13 +394,13 @@ if __name__ == "__main__":
     manager.init()
 
     display_dialog_ui = manager.root_node.get_gui_options()
-    print("-----------------------------------")
-    print( json.dumps(display_dialog_ui, indent=4))
-    print("-----------------------------------")
+    logger.debug("-----------------------------------")
+    logger.debug(json.dumps(display_dialog_ui, indent=4))
+    logger.debug("-----------------------------------")
 
     def print_result(choices):
         choices_string = json.dumps(choices, indent=4)
-        print(choices_string)
+        logger.debug(choices_string)
         manager.handle_choices(choices_string)
         manager.new_session()
         # SchedulerManager._allInstances[0].active_scheduler()

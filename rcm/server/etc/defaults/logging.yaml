@@ -14,11 +14,11 @@ logging_configs:
     empty:
       format: "%(message)s"
     bare:
-      format: "%(levelname)-5s:%(message)s"
+      format: "%(levelname)-5s %(lineno)s:%(message)s"
     short:
       format: "#%(levelname)-5s %(name)s[#%(message)s"
     base:
-      format: "[%(levelname)-5s %(name)s # %(pathname)s:%(lineno)s] %(message)s"
+      format: "[%(levelname)-5s %(name)s # %(filename)s:%(lineno)s] %(message)s"
     long:
       format: "[%(filename)s:%(lineno)s - %(funcName)20s() %(asctime)s] %(message)s"
   handlers:
@@ -70,12 +70,16 @@ logging_configs:
       level: WARNING
       handlers: [console]
       propagate: False
+    rcmServer.jobscript_builder:
+      level: INFO
+#      handlers: [console]
+      propagate: False
     utils.external.hiyapyco:
       handlers: [console]
       level: INFO
       propagate: False
     external.hiyapyco:
-      handlers: [console]
+#      handlers: [console]
       level: INFO
       propagate: False
     __main__:

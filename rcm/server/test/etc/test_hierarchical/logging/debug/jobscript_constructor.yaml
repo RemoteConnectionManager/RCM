@@ -1,0 +1,4 @@
+logging_configs:
+  loggers:
+    rcmServer.jobscript_builder.constructor:
+      level: DEBUG
