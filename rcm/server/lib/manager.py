@@ -41,7 +41,7 @@ class ServerManager:
         self.services = dict()
         self.downloads = dict()
         self.root_node = None
-        self.storage = db.StorageManager()
+        self.session_manager = db.SessionManager()
 
     def init(self):
         configuration = config.getConfig('default')
@@ -115,8 +115,7 @@ class ServerManager:
                 break
 
     def new_session(self):
-        session_id = self.storage.new_session(tag=self.active_scheduler.NAME)
-        jobfile = self.storage.session_jobscript(session_id)
-        with open(jobfile, 'w') as f:
-            f.write(self.top_templates.get('SCRIPT', 'No scrip in templates'))
+        session_id = self.session_manager.new_session(tag=self.active_scheduler.NAME)
+        script = self.top_templates.get('SCRIPT', 'No script in templates')
+        self.session_manager.write_jobscript(session_id, script)
         return session_id

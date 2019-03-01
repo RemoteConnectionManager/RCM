@@ -19,7 +19,7 @@ import rcm
 
 
 
-class StorageManager:
+class SessionManager:
     """
     This class takes care of all permanent storage (shared filesystem) operations, it mantains the storage associated
     with current sessions and takes care of removing the sessions when their associated job does not exist any more
@@ -36,12 +36,20 @@ class StorageManager:
         session_folder = os.path.join(self.sessions_dir, session_id)
         os.makedirs(session_folder)
         c=rcm.rcm_session(state='init', sessionid=session_id)
-        c.serialize(self.session_file(session_id))
+        c.serialize(self.session_file_path(session_id))
         return session_id
 
-    def session_file(self, session_id):
+    def session_file_path(self, session_id):
         return os.path.join(self.sessions_dir, session_id, 'session')
 
-    def session_jobscript(self, session_id):
+    def session_jobscript_path(self, session_id):
         return os.path.join(self.sessions_dir, session_id, 'job')
+
+    def write_jobscript(self, session_id, script):
+        # write script on session_jobscript_path
+        jobfile = self.session_jobscript_path(session_id)
+        with open(jobfile, 'w') as f:
+            f.write(script)
+
+
 
