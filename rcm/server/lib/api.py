@@ -93,9 +93,11 @@ class ServerAPIs:
         if choices_string:
             sys.stderr.write("choices string: "+ choices_string)
             res = self.server_manager.templates(choices_string)
+            self.server_manager.handle_choices(choices_string)
+            self.server_manager.new_session()
 
-        #
-            for k, v in res.items():
+            #
+            for k, v in self.server_manager.top_templates.items():
                 sys.stderr.write(str(k) +  ":::>\n")
                 sys.stderr.write(str(v) + '\n')
             dummy_session=rcm.rcm_session()

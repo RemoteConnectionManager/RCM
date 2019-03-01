@@ -399,10 +399,12 @@ if __name__ == "__main__":
     print("-----------------------------------")
 
     def print_result(choices):
-        print(json.dumps(choices, indent=4))
-        res = manager.root_node.substitute(choices)
+        choices_string = json.dumps(choices, indent=4)
+        print(choices_string)
+        manager.handle_choices(choices_string)
+        manager.new_session()
         # SchedulerManager._allInstances[0].active_scheduler()
-        for k, v in res.items():
+        for k, v in manager.top_templates.items():
             print(k, ":::>")
             print(v)
             print("<:::::::::::::::::::::")

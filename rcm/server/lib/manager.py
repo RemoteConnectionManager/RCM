@@ -20,6 +20,7 @@ sys.path.insert(0, current_lib_path)
 # local import
 import config
 import jobscript_builder
+import db
 #import manager
 import scheduler
 from external import hiyapyco
@@ -40,6 +41,7 @@ class ServerManager:
         self.services = dict()
         self.downloads = dict()
         self.root_node = None
+        self.storage = db.StorageManager()
 
     def init(self):
         configuration = config.getConfig('default')
@@ -101,7 +103,20 @@ class ServerManager:
     def get_jobscript_json_menu(self):
         return json.dumps(self.root_node.get_gui_options())
 
-    def templates(self,choices_string):
+    def handle_choices(self,choices_string):
         choices=json.loads(choices_string)
-        templates = self.root_node.substitute(choices)
-        return templates
+        self.top_templates = self.root_node.substitute(choices)
+        # here we find which scheduler has been selected.
+        # not really robust... as it can be fooled if there are no substitution templates in yaml
+        self.active_scheduler = None
+        for sched_name,sched_obj in self.schedulers.items():
+            if sched_obj.templates:
+                self.active_scheduler = sched_obj
+                break
+
+    def new_session(self):
+        session_id = self.storage.new_session(tag=self.active_scheduler.NAME)
+        jobfile = self.storage.session_jobscript(session_id)
+        with open(jobfile, 'w') as f:
+            f.write(self.top_templates.get('SCRIPT', 'No scrip in templates'))
+        return session_id
