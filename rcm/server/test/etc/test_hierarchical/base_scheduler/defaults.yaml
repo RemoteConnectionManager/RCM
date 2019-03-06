@@ -4,6 +4,8 @@ defaults:
       Slurm :
 
         substitutions :
+          # WARNING: on regex, \ must be escaped
+          JOBID_REGEX: "Submitted batch job (\\d*)"
           HEADER: |
             #!/bin/bash
             #SBATCH --time=@{QUEUE.TIME}

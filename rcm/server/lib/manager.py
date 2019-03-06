@@ -4,6 +4,7 @@ import importlib
 import os
 import json
 import socket
+import pwd
 import copy
 from collections import OrderedDict
 
@@ -49,6 +50,7 @@ class ServerManager:
         self.network_map = dict()
 
     def init(self):
+        self.username = pwd.getpwuid(os.geteuid())[0]
         self.login_fullname = socket.getfqdn()
 
 
@@ -131,12 +133,20 @@ class ServerManager:
 
     def handle_choices(self,choices_string):
         choices=json.loads(choices_string)
+
+        # set all plugins to unselected
+        for plugin_collections in [self.schedulers, self.services]:
+            for plug_name, plug_obj in plugin_collections.items():
+                plug_obj.selected = False
+
+        # call root node substitutions, as side effect, it select active plugins
         self.top_templates = self.root_node.substitute(choices)
+
+
         # here we find which scheduler has been selected.
-        # not really robust... as it can be fooled if there are no substitution templates in yaml
         self.active_scheduler = None
         for sched_name,sched_obj in self.schedulers.items():
-            if sched_obj.templates:
+            if sched_obj.selected:
                 self.active_scheduler = sched_obj
                 break
 
@@ -147,12 +157,22 @@ class ServerManager:
         session_id = self.session_manager.new_session(tag=self.active_scheduler.NAME)
         new_session = rcm.rcm_session(sessionid=session_id,
                                       state='init',
+                                      username=self.username,
                                       sessionname=sessionname,
+                                      nodelogin=self.login_fullname,
                                       vncpassword=vncpassword_crypted)
+        print("####### session #####\n", new_session.get_string(format='json'))
         new_session.serialize(self.session_manager.session_file_path(session_id))
 
         print("login_name: ", self.get_login_node_name(subnet='49.57.50'))
+        print("submitting with scheduler:", self.active_scheduler.NAME)
 
         script = self.top_templates.get('SCRIPT', 'No script in templates')
-        self.session_manager.write_jobscript(session_id, script)
+        jobfile = self.session_manager.write_jobscript(session_id, script)
+        jobid = self.active_scheduler.submit(jobfile=jobfile)
+        new_session.hash['state'] = 'pending'
+        new_session.hash['jobid'] = jobid
+        print("####### session #####\n", new_session.get_string(format='json'))
+        new_session.serialize(self.session_manager.session_file_path(session_id))
+
         return session_id

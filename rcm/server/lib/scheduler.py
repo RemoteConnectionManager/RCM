@@ -2,6 +2,7 @@
 import copy
 import logging
 from collections import OrderedDict
+import re
 
 # local import
 import jobscript_builder
@@ -14,7 +15,7 @@ class Scheduler(plugin.Plugin):
 
     COMMANDS = {}
 
-    def submit(self):
+    def submit(self, script='', scriptfile=''):
         raise NotImplementedError()
 
 
@@ -56,7 +57,8 @@ class OSScheduler(plugin.Plugin):
 class SlurmScheduler(BatchScheduler):
     NAME = 'Slurm'
     COMMANDS = {'sshare': None,
-                'sinfo': None}
+                'sinfo': None,
+                'sbatch': None}
 
     def __init__(self, *args, **kwargs):
         super(SlurmScheduler, self).__init__(*args, **kwargs)
@@ -107,6 +109,30 @@ class SlurmScheduler(BatchScheduler):
             logger.debug("warning !!!!!! sinfo:" + str(sinfo))
             return []
 
-    def submit(self):
-        # function to submit
-        pass
+    def submit(self, script='', jobfile=''):
+        logger.info(self.__class__.__name__ + " " + self.NAME + " submitting " + jobfile)
+        for t in self.templates:
+            print("############ ", t)
+
+        if jobfile:
+            if script:
+                with open(jobfile, 'w') as f:
+                    f.write(script)
+
+            print("Submitting job file:", jobfile)
+            sbatch = self.COMMANDS.get('sbatch', None)
+            if sbatch:
+                raw_output = sbatch(jobfile,
+                                    output=str)
+                print("@@@@@@@@@@@@@@ raw_output:", raw_output)
+                jobid_regex = self.templates.get('JOBID_REGEX', "Submitted  (\d*)")
+                print("@@@@@@@@@@@@@ jobid_regex", jobid_regex)
+                r=re.match(jobid_regex, raw_output)
+                if (r):
+                    return r.group(1)
+                else:
+                    raise Exception("Unable to extract jobid from output: %s" % (raw_output))
+
+
+
+

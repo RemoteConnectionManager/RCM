@@ -43,11 +43,15 @@ class SessionManager:
     def session_jobscript_path(self, session_id):
         return os.path.join(self.sessions_dir, session_id, 'job')
 
+    def session_jobout_path(self, session_id):
+        return os.path.join(self.sessions_dir, session_id, 'joblog')
+
     def write_jobscript(self, session_id, script):
         # write script on session_jobscript_path
         jobfile = self.session_jobscript_path(session_id)
         with open(jobfile, 'w') as f:
             f.write(script)
+        return jobfile
 
 
 
