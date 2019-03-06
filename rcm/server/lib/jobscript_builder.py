@@ -336,6 +336,7 @@ class ManagedPlugin(ManagedChoiceNode):
         super(ManagedPlugin, self).__init__(*args, **kwargs)
 
     def substitute(self,choices):
+        self.connected_plugin.selected = True
         self.connected_plugin.templates=dict()
         active_templates=super(ManagedPlugin, self).substitute(choices)
         for templ in active_templates:

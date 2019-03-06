@@ -22,6 +22,7 @@ class Plugin(object):
                 raise RuntimeError("Plugin " + self.__class__.__name__ + " need command: " + command + " NOT FOUND")
 
         self.templates = dict()
+        self.selected = False
 
 
     @staticmethod
