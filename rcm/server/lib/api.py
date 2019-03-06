@@ -93,7 +93,10 @@ class ServerAPIs:
         if choices_string:
             sys.stderr.write("choices string: "+ choices_string)
             self.server_manager.handle_choices(choices_string)
-            self.server_manager.new_session()
+            self.server_manager.new_session(sessionname=sessionname,
+                                            subnet=subnet,
+                                            vncpassword=vncpassword,
+                                            vncpassword_crypted=vncpassword_crypted)
 
             #
             for k, v in self.server_manager.top_templates.items():

@@ -3,6 +3,7 @@ import logging.config
 import importlib
 import os
 import json
+import socket
 import copy
 from collections import OrderedDict
 
@@ -25,6 +26,8 @@ import db
 import scheduler
 from external import hiyapyco
 
+import rcm
+import enumerate_interfaces
 
 logger = logging.getLogger('rcmServer')
 
@@ -42,17 +45,24 @@ class ServerManager:
         self.downloads = dict()
         self.root_node = None
         self.session_manager = db.SessionManager()
+        self.login_fullname=''
+        self.network_map = dict()
 
     def init(self):
-        configuration = config.getConfig('default')
+        self.login_fullname = socket.getfqdn()
 
-        logging.config.dictConfig(configuration['logging_configs'])
+
+        self.configuration = config.getConfig('default')
+
+        logging.config.dictConfig(self.configuration['logging_configs'])
 
         # load client download info
-        self.downloads = configuration['download']
+        self.downloads = self.configuration['download']
+
+
 
         # load plugins
-        for scheduler_str in configuration['plugins', 'schedulers']:
+        for scheduler_str in self.configuration['plugins', 'schedulers']:
             print(scheduler_str)
             try:
                 module_name, class_name = scheduler_str.rsplit(".", 1)
@@ -67,7 +77,7 @@ class ServerManager:
                 logger.error(e)
 
         # load services
-        for service_str in configuration['plugins', 'services']:
+        for service_str in self.configuration['plugins', 'services']:
             try:
                 module_name, class_name = service_str.rsplit(".", 1)
                 service_class = getattr(importlib.import_module(module_name), class_name)
@@ -84,6 +94,22 @@ class ServerManager:
 
         self.root_node = jobscript_builder.AutoChoiceNode(name='TOP',
                                                           class_table=class_table)
+
+    def map_login_name(self, subnet, nodelogin):
+        logger.debug("mapping login " + nodelogin + " on network " + subnet)
+        return self.configuration['network', subnet].get(nodelogin, nodelogin)
+
+    def get_login_node_name(self, subnet=''):
+        logger.debug("get_login")
+
+        if (subnet):
+            nodelogin = enumerate_interfaces.external_name(subnet)
+            if (not nodelogin):
+                nodelogin = self.login_fullname
+            nodelogin = self.map_login_name(subnet, nodelogin)
+            return nodelogin
+        else:
+            return self.login_fullname
 
     def get_checksum_and_url(self, build_platform):
         checksum = ""
@@ -114,8 +140,19 @@ class ServerManager:
                 self.active_scheduler = sched_obj
                 break
 
-    def new_session(self):
+    def new_session(self,
+            sessionname='',
+            subnet='',
+            vncpassword_crypted=''):
         session_id = self.session_manager.new_session(tag=self.active_scheduler.NAME)
+        new_session = rcm.rcm_session(sessionid=session_id,
+                                      state='init',
+                                      sessionname=sessionname,
+                                      vncpassword=vncpassword_crypted)
+        new_session.serialize(self.session_manager.session_file_path(session_id))
+
+        print("login_name: ", self.get_login_node_name(subnet='49.57.50'))
+
         script = self.top_templates.get('SCRIPT', 'No script in templates')
         self.session_manager.write_jobscript(session_id, script)
         return session_id

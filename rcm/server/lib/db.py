@@ -35,8 +35,6 @@ class SessionManager:
         session_id = tag + time_id.replace(':', '_')
         session_folder = os.path.join(self.sessions_dir, session_id)
         os.makedirs(session_folder)
-        c=rcm.rcm_session(state='init', sessionid=session_id)
-        c.serialize(self.session_file_path(session_id))
         return session_id
 
     def session_file_path(self, session_id):
