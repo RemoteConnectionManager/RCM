@@ -1,0 +1,12 @@
+defaults:
+  TOP:
+    SCHEDULER :
+      SSH :
+
+        substitutions :
+          # WARNING: on regex, \ must be escaped
+          JOBID_REGEX: "Submitted batch job (\\d*)"
+          HEADER: |
+            #!/bin/bash
+            # SSH scheduler just run this script
+

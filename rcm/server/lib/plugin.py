@@ -7,11 +7,13 @@ logger = logging.getLogger('rcmServer')
 
 
 class Plugin(object):
-    NAME = None
-    PARAMS = {}
+
     COMMANDS = {}
 
     def __init__(self):
+        self.NAME = None
+        self.PARAMS = {}
+
         for command in self.COMMANDS:
             exe = utils.which(command)
             if exe:

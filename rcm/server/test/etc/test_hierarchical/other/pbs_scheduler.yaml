@@ -1,0 +1,32 @@
+
+defaults:
+  TOP:
+    SCHEDULER :
+      PBS :
+        QUEUE :
+          pbs_preset_queue_1 :
+            MEMORY :
+              min : 14
+              max : 105
+            CPU :
+              max : 33
+            TIME :
+              max : 3600
+          dummy_queue_2 :
+            MEMORY :
+              min : 14
+              max : 105
+            CPU :
+              max : 33
+            TIME :
+              max : 10800
+        substitutions :
+          HEADER: |
+            #PBS -A @{ACCOUNT}
+            #PBS -l walltime=@{QUEUE.TIME}
+            #PBS -N $RCM_SESSIONID
+            #PBS -o $RCM_JOBLOG
+            #PBS -l select=1:ncpus=@{QUEUE.CPU}:mem=@{QUEUE.MEMORY}Gb
+            #PBS -j oe
+            #PBS -q @{QUEUE}
+
