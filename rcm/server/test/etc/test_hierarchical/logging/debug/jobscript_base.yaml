@@ -25,8 +25,8 @@ logging_configs:
 #      handlers: [console_short]
       handlers: [console_bare]
       propagate: False
-    rcmServer.jobscript_builder.substitute:
-      level: INFO
+    RCM.test_gui:
+      level: DEBUG
 #      handlers: [console_short]
       handlers: [console_colored_out]
       propagate: False

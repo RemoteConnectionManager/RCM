@@ -1,0 +1,8 @@
+defaults:
+  TOP:
+    SERVICE :
+      OtherService :
+        otherstuff :
+        substitutions :
+          SERVICE_START : |
+            # Running -------

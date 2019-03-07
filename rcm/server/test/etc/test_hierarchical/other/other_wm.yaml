@@ -1,0 +1,14 @@
+defaults:
+  TOP:
+    SERVICE :
+      VNC :
+        COMMAND :
+          TurboVNC :
+            WM :
+              KDE :
+                substitutions :
+                  WM_COMMAND: "-xstartup ${RCM_HOME}/bin/config/xstartup.kde"
+              GnomeGL :
+                substitutions :
+                  WM_COMMAND: "-xstartup ${RCM_HOME}/bin/config/xstartup.gnomegl"
+                  WM_FLAGS: " -3dwm "

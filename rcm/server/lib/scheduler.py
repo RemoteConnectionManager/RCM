@@ -13,7 +13,8 @@ logger = logging.getLogger('rcmServer')
 
 class Scheduler(plugin.Plugin):
 
-    COMMANDS = {}
+    def __init__(self, *args, **kwargs):
+        super(Scheduler, self).__init__(*args, **kwargs)
 
     def submit(self, script='', scriptfile=''):
         raise NotImplementedError()
@@ -21,8 +22,6 @@ class Scheduler(plugin.Plugin):
 
 
 class BatchScheduler(Scheduler):
-
-    COMMANDS = {}
 
     def __init__(self, *args, **kwargs):
         super(BatchScheduler, self).__init__(*args, **kwargs)
@@ -41,27 +40,31 @@ class BatchScheduler(Scheduler):
 
 
 class PBSScheduler(BatchScheduler):
-    NAME = 'PBS'
+
     COMMANDS = {'qstat': None,
                 'non_existing_command': None}
 
-
-class LocalScheduler(plugin.Plugin):
-    NAME = 'Local'
+    def __init__(self, *args, **kwargs):
+        super(PBSScheduler, self).__init__(*args, **kwargs)
+        self.NAME = 'PBS'
 
 
 class OSScheduler(plugin.Plugin):
-    NAME = 'SSH'
+
+    def __init__(self, *args, **kwargs):
+        super(OSScheduler, self).__init__(*args, **kwargs)
+        self.NAME = 'SSH'
 
 
 class SlurmScheduler(BatchScheduler):
-    NAME = 'Slurm'
+
     COMMANDS = {'sshare': None,
                 'sinfo': None,
                 'sbatch': None}
 
     def __init__(self, *args, **kwargs):
         super(SlurmScheduler, self).__init__(*args, **kwargs)
+        self.NAME = 'Slurm'
 
     def all_accounts(self):
         # sshare --parsable -a

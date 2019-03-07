@@ -1,0 +1,11 @@
+defaults:
+  TOP:
+    SERVICE :
+      VNC :
+        COMMAND :
+          OtherVNC :
+            substitutions :
+              COMMAND: "other_vncserver "
+            DISPLAY :
+              - 1024x968
+              - fullscreen

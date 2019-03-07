@@ -1,9 +1,14 @@
 #
+import logging
+import plugin
 
+class Service(plugin.Plugin):
 
-class Service(object):
-    def __init__(self):
-        self.name = ""
+    COMMANDS = {}
+
+    def search_port(self, logfile=''):
+        raise NotImplementedError()
+
 
 
 class TurboVNCServer(Service):
