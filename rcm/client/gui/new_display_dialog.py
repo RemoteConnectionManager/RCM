@@ -16,6 +16,7 @@ class QContainer(QWidget):
         QWidget.__init__(self)
         self.choices = dict()
         self.childs = list()
+        self.widgets = list()
 
 
 class QDisplayDialog(QDialog):
@@ -93,8 +94,9 @@ class QJobWidget(QWidget):
         self.display_dialog_ui = display_dialog_ui
         self.main_layout = None
         self.choices = dict()
-
+        self.widgets = list()
         self.init_ui()
+
 
     def init_ui(self):
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -127,6 +129,8 @@ class QJobWidget(QWidget):
                 gui_widget.parent = self
                 gui_widget.update()
                 self.gui_widgets.append(gui_widget)
+
+                parent_widget.widgets.append(gui_widget)
 
             if 'children' in d:
                 items = d['children']
@@ -218,8 +222,15 @@ def create_hor_composite_widget(parent_widget,
 
 def show_childs(container_widget):
     if container_widget.childs:
-        container_widget.childs[0].show()
-        show_childs(container_widget.childs[0])
+
+        for child in container_widget.childs:
+            show_childs(child)
+    for w in container_widget.widgets:
+#        print("@@@@@ associated widgets : ", w.__class__.__name__, " path:", w.path)
+        if  w.__class__.__name__ == 'ComboBox':
+            if callable(getattr(w, 'combo_box_change', None)):
+                w.combo_box_change(w.currentText())
+
 
 
 def hide_childs(container_widget):
@@ -256,7 +267,7 @@ def widget_factory(widget_type):
         def combo_box_change(self, values):
             if self.currentText() in values:
                 key = self.path + "." + self.currentText()
-                print("switched to " + key)
+                # print("switched to " + key)
 
                 if self.parent_widget:
                     self.parent_widget.choices[self.var] = self.currentText()
