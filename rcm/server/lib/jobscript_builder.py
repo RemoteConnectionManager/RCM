@@ -170,13 +170,17 @@ class AutoChoiceNode(CompositeNode):
                 else:
                     if child_schema:
                         if 'children' in child_schema:
-                            logger.debug("skipping complex item: " + child_name + " in schema but not in defaults")
+                            constructor_logger.debug("skipping complex item: " + child_name + " in schema but not in defaults")
                         else:
-                            constructor_logger.debug(self.__class__.__name__ + " " +  self.NAME + " adding leaf item: " + child_name + " without defaults")
-                            child = LeafNode(name=child_name,
+                            if child_schema.get('values', OrderedDict()):
+                                constructor_logger.debug(self.__class__.__name__ + " " +  self.NAME + " adding leaf item: " + child_name + " without defaults")
+                                child = LeafNode(name=child_name,
                                              schema=copy.deepcopy(child_schema),
                                              defaults=OrderedDict())
-                            self.add_child(child)
+                                self.add_child(child)
+                            else:
+                                constructor_logger.warning(self.__class__.__name__ + " " +  self.NAME + " skipping leaf item: " + child_name + " without defaults and no values")
+
 
     def substitute(self, choices):
         # in_subst is the dict of susbstitutions that are passed to child nodes
