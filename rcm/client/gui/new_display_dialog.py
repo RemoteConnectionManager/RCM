@@ -2,7 +2,6 @@
 import json
 import sys
 import re
-from collections import OrderedDict
 
 # pyqt5
 from PyQt5.QtCore import Qt, pyqtSlot
@@ -24,10 +23,10 @@ class QDisplayDialog(QDialog):
     def __init__(self, display_dialog_ui, callback=None):
         QDialog.__init__(self)
 
-        if callback :
+        if callback:
             self.callback = callback
         else:
-            self.callback=self.print_callback
+            self.callback = self.print_callback
 
         self.display_dialog_ui = display_dialog_ui
         self.tabs = QTabWidget(self)
@@ -76,16 +75,15 @@ class QDisplayDialog(QDialog):
                 for key2, value2 in container_widget.choices.items():
                     self.choices[key2] = value2
 
-        self.callback(self.choices)
+        self.callback()
 
-
-    def print_callback(self,choices):
+    def print_callback(self):
         for key, value in self.choices.items():
             print(key + " : " + value)
 
         self.accept()
 
-        
+
 class QJobWidget(QWidget):
     def __init__(self, display_dialog_ui):
         QWidget.__init__(self)
@@ -93,10 +91,13 @@ class QJobWidget(QWidget):
         self.gui_widgets = list()
         self.display_dialog_ui = display_dialog_ui
         self.main_layout = None
-        self.choices = dict()
-        self.widgets = list()
-        self.init_ui()
 
+        # list of choices made by the user in the listbox widgets owned by this container
+        self.choices = dict()
+        # list of gui Qt widgets owned by this Qt container
+        self.widgets = list()
+
+        self.init_ui()
 
     def init_ui(self):
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -104,12 +105,12 @@ class QJobWidget(QWidget):
         self.main_layout = QVBoxLayout()
 
         for key, childs in self.display_dialog_ui.items():
-            self.recursive_init_ui(childs, self, self.main_layout, [], key, key)
+            self.recursive_init_ui(childs, self, self.main_layout, key, key)
 
         self.main_layout.addStretch(1)
         self.setLayout(self.main_layout)
 
-    def recursive_init_ui(self, d, parent_widget, parent_layout, parent_values=[], path="", var=""):
+    def recursive_init_ui(self, d, parent_widget, parent_layout, path="", var=""):
         try:
             if not isinstance(d, dict):
                 return
@@ -172,14 +173,12 @@ class QJobWidget(QWidget):
                         self.recursive_init_ui(value,
                                                hided_widget,
                                                hided_ver_layout,
-                                               values,
                                                path + "." + key,
                                                var)
                     else:
                         self.recursive_init_ui(value,
                                                parent_widget,
                                                nested_ver_layout,
-                                               values,
                                                path + "." + key,
                                                var + "." + key)
         except Exception as e:
@@ -196,11 +195,13 @@ def create_hor_composite_widget(parent_widget,
     """
     Create a horizontal composite widget to be added in the main vertical layout
     The composite widget is made of a qlabel + an interactive gui widget
+    :param parent_widget:
     :param parent_layout:
     :param label:
     :param widget_type:
     :param parameters:
     :param path:
+    :param var:
     :return:
     """
     if widget_type:
@@ -222,15 +223,12 @@ def create_hor_composite_widget(parent_widget,
 
 def show_childs(container_widget):
     if container_widget.childs:
-
         for child in container_widget.childs:
             show_childs(child)
     for w in container_widget.widgets:
-#        print("@@@@@ associated widgets : ", w.__class__.__name__, " path:", w.path)
-        if  w.__class__.__name__ == 'ComboBox':
+        if w.__class__.__name__ == 'ComboBox':
             if callable(getattr(w, 'combo_box_change', None)):
                 w.combo_box_change(w.currentText())
-
 
 
 def hide_childs(container_widget):
