@@ -10,14 +10,6 @@ from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
     QApplication, QTabWidget, QWidget, QSlider, QSizePolicy, QFrame
 
 
-class QContainer(QWidget):
-    def __init__(self):
-        QWidget.__init__(self)
-        self.choices = dict()
-        self.childs = list()
-        self.widgets = list()
-
-
 class QDisplayDialog(QDialog):
 
     def __init__(self, display_dialog_ui, callback=None):
@@ -70,7 +62,7 @@ class QDisplayDialog(QDialog):
         for key, value in self.job.choices.items():
             self.choices[key] = value
 
-        for key, container_widget in self.job.container_widgets.items():
+        for key, container_widget in self.job.containers.items():
             if not container_widget.isHidden():
                 for key2, value2 in container_widget.choices.items():
                     self.choices[key2] = value2
@@ -84,18 +76,26 @@ class QDisplayDialog(QDialog):
         self.accept()
 
 
-class QJobWidget(QWidget):
-    def __init__(self, display_dialog_ui):
+class QContainerWidget(QWidget):
+    def __init__(self):
         QWidget.__init__(self)
-        self.container_widgets = dict()
-        self.gui_widgets = list()
-        self.display_dialog_ui = display_dialog_ui
-        self.main_layout = None
-
         # list of choices made by the user in the listbox widgets owned by this container
         self.choices = dict()
+        # list of containers that are children of this container
+        self.childs = list()
         # list of gui Qt widgets owned by this Qt container
         self.widgets = list()
+
+
+class QJobWidget(QContainerWidget):
+    def __init__(self, display_dialog_ui):
+        QContainerWidget.__init__(self)
+
+        # dictionary that stores all the containers of this widget
+        self.containers = dict()
+
+        self.display_dialog_ui = display_dialog_ui
+        self.main_layout = None
 
         self.init_ui()
 
@@ -129,8 +129,6 @@ class QJobWidget(QWidget):
                                                          var)
                 gui_widget.parent = self
                 gui_widget.update()
-                self.gui_widgets.append(gui_widget)
-
                 parent_widget.widgets.append(gui_widget)
 
             if 'children' in d:
@@ -152,7 +150,7 @@ class QJobWidget(QWidget):
                 for key, value in items.items():
                     if 'values' in d:
                         count += 1
-                        hided_widget = QContainer()
+                        hided_widget = QContainerWidget()
                         hided_ver_layout = QVBoxLayout()
                         hided_ver_layout.setContentsMargins(0, 0, 0, 0)
                         hided_widget.setLayout(hided_ver_layout)
@@ -161,13 +159,14 @@ class QJobWidget(QWidget):
                         if count > 1:
                             hided_widget.hide()
 
-                        if isinstance(parent_widget, QContainer) and parent_widget.isHidden():
+                        if isinstance(parent_widget, QContainerWidget) and not isinstance(parent_widget, QJobWidget)\
+                                and parent_widget.isHidden():
                             hided_widget.hide()
 
                         widget_path = path + "." + key
-                        self.container_widgets[widget_path] = hided_widget
+                        self.containers[widget_path] = hided_widget
 
-                        if isinstance(parent_widget, QContainer):
+                        if isinstance(parent_widget, QContainerWidget):
                             parent_widget.childs.append(hided_widget)
 
                         self.recursive_init_ui(value,
@@ -271,18 +270,18 @@ def widget_factory(widget_type):
                     self.parent_widget.choices[self.var] = self.currentText()
 
                 if self.parent:
-                    if key in self.parent.container_widgets:
-                        self.parent.container_widgets[key].show()
+                    if key in self.parent.containers:
+                        self.parent.containers[key].show()
                         # show only the first child objects
-                        show_childs(self.parent.container_widgets[key])
+                        show_childs(self.parent.containers[key])
 
                     for choice in self.choices:
                         if choice != self.currentText():
                             new_key = self.path + "." + choice
-                            if new_key in self.parent.container_widgets:
-                                self.parent.container_widgets[new_key].hide()
+                            if new_key in self.parent.containers:
+                                self.parent.containers[new_key].hide()
                                 # hide all the child objects
-                                hide_childs(self.parent.container_widgets[new_key])
+                                hide_childs(self.parent.containers[new_key])
 
     class Divider(QFrame):
         def __init__(self, values=None, path='', var='', parent_widget=None):
