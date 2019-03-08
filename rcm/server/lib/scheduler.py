@@ -3,6 +3,9 @@ import copy
 import logging
 from collections import OrderedDict
 import re
+import subprocess
+import os
+import stat
 
 # local import
 import jobscript_builder
@@ -16,7 +19,7 @@ class Scheduler(plugin.Plugin):
     def __init__(self, *args, **kwargs):
         super(Scheduler, self).__init__(*args, **kwargs)
 
-    def submit(self, script='', scriptfile=''):
+    def submit(self, script='', jobfile=''):
         raise NotImplementedError()
 
 
@@ -49,12 +52,26 @@ class PBSScheduler(BatchScheduler):
         self.NAME = 'PBS'
 
 
-class OSScheduler(plugin.Plugin):
+class OSScheduler(Scheduler):
 
     def __init__(self, *args, **kwargs):
         super(OSScheduler, self).__init__(*args, **kwargs)
         self.NAME = 'SSH'
 
+    def submit(self, script='', jobfile=''):
+        logger.info(self.__class__.__name__ + " " + self.NAME + " submitting " + jobfile)
+        for t in self.templates:
+            print("############ ", t)
+
+        if jobfile:
+            if script:
+                with open(jobfile, 'w') as f:
+                    f.write(script)
+            os.chmod(jobfile, stat.S_IRWXU)
+
+            print("Submitting job file:", jobfile)
+            pid = subprocess.Popen(['/bin/bash', os.path.realpath(jobfile)], close_fds=True).pid
+            return pid
 
 class SlurmScheduler(BatchScheduler):
 
