@@ -405,6 +405,9 @@ if __name__ == "__main__":
     display_dialog_ui = manager.root_node.get_gui_options()
     logger.debug("-----------------------------------")
     logger.debug(json.dumps(display_dialog_ui, indent=4))
+    with open(os.path.join(os.environ['HOME'],'.rcm','display_dialog.json'), 'w') as f:
+        f.write(json.dumps(display_dialog_ui, indent=4))
+
     logger.debug("-----------------------------------")
 
     def print_result(choices):
