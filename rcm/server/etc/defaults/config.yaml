@@ -1,13 +1,5 @@
 # these are defaults for RCM new sessions json is
 
-logging:
-  RCM.composer: warning
-  RCM.baseconfig: warning
-  RCM.platformconfig: warning
-  RCM.rcm_protocol_parser: warning
-
-
-
 schema:
 
   TOP:
