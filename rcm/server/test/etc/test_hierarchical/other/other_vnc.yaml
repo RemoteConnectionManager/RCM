@@ -5,7 +5,7 @@ defaults:
         COMMAND :
           OtherVNC :
             substitutions :
-              COMMAND: "other_vncserver "
+              COMMAND_LINE: "other_vncserver "
             DISPLAY :
               - 1024x968
               - fullscreen

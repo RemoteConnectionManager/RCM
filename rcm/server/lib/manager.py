@@ -29,6 +29,7 @@ from external import hiyapyco
 
 import rcm
 import enumerate_interfaces
+import utils
 
 logger = logging.getLogger('rcmServer')
 
@@ -45,7 +46,7 @@ class ServerManager:
         self.services = dict()
         self.downloads = dict()
         self.root_node = None
-        self.session_manager = db.SessionManager()
+        self.session_manager = db.DbSessionManager()
         self.login_fullname=''
         self.network_map = dict()
 
@@ -164,10 +165,20 @@ class ServerManager:
         print("####### session #####\n", new_session.get_string(format='json'))
         new_session.serialize(self.session_manager.session_file_path(session_id))
 
-        print("login_name: ", self.get_login_node_name(subnet='49.57.50'))
+        print("login_name: ", self.get_login_node_name())
         print("submitting with scheduler:", self.active_scheduler.NAME)
 
+        substitutions = {'RCM_SESSIONID': str(session_id),
+                         'RCM_SESSION_FOLDER': self.session_manager.session_folder(session_id),
+                         'RCM_JOBLOG': self.session_manager.session_jobout_path(session_id)}
+
+
+        # assembly job script
         script = self.top_templates.get('SCRIPT', 'No script in templates')
+        script = utils.stringtemplate(script).safe_substitute(substitutions)
+        print("@@@@@@@@@@ script @@@@@@@@@\n", script)
+
+
         jobfile = self.session_manager.write_jobscript(session_id, script)
         jobid = self.active_scheduler.submit(jobfile=jobfile)
         new_session.hash['state'] = 'pending'

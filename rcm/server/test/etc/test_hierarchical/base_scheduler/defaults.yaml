@@ -7,10 +7,10 @@ defaults:
           # WARNING: on regex, \ must be escaped
           JOBID_REGEX: "Submitted batch job (\\d*)"
           HEADER: |
-            #!/bin/bash
             #SBATCH --time=@{QUEUE.TIME}
-            #SBATCH --job-name=$RCM_SESSIONID
-            #SBATCH --output $RCM_JOBLOG
+            #SBATCH --job-name=@{RCM_SESSIONID}
+            #SBATCH --output @{RCM_JOBLOG}
             #SBATCH -A @{ACCOUNT}
             #SBATCH --partition=@{QUEUE}
             #
+

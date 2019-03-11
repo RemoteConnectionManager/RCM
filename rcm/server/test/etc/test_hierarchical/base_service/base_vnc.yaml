@@ -5,7 +5,10 @@ defaults:
         COMMAND :
           TurboVNC :
             substitutions :
-              COMMAND_LINE: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth  $RCM_JOBLOG.pwd  @{WM_COMMAND} "
+              SETUP: "module load rcm"
+              LOGFILE: "@{RCM_SESSION_FOLDER}/vnclog"
+              VNCPASSWD_COMMAND_LINE: "/bin/bash -c '@{SETUP}; echo -e @{VNCPASSWORD} | vncpasswd -f > @{VNC_PASSWORDFILE}'"
+              COMMAND_LINE: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth  @{VNC_PASSWORDFILE}  @{WM_COMMAND} "
             WM :
               Fluxbox :
                 substitutions :

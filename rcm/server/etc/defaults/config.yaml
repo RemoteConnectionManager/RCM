@@ -14,14 +14,17 @@ schema:
     substitutions :
       SCHEDULER: "NO SCHEDULER DEFINED"
       SCHEDULER.HEADER: ""
+      SCHEDULER.FOOTER: ""
+      SCHEDULER.BACKGROUND: ""
       SERVICE: "NO SERVICE DEFINED"
-      SERVICE.START: ""
+      SERVICE.REDIRECT: ""
       SCRIPT: |
         #!/bin/bash
         # Using scheduler @{SCHEDULER}
         @{SCHEDULER.HEADER}
         # Service:  @{SERVICE}
-        @{SERVICE.START}
+        @{SERVICE.COMMAND.COMMAND_LINE} @{SERVICE.REDIRECT} @{SCHEDULER.BACKGROUND}
+        @{SCHEDULER.FOOTER}
 
     children:
       SCHEDULER:
@@ -37,4 +40,9 @@ schema:
       SERVICE :
         label : 'Service Type'
         type: 'combobox'
+        substitutions :
+
+          COMMAND.LOGFILE: "@{RCM_SESSION_FOLDER}/service.log"
+          REDIRECT: " > @{RCM_SESSION_FOLDER}/@{COMMAND.LOGFILE} 2>&1 "
+
         children :

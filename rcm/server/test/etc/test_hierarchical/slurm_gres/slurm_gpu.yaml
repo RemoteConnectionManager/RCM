@@ -38,8 +38,8 @@ defaults:
             #!/bin/bash
             ## thisc come from defaults slurm_gpu
             #SBATCH --time=@{QUEUE.TIME}
-            #SBATCH --job-name=$RCM_SESSIONID
-            #SBATCH --output $RCM_JOBLOG
+            #SBATCH --job-name=@{RCM_SESSIONID}
+            #SBATCH --output @{RCM_JOBLOG}
             #SBATCH -N 1 -n @{QUEUE.CPU} --mem=@{QUEUE.MEMORY}GB @{QUEUE.GRES.GRES_STRING} #direct setup
             #SBATCH -N 1 @{QUEUE_PAR} #indirect setup
             #SBATCH -A @{ACCOUNT}

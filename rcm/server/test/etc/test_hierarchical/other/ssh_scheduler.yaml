@@ -6,11 +6,11 @@ defaults:
         substitutions :
           # WARNING: on regex, \ must be escaped
           JOBID_REGEX: "process id: (\\d*)"
+          BACKGROUND: "&"
+          FOOTER: "echo \"process id: $!\""
           HEADER: |
             #!/bin/bash
             # SSH scheduler just run this script
-            #python -c 'exec("import time \nfor i in range(1, 100): \n   time.sleep(1)\n   print(i)")'
-            #python -c 'exec("import sys,time \nfor i in range(1, 100): \n   time.sleep(1)\n   print(i)\n   sys.stdout.flush()")' > prova.log 2>&1 &
-            echo "process id: $!"
+
 
 

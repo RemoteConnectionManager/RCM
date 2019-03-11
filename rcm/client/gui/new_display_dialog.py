@@ -67,10 +67,10 @@ class QDisplayDialog(QDialog):
                 for key2, value2 in container_widget.choices.items():
                     self.choices[key2] = value2
 
-        self.callback()
+        self.callback(self.choices)
 
-    def print_callback(self):
-        for key, value in self.choices.items():
+    def print_callback(self,choices):
+        for key, value in choices.items():
             print(key + " : " + value)
 
         self.accept()
@@ -416,15 +416,13 @@ if __name__ == "__main__":
         manager.new_session()
         # SchedulerManager._allInstances[0].active_scheduler()
         for k, v in manager.top_templates.items():
-            print(k, ":::>")
-            print(v)
-            print("<:::::::::::::::::::::")
+            logger.debug(k + " :::>\n" + str(v) +"\n<:::::::::::::::::::::")
 
         for sched in manager.schedulers:
             for templ in manager.schedulers[sched].templates:
-                print("@@@@scheduler", sched, templ, ":::>")
-                print(manager.schedulers[sched].templates[templ])
-                print("<:::::::::::::::::::::")
+                logger.debug("@@@@scheduler " + str(sched) + str(templ) + ":::>\n" +
+                             str(manager.schedulers[sched].templates[templ]) +
+                             "\n<:::::::::::::::::::::")
 
     display_dialog = QDisplayDialog(display_dialog_ui, callback=print_result)
     display_dialog.show()

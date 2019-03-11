@@ -4,7 +4,5 @@ defaults:
       FakeService :
         otherstuff :
         substitutions :
-          COMMAND.COMMAND_LINE: "python -c 'exec(\"import sys,time \nfor i in range(1, 100): \\n   time.sleep(1)\\n   print(i)\\n   sys.stdout.flush()\")'"
-          SERVICE_START : |
-            # Running fake command
-            @{COMMAND.CMOMAND_LINE}
+          COMMAND.COMMAND_LINE: "python -c 'exec(\"import sys,time \\nfor i in range(1, 100): \\n   time.sleep(1)\\n   print(i)\\n   sys.stdout.flush()\")'"
+

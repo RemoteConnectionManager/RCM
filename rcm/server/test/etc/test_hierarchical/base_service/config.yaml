@@ -6,10 +6,8 @@ schema:
         type: 'combobox'
 
         substitutions :
-          COMMAND_LINE: ""
-          START : |
-            # Running service app @{COMMAND}
-            @{COMMAND_LINE}
+          COMMAND.LOGFILE: "@{RCM_SESSION_FOLDER}/servicelog"
+          REDIRECT: "> @{COMMAND.LOGFILE} 2>&1"
 
         children :
           DIVIDER:
@@ -22,6 +20,8 @@ schema:
 
             substitutions :
   #            COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd  @{WM_COMMAND "
+              COMMAND_LINE: ""
+
             children :
               WM :
                 label : 'Window Manager'

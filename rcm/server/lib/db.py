@@ -19,7 +19,7 @@ import rcm
 
 
 
-class SessionManager:
+class DbSessionManager:
     """
     This class takes care of all permanent storage (shared filesystem) operations, it mantains the storage associated
     with current sessions and takes care of removing the sessions when their associated job does not exist any more
@@ -36,6 +36,9 @@ class SessionManager:
         session_folder = os.path.join(self.sessions_dir, session_id)
         os.makedirs(session_folder)
         return session_id
+
+    def session_folder(self, session_id):
+        return os.path.join(self.sessions_dir, session_id)
 
     def session_file_path(self, session_id):
         return os.path.join(self.sessions_dir, session_id, 'session')
