@@ -4,7 +4,7 @@ defaults:
       SSH :
 
         substitutions :
-          # WARNING: on regex, \ must be escaped
+          # WARNING: on regex, \ and " must be escaped
           JOBID_REGEX: "process id: (\\d*)"
           BACKGROUND: "&"
           FOOTER: "echo \"process id: $!\""
