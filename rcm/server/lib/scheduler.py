@@ -22,6 +22,30 @@ class Scheduler(plugin.Plugin):
     def submit(self, script='', jobfile=''):
         raise NotImplementedError()
 
+    def generic_submit(self, script='', jobfile='', batch_command='/bin/batch'):
+
+        if jobfile:
+            if script:
+                with open(jobfile, 'w') as f:
+                    f.write(script)
+
+            logger.info(self.__class__.__name__ + " " + self.NAME + " submitting " + jobfile)
+
+            batch = self.COMMANDS.get(batch_command, None)
+            if batch:
+                raw_output = batch(jobfile,
+                                    output=str)
+                print ("@@@@@@@@@@@@@@ raw_output: " + raw_output)
+                jobid_regex = self.templates.get('JOBID_REGEX', "Submitted  (\d*)")
+                logger.debug("@@@@@@@@@@@@@ jobid_regex " + jobid_regex)
+                r=re.match(jobid_regex, raw_output)
+                if (r):
+                    jobid = r.group(1)
+                    logger.warning("jobid is: " + str(jobid))
+                    return jobid
+                else:
+                    raise Exception("Unable to extract jobid from output: %s" % (raw_output))
+
 
 
 class BatchScheduler(Scheduler):
@@ -54,24 +78,15 @@ class PBSScheduler(BatchScheduler):
 
 class OSScheduler(Scheduler):
 
+    COMMANDS = {'/bin/bash': None}
+
     def __init__(self, *args, **kwargs):
         super(OSScheduler, self).__init__(*args, **kwargs)
         self.NAME = 'SSH'
 
     def submit(self, script='', jobfile=''):
-        logger.info(self.__class__.__name__ + " " + self.NAME + " submitting " + jobfile)
-        for t in self.templates:
-            print("############ ", t)
+        return self.generic_submit(script=script, jobfile=jobfile, batch_command='/bin/bash')
 
-        if jobfile:
-            if script:
-                with open(jobfile, 'w') as f:
-                    f.write(script)
-            os.chmod(jobfile, stat.S_IRWXU)
-
-            print("Submitting job file:", jobfile)
-            pid = subprocess.Popen(['/bin/bash', os.path.realpath(jobfile)], close_fds=True).pid
-            return pid
 
 class SlurmScheduler(BatchScheduler):
 
@@ -130,26 +145,7 @@ class SlurmScheduler(BatchScheduler):
             return []
 
     def submit(self, script='', jobfile=''):
-
-        if jobfile:
-            if script:
-                with open(jobfile, 'w') as f:
-                    f.write(script)
-
-            logger.info(self.__class__.__name__ + " " + self.NAME + " submitting " + jobfile)
-
-            sbatch = self.COMMANDS.get('sbatch', None)
-            if sbatch:
-                raw_output = sbatch(jobfile,
-                                    output=str)
-                logger.debug("@@@@@@@@@@@@@@ raw_output: " + raw_output)
-                jobid_regex = self.templates.get('JOBID_REGEX', "Submitted  (\d*)")
-                logger.debug("@@@@@@@@@@@@@ jobid_regex " + jobid_regex)
-                r=re.match(jobid_regex, raw_output)
-                if (r):
-                    return r.group(1)
-                else:
-                    raise Exception("Unable to extract jobid from output: %s" % (raw_output))
+        return self.generic_submit(script=script, jobfile=jobfile, batch_command='sbatch')
 
 
 
