@@ -22,13 +22,14 @@ class Scheduler(plugin.Plugin):
     def submit(self, script='', jobfile=''):
         raise NotImplementedError()
 
-    def generic_submit(self, script='', jobfile='', batch_command='/bin/batch'):
+    def generic_submit(self, script='', jobfile='', batch_command='/bin/batch', jobfile_executable=True):
 
         if jobfile:
             if script:
                 with open(jobfile, 'w') as f:
                     f.write(script)
-
+            if jobfile_executable:
+                os.chmod(jobfile, stat.S_IRWXU)
             logger.info(self.__class__.__name__ + " " + self.NAME + " submitting " + jobfile)
 
             batch = self.COMMANDS.get(batch_command, None)
