@@ -16,6 +16,7 @@ gui_logger = logging.getLogger('rcmServer' + '.' + __name__ + '.' + 'gui')
 substitute_logger = logging.getLogger('rcmServer' + '.' + __name__ + '.' + 'substitute')
 
 
+class_table=None
 
 class Node(object):
     """
@@ -28,7 +29,7 @@ class Node(object):
     """
     NAME = None
 
-    def __init__(self, schema=None, name=None, defaults=None, class_table=None, connected_plugin=None):
+    def __init__(self, schema=None, name=None, defaults=None, connected_plugin=None):
 
         if name:
             self.NAME = name
@@ -49,10 +50,6 @@ class Node(object):
         else:
             self.defaults = config.getConfig()['defaults', self.NAME]
             constructor_logger.debug(self.__class__.__name__ + " " +  self.NAME + " getting yaml defaults " + str(self.defaults))
-        if class_table:
-            self.class_table = class_table
-        else:
-            self.class_table = dict()
         self.connected_plugin = connected_plugin
         module_logger.debug(self.__class__.__name__ + ": " + str(self.NAME))
 
@@ -157,11 +154,10 @@ class AutoChoiceNode(CompositeNode):
                 child_schema = copy.deepcopy(children_schema[child_name])
                 if child_name in self.defaults:
                     if 'children' in child_schema:
-                        (manager_class, plugin_instances) = self.class_table.get(child_name, (AutoManagerChoiceNode,None))
-                        child = manager_class(name=child_name,
+                        #(manager_class, plugin_instances) = self.class_table.get(child_name, (AutoManagerChoiceNode,None))
+                        child = AutoManagerChoiceNode(name=child_name,
                                               schema=copy.deepcopy(child_schema),
-                                              defaults=copy.deepcopy(self.defaults[child_name]),
-                                              class_table=plugin_instances)
+                                              defaults=copy.deepcopy(self.defaults[child_name]))
                     else:
                         constructor_logger.debug(self.__class__.__name__ + " " +  self.NAME + " hadling leaf item: " + child_name)
                         child = LeafNode(name=child_name,
@@ -280,9 +276,27 @@ class AutoManagerChoiceNode(ManagerChoiceNode):
         if 'children' in self.schema and hasattr(self.defaults, 'get'):
             for class_name in self.defaults:
                 constructor_logger.info(self.__class__.__name__ + self.NAME + " handling child  : " + class_name)
-                child = ManagedChoiceNode(name=class_name,
-                                                 schema=copy.deepcopy(self.schema),
-                                                 defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
+                child_schema = copy.deepcopy(self.schema)
+                child_defaults = copy.deepcopy(self.defaults.get(class_name, OrderedDict()))
+
+                if self.NAME in class_table:
+                    if class_name in class_table[self.NAME] :
+                        child = ManagedPlugin(name=class_name,
+                                              schema = child_schema,
+                                              defaults = child_defaults,
+                                              connected_plugin = class_table[self.NAME][class_name])
+                    # else:
+                    # When a connected manager is found, entries in defaults that do not have their corresponding plugin
+                    # correctly instanced ( due, for example to a lacking required command) are not instanced
+                    #     print("***********************************************************",class_name)
+                    #     child = ManagedChoiceNode(name=class_name,
+                    #                               schema=child_schema,
+                    #                               defaults=child_defaults)
+                else:
+                    child = ManagedChoiceNode(name=class_name,
+                                              schema=child_schema,
+                                              defaults=child_defaults)
+
                 # here we override child shema_name, as is neede to be different from instance class name
                 # WARNING.... external set of member variable outside object methods
                 child.schema_name=self.NAME

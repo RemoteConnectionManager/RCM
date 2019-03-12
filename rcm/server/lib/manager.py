@@ -92,12 +92,12 @@ class ServerManager:
                 logger.error(e)
 
         # instantiate widget tree
-        class_table = {'SCHEDULER' : (jobscript_builder.ConnectedManager, self.schedulers),
-                       'COMMAND' :   (jobscript_builder.ConnectedManager, self.services),
-                      }
+        jobscript_builder.class_table = {'SCHEDULER' :  self.schedulers,
+                                         'COMMAND' :    self.services,
+                                        }
 
-        self.root_node = jobscript_builder.AutoChoiceNode(name='TOP',
-                                                          class_table=class_table)
+        self.root_node = jobscript_builder.AutoChoiceNode(name='TOP')
+
 
     def map_login_name(self, subnet, nodelogin):
         logger.debug("mapping login " + nodelogin + " on network " + subnet)
@@ -175,7 +175,7 @@ class ServerManager:
         new_session.serialize(self.session_manager.session_file_path(session_id))
 
         print("login_name: ", self.get_login_node_name())
-        printout = "submitting "
+        printout = "============submitting "
         if self.active_service :
             printout += "service: " + self.active_service.NAME
         if self.active_scheduler :
