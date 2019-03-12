@@ -217,8 +217,16 @@ class AutoChoiceNode(CompositeNode):
                             collected_subst[child.schema_name + '.' + key_sub] = subst[key_sub]
 
         out_subst=OrderedDict()
-        for t in self.templates:
-            out_subst[t] = utils.stringtemplate(self.templates[t]).safe_substitute(in_subst)
+        for t,val in self.templates.items():
+            if type(val) is str:
+                out_subst[t] = utils.stringtemplate(val).safe_substitute(in_subst)
+            else:
+                if type(val) is list:
+                    out=list()
+                    for v in val:
+                       if type(v) is str:
+                           out.append(utils.stringtemplate(v).safe_substitute(in_subst))
+                    out_subst[t] = out
         out_subst.update(copy.deepcopy(choices))
         out_subst.update(copy.deepcopy(collected_subst))
 
