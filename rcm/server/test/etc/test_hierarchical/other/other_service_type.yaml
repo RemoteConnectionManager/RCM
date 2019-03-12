@@ -1,9 +1,11 @@
 defaults:
   TOP:
     SERVICE :
-      FakeService :
-        otherstuff :
-        substitutions :
-          COMMAND.SETUP: "# fake module load "
-          COMMAND.COMMAND_LINE: "python -c 'exec(\"import sys,time \\nfor i in range(1, 100): \\n   time.sleep(1)\\n   print(i)\\n   sys.stdout.flush()\")'"
+      Other :
+        COMMAND :
+          FakeService :
+            otherstuff :
+            substitutions :
+              SETUP: "# fake module load "
+              COMMAND_LINE: "python -c 'exec(\"import sys,time \\nfor i in range(1, 100): \\n   time.sleep(1)\\n   print(i)\\n   sys.stdout.flush()\")'"
 

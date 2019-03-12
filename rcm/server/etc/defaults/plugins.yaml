@@ -5,6 +5,6 @@ plugins:
     - 'lib.scheduler.OSScheduler'
 
   services:
-    - 'service.TurboVNCServer'
-
+    - 'lib.service.TurboVNCServer'
+    - 'lib.service.Fake'
   

@@ -9,7 +9,6 @@ defaults:
           BACKGROUND: "&"
           FOOTER: "echo \"process id: $!\""
           HEADER: |
-            #!/bin/bash
             # SSH scheduler just run this script
 
 

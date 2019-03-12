@@ -72,7 +72,7 @@ class ServerManager:
                 scheduler_class = getattr(importlib.import_module(module_name), class_name)
                 scheduler_obj = scheduler_class()
                 self.schedulers[scheduler_obj.NAME] = scheduler_obj
-                logger.debug('loaded scheduler plugin ' +
+                logger.info('loaded scheduler plugin ' +
                              scheduler_obj.__class__.__name__ +
                              " - " + scheduler_obj.NAME)
             except Exception as e:
@@ -85,15 +85,16 @@ class ServerManager:
                 module_name, class_name = service_str.rsplit(".", 1)
                 service_class = getattr(importlib.import_module(module_name), class_name)
                 service_obj = service_class()
-                self.services[class_name] = service_obj
-                logger.debug('loaded service plugin ' + service_obj.__class__.__name__ + " - " + service_obj.name)
+                self.services[service_obj.NAME] = service_obj
+                logger.info('loaded service plugin ' + service_obj.__class__.__name__ + " - " + service_obj.NAME)
             except Exception as e:
                 logger.error("plugin loading failed")
                 logger.error(e)
 
         # instantiate widget tree
-        class_table = dict()
-        class_table['SCHEDULER'] = (jobscript_builder.ConnectedManager, self.schedulers)
+        class_table = {'SCHEDULER' : (jobscript_builder.ConnectedManager, self.schedulers),
+                       'COMMAND' :   (jobscript_builder.ConnectedManager, self.services),
+                      }
 
         self.root_node = jobscript_builder.AutoChoiceNode(name='TOP',
                                                           class_table=class_table)
@@ -151,6 +152,14 @@ class ServerManager:
                 self.active_scheduler = sched_obj
                 break
 
+        # here we find which service has been selected.
+        self.active_service = None
+        for service_name,service_obj in self.services.items():
+            if service_obj.selected:
+                self.active_service = service_obj
+                break
+
+
     def new_session(self,
             sessionname='',
             subnet='',
@@ -166,7 +175,12 @@ class ServerManager:
         new_session.serialize(self.session_manager.session_file_path(session_id))
 
         print("login_name: ", self.get_login_node_name())
-        print("submitting with scheduler:", self.active_scheduler.NAME)
+        printout = "submitting "
+        if self.active_service :
+            printout += "service: " + self.active_service.NAME
+        if self.active_scheduler :
+            printout +=  " with scheduler: " + self.active_scheduler.NAME
+        print(printout)
 
         substitutions = {'RCM_SESSIONID': str(session_id),
                          'RCM_SESSION_FOLDER': self.session_manager.session_folder(session_id),
@@ -176,14 +190,17 @@ class ServerManager:
         # assembly job script
         script = self.top_templates.get('SCRIPT', 'No script in templates')
         script = utils.stringtemplate(script).safe_substitute(substitutions)
-        print("@@@@@@@@@@ script @@@@@@@@@\n", script)
+        print("@@@@@@@@@@ script @@@@@@@@@\n" + script)
 
 
         jobfile = self.session_manager.write_jobscript(session_id, script)
         jobid = self.active_scheduler.submit(jobfile=jobfile)
+
+        # set status and jobid in curent session and write on disk
         new_session.hash['state'] = 'pending'
         new_session.hash['jobid'] = jobid
-        print("####### session #####\n", new_session.get_string(format='json'))
         new_session.serialize(self.session_manager.session_file_path(session_id))
+        print("####### serialized session #####\n" + new_session.get_string(format='json'))
+
 
         return session_id

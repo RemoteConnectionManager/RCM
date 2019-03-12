@@ -16,6 +16,7 @@ gui_logger = logging.getLogger('rcmServer' + '.' + __name__ + '.' + 'gui')
 substitute_logger = logging.getLogger('rcmServer' + '.' + __name__ + '.' + 'substitute')
 
 
+
 class Node(object):
     """
     Base class for tree nodes representing jobscript composotion and gui widget hierarchy.
@@ -278,7 +279,7 @@ class AutoManagerChoiceNode(ManagerChoiceNode):
         super(AutoManagerChoiceNode, self).__init__(*args, **kwargs)
         if 'children' in self.schema and hasattr(self.defaults, 'get'):
             for class_name in self.defaults:
-                logger.debug("handling child  : " + class_name)
+                constructor_logger.info(self.__class__.__name__ + self.NAME + " handling child  : " + class_name)
                 child = ManagedChoiceNode(name=class_name,
                                                  schema=copy.deepcopy(self.schema),
                                                  defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())))
