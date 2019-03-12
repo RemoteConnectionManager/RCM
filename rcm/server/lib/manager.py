@@ -192,6 +192,11 @@ class ServerManager:
         script = utils.stringtemplate(script).safe_substitute(substitutions)
         print("@@@@@@@@@@ script @@@@@@@@@\n" + script)
 
+        service_logfile = self.top_templates.get('SERVICE.COMMAND.LOGFILE', '')
+        service_logfile = utils.stringtemplate(service_logfile).safe_substitute(substitutions)
+        print("@@@@@@@@@@ service_logfile @@@@@@@@@\n" + service_logfile)
+
+
 
         jobfile = self.session_manager.write_jobscript(session_id, script)
         jobid = self.active_scheduler.submit(jobfile=jobfile)
@@ -202,5 +207,10 @@ class ServerManager:
         new_session.serialize(self.session_manager.session_file_path(session_id))
         print("####### serialized session #####\n" + new_session.get_string(format='json'))
 
+        node,port  = self.active_service.search_port(service_logfile)
+        new_session.hash['state'] = 'valid'
+        new_session.hash['port'] = port
+        new_session.hash['node'] = node
+        print("####### serialized session #####\n" + new_session.get_string(format='json'))
 
         return session_id

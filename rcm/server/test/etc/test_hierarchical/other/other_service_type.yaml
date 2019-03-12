@@ -7,5 +7,9 @@ defaults:
             otherstuff :
             substitutions :
               SETUP: "# fake module load "
-              COMMAND_LINE: "python -c 'exec(\"import sys,time \\nfor i in range(1, 100): \\n   time.sleep(1)\\n   print(i)\\n   sys.stdout.flush()\")'"
-
+              LOGFILE: "@{RCM_SESSION_FOLDER}/fakelog"
+              COMMAND_LINE: "python -c 'exec(\"import sys,time,platform \\ntime.sleep(5)\\nprint(\\\"Some random stuff \\\" + platform.uname()[1]+\\\":333\\\")\\nfor i in range(1, 100): \\n   time.sleep(1)\\n   print(i)\\n   sys.stdout.flush()\")'"
+              START_REGEX_LIST:
+              - ^Some  failing regex (?P<node>\w+):(?P<display>\d+)
+              - ^Some (.*) stuff (?P<node>\w+):(?P<port>\d+)
+              - ^Other '(.*)' (?P<node>\w+):(?P<display>\d+)
