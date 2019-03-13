@@ -283,7 +283,7 @@ class AutoManagerChoiceNode(ManagerChoiceNode):
         super(AutoManagerChoiceNode, self).__init__(*args, **kwargs)
         if 'children' in self.schema and hasattr(self.defaults, 'get'):
             for class_name in self.defaults:
-                constructor_logger.info(self.__class__.__name__ + self.NAME + " handling child  : " + class_name)
+                constructor_logger.debug(self.__class__.__name__ + self.NAME + " handling child  : " + class_name)
                 child_schema = copy.deepcopy(self.schema)
                 child_defaults = copy.deepcopy(self.defaults.get(class_name, OrderedDict()))
 
@@ -319,7 +319,7 @@ class ConnectedManager(ManagerChoiceNode):
 
         if 'children' in self.schema and hasattr(self.defaults, 'get'):
             for class_name in self.defaults:
-                constructor_logger.info(self.__class__.__name__ + self.NAME + " handling child  : " + class_name)
+                constructor_logger.debug(self.__class__.__name__ + self.NAME + " handling child  : " + class_name)
                 if class_name in self.class_table:
                     connected_plugin = self.class_table[class_name]
                     plugin_params = self.class_table[class_name].PARAMS
@@ -333,7 +333,6 @@ class ConnectedManager(ManagerChoiceNode):
                     self.add_child(child)
 
 class ManagedPlugin(ManagedChoiceNode):
-    NAME = None
 
     def __init__(self, *args, **kwargs):
         """
@@ -349,11 +348,11 @@ class ManagedPlugin(ManagedChoiceNode):
             if hasattr(self.connected_plugin, 'PARAMS'):
                 if hasattr(self.connected_plugin.PARAMS, 'get'):
                     for param in self.connected_plugin.PARAMS:
-                        constructor_logger.debug(self.__class__.__name__ + str(self.NAME) + " calling connected plugin " +
+                        constructor_logger.debug(self.__class__.__name__ + str(kwargs.get('name', self.NAME)) + " calling connected plugin " +
                                                 self.connected_plugin.__class__.__name__ + " param " + str(param))
                         computed_param = self.connected_plugin.PARAMS[param]()
                         #computed_param = getattr(self.connected_plugin, self.connected_plugin.PARAMS[param])()
-                        constructor_logger.info(self.__class__.__name__ + str(self.NAME) + " asking  connected plugin " +
+                        constructor_logger.info(self.__class__.__name__ + str(kwargs.get('name', self.NAME)) + " asking  connected plugin " +
                                                 self.connected_plugin.__class__.__name__ + " param " + param +  " returned "+ str(computed_param))
 
 
