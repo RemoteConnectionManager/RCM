@@ -23,7 +23,7 @@ schema:
       SCHEDULER:
         label : 'Scheduler'
         type : 'combobox'
-        children :
+
 
       DIVIDER:
         type: 'divider'
@@ -39,4 +39,3 @@ schema:
           COMMAND.LOGFILE: "@{RCM_SESSION_FOLDER}/service.log"
           REDIRECT: " > @{RCM_SESSION_FOLDER}/@{COMMAND.LOGFILE} 2>&1 "
 
-        children :

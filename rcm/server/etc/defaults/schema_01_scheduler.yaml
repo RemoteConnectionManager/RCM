@@ -44,6 +44,5 @@ schema:
               GRES :
                 label : 'GPU'
                 type : 'combobox'
-                substitutions :
-                children :
+
 
