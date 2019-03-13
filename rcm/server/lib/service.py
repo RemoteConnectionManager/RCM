@@ -19,7 +19,7 @@ class Service(plugin.Plugin):
     def search_logfile(self, logfile, regex_list=None, wait=1, timeout=30):
         if regex_list == None:
             regex_list = self.templates.get('START_REGEX_LIST', [])
-        if logfile and regex_list and os.path.isfile(logfile):
+        if logfile and regex_list:
             regex_clist = []
             for regex_string in regex_list:
                 regex_clist.append(re.compile(regex_string,re.MULTILINE))
@@ -27,18 +27,20 @@ class Service(plugin.Plugin):
             secs = 0
             step = 1
             while (secs < timeout):
-                #print(secs, "logfile:", logfile,)
-                f=open(logfile,'r')
-                with open(logfile, 'r') as f:
-                    log_string=f.read()
-                #print("log_string:\n", log_string)
-                for r in regex_clist:
-                    x = r.search(log_string)
-                    if x:
-                        return x.groupdict()
+                if os.path.isfile(logfile):
+                    #print(secs, "logfile:", logfile,)
+                    f=open(logfile,'r')
+                    with open(logfile, 'r') as f:
+                        log_string=f.read()
+                    #print("log_string:\n", log_string)
+                    for r in regex_clist:
+                        x = r.search(log_string)
+                        if x:
+                            return x.groupdict()
                 secs+=step
                 time.sleep(step)
             raise Exception("Timeouted (%d seconds) job not correcty running!!!" % (timeout) )
+        raise Exception("Unable to search_logfile: %s with regex %s" % (logfile, str(regex_list)))
 
 
 
@@ -56,8 +58,8 @@ class Fake(Service):
         self.NAME = "FakeService"
 
     def search_port(self, logfile=''):
-#        for t in self.templates:
-#            print("+++++++++++ plugin template:",t,self.templates[t])
+        for t in self.templates:
+            print("+++++++++++ plugin template:",t,self.templates[t])
         groupdict = self.search_logfile(logfile)
         node = ''
         port = 0
