@@ -89,4 +89,4 @@ class CommandParser:
             flag = flags.get(parameter, '')
             if flag != '':
                 func_flags[parameter] = flag
-                func(self.protocol, **func_flags)
+        func(self.protocol, **func_flags)
