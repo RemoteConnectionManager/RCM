@@ -15,6 +15,10 @@ constructor_logger = logging.getLogger('rcmServer' + '.' + __name__ + '.' + 'con
 gui_logger = logging.getLogger('rcmServer' + '.' + __name__ + '.' + 'gui')
 substitute_logger = logging.getLogger('rcmServer' + '.' + __name__ + '.' + 'substitute')
 
+try:  # check whether python knows about 'basestring'
+    stringtypes = (str, unicode)
+except NameError:  # no, it doesn't (it's Python3); use 'str' instead
+    stringtypes = (str,)
 
 class_table=None
 
@@ -66,6 +70,28 @@ class Node(object):
             if hasattr(default_subst, '__getitem__'):
                 for key in default_subst:
                     self.templates[key] = default_subst[key]
+
+                # for key,val  in default_subst.items():
+                #     if type(val) in stringtypes:
+                #         self.templates[key] = str(default_subst[key])
+                #     else:
+                #         if type(val) is list:
+                #             outlist=[]
+                #             for v  in val:
+                #                 if type(v) in stringtypes:
+                #                     print("############# " + key + " ####>"+str(v)+"<###")
+                #                     outlist.append(str(v))
+                #                 else:
+                #                     outlist.append(v)
+                #                     substitute_logger.warning(
+                #                         " " + self.__class__.__name__ + " : " + str(
+                #                         self.NAME) + "key: " + key + " unknown type value " + str(
+                #                         type(v)) + " : " + str(v))
+                #
+                #             self.templates[key] = outlist
+                #         else:
+                #             self.templates[key] = default_subst[key]
+                #     print("@+@+@ " + key + "-->" + str(default_subst[key]) + "<--")
 
         constructor_logger.debug(self.__class__.__name__ + " " +  self.NAME + " templates merged " + str(self.templates))
 
@@ -218,15 +244,22 @@ class AutoChoiceNode(CompositeNode):
 
         out_subst=OrderedDict()
         for t,val in self.templates.items():
-            if type(val) is str:
+            if type(val) in stringtypes:
                 out_subst[t] = utils.stringtemplate(val).safe_substitute(in_subst)
             else:
                 if type(val) is list:
                     out=list()
                     for v in val:
-                       if type(v) is str:
-                           out.append(utils.stringtemplate(v).safe_substitute(in_subst))
+                        if type(v) in stringtypes:
+                            out.append(utils.stringtemplate(v).safe_substitute(in_subst))
+                        else:
+                            substitute_logger.warning(
+                                " " + self.__class__.__name__ + " : " + str(
+                                    self.NAME) + "key: " + t + " unknown type value " + str(type(v)) + " : " + str(v))
                     out_subst[t] = out
+                else:
+                    substitute_logger.warning(
+                        " " + self.__class__.__name__ + " : " + str(self.NAME) + "key: " + t +" unknown type value " + str(type(val)) + " : " + val)
         out_subst.update(copy.deepcopy(choices))
         out_subst.update(copy.deepcopy(collected_subst))
 
