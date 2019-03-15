@@ -4,6 +4,7 @@ import logging
 
 # local import
 import manager
+import config
 import rcm
 
 logger = logging.getLogger('rcmServer')
@@ -22,6 +23,7 @@ class ServerAPIs:
     """
 
     def __init__(self):
+        config.getConfig( )
         self.server_manager = manager.ServerManager()
         self.server_manager.init()
 
@@ -91,21 +93,19 @@ class ServerAPIs:
 
         logger.debug("calling api new")
         if choices_string:
-            sys.stderr.write("choices string: "+ choices_string)
+            sys.stderr.write("----choices string:::>"+ choices_string + "<:::\n")
             self.server_manager.handle_choices(choices_string)
-            self.server_manager.new_session(sessionname=sessionname,
+            for k, v in self.server_manager.top_templates.items():
+                print(k + " :::>\n" + str(v) +"\n<:::::::::::::::::::::")
+
+            new_session = self.server_manager.new_session(sessionname=sessionname,
                                             subnet=subnet,
                                             vncpassword=vncpassword,
                                             vncpassword_crypted=vncpassword_crypted)
 
-            #
-            for k, v in self.server_manager.top_templates.items():
-                sys.stderr.write(str(k) +  ":::>\n")
-                sys.stderr.write(str(v) + '\n')
-            dummy_session=rcm.rcm_session()
-            return dummy_session
+            return new_session
         #
-        print("create new vnc display session")
+        print("we should not be here create new vnc display session")
         # if(subnet): self.rcm_server.subnet = subnet
         # if(queue): self.rcm_server.queue = queue
         # if(sessionname): self.rcm_server.sessionname = sessionname

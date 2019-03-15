@@ -22,7 +22,8 @@ class Service(plugin.Plugin):
         if logfile and regex_list:
             regex_clist = []
             for regex_string in regex_list:
-                regex_clist.append(re.compile(regex_string,re.MULTILINE))
+                print("compiling regex: -->"+ str(regex_string) + "<--")
+                regex_clist.append(re.compile(str(regex_string),re.MULTILINE))
 
             secs = 0
             step = 1
@@ -59,7 +60,7 @@ class Fake(Service):
 
     def search_port(self, logfile=''):
         for t in self.templates:
-            print("+++++++++++ plugin template:",t,self.templates[t])
+            print("+++++++++++ plugin template: "+ t+ "--->"+str(self.templates[t])+"<--")
         groupdict = self.search_logfile(logfile)
         node = ''
         port = 0

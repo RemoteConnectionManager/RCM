@@ -1,0 +1,6 @@
+tests:
+  ESCAPE:
+    COMMAND_LINE: "python -c 'exec(\"import sys,time,platform \\ntime.sleep(5)\\nprint(\\\"Some random stuff \\\" + platform.uname()[1]+\\\":333\\\")\\nfor i in range(1, 100): \\n   time.sleep(1)\\n   print(i)\\n   sys.stdout.flush()\")'"
+    TEST_STUFF: '^S\\" \n \d ome (.*) stuff (?P<node>\w+):(?P<port>\d+)'
+  REGEX:
+    TEST1: '^Some (.*) stuff (?P<node>\w+):(?P<port>\d+)'
