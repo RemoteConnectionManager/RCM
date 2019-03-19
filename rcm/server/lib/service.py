@@ -26,7 +26,7 @@ class Service(plugin.Plugin):
                 regex_clist.append(re.compile(str(regex_string),re.MULTILINE))
 
             secs = 0
-            step = 1
+            step = wait
             while (secs < timeout):
                 if os.path.isfile(logfile):
                     #print(secs, "logfile:", logfile,)
