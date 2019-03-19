@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QLabel, QDialog, QRadioButton, \
 
 # local includes
 from client.miscellaneous.logger import logger, configure_logger
-from client.miscellaneous.config_parser import parser, config_file_name
+from client.miscellaneous.config_parser import parser, config_file_name, defaults
 from client.utils.rcm_enum import Mode
 
 
@@ -118,21 +118,8 @@ class QEditSettingsDialog(QDialog):
         configure_logger(Mode.GUI, debug)
 
     def load_settings(self):
-        try:
-            debug_log_level = json.loads(parser.get('Settings', 'debug_log_level'))
-            self.settings['debug_log_level'] = debug_log_level
-        except Exception:
-            self.settings['debug_log_level'] = False
-        try:
-            ssh_client = json.loads(parser.get('Settings', 'ssh_client'))
-            self.settings['ssh_client'] = ssh_client
-        except Exception:
-            self.settings['ssh_client'] = "internal"
-        try:
-            preload_command = json.loads(parser.get('Settings', 'preload_command'))
-            self.settings['preload_command'] = preload_command
-        except Exception:
-            self.settings['preload_command'] = ""
+        for k in defaults:
+            self.settings[k] = json.loads(parser.get('Settings', k, fallback=defaults[k]))
 
     def on_save(self):
         if not parser.has_section('Settings'):
@@ -140,10 +127,8 @@ class QEditSettingsDialog(QDialog):
 
         # update settings values
         self.update_and_apply_settings()
-
-        parser.set('Settings', 'debug_log_level', json.dumps(self.settings['debug_log_level']))
-        parser.set('Settings', 'ssh_client', json.dumps(self.settings['ssh_client']))
-        parser.set('Settings', 'preload_command', json.dumps(self.settings['preload_command']))
+        for k in defaults:
+            parser.set('Settings', k, json.dumps(self.settings[k]))
 
         try:
             config_file_dir = os.path.dirname(config_file_name)
@@ -157,11 +142,6 @@ class QEditSettingsDialog(QDialog):
 
         self.close()
 
-    def use_default_settings(self):
-        self.settings['debug_log_level'] = False
-        self.settings['ssh_client'] = "internal"
-        self.settings['preload_command'] = ""
-
     def update_and_apply_settings(self):
         self.settings['debug_log_level'] = self.findChild(QCheckBox, 'debug_log_level').isChecked()
         if self.ssh_client_btn_int.isChecked():
@@ -171,5 +151,3 @@ class QEditSettingsDialog(QDialog):
         else:
             self.settings['ssh_client'] = "via"
         self.settings['preload_command'] = self.findChild(QLineEdit, 'preload_command').text()
-        if not self.settings['preload_command'].endswith(";") and not self.settings['preload_command'] == "":
-            self.settings['preload_command'] += ";"

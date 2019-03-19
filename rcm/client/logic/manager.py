@@ -23,7 +23,7 @@ import client.logic.rcm_protocol_client as rcm_protocol_client
 from client.utils.pyinstaller_utils import resource_path
 from client.miscellaneous.logger import logic_logger
 import client.utils.pyinstaller_utils as pyinstaller_utils
-from client.miscellaneous.config_parser import parser
+from client.miscellaneous.config_parser import parser, defaults
 
 
 class RemoteConnectionManager:
@@ -64,7 +64,7 @@ class RemoteConnectionManager:
         # for python3
         self.config['ssh']['linux'] = ("ssh", "", "")
         self.config['ssh']['darwin'] = ("ssh", "", "")
-        self.config['remote_rcm_server'] = json.loads(parser.get('Settings', 'preload_command', fallback='""'))
+        self.config['remote_rcm_server'] = json.loads(parser.get('Settings', 'preload_command', fallback=defaults['preload_command']))
         if not self.config['remote_rcm_server']:
             self.config['remote_rcm_server'] = 'module load rcm; python $RCM_HOME/bin/server/rcm_new_server.py'
 
