@@ -408,6 +408,13 @@ class QSSHSessionWidget(QWidget):
 
         last_exe_checksum = self.platform_config.get_version()[0]
         last_exe_url = self.platform_config.get_version()[1]
+        if not last_exe_checksum :
+            logger.debug("Missing platform exe update checksum , url: " + + str(last_exe_url))
+            return
+        else :
+            if not last_exe_url :
+                logger.debug("Missing platform exe update url for checksum: "+ str(last_exe_checksum))
+                return
         logger.debug("New client checksum: " + str(last_exe_checksum))
 
         if current_exe_checksum != last_exe_checksum:
