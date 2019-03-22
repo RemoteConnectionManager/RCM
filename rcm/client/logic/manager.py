@@ -7,6 +7,8 @@ import os
 import getpass
 import socket
 import paramiko
+import shutil
+
 
 # in order to parse the pickle message coming from the server, we need to import rcm as below
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -76,6 +78,17 @@ class RemoteConnectionManager:
             # if running in a bundle, we hardcode the path
             # of the built-in vnc viewer and plink (windows only)
             os.environ['JAVA_HOME'] = resource_path('turbovnc')
+            if sys.platform == 'win32':
+                # on windows 10, administration policies prevent execution  of external programs
+                # located in %TEMP% ... it seems that it cannot be loaded
+                home_path = os.path.expanduser('~')
+                desktop_path = os.path.join(home_path, 'Desktop')
+                if os.path.exists(desktop_path) :
+                    rcm_unprotected_path = os.path.join(desktop_path, '.rcm', 'executables')
+                    os.makedirs(rcm_unprotected_path, exist_ok=True)
+                    shutil.copy2(resource_path('turbovnc'), rcm_unprotected_path)
+                    os.environ['JAVA_HOME'] = os.path.join(rcm_unprotected_path, 'turbovnc')
+
             os.environ['JDK_HOME'] = os.environ['JAVA_HOME']
             os.environ['JRE_HOME'] = os.path.join(os.environ['JAVA_HOME'], 'jre')
             os.environ['CLASSPATH'] = os.path.join(os.environ['JAVA_HOME'], 'lib') + \
