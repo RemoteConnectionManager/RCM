@@ -8,6 +8,7 @@ import getpass
 import socket
 import paramiko
 import shutil
+import hashlib
 
 
 # in order to parse the pickle message coming from the server, we need to import rcm as below
@@ -81,8 +82,21 @@ class RemoteConnectionManager:
             if sys.platform == 'win32':
                 # on windows 10, administration policies prevent execution  of external programs
                 # located in %TEMP% ... it seems that it cannot be loaded
+
+                def filehash(filepath):
+                    blocksize = 64*1024
+                    sha = hashlib.sha256()
+                    with open(filepath, 'rb') as fp:
+                        while True:
+                            data = fp.read(blocksize)
+                            if not data:
+                                break
+                            sha.update(data)
+                    return sha.hexdigest()
+
                 def copytree(src, dst, symlinks=False, ignore=None):
                     if not os.path.exists(dst):
+                        logic_logger.info("WINDOWS PROTECTION WORKAROUND: Creating folder " + dst)
                         os.makedirs(dst)
                     for item in os.listdir(src):
                         s = os.path.join(src, item)
@@ -90,9 +104,18 @@ class RemoteConnectionManager:
                         if os.path.isdir(s):
                             copytree(s, d, symlinks, ignore)
                         else:
-                            if not os.path.exists(d) or os.stat(s).st_mtime - os.stat(d).st_mtime > 1:
-                                logic_logger.debug("WINDOWS PROTECTION Copy: " + s + " >> " + d)
+                            if not os.path.exists(d):
+                                logic_logger.debug("WINDOWS PROTECTION WORKAROUND Copy: " + s + " >> " + d)
                                 shutil.copy2(s, d)
+                            else:
+                                source_hash = filehash(s)
+                                dest_hash = filehash(d)
+                                if source_hash == dest_hash:
+                                    logic_logger.debug("WINDOWS PROTECTION WORKAROUND FOUND PREVIUS: " + d )
+                                else:
+                                    logic_logger.WARNING("WINDOWS PROTECTION WORKAROUND UPDATE PREVIOUS: " + s + " >> " + d)
+                                    shutil.copy2(s, d)
+
                 home_path = os.path.expanduser('~')
                 desktop_path = os.path.join(home_path, 'Desktop')
                 if os.path.exists(desktop_path) :
