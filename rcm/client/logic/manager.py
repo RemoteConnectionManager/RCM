@@ -8,7 +8,6 @@ import getpass
 import socket
 import paramiko
 import shutil
-import hashlib
 
 
 # in order to parse the pickle message coming from the server, we need to import rcm as below
@@ -68,8 +67,6 @@ class RemoteConnectionManager:
         self.config['ssh']['linux'] = ("ssh", "", "")
         self.config['ssh']['darwin'] = ("ssh", "", "")
         self.config['remote_rcm_server'] = json.loads(parser.get('Settings', 'preload_command', fallback=defaults['preload_command']))
-        if not self.config['remote_rcm_server']:
-            self.config['remote_rcm_server'] = 'module load rcm; python $RCM_HOME/bin/server/rcm_new_server.py'
 
         self.activeConnectionsList = []
 
@@ -82,17 +79,6 @@ class RemoteConnectionManager:
             if sys.platform == 'win32':
                 # on windows 10, administration policies prevent execution  of external programs
                 # located in %TEMP% ... it seems that it cannot be loaded
-
-                def filehash(filepath):
-                    blocksize = 64*1024
-                    sha = hashlib.sha256()
-                    with open(filepath, 'rb') as fp:
-                        while True:
-                            data = fp.read(blocksize)
-                            if not data:
-                                break
-                            sha.update(data)
-                    return sha.hexdigest()
 
                 def copytree(src, dst, symlinks=False, ignore=None):
                     if not os.path.exists(dst):
@@ -108,8 +94,8 @@ class RemoteConnectionManager:
                                 logic_logger.debug("WINDOWS PROTECTION WORKAROUND Copy: " + s + " >> " + d)
                                 shutil.copy2(s, d)
                             else:
-                                source_hash = filehash(s)
-                                dest_hash = filehash(d)
+                                source_hash = rcm_utils.compute_checksum(s)
+                                dest_hash = rcm_utils.compute_checksum(d)
                                 if source_hash == dest_hash:
                                     logic_logger.debug("WINDOWS PROTECTION WORKAROUND FOUND PREVIUS: " + d )
                                 else:
