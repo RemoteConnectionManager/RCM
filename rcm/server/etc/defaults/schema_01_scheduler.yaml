@@ -44,5 +44,7 @@ schema:
               GRES :
                 label : 'GPU'
                 type : 'combobox'
+                children :
+
 
 
