@@ -216,9 +216,7 @@ class RemoteConnectionManager:
 
         self.auth_method = ssh.get_transport().auth_handler.auth_method
 
-        fullcommand = ''
-        if self.preload :
-            fullcommand = self.preload + " ; "
+        fullcommand = self.preload
         fullcommand += self.config['remote_rcm_server'] + ' ' + cmd
         logic_logger.info("on " + commandnode + " run: <br><span style=\" font-size:5; font-weight:400; color:#101010;\" >" +
                           fullcommand + "</span>")
