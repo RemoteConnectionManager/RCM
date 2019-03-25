@@ -81,13 +81,27 @@ class RemoteConnectionManager:
             if sys.platform == 'win32':
                 # on windows 10, administration policies prevent execution  of external programs
                 # located in %TEMP% ... it seems that it cannot be loaded
+                def copytree(src, dst, symlinks=False, ignore=None):
+                    if not os.path.exists(dst):
+                        os.makedirs(dst)
+                    for item in os.listdir(src):
+                        s = os.path.join(src, item)
+                        d = os.path.join(dst, item)
+                        if os.path.isdir(s):
+                            copytree(s, d, symlinks, ignore)
+                        else:
+                            if not os.path.exists(d) or os.stat(s).st_mtime - os.stat(d).st_mtime > 1:
+                                logic_logger.debug("WINDOWS PROTECTION Copy: " + s + " >> " + d)
+                                shutil.copy2(s, d)
                 home_path = os.path.expanduser('~')
                 desktop_path = os.path.join(home_path, 'Desktop')
                 if os.path.exists(desktop_path) :
                     rcm_unprotected_path = os.path.join(desktop_path, '.rcm', 'executables')
                     os.makedirs(rcm_unprotected_path, exist_ok=True)
-                    shutil.copy2(resource_path('turbovnc'), rcm_unprotected_path)
-                    os.environ['JAVA_HOME'] = os.path.join(rcm_unprotected_path, 'turbovnc')
+                    dest_dir = os.path.join(rcm_unprotected_path, 'turbovnc')
+                    #distutils.dir_util.copy_tree(resource_path('turbovnc'), dest_dir)
+                    copytree(resource_path('turbovnc'), dest_dir)
+                    os.environ['JAVA_HOME'] = dest_dir
 
             os.environ['JDK_HOME'] = os.environ['JAVA_HOME']
             os.environ['JRE_HOME'] = os.path.join(os.environ['JAVA_HOME'], 'jre')
