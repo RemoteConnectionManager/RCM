@@ -48,7 +48,7 @@ exe_sd = EXE(pyz,
              debug=False,
              strip=False,
              upx=True,
-             console=True)
+             console=False)
 coll = COLLECT(exe_sd,
                a.binaries,
                a.zipfiles,
@@ -70,4 +70,4 @@ exe_se = EXE(pyz,
              strip=False,
              upx=True,
              runtime_tmpdir=None,
-             console=True)
+             console=False)
