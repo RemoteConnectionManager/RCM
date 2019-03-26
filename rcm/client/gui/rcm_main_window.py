@@ -1,5 +1,6 @@
 # std lib
 import collections
+import sys
 
 # pyqt5
 from PyQt5.QtCore import pyqtSlot, QThreadPool, Qt
@@ -12,7 +13,7 @@ from PyQt5.QtWidgets import QMainWindow, QWidget, \
 # local includes
 from client.gui.ssh_session_widget import QSSHSessionWidget
 from client.gui.edit_settings_dialog import QEditSettingsDialog
-from client.utils.pyinstaller_utils import resource_path
+from client.utils.pyinstaller_utils import resource_path, is_bundled
 from client.miscellaneous.logger import text_log_handler, logger, logic_logger, ssh_logger
 import server.rcm as rcm
 import client.logic.rcm_utils as rcm_utils
@@ -189,7 +190,13 @@ class RCMMainWindow(QMainWindow):
         edit_settings_dlg.exec()
 
     def about(self):
-        QMessageBox.about(self, "RCM", self.windowTitle())
+        show_message = self.windowTitle() + '\n'
+        show_message += "build_platform:" + rcm_utils.pack_info().buildPlatformString  + '\n'
+        if is_bundled():
+            show_message += "bundled exe: checksum: " + str(rcm_utils.compute_checksum(sys.executable))
+        else:
+            show_message += "NON BUNDLED!!!!"
+        QMessageBox.about(self, "RCM", show_message)
         return
 
     @pyqtSlot()
