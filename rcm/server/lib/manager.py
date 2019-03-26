@@ -31,8 +31,8 @@ import rcm
 import enumerate_interfaces
 import utils
 
-logger = logging.getLogger('rcmServer')
 
+logger = logging.getLogger('rcmServer' + '.' + __name__)
 
 class ServerManager:
     """
@@ -116,17 +116,12 @@ class ServerManager:
             return self.login_fullname
 
     def get_checksum_and_url(self, build_platform):
+        logger.debug("searching platform " + str(build_platform) + " into " + str(self.downloads))
         checksum = ""
-        for download in self.downloads['checksum']:
-            key = list(download.keys())[0]
-            if key == build_platform:
-                checksum = str(list(download.values())[0])
-
         downloadurl = ""
-        for download in self.downloads['url']:
-            key = list(download.keys())[0]
-            if key == build_platform:
-                downloadurl = str(list(download.values())[0])
+        for checksum, urls in self.downloads.get(build_platform, OrderedDict()).items() :
+            for downloadurl in urls:
+                logger.debug("checksum: " + checksum + " url: " + downloadurl)
 
         return checksum, downloadurl
 
