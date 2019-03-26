@@ -53,6 +53,24 @@ class TurboVNCServer(Service):
         super(TurboVNCServer, self).__init__()
         self.NAME = "TurboVNC"
 
+    def search_port(self, logfile=''):
+        for t in self.templates:
+            print("+++++++++++ plugin template: "+ t+ "--->"+str(self.templates[t])+"<--")
+        groupdict = self.search_logfile(logfile)
+        node = ''
+        port = 0
+        for k in groupdict:
+            print("+++++++++++ key:", k, groupdict[k])
+            if k == 'display' :
+                port =  5900 + int(groupdict[k])
+            if k == 'node' :
+                node = groupdict[k]
+            if k == 'port' :
+                port = int(groupdict[k])
+
+        return (node, port)
+
+
 class Fake(Service):
     def __init__(self):
         super(Fake, self).__init__()
