@@ -13,7 +13,7 @@ defaults:
               max : 2
           gll_usr_gpuprod :
             substitutions:
-              QUEUE_PAR: "-n @{CPU} --mem=@{MEMORY}GB @{GRES_STRING} #from defaults"
+              QUEUE_PAR: "-N 1 -n @{CPU} --partition=gll_usr_gpuprod --ntasks-per-node=16 @{GRES_STRING} #from defaults"
             MEMORY :
               min : 4
               max : 16
@@ -40,8 +40,8 @@ defaults:
             #SBATCH --time=@{QUEUE.TIME}
             #SBATCH --job-name=@{RCM_SESSIONID}
             #SBATCH --output @{RCM_JOBLOG}
-            #SBATCH -N 1 -n @{QUEUE.CPU} --mem=@{QUEUE.MEMORY}GB @{QUEUE.GRES.GRES_STRING} #direct setup
-            #SBATCH -N 1 @{QUEUE_PAR} #indirect setup
+            #SBATCH -N 1 -n @{QUEUE.CPU} --partition=@{QUEUE} --mem=@{QUEUE.MEMORY}GB @{QUEUE.GRES.GRES_STRING} #direct setup
+            #SBATCH  @{QUEUE_PAR} #indirect setup
             #SBATCH -A @{ACCOUNT}
             #SBATCH --partition=@{QUEUE}
             #
