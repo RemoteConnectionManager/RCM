@@ -93,7 +93,7 @@ class QSSHSessionWidget(QWidget):
 
         try:
             sessions_list = parser.get('LoginFields', 'hostList')
-            self.sessions_list = collections.deque(json.loads(sessions_list), maxlen=5)
+            self.sessions_list = collections.deque(json.loads(sessions_list), maxlen=10)
         except Exception:
             pass
 
@@ -319,13 +319,13 @@ class QSSHSessionWidget(QWidget):
         try:
             curr_session = self.session_find(self.session_combo.currentText())
             if curr_session:
-                host, user, preload = self.session_find(self.session_combo.currentText())
+                self.session_name, self.host, self.user, self.preload = self.session_find(self.session_combo.currentText())
             else:
-                user, host = (self.session_combo.currentText().split('@')[0], self.session_combo.currentText().split('@')[1].split('?')[0])
-                preload=''
-            self.user_line.setText(user)
-            self.host_line.setText(host)
-            self.preload_line.setText(preload)
+                self.user, self.host = (self.session_combo.currentText().split('@')[0], self.session_combo.currentText().split('@')[1].split('?')[0])
+                self.preload=''
+            self.user_line.setText(self.user)
+            self.host_line.setText(self.host)
+            self.preload_line.setText(self.preload)
         except ValueError:
             pass
 
@@ -334,9 +334,15 @@ class QSSHSessionWidget(QWidget):
             self.remote_connection_manager = manager.RemoteConnectionManager()
 
     def login(self):
-        self.user = str(self.user_line.text())
-        self.host = str(self.host_line.text())
-        self.preload = str(self.preload_line.text())
+        if self.user != str(self.user_line.text()):
+            self.user = str(self.user_line.text())
+            self.session_name = ''
+        if self.host != str(self.host_line.text()):
+            self.host = str(self.host_line.text())
+            self.session_name = ''
+        if self.preload != str(self.preload_line.text()):
+            self.preload = str(self.preload_line.text())
+            self.session_name = ''
         password = str(self.pssw_line.text())
 
         if not self.host:
@@ -347,9 +353,18 @@ class QSSHSessionWidget(QWidget):
             logger.warning("User field is empty")
             return
 
-        self.session_name = self.user + "@" + self.host
-        if self.preload:
-            self.session_name += "?" + hashlib.md5(self.preload.encode()).hexdigest()[:4]
+        if not self.session_name:
+            self.session_name = self.user + "@" + self.host
+            if self.preload:
+                # search this preload into existing sessions
+                preload_name = ''
+                for session_name,host,user,preload in self.sessions_list:
+                    if preload == self.preload:
+                        preload_name = ([''] + session_name.split('?')[1:])[-1]
+                        break
+                if not preload_name:
+                    preload_name = hashlib.md5(self.preload.encode()).hexdigest()[:4]
+                self.session_name += "?" + preload_name
         logger.info("Logging into " + self.session_name)
 
         # Show the waiting widget
@@ -375,7 +390,8 @@ class QSSHSessionWidget(QWidget):
 
             # update sessions list
             # warning, json load turns tuple into list
-            if self.session_name and list(self.session_tuple()) not in list(self.sessions_list):
+            # append new session only if content is different
+            if self.session_name and list(self.session_tuple())[1:] not in list(self.sessions_list_content()):
                 self.sessions_list.appendleft(self.session_tuple())
                 #self.sessions_changed.emit(self.sessions_list)
                 self.sessions_changed.emit(self.sessions_list_names(), self.sessions_list)
@@ -547,7 +563,7 @@ class QSSHSessionWidget(QWidget):
         if not parser.has_section('LoginFields'):
             parser.add_section('LoginFields')
 
-        parser.set('LoginFields', 'hostList', json.dumps(list(self.sessions_list)))
+        parser.set('LoginFields', 'hostList', json.dumps(list(self.sessions_list), indent=4))
 
         try:
             config_file_dir = os.path.dirname(config_file_name)
@@ -665,6 +681,13 @@ class QSSHSessionWidget(QWidget):
             sessions_list_name.append(sess_name[0])
         return sessions_list_name
 
+    def sessions_list_content(self):
+
+        sessions_list_content=collections.deque()
+        for sess_name in self.sessions_list:
+            sessions_list_content.append(sess_name[1:])
+        return sessions_list_content
+
     def session_tuple(self):
         return (self.session_name, self.host, self.user, self.preload)
 
@@ -672,6 +695,6 @@ class QSSHSessionWidget(QWidget):
         found=None
         for session in self.sessions_list:
             if session[0] == session_name:
-                found=session[1:]
+                found=session
                 break
         return found
