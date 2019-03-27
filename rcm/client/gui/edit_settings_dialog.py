@@ -128,7 +128,7 @@ class QEditSettingsDialog(QDialog):
         # update settings values
         self.update_and_apply_settings()
         for k in defaults:
-            parser.set('Settings', k, json.dumps(self.settings[k]))
+            parser.set('Settings', k, json.dumps(self.settings[k], indent=4))
 
         try:
             config_file_dir = os.path.dirname(config_file_name)
