@@ -33,6 +33,17 @@ class QEditSettingsDialog(QDialog):
         outer_grid_layout = QVBoxLayout()
         inner_vlayout = QVBoxLayout()
 
+        config_file_layout = QHBoxLayout()
+        config_file_label = QLabel(self)
+        config_file_label.setText('Config File:')
+        config_file_layout.addWidget(config_file_label)
+        config_file_textbox = QLineEdit(self)
+        config_file_textbox.setReadOnly(True)
+        config_file_textbox.setFixedWidth(400)
+        config_file_textbox.setObjectName('Config File')
+        config_file_textbox.setText(config_file_name)
+        config_file_layout.addWidget(config_file_textbox)
+
         # Create a group box containing the settings
         group_box = QGroupBox("Settings:")
 
@@ -90,6 +101,7 @@ class QEditSettingsDialog(QDialog):
         preload_command_textbox = QLineEdit(self)
         preload_command_textbox.setObjectName('preload_command')
         preload_command_textbox.setText(self.settings['preload_command'])
+        preload_command_textbox.setFixedWidth(400)
         preload_command_hlayout.addWidget(preload_command_textbox)
 
         # Save button
@@ -104,6 +116,7 @@ class QEditSettingsDialog(QDialog):
         cancel_button.clicked.connect(self.reject)
         last_hor_layout.addWidget(cancel_button)
 
+        inner_vlayout.addLayout(config_file_layout)
         inner_vlayout.addLayout(log_level_hlayout)
         inner_vlayout.addLayout(ssh_client_hlayout)
         inner_vlayout.addLayout(preload_command_hlayout)
