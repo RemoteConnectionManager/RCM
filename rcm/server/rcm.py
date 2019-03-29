@@ -56,6 +56,9 @@ class rcm_session:
             return pickle.dumps(self.hash)
         elif format == 'json':
             return json.dumps(self.hash)
+        elif format == 'json_indent':
+            return json.dumps(self.hash, indent=4)
+
 
     def write(self,outstream=sys.stdout):
         logger.debug("WRITE session rcm_session.write ")
