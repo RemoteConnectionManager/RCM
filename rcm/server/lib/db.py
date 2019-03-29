@@ -3,6 +3,7 @@ import os
 import sys
 import pwd
 import datetime
+import traceback
 
 # set prefix.
 current_file = os.path.realpath(os.path.expanduser(__file__))
@@ -18,6 +19,7 @@ current_prefix = os.path.dirname(os.path.dirname(current_file))
 import rcm
 
 
+logger = logging.getLogger('rcmServer' + '.' + __name__)
 
 class DbSessionManager:
     """
@@ -55,6 +57,20 @@ class DbSessionManager:
         with open(jobfile, 'w') as f:
             f.write(script)
         return jobfile
+
+    def sessions(self):
+        sessions={}
+        for sess_id in os.listdir(self.sessions_dir):
+            sess_file = self.session_file_path(sess_id)
+            if os.path.exists(sess_file):
+                logger.debug("loading session from file: " + sess_file)
+                try:
+                    sessions[sess_id] = rcm.rcm_session(fromfile=sess_file)
+                except Exception as e:
+                    #print("WARNING: not valid session file %s: %s\n" % (file, e),type(inst),inst.args,file=sys.stderr)
+                    sys.stderr.write("%s: %s RCM:EXCEPTION" % (format(e), traceback.format_exc()))
+
+        return sessions
 
 
 
