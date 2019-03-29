@@ -167,16 +167,16 @@ class ServerManager:
                                       sessionname=sessionname,
                                       nodelogin=self.login_fullname,
                                       vncpassword=vncpassword_crypted)
-        print("####### session #####\n", new_session.get_string(format='json'))
+        logger.debug("####### session #####\n" + new_session.get_string(format='json_indent'))
         new_session.serialize(self.session_manager.session_file_path(session_id))
 
-        print("login_name: ", self.get_login_node_name())
+        logger.debug("login_name: " + self.get_login_node_name())
         printout = "============submitting "
         if self.active_service :
             printout += "service: " + self.active_service.NAME
         if self.active_scheduler :
             printout +=  " with scheduler: " + self.active_scheduler.NAME
-        print(printout)
+        logger.debug(printout)
 
         substitutions = {'RCM_SESSIONID': str(session_id),
                          'RCM_SESSION_FOLDER': self.session_manager.session_folder(session_id),
@@ -186,11 +186,11 @@ class ServerManager:
         # assembly job script
         script = self.top_templates.get('SCRIPT', 'No script in templates')
         script = utils.stringtemplate(script).safe_substitute(substitutions)
-        print("@@@@@@@@@@ script @@@@@@@@@\n" + script)
+        logger.debug("@@@@@@@@@@ script @@@@@@@@@\n" + script)
 
         service_logfile = self.top_templates.get('SERVICE.COMMAND.LOGFILE', '')
         service_logfile = utils.stringtemplate(service_logfile).safe_substitute(substitutions)
-        print("@@@@@@@@@@ service_logfile @@@@@@@@@\n" + service_logfile)
+        logger.debug("@@@@@@@@@@ service_logfile @@@@@@@@@\n" + service_logfile)
 
 
 
@@ -201,12 +201,13 @@ class ServerManager:
         new_session.hash['state'] = 'pending'
         new_session.hash['jobid'] = jobid
         new_session.serialize(self.session_manager.session_file_path(session_id))
-        print("####### serialized session #####\n" + new_session.get_string(format='json'))
+        logger.debug("####### serialized session #####\n" + new_session.get_string(format='json_indent'))
 
         node,port  = self.active_service.search_port(service_logfile)
         new_session.hash['state'] = 'valid'
         new_session.hash['port'] = port
         new_session.hash['node'] = node
-        print("####### serialized session #####\n" + new_session.get_string(format='json'))
+        new_session.serialize(self.session_manager.session_file_path(session_id))
+        logger.debug("####### serialized session #####\n" + new_session.get_string(format='json_indent'))
 
-        return session_id
+        return new_session
