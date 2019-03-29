@@ -1,0 +1,6 @@
+logging_configs:
+  loggers:
+    rcmServer.api:
+      level: DEBUG
+    rcmServer.config:
+      level: DEBUG

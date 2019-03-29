@@ -5,10 +5,11 @@ import logging
 # local import
 import manager
 import config
+import db
 import rcm
 
-logger = logging.getLogger('rcmServer')
 
+logger = logging.getLogger('rcmServer' + '.' + __name__)
 
 class ServerAPIs:
     """
@@ -55,15 +56,16 @@ class ServerAPIs:
     def loginlist(self, subnet=''):
         logger.debug("calling api loginlist")
 
-        import rcm_server_slurm
-        #import rcm_protocol_server
-
-        dummy_server=rcm_server_slurm.rcm_server()
-        #r=rcm_protocol_server.rcm_protocol(dummy_server)
-        dummy_server.subnet = subnet
-        dummy_server.fill_sessions_hash()
+        # import rcm_server_slurm
+        # #import rcm_protocol_server
+        #
+        # dummy_server=rcm_server_slurm.rcm_server()
+        # #r=rcm_protocol_server.rcm_protocol(dummy_server)
+        # dummy_server.subnet = subnet
+        # dummy_server.fill_sessions_hash()
         s=rcm.rcm_sessions()
-        for sid, ses in list(dummy_server.sessions.items()):
+        db_sessions = db.DbSessionManager()
+        for sid, ses in list(db_sessions.sessions().items()):
             s.add_session(ses)
         s.write()
 
@@ -103,7 +105,8 @@ class ServerAPIs:
                                             vncpassword=vncpassword,
                                             vncpassword_crypted=vncpassword_crypted)
 
-            return new_session
+            new_session.write()
+            return
         #
         print("we should not be here create new vnc display session")
         # if(subnet): self.rcm_server.subnet = subnet
