@@ -13,7 +13,7 @@ if root_rcm_path not in sys.path:
 import utils
 
 
-logger = logging.getLogger('RCM.composer')
+logger = logging.getLogger('rcmServer' + '.' + __name__)
 
 def absolute_paths(relative_paths, search_paths=(), glob_suffix=None):
     list_paths=[]
@@ -91,14 +91,14 @@ def getConfig(name="default", paths=(),  use_default_paths=True, glob_suffix="*.
 
     list_paths = list()
     list_paths.extend(absolute_paths(default_paths, search_paths))
-    print("relative list paths after defaults : " + str(list_paths))
+    logger.debug("relative list paths after defaults : " + str(list_paths))
     if env_config_base_path:
         search_paths = absolute_paths([env_config_base_path], search_paths) + search_paths
     list_paths.extend(absolute_paths(env_config_paths, search_paths))
-    print("relative list paths after environment: " + str(list_paths))
+    logger.debug("relative list paths after environment: " + str(list_paths))
     list_paths.extend(paths)
 
-    print("relative list paths: " + str(list_paths))
+    logger.debug("relative list paths: " + str(list_paths))
     list_paths = absolute_paths(list_paths, search_paths, glob_suffix)
 
     out='config: parsing: \n'
