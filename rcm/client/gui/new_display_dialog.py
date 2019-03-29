@@ -372,12 +372,12 @@ def widget_factory(widget_type):
                             var=var,
                             parent_widget=parent_widget)
 
-            QRegExpValidator(QRegExp("^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"))
-            self.slider_edit.setValidator(QRegExpValidator(QRegExp("^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$")))
+            qregex = QRegExp("^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$")
+            validator = QRegExpValidator(qregex)
+            self.slider_edit.setValidator(validator)
 
         @pyqtSlot()
         def slider_change(self):
-            print(self.slider.value(), sec_to_time(self.slider.value()))
             text = str(sec_to_time(self.slider.value()))
             self.slider_edit.setText(text)
 
