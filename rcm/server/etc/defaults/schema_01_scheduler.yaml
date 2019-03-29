@@ -37,10 +37,10 @@ schema:
                   max : 36
               TIME :
                 label : 'Time (sec)'
-                type : 'slider'
+                type : 'timeslider'
                 values :
-                  min : 1
-                  max : 360000
+                  min : '00:00:01'
+                  max : '10:00:00'
               GRES :
                 label : 'GPU'
                 type : 'combobox'

@@ -2,12 +2,16 @@
 import json
 import sys
 import re
+import time
+import traceback
 
 # pyqt5
-from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtCore import Qt, pyqtSlot, QRegExp
+from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
     QHBoxLayout, QVBoxLayout, QPushButton, \
     QApplication, QTabWidget, QWidget, QSlider, QSizePolicy, QFrame
+
 
 
 class QDisplayDialog(QDialog):
@@ -181,7 +185,7 @@ class QJobWidget(QContainerWidget):
                                                path + "." + key,
                                                var + "." + key)
         except Exception as e:
-            print(e)
+            print(e, traceback.format_exc())
 
 
 def create_hor_composite_widget(parent_widget,
@@ -346,11 +350,60 @@ def widget_factory(widget_type):
             if self.parent_widget:
                 self.parent_widget.choices[self.var] = text
 
+    def sec_to_time(seconds):
+        return time.strftime('%H:%M:%S', time.gmtime(seconds))
+
+    def time_to_sec(time):
+        sec=0
+        mul=1
+        for t in reversed(list(map(int, re.findall('\d+', str(time))))[-3:]):
+            sec = sec + mul * t
+            mul = mul * 60
+        return int(sec)
+
+    class TimeSlider(Slider):
+
+        def __init__(self, values=None, path='', var='', parent_widget=None):
+
+            Slider.__init__(self,
+                            values={'min' :time_to_sec(values.get('min', 0)),
+                                    'max' :time_to_sec(values.get('max', 1)) },
+                            path=path,
+                            var=var,
+                            parent_widget=parent_widget)
+
+            QRegExpValidator(QRegExp("^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"))
+            self.slider_edit.setValidator(QRegExpValidator(QRegExp("^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$")))
+
+        @pyqtSlot()
+        def slider_change(self):
+            print(self.slider.value(), sec_to_time(self.slider.value()))
+            text = str(sec_to_time(self.slider.value()))
+            self.slider_edit.setText(text)
+
+            if self.parent_widget:
+                self.parent_widget.choices[self.var] = text
+
+        @pyqtSlot()
+        def slider_edit_change(self):
+            num = time_to_sec(self.sender().text())
+            if not num:
+                return
+            elif num < self.slider.minimum():
+                num = self.slider.minimum()
+            elif num > self.slider.maximum():
+                num = self.slider.maximum()
+
+            self.slider.setValue(int(num))
+
+
     # factory build commands
     if widget_type == "combobox":
         return ComboBox
     if widget_type == "slider":
         return Slider
+    if widget_type == "timeslider":
+        return TimeSlider
     if widget_type == "divider":
         return Divider
 
