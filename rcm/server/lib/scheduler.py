@@ -12,7 +12,7 @@ import jobscript_builder
 import plugin
 import utils
 
-logger = logging.getLogger('rcmServer')
+logger = logging.getLogger('rcmServer' + '.' + __name__)
 
 class Scheduler(plugin.Plugin):
 
@@ -36,7 +36,7 @@ class Scheduler(plugin.Plugin):
             if batch:
                 raw_output = batch(jobfile,
                                     output=str)
-                print ("@@@@@@@@@@@@@@ raw_output: " + raw_output)
+                logger.debug("@@@@@@@@@@@@@@ raw_output: " + raw_output)
                 jobid_regex = self.templates.get('JOBID_REGEX', "Submitted  (\d*)")
                 logger.debug("@@@@@@@@@@@@@ jobid_regex " + jobid_regex)
                 r=re.match(jobid_regex, raw_output)
