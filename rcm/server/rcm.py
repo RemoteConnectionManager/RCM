@@ -16,6 +16,10 @@ sys.path.append( os.path.dirname(os.path.abspath(__file__))  )
 Decide which format should use
 """
 format_default = 'pickle'
+# python3
+if sys.version_info >= (3, 0):
+    format_default = 'json'
+
 serverOutputString = "server output->"
 
 class rcm_session:
