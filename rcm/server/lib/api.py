@@ -95,10 +95,10 @@ class ServerAPIs:
 
         logger.debug("calling api new")
         if choices_string:
-            sys.stderr.write("----choices string:::>"+ choices_string + "<:::\n")
+            # sys.stderr.write("----choices string:::>"+ choices_string + "<:::\n")
             self.server_manager.handle_choices(choices_string)
             for k, v in self.server_manager.top_templates.items():
-                print(k + " :::>\n" + str(v) +"\n<:::::::::::::::::::::")
+                logger.debug(k + " :::>\n" + str(v) +"\n<:::::::::::::::::::::")
 
             new_session = self.server_manager.new_session(sessionname=sessionname,
                                             subnet=subnet,
