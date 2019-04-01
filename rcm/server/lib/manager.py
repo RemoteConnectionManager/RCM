@@ -168,8 +168,6 @@ class ServerManager:
                                       nodelogin=self.login_fullname,
                                       vncpassword=vncpassword_crypted)
         logger.debug("####### session #####\n" + new_session.get_string(format='json_indent'))
-        new_session.serialize(self.session_manager.session_file_path(session_id))
-
         logger.debug("login_name: " + self.get_login_node_name())
         printout = "============submitting "
         if self.active_service :
@@ -177,6 +175,12 @@ class ServerManager:
         if self.active_scheduler :
             printout +=  " with scheduler: " + self.active_scheduler.NAME
         logger.debug(printout)
+
+        new_session.hash['scheduler'] = self.active_scheduler.NAME
+        new_session.hash['service'] = self.active_service.NAME
+
+        new_session.serialize(self.session_manager.session_file_path(session_id))
+
 
         substitutions = {'RCM_SESSIONID': str(session_id),
                          'RCM_SESSION_FOLDER': self.session_manager.session_folder(session_id),
