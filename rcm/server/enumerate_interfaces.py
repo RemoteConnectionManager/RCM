@@ -7,7 +7,8 @@ import fcntl
 import struct
 import array
 import re
-from  logger_server import logger
+import logging
+logger = logging.getLogger('RCM' + '.' + __name__)
 
 
 def all_interfaces():
