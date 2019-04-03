@@ -9,8 +9,12 @@ logging_configs:
       format: "\x1b[33m%(message)s \x1b[0m"
     colored_out:
       format: "\x1b[90m%(message)s \x1b[0m"
+    colored_out_base:
+      format: "\x1b[90m%(levelname)-5s %(name)s # %(filename)s:%(lineno)s] %(message)s \x1b[0m"
     colored_err:
       format: "\x1b[91m%(message)s \x1b[0m"
+    colored_err_base:
+      format: "\x1b[91m%(levelname)-5s %(name)s # %(filename)s:%(lineno)s] %(message)s \x1b[0m"
     empty:
       format: "%(message)s"
     bare:
@@ -32,10 +36,20 @@ logging_configs:
       level: DEBUG
       formatter: colored_out
       stream: ext://sys.stdout
+    console_colored_out_base:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: colored_out_base
+      stream: ext://sys.stdout
     console_colored_err:
       class: logging.StreamHandler
       level: DEBUG
       formatter: colored_err
+      stream: ext://sys.stdout
+    console_colored_err_base:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: colored_err_base
       stream: ext://sys.stdout
     console:
       class: logging.StreamHandler
@@ -58,17 +72,21 @@ logging_configs:
       formatter: empty
       stream: ext://sys.stdout
   loggers:
-    '':
+#    '':
       # other configuration for logger 'foo.bar.baz'
-      handlers: [console]
-      level: INFO
+#      handlers: [console_colored_err_base]
+#      level: INFO
     root:
       level: INFO
-      handlers: [console]
+      handlers: [console_colored_err_base]
+      propagate: False
+    RCM:
+      level: WARNING
+      handlers: [console_colored_err_base]
       propagate: False
     rcmServer:
       level: WARNING
-      handlers: [console]
+      handlers: [console_colored_err_base]
       propagate: False
     rcmServer.jobscript_builder:
       level: INFO
@@ -77,7 +95,7 @@ logging_configs:
 # handlers are list, so hyapico do not override but merge, so can result into the same log handled multiple times
     rcmServer.jobscript_builder.constructor:
       level: INFO
-      handlers: [console_colored_out]
+      handlers: [console_colored_out_base]
       propagate: False
     utils.external.hiyapyco:
       handlers: [console]

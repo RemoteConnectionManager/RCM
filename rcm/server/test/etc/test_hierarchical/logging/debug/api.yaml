@@ -2,5 +2,12 @@ logging_configs:
   loggers:
     rcmServer.api:
       level: DEBUG
+      propagate: False
+      #handlers: [console_colored_err_base]
     rcmServer.config:
       level: DEBUG
+      propagate: False
+    RCM.protocol:
+      level: DEBUG
+      propagate: False
+      handlers: [console_colored_out_base]
