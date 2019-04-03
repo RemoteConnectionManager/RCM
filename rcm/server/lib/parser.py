@@ -5,8 +5,7 @@ import argparse
 import sys
 import logging
 
-logger = logging.getLogger('rcmServer')
-
+logger = logging.getLogger('rcmServer' + '.' + __name__)
 
 class CommandParser:
     """

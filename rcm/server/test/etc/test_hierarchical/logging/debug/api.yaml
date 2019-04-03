@@ -1,13 +1,36 @@
 logging_configs:
   loggers:
-    rcmServer.api:
+    rcmServer:
       level: DEBUG
+    rcmServer.manager:
+      level: INFO
+      handlers: [console_colored_out_base]
       propagate: False
-      #handlers: [console_colored_err_base]
-    rcmServer.config:
-      level: DEBUG
+    rcmServer.plugin:
+      level: INFO
+      handlers: [console_colored_out_base]
+      propagate: False
+    rcmServer.parser:
+      level: INFO
+      handlers: [console_colored_out_base]
+      propagate: False
+    rcmServer.api:
+      level: INFO
+      propagate: False
+      handlers: [console_colored_out_base]
+    rcmServer.lib.service:
+      level: INFO
+      propagate: False
+      handlers: [console_colored_out_base]
+    rcmServer.lib.scheduler:
+      level: INFO
+      propagate: False
+      handlers: [console_colored_out_base]
+    rcmServer.jobscript_builder.constructor:
+      level: INFO
+      handlers: [console_colored_out_base]
       propagate: False
     RCM.protocol:
-      level: DEBUG
+      level: INFO
       propagate: False
       handlers: [console_colored_out_base]

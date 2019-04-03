@@ -3,8 +3,7 @@ import copy
 from collections import OrderedDict
 import utils
 
-logger = logging.getLogger('rcmServer')
-
+logger = logging.getLogger('rcmServer' + '.' + __name__)
 
 class Plugin(object):
 

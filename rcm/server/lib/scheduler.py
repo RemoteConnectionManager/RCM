@@ -42,7 +42,7 @@ class Scheduler(plugin.Plugin):
                 r=re.match(jobid_regex, raw_output)
                 if (r):
                     jobid = r.group(1)
-                    logger.warning("jobid is: " + str(jobid))
+                    logger.info("scheduler: " + self.NAME + " jobid: " + str(jobid))
                     return jobid
                 else:
                     raise Exception("Unable to extract jobid from output: %s" % (raw_output))

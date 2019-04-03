@@ -6,6 +6,8 @@ import time
 
 import plugin
 
+logger = logging.getLogger('rcmServer' + '.' + __name__)
+
 class Service(plugin.Plugin):
 
     COMMANDS = {}
@@ -22,7 +24,7 @@ class Service(plugin.Plugin):
         if logfile and regex_list:
             regex_clist = []
             for regex_string in regex_list:
-                print("compiling regex: -->"+ str(regex_string) + "<--")
+                logger.debug("compiling regex: -->"+ str(regex_string) + "<--")
                 regex_clist.append(re.compile(str(regex_string),re.MULTILINE))
 
             secs = 0
@@ -55,12 +57,12 @@ class TurboVNCServer(Service):
 
     def search_port(self, logfile=''):
         for t in self.templates:
-            print("+++++++++++ plugin template: "+ t+ "--->"+str(self.templates[t])+"<--")
+            logger.debug("+++++++++++ plugin template: "+ t+ "--->"+str(self.templates[t])+"<--")
         groupdict = self.search_logfile(logfile)
         node = ''
         port = 0
         for k in groupdict:
-            print("+++++++++++ key:", k, groupdict[k])
+            logger.debug("+++++++++++ key: " + k + " ==> " + groupdict[k])
             if k == 'display' :
                 port =  5900 + int(groupdict[k])
             if k == 'node' :
@@ -78,12 +80,12 @@ class Fake(Service):
 
     def search_port(self, logfile=''):
         for t in self.templates:
-            print("+++++++++++ plugin template: "+ t+ "--->"+str(self.templates[t])+"<--")
+            logger.debug("+++++++++++ plugin template: "+ t+ "--->"+str(self.templates[t])+"<--")
         groupdict = self.search_logfile(logfile)
         node = ''
         port = 0
         for k in groupdict:
-            print("+++++++++++ key:", k, groupdict[k])
+            logger.debug("+++++++++++ key: " + k + " ==> " + groupdict[k])
             if k == 'display' :
                 port =  5900 + int(groupdict[k])
             if k == 'node' :

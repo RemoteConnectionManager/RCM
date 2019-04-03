@@ -66,7 +66,6 @@ class ServerManager:
 
         # load plugins
         for scheduler_str in self.configuration['plugins', 'schedulers']:
-            print(scheduler_str)
             try:
                 module_name, class_name = scheduler_str.rsplit(".", 1)
                 scheduler_class = getattr(importlib.import_module(module_name), class_name)
@@ -174,7 +173,7 @@ class ServerManager:
             printout += "service: " + self.active_service.NAME
         if self.active_scheduler :
             printout +=  " with scheduler: " + self.active_scheduler.NAME
-        logger.debug(printout)
+        logger.info(printout)
 
         new_session.hash['scheduler'] = self.active_scheduler.NAME
         new_session.hash['service'] = self.active_service.NAME
@@ -190,7 +189,7 @@ class ServerManager:
         # assembly job script
         script = self.top_templates.get('SCRIPT', 'No script in templates')
         script = utils.stringtemplate(script).safe_substitute(substitutions)
-        logger.debug("@@@@@@@@@@ script @@@@@@@@@\n" + script)
+        logger.info("@@@@@@@@@@ script @@@@@@@@@\n" + script)
 
         service_logfile = self.top_templates.get('SERVICE.COMMAND.LOGFILE', '')
         service_logfile = utils.stringtemplate(service_logfile).safe_substitute(substitutions)
@@ -205,7 +204,7 @@ class ServerManager:
         new_session.hash['state'] = 'pending'
         new_session.hash['jobid'] = jobid
         new_session.serialize(self.session_manager.session_file_path(session_id))
-        logger.debug("####### serialized session #####\n" + new_session.get_string(format='json_indent'))
+        logger.debug("####### serialized  session #####\n" + new_session.get_string(format='json_indent'))
 
         node,port  = self.active_service.search_port(service_logfile)
         new_session.hash['state'] = 'valid'
@@ -213,5 +212,5 @@ class ServerManager:
         new_session.hash['node'] = node
         new_session.serialize(self.session_manager.session_file_path(session_id))
         logger.debug("####### serialized session #####\n" + new_session.get_string(format='json_indent'))
-
+        logger.info("return valid session job " + jobid + " on node " + node + " port " + str(port))
         return new_session
