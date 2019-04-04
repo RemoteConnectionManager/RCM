@@ -32,7 +32,7 @@ class rcm_session:
             if fromstring[0] == '(':
                 logger.debug("USING PIKLE for rcm_session fromfile " + fromfile)
                 self.hash = pickle.load(open(fromfile,"rb"))
-            elif format_default == 'json':
+            elif fromstring[0] == '{':
                 logger.debug("USING JSON for rcm_session fromfile " + fromfile)
                 self.hash = json.load(open(fromfile, "r"))
             self.hash['file']=fromfile
