@@ -66,7 +66,8 @@ class ServerAPIs:
         s=rcm.rcm_sessions()
         db_sessions = db.DbSessionManager()
         for sid, ses in list(db_sessions.sessions().items()):
-            s.add_session(ses)
+
+            s.add_session(self.server_manager.map_session(ses,subnet))
         s.write()
 
     def list(self, subnet=''):

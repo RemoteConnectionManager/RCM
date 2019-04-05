@@ -31,6 +31,6 @@ logging_configs:
       handlers: [console_colored_out_base]
       propagate: False
     RCM.protocol:
-      level: INFO
+      level: DEBUG
       propagate: False
       handlers: [console_colored_out_base]

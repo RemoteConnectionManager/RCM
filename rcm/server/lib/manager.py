@@ -114,6 +114,18 @@ class ServerManager:
         else:
             return self.login_fullname
 
+    def map_session(self, ses, subnet):
+        # print("####### input #####\n" + ses.get_string(format='json_indent'))
+        new_session = copy.deepcopy(ses)
+        # print("####### copy  #####\n" + new_session.get_string(format='json_indent'))
+        originalNodeLogin = new_session.hash.get('nodelogin','')
+        # print("############ ", originalNodeLogin)
+        newNodeLogin = self.map_login_name(subnet,originalNodeLogin)
+        # print("############ ", newNodeLogin)
+        new_session.hash['nodelogin'] = newNodeLogin
+
+        return new_session
+
     def get_checksum_and_url(self, build_platform):
         logger.debug("searching platform " + str(build_platform) + " into " + str(self.downloads))
         checksum = ""
@@ -203,6 +215,7 @@ class ServerManager:
         # set status and jobid in curent session and write on disk
         new_session.hash['state'] = 'pending'
         new_session.hash['jobid'] = jobid
+        new_session.hash['walltime'] = self.top_templates.get('SCHEDULER.QUEUE.TIMELIMIT','~')
         new_session.serialize(self.session_manager.session_file_path(session_id))
         logger.debug("####### serialized  session #####\n" + new_session.get_string(format='json_indent'))
 
