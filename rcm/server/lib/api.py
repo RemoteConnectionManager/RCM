@@ -63,27 +63,13 @@ class ServerAPIs:
         # #r=rcm_protocol_server.rcm_protocol(dummy_server)
         # dummy_server.subnet = subnet
         # dummy_server.fill_sessions_hash()
-        s=rcm.rcm_sessions()
-        db_sessions = self.server_manager.session_manager
-        for sid, ses in list(db_sessions.sessions().items()):
-
-            s.add_session(self.server_manager.map_session(ses,subnet))
-        s.write()
+        out_sessions = self.mapped_sessions(subnet)
+        out_sessions.write()
 
     def list(self, subnet=''):
         logger.debug("calling api list")
-        import rcm_server_slurm
-        dummy_server = rcm_server_slurm.rcm_server()
-
-        # self.rcm_server.subnet = subnet
-        dummy_server.subnet = subnet
-        #
-        dummy_server.load_sessions()
-        s=rcm.rcm_sessions()
-        logger.debug("list run session ")
-        for sid in dummy_server.sids['run']:
-            s.add_session(dummy_server.sessions[sid])
-        s.write()
+        out_sessions = self.active_sessions(self.mapped_sessions(subnet))
+        out_sessions.write()
 
     def new(self, geometry='',
             queue='',

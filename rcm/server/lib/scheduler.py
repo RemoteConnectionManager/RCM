@@ -22,6 +22,9 @@ class Scheduler(plugin.Plugin):
     def submit(self, script='', jobfile=''):
         raise NotImplementedError()
 
+    def get_user_jobs(self, username=''):
+        raise NotImplementedError()
+
     def generic_submit(self, script='', jobfile='', batch_command='/bin/batch', jobfile_executable=True):
 
         if jobfile:
@@ -79,7 +82,8 @@ class PBSScheduler(BatchScheduler):
 
 class OSScheduler(Scheduler):
 
-    COMMANDS = {'/bin/bash': None}
+    COMMANDS = {'/bin/bash': None,
+                'ps': None}
 
     def __init__(self, *args, **kwargs):
         super(OSScheduler, self).__init__(*args, **kwargs)
@@ -88,12 +92,30 @@ class OSScheduler(Scheduler):
     def submit(self, script='', jobfile=''):
         return self.generic_submit(script=script, jobfile=jobfile, batch_command='/bin/bash')
 
+    def get_user_jobs(self, username=''):
+        ps = self.COMMANDS.get('ps', None)
+        if ps:
+            params = ''
+            if username :
+                params += ' -u ' + username
+            raw_output = ps( params,
+                               output=str)
+            raw=filter(None,raw_output.split('\n'))
+
+            jobs={}
+            for j in raw:
+                logger.debug("job_id "+str(j))
+                jobs[j] = j.lstrip().split(' ')[0]
+            return(jobs)
+
+
 
 class SlurmScheduler(BatchScheduler):
 
     COMMANDS = {'sshare': None,
                 'sinfo': None,
-                'sbatch': None}
+                'sbatch': None,
+                'squeue': None}
 
     def __init__(self, *args, **kwargs):
         super(SlurmScheduler, self).__init__(*args, **kwargs)
@@ -148,6 +170,24 @@ class SlurmScheduler(BatchScheduler):
     def submit(self, script='', jobfile=''):
         return self.generic_submit(script=script, jobfile=jobfile, batch_command='sbatch')
 
+    def get_user_jobs(self, username=''):
+        squeue = self.COMMANDS.get('squeue', None)
+        if squeue:
+            params = '-o %i#%t#%j#%a -h -a'
+            if username :
+                params += ' -u ' + username
+            raw_output = squeue( params,
+                               output=str)
 
-
-
+            check_rcm_job_string = self.NAME
+            raw=raw_output.split('\n')
+            logger.debug("raw"+str(type(raw)))
+            jobs={}
+            for j in raw:
+                  logger.debug("j"+str(j))
+                  mo=j.split('#')
+                  logger.debug("mo split #"+str(len(mo))+" "+' '.join(str(p) for p in mo))
+                  if  len(mo) == 4 and check_rcm_job_string in mo[2]:
+                     sid=mo[2]
+                     jobs[sid]=mo[0]
+            return(jobs)

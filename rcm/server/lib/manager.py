@@ -125,6 +125,15 @@ class ServerManager:
 
         return new_session
 
+
+    def mapped_sessions(self, subnet):
+        out_sessions=rcm.rcm_sessions()
+        db_sessions = self.server_manager.session_manager
+        for sid, ses in list(db_sessions.sessions().items()):
+            out_sessions.add_session(self.map_session(ses,subnet))
+        return out_sessions
+
+
     def get_checksum_and_url(self, build_platform):
         logger.debug("searching platform " + str(build_platform) + " into " + str(self.downloads))
         checksum = ""
@@ -226,3 +235,18 @@ class ServerManager:
         logger.debug("####### serialized session #####\n" + new_session.get_string(format='json_indent'))
         logger.info("return valid session job " + jobid + " on node " + node + " port " + str(port))
         return new_session
+
+    def active_sessions(self, current_sessions):
+        active_sessions = rcm.rcm_sessions()
+        active_jobs = {}
+        for sid, ses in list(current_sessions.items()):
+            scheduler_name = ses.hash.get('scheduler','')
+            if not scheduler_name in active_jobs:
+                if scheduler_name in self.schedulers:
+                    active_jobs[scheduler_name] = self.schedulers[scheduler_name].get_user_jobs(self.session_manager.username)
+            jobid = ses.hash.get('jobid','')
+            if jobid in active_jobs.get(scheduler_name, dict()):
+                active_sessions.add_session(ses)
+        return active_sessions
+
+
