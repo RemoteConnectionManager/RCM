@@ -51,7 +51,6 @@ class ServerManager:
         self.network_map = dict()
 
     def init(self):
-        self.username = pwd.getpwuid(os.geteuid())[0]
         self.login_fullname = socket.getfqdn()
 
 
@@ -174,7 +173,7 @@ class ServerManager:
         session_id = self.session_manager.new_session(tag=self.active_scheduler.NAME)
         new_session = rcm.rcm_session(sessionid=session_id,
                                       state='init',
-                                      username=self.username,
+                                      username=self.session_manager.username,
                                       sessionname=sessionname,
                                       nodelogin=self.login_fullname,
                                       vncpassword=vncpassword_crypted)

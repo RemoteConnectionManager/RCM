@@ -64,7 +64,7 @@ class ServerAPIs:
         # dummy_server.subnet = subnet
         # dummy_server.fill_sessions_hash()
         s=rcm.rcm_sessions()
-        db_sessions = db.DbSessionManager()
+        db_sessions = self.server_manager.session_manager
         for sid, ses in list(db_sessions.sessions().items()):
 
             s.add_session(self.server_manager.map_session(ses,subnet))
