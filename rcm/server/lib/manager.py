@@ -128,7 +128,7 @@ class ServerManager:
 
     def mapped_sessions(self, subnet):
         out_sessions=rcm.rcm_sessions()
-        db_sessions = self.server_manager.session_manager
+        db_sessions = self.session_manager
         for sid, ses in list(db_sessions.sessions().items()):
             out_sessions.add_session(self.map_session(ses,subnet))
         return out_sessions
