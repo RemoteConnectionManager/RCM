@@ -63,12 +63,12 @@ class ServerAPIs:
         # #r=rcm_protocol_server.rcm_protocol(dummy_server)
         # dummy_server.subnet = subnet
         # dummy_server.fill_sessions_hash()
-        out_sessions = self.mapped_sessions(subnet)
+        out_sessions = self.server_manager.mapped_sessions(subnet)
         out_sessions.write()
 
     def list(self, subnet=''):
         logger.debug("calling api list")
-        out_sessions = self.active_sessions(self.mapped_sessions(subnet))
+        out_sessions = self.server_manager.active_sessions(self.server_manager.mapped_sessions(subnet))
         out_sessions.write()
 
     def new(self, geometry='',
