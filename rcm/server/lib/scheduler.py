@@ -173,21 +173,22 @@ class SlurmScheduler(BatchScheduler):
     def get_user_jobs(self, username=''):
         squeue = self.COMMANDS.get('squeue', None)
         if squeue:
-            params = '-o %i#%t#%j#%a -h -a'
+            params = '-o %i#%t#%j#%a -h -a'.split(' ')
             if username :
-                params += ' -u ' + username
-            raw_output = squeue( params,
+                params.extend(('-u ' + username).split(' '))
+            logger.debug("params " + str(params))
+            raw_output = squeue( *params,
                                output=str)
 
             check_rcm_job_string = self.NAME
             raw=raw_output.split('\n')
-            logger.debug("raw"+str(type(raw)))
+            logger.debug("raw" + str(raw))
             jobs={}
             for j in raw:
                   logger.debug("j"+str(j))
                   mo=j.split('#')
                   logger.debug("mo split #"+str(len(mo))+" "+' '.join(str(p) for p in mo))
                   if  len(mo) == 4 and check_rcm_job_string in mo[2]:
-                     sid=mo[2]
-                     jobs[sid]=mo[0]
+                     sid=mo[0]
+                     jobs[sid]=mo[2]
             return(jobs)
