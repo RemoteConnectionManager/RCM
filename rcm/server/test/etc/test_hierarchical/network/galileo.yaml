@@ -6,7 +6,7 @@ network:
     node172.galileo.cineca.it: login08.galileo.cineca.it
     node165.galileo.cineca.it: login01.galileo.cineca.it
     #node165.galileo.cineca.it: login.galileo.cineca.it
-    node166.galileo.cineca.it: login.galileo.cineca.it
+    node166.galileo.cineca.it: login02.galileo.cineca.it
     #login01.galileo.cineca.it: login.galileo.cineca.it
     #login02.galileo.cineca.it: login.galileo.cineca.it
 
