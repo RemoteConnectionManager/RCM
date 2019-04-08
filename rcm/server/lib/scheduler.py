@@ -95,17 +95,20 @@ class OSScheduler(Scheduler):
     def get_user_jobs(self, username=''):
         ps = self.COMMANDS.get('ps', None)
         if ps:
-            params = ''
+            params = []
             if username :
-                params += ' -u ' + username
-            raw_output = ps( params,
-                               output=str)
+                params.extend(('-u ' + username).split(' '))
+            logger.debug("params " + str(params))
+            raw_output = ps( *params,
+                             output=str)
+
             raw=filter(None,raw_output.split('\n'))
 
             jobs={}
-            for j in raw:
-                logger.debug("job_id "+str(j))
-                jobs[j] = j.lstrip().split(' ')[0]
+            for jline in raw:
+                jid = jline.lstrip().split(' ')[0]
+                logger.debug("job_id " + str(jid))
+                jobs[jid] = jline
             return(jobs)
 
 
