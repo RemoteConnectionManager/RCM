@@ -239,7 +239,7 @@ class ServerManager:
     def active_sessions(self, current_sessions):
         active_sessions = rcm.rcm_sessions()
         active_jobs = {}
-        for sid, ses in list(current_sessions.items()):
+        for ses in current_sessions:
             scheduler_name = ses.hash.get('scheduler','')
             if not scheduler_name in active_jobs:
                 if scheduler_name in self.schedulers:
