@@ -73,7 +73,7 @@ class rcm_session:
 
 class rcm_sessions:
 
-    def __init__(self,fromstring='',fromfile='',sessions=[]): 
+    def __init__(self,fromstring='',fromfile='',sessions=None): 
     
         self._array=[] 
         if (fromfile != ''):
@@ -94,7 +94,7 @@ class rcm_sessions:
                 for h in hashes:
                     self._array.append(h)
                 #self._array = json.loads(fromstring)
-        else:
+        elif sessions:
             self._array=sessions
 
     def serialize(self, file, format):
