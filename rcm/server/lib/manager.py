@@ -238,14 +238,19 @@ class ServerManager:
 
     def active_sessions(self, current_sessions):
         active_sessions = rcm.rcm_sessions()
+        logger.debug("initialized acitve session to " + str(active_sessions.get_sessions()))
         active_jobs = {}
-        for ses in current_sessions:
+        for ses in current_sessions.get_sessions():
             scheduler_name = ses.hash.get('scheduler','')
             if not scheduler_name in active_jobs:
                 if scheduler_name in self.schedulers:
+                    logger.debug("getting active jobs for scheduler " + scheduler_name + " and user " + self.session_manager.username)
                     active_jobs[scheduler_name] = self.schedulers[scheduler_name].get_user_jobs(self.session_manager.username)
+                    logger.debug(str(active_jobs[scheduler_name]))
             jobid = ses.hash.get('jobid','')
+            logger.debug("searching job " + jobid)
             if jobid in active_jobs.get(scheduler_name, dict()):
+                logger.debug("found job " + jobid + " in active jobs " + str(active_jobs.get(scheduler_name, dict())))
                 active_sessions.add_session(ses)
         return active_sessions
 

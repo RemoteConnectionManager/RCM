@@ -3,7 +3,7 @@ logging_configs:
     rcmServer:
       level: DEBUG
     rcmServer.manager:
-      level: INFO
+      level: DEBUG
       handlers: [console_colored_out_base]
       propagate: False
     rcmServer.plugin:
@@ -23,7 +23,7 @@ logging_configs:
       propagate: False
       handlers: [console_colored_out_base]
     rcmServer.lib.scheduler:
-      level: INFO
+      level: DEBUG
       propagate: False
       handlers: [console_colored_out_base]
     rcmServer.jobscript_builder.constructor:
