@@ -1,5 +1,6 @@
 # std lib
 import time
+import traceback
 
 # pyqt5
 from PyQt5.QtCore import QRunnable, pyqtSlot, pyqtSignal, QObject
@@ -67,4 +68,4 @@ class Worker(QRunnable):
 
             logger.debug("Worker for display " + str(self.display_id) + " finished")
         except Exception as e:
-            logger.error(e)
+            logger.error("Excepion: " + str(e) + " - " + str(traceback.format_exc()))
