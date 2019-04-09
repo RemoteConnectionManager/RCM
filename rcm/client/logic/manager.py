@@ -190,29 +190,27 @@ class RemoteConnectionManager:
             logic_logger.debug("Login host: " + self.proxynode + " subnet: " + self.subnet)
         return check_cred
 
-    def prex(self, cmd, commandnode = ''):
+    def prex(self, cmd):
         """
         This is the function that wrap all the remote comman execution, accept the input command
         and return the remote server output that comes after the rcm.serverOutputString separation
         string
         """
         if self.commandnode == '':
-            commandnode = self.proxynode
+            host = self.proxynode
         else:
-            commandnode = self.commandnode
+            host = self.commandnode
             self.commandnode = ''
-        ##unused##fullcommand = self.ssh_remote_exec_command + "@" + commandnode + ' ' + cmd
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-
         try:
-            ssh.connect(commandnode, username=self.remoteuser, password=self.passwd, timeout=10)
+            ssh.connect(host, username=self.remoteuser, password=self.passwd, timeout=10)
         except Exception as e:
             logic_logger.warning("ERROR {0}: ".format(e) + "in ssh.connect to node->" +
-                                  commandnode + "< user->" + self.remoteuser + "<")
-            return('')
+                                 host + "< user->" + self.remoteuser + "<")
+            ssh.close()
+            return ''
 
         self.auth_method = ssh.get_transport().auth_handler.auth_method
 
@@ -224,7 +222,7 @@ class RemoteConnectionManager:
         else :
             fullcommand = self.config['remote_rcm_server']
         fullcommand += ' ' + cmd
-        logic_logger.info("on " + commandnode + " run: <br><span style=\" font-size:5; font-weight:400; color:#101010;\" >" +
+        logic_logger.info("on " + host + " run: <br><span style=\" font-size:5; font-weight:400; color:#101010;\" >" +
                           fullcommand + "</span>")
 
         stdin, stdout, stderr = ssh.exec_command(fullcommand)
@@ -242,6 +240,8 @@ class RemoteConnectionManager:
             logic_logger.error("Missing serverOutputString: {0} in server output".format(rcm.serverOutputString))
             if myerr:
                 raise Exception("Server error: {0}".format(myerr))
+
+        ssh.close()
         return myout
 
     def list(self):
