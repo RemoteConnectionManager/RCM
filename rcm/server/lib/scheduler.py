@@ -125,19 +125,19 @@ class OSScheduler(Scheduler):
 
         logger.debug("Scheduler: " + self.NAME + "asked to kill_job: " + jobid)
         if jobid:
-        #    try:
+            try:
                 ps = self.COMMANDS.get('ps', None)
                 if ps:
                     params = ['opgid=', str(jobid)]
                     process_group = ps( *params, output=str).strip()
-                    print("process_group:",process_group)
+                    logger.debug("killing process_group: " + process_group)
                     kill = self.COMMANDS.get('kill', None)
                     # it seems that in order to kill all process of a group, prepend the group with -
                     params = ['-TERM', '-' + process_group]
                     out = kill( *params, output=str)
                     return True
-#            except:
-#                sys.write.stderr("Can not kill  process with pid: %s." % (jobid))
+            except:
+                sys.write.stderr("Can not kill  process with pid: %s." % (jobid))
         return False
 
 
@@ -149,6 +149,7 @@ class SlurmScheduler(BatchScheduler):
     COMMANDS = {'sshare': None,
                 'sinfo': None,
                 'sbatch': None,
+                'scancel': None,
                 'squeue': None}
 
     def __init__(self, *args, **kwargs):
@@ -226,3 +227,18 @@ class SlurmScheduler(BatchScheduler):
                      sid=mo[0]
                      jobs[sid]=mo[2]
             return(jobs)
+
+
+    def kill_job(self, jobid=''):
+        logger.debug("Scheduler: " + self.NAME + "asked to kill_job: " + jobid)
+        if jobid:
+            try:
+                scancel = self.COMMANDS.get('scancel', None)
+                if scancel:
+                    params = [ str(jobid)]
+                    out = scancel( *params, output=str)
+                    return True
+            except:
+                sys.write.stderr("Can not kill  job: %s." % (jobid))
+        return False
+
