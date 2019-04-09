@@ -344,7 +344,12 @@ class RemoteConnectionManager:
         node = None
 
         if session:
-            portnumber = 5900 + int(session.hash['display'])
+            logic_logger.debug("session: " + str(session.hash))
+            portstring = session.hash.get('port', '')
+            if portstring:
+                portnumber = int(portstring)
+            else:
+                portnumber = 5900 + int(session.hash['display'])
             local_portnumber = rcm_utils.get_unused_portnumber()
             node = session.hash['node']
             nodelogin = session.hash['nodelogin']
