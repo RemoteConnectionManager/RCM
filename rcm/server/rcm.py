@@ -40,7 +40,7 @@ class rcm_session:
             if fromstring[0] == '(':
                 logger.debug("USING PIKLE for rcm_session fromstring--" + fromstring[0])
                 self.hash = pickle.loads(fromstring.encode('utf-8'))
-            elif format_default == 'json':
+            elif fromstring[0] == '{':
                 logger.debug("USING JSON  for rcm_session fromstring--" + fromstring[0])
                 self.hash = json.loads(fromstring)
         else:
