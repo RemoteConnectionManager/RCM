@@ -66,8 +66,9 @@ class rcm_session:
 
     def write(self,outstream=sys.stdout):
         logger.debug("WRITE session rcm_session.write ")
+        outsring = self.get_string()
         outstream.write(serverOutputString)
-        outstream.write(self.get_string())
+        outstream.write(outsring)
         outstream.flush()
 
 
