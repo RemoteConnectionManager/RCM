@@ -109,9 +109,35 @@ class ServerAPIs:
 
     def kill(self, session_id=''):
         logger.debug("calling api kill")
-        # self.rcm_server.load_sessions()
-        # if(session_id):
-        #     if session_id in self.rcm_server.sids['run']:
+        db_sessions = self.server_manager.session_manager
+        sessions_to_kill = rcm.rcm_sessions()
+        if session_id:
+            if session_id in db_sessions.sessions() :
+                sessions_to_kill.add_session(db_sessions.sessions()[session_id])
+                active_sessions = self.server_manager.active_sessions(sessions_to_kill)
+                if len(active_sessions.get_sessions()) == 1:
+                    ses = active_sessions.get_sessions()[0]
+                    scheduler_name = ses.hash.get('scheduler','') 
+                    scheduler = self.server_manager.schedulers.get(scheduler_name,None)
+                    if scheduler:
+                        jobid = ses.hash.get('jobid','')
+                        if scheduler.kill_job(jobid):
+                            ses.hash['state']='killing'
+                            ses.serialize(db_sessions.session_file_path(session_id))
+                            ses.write()
+                    else:
+                        sys.stderr.write("Scheduler: " + scheduler_name + " NOT DEFINED in " + str(self.server_manager.schedulers.keys()))
+                        sys.stderr.flush()
+                        sys.exit(1)
+                else:
+                    sys.stderr.write("Not running session: %s\n" % (session_id))
+                    sys.stderr.flush()
+                    sys.exit(1)
+            else:
+                sys.stderr.write("Not existing session: %s\n" % (session_id))
+                sys.stderr.flush()
+                sys.exit(1)
+
         #         jid=self.rcm_server.sessions[session_id].hash['jobid']
         #         self.rcm_server.kill_job(jid)
         #         file='%s/%s.session' % (self.rcm_server.get_rcmdirs()[0],session_id)

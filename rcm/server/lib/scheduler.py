@@ -5,6 +5,7 @@ from collections import OrderedDict
 import re
 import subprocess
 import os
+import sys
 import stat
 
 # local import
@@ -23,6 +24,9 @@ class Scheduler(plugin.Plugin):
         raise NotImplementedError()
 
     def get_user_jobs(self, username=''):
+        raise NotImplementedError()
+
+    def kill_job(self, jobid=''):
         raise NotImplementedError()
 
     def generic_submit(self, script='', jobfile='', batch_command='/bin/batch', jobfile_executable=True):
@@ -83,7 +87,8 @@ class PBSScheduler(BatchScheduler):
 class OSScheduler(Scheduler):
 
     COMMANDS = {'/bin/bash': None,
-                'ps': None}
+                'ps': None,
+                'kill': None}
 
     def __init__(self, *args, **kwargs):
         super(OSScheduler, self).__init__(*args, **kwargs)
@@ -110,6 +115,32 @@ class OSScheduler(Scheduler):
                 logger.debug("job_id " + str(jid))
                 jobs[jid] = jline
             return(jobs)
+
+    def kill_job(self, jobid=''):
+        """
+        kill the process that has been launched ( jobid ) and all it's children,
+        by grabbing the group id and calling kill with -gid /list display remote sessions.
+        https://stackoverflow.com/questions/392022/whats-the-best-way-to-send-a-signal-to-all-members-of-a-process-group/15139734#15139734
+        """
+
+        logger.debug("Scheduler: " + self.NAME + "asked to kill_job: " + jobid)
+        if jobid:
+        #    try:
+                ps = self.COMMANDS.get('ps', None)
+                if ps:
+                    params = ['opgid=', str(jobid)]
+                    process_group = ps( *params, output=str).strip()
+                    print("process_group:",process_group)
+                    kill = self.COMMANDS.get('kill', None)
+                    # it seems that in order to kill all process of a group, prepend the group with -
+                    params = ['-TERM', '-' + process_group]
+                    out = kill( *params, output=str)
+                    return True
+#            except:
+#                sys.write.stderr("Can not kill  process with pid: %s." % (jobid))
+        return False
+
+
 
 
 
