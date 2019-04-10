@@ -240,9 +240,9 @@ class QSSHSessionWidget(QWidget):
         self.containerReloadWidget.hide()
 
     # container session widget
-        plusbutton_layout = QGridLayout()
-        self.rows_ver_layout.setContentsMargins(0, 0, 0, 0)
-        self.rows_ver_layout.setSpacing(0)
+        plusbutton_layout = QHBoxLayout()
+        plusbutton_layout.setContentsMargins(0, 0, 0, 0)
+        plusbutton_layout.setSpacing(0)
 
         self.session_ver_layout.addLayout(plusbutton_layout)
         self.session_ver_layout.addLayout(self.rows_ver_layout)
@@ -253,28 +253,32 @@ class QSSHSessionWidget(QWidget):
 
         name = QLabel()
         name.setText("Name")
+        name.setMinimumWidth(300)
         name.setFont(font)
-        plusbutton_layout.addWidget(name, 0, 0)
+        plusbutton_layout.addWidget(name)
 
         status = QLabel()
         status.setText("Status")
+        status.setMinimumWidth(40)
         status.setFont(font)
-        plusbutton_layout.addWidget(status, 0, 1)
+        plusbutton_layout.addWidget(status)
 
         time = QLabel()
         time.setText("Time")
+        time.setMinimumWidth(40)
         time.setFont(font)
-        plusbutton_layout.addWidget(time, 0, 2)
+        plusbutton_layout.addWidget(time)
 
         resources = QLabel()
         resources.setText("Resources")
+        resources.setMinimumWidth(40)
         resources.setFont(font)
-        plusbutton_layout.addWidget(resources, 0, 3)
+        plusbutton_layout.addWidget(resources)
 
-        x = QLabel()
-        x.setText("")
-        plusbutton_layout.addWidget(x, 0, 4)
-        plusbutton_layout.addWidget(x, 0, 5)
+        separator_label = QLabel()
+        separator_label.setText("")
+        plusbutton_layout.addWidget(separator_label)
+        plusbutton_layout.addWidget(separator_label)
 
         self.new_display_ico = QIcon()
         self.new_display_ico.addFile(resource_path('gui/icons/plus.png'), QSize(16, 16))
@@ -297,13 +301,13 @@ class QSSHSessionWidget(QWidget):
         reload_btn.setShortcut("F5")
 
         self.new_display_layout = QHBoxLayout()
-        self.new_display_layout.addSpacing(70)
+        #self.new_display_layout.addSpacing(70)
         self.new_display_layout.addWidget(reload_btn)
         self.new_display_layout.addWidget(new_display_btn)
         self.new_display_layout.addWidget(self.devel_new_display_button)
         self.devel_new_display_button.hide()
 
-        plusbutton_layout.addLayout(self.new_display_layout, 0, 6)
+        plusbutton_layout.addLayout(self.new_display_layout)
 
         self.containerSessionWidget.setLayout(self.session_ver_layout)
         new_tab_main_layout.addWidget(self.containerSessionWidget)

@@ -70,8 +70,8 @@ class QDisplaySessionWidget(QWidget):
         self.share_ico.addFile(resource_path('gui/icons/share.png'))
 
         display_hor_layout = QHBoxLayout()
-        display_hor_layout.setContentsMargins(0, 2, 0, 2)
-        display_hor_layout.setSpacing(2)
+        display_hor_layout.setContentsMargins(0, 0, 0, 0)
+        display_hor_layout.setSpacing(0)
 
         display_ver_layout = QVBoxLayout()
         display_ver_layout.setContentsMargins(0, 0, 0, 0)
@@ -82,14 +82,17 @@ class QDisplaySessionWidget(QWidget):
         self.setLayout(display_ver_layout)
 
         name = QLabel(self)
-        name.setText(str(self.display_name)[:16])
+        name.setMinimumWidth(300)
+        name.setText(str(self.display_name)[:40])
         display_hor_layout.addWidget(name)
 
         self.status_label = QLabel(self)
         self.status_label.setText(str(self.status))
+        self.status_label.setMinimumWidth(40)
         display_hor_layout.addWidget(self.status_label)
 
         self.time = QLabel(self)
+        self.time.setMinimumWidth(40)
         if self.timeleft is not None:
             self.time.setText(str(self.timeleft))
         else:
@@ -101,6 +104,7 @@ class QDisplaySessionWidget(QWidget):
         timer.start(1000)
 
         self.resources_label = QLabel(self)
+        self.resources_label.setMinimumWidth(40)
         self.resources_label.setText(self.resources)
         display_hor_layout.addWidget(self.resources_label)
 
