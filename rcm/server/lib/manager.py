@@ -7,6 +7,9 @@ import socket
 import pwd
 import copy
 from collections import OrderedDict
+import datetime
+import time
+import traceback
 
 # set prefix.
 current_file = os.path.realpath(os.path.expanduser(__file__))
@@ -33,6 +36,24 @@ import utils
 
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
+
+
+def timeleft_string(walltime, created):
+    logger.debug("timeleft_string")
+    walltime_py24 = time.strptime(walltime, "%H:%M:%S")
+    endtime_py24 = time.strptime(created, "%Y%m%d-%H:%M:%S")
+    walltime = datetime.datetime(*walltime_py24[0:6])
+    endtime = datetime.datetime(*endtime_py24[0:6])
+    endtime = endtime + datetime.timedelta(hours=walltime.hour, minutes=walltime.minute,
+                                               seconds=walltime.second)
+    timedelta = endtime - datetime.datetime.now()
+    # check if timedelta is positive
+    if timedelta <= datetime.timedelta(0):
+        timedelta = datetime.timedelta(0)
+    timeleft = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
+    return timeleft
+
+
 
 class ServerManager:
     """
@@ -113,6 +134,7 @@ class ServerManager:
         else:
             return self.login_fullname
 
+
     def map_session(self, ses, subnet):
         # print("####### input #####\n" + ses.get_string(format='json_indent'))
         new_session = copy.deepcopy(ses)
@@ -123,6 +145,14 @@ class ServerManager:
         # print("############ ", newNodeLogin)
         new_session.hash['nodelogin'] = newNodeLogin
 
+        # mapping timeleft
+        walltime = ses.hash.get('walltime', '')
+        created = ses.hash.get('created', '')
+        try:
+            new_session.hash['timeleft'] = timeleft_string(walltime, created)
+        except Exception as e:
+            logger.debug("Excepion: " + str(e) + " - " + str(traceback.format_exc()))
+            new_session.hash['timeleft'] = '~'
         return new_session
 
 
