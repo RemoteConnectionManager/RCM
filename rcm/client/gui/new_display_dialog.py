@@ -16,7 +16,8 @@ from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
 
 class QDisplayDialog(QDialog):
 
-    def __init__(self, display_dialog_ui, callback=None):
+    def __init__(self, display_dialog_ui, callback=None,
+                 name_choices=('SCHEDULER', 'SCHEDULER.QUEUE', 'SERVICE', 'SERVICE.COMMAND')):
         QDialog.__init__(self)
 
         if callback:
@@ -24,11 +25,13 @@ class QDisplayDialog(QDialog):
         else:
             self.callback = self.print_callback
 
+        self.name_choices = name_choices
+
         self.display_dialog_ui = display_dialog_ui
         self.tabs = QTabWidget(self)
         self.job = None
         self.choices = dict()
-        self.display_name = 'Devel'
+        self.display_name = ''
 
         self.setWindowTitle("New display")
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -49,6 +52,7 @@ class QDisplayDialog(QDialog):
 
         # Cancel button
         cancel_button = QPushButton('Cancel', self)
+        cancel_button.clicked.connect(self.reject)
         bottom_layout.addWidget(cancel_button)
         bottom_layout.addStretch(1)
 
@@ -70,6 +74,15 @@ class QDisplayDialog(QDialog):
             if not container_widget.isHidden():
                 for key2, value2 in container_widget.choices.items():
                     self.choices[key2] = value2
+
+
+        for key in self.name_choices:
+            if key in self.choices:
+                if self.display_name:
+                    separator = '.'
+                else:
+                    separator = ''
+                self.display_name += (separator + self.choices[key])
 
         self.callback(self.choices)
 
