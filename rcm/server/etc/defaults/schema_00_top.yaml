@@ -36,6 +36,7 @@ schema:
         substitutions :
           COMMAND.SETUP: ""
           COMMAND.COMMAND_LINE: ""
+          COMMAND.PRELOAD_LINE: ""
           COMMAND.LOGFILE: "@{RCM_SESSION_FOLDER}/service.log"
           REDIRECT: " > @{RCM_SESSION_FOLDER}/@{COMMAND.LOGFILE} 2>&1 "
 

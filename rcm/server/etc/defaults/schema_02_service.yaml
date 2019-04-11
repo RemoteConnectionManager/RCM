@@ -21,6 +21,7 @@ schema:
             substitutions :
   #            COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd  @{WM_COMMAND "
               COMMAND_LINE: ""
+              PRELOAD_LINE: ""
 
             children :
               WM :
