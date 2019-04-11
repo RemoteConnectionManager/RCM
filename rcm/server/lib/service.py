@@ -11,7 +11,7 @@ logger = logging.getLogger('rcmServer' + '.' + __name__)
 
 class Service(plugin.Plugin):
 
-    COMMANDS = {}
+    COMMANDS = {'bash': None}
 
     def __init__(self, *args, **kwargs):
         super(Service, self).__init__(*args, **kwargs)
@@ -27,6 +27,11 @@ class Service(plugin.Plugin):
             if substitutions:
                 preload_command = utils.stringtemplate(preload_command).safe_substitute(substitutions)
             logger.info("Running preload command: " + preload_command)
+            bash = self.COMMANDS.get('bash', None)
+            params  = ["-c", preload_command]
+            raw_output = bash( *params,
+                             output=str)
+            logger.info("Returned: " + raw_output)
         else:
             logger.info("preload command key: " + key + " NOT FOUND")
             for t in self.templates:
