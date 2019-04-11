@@ -159,7 +159,7 @@ class ServerManager:
         # set tunnel for node
         node  = new_session.hash.get('node','')
         use_tunnel = self.use_tunnel(subnet,node)
-        new_session.hash['tunnel'] = use_tunnel
+        new_session.hash['tunnel'] = 'y' if use_tunnel else 'n'
         if not use_tunnel:
             external_node_name = self.map_login_name(subnet, node)
             new_session.hash['node'] = external_node_name
