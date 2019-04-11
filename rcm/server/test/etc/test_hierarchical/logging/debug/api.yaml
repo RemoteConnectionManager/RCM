@@ -19,7 +19,7 @@ logging_configs:
       propagate: False
       handlers: [console_colored_out_base]
     rcmServer.lib.service:
-      level: INFO
+      level: DEBUG
       propagate: False
       handlers: [console_colored_out_base]
     rcmServer.lib.scheduler:

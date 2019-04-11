@@ -5,6 +5,7 @@ import os
 import time
 
 import plugin
+import utils
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
 
@@ -17,6 +18,20 @@ class Service(plugin.Plugin):
 
     def search_port(self, logfile=''):
         raise NotImplementedError()
+
+    def run_preload(self, key='PRELOAD_LINE', substitutions=None):
+        logger.debug("GENERIC run_preload for service: "+ self.NAME)
+
+        if key in self.templates:
+            preload_command = self.templates[key]
+            if substitutions:
+                preload_command = utils.stringtemplate(preload_command).safe_substitute(substitutions)
+            logger.info("Running preload command: " + preload_command)
+        else:
+            logger.info("preload command key: " + key + " NOT FOUND")
+            for t in self.templates:
+                logger.debug("plugin template: " + t + "--->" + str(self.templates[t]) + "<--")
+
 
     def search_logfile(self, logfile, regex_list=None, wait=1, timeout=30):
         if regex_list == None:

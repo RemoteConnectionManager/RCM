@@ -265,8 +265,16 @@ class ServerManager:
         logger.debug("@@@@@@@@@@ service_logfile @@@@@@@@@\n" + service_logfile)
 
 
-
+        # here we write the computed script into jobfile
         jobfile = self.session_manager.write_jobscript(session_id, script)
+
+        # here we call the service preload command ( run on login node )
+        substitutions = {'RCM_SESSION_FOLDER': self.session_manager.session_folder(session_id),
+                         'VNCPASSWORD': vncpassword}
+
+        self.active_service.run_preload(substitutions=substitutions)
+
+        # here we effectively submit jobfile
         jobid = self.active_scheduler.submit(jobfile=jobfile)
 
         # set status and jobid in curent session and write on disk
