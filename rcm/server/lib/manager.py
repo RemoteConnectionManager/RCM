@@ -4,6 +4,7 @@ import importlib
 import os
 import json
 import socket
+import re
 import pwd
 import copy
 from collections import OrderedDict
@@ -120,7 +121,17 @@ class ServerManager:
 
     def map_login_name(self, subnet, nodelogin):
         logger.debug("mapping login " + nodelogin + " on network " + subnet)
-        return self.configuration['network', subnet].get(nodelogin, nodelogin)
+        return self.configuration['network', subnet, 'mapping'].get(nodelogin, nodelogin)
+
+    def use_tunnel(self, subnet, nodename):
+        logger.debug("decide if use tunnel for connecting to node: " + nodename + " on network " + subnet)
+        tunnel_map = self.configuration['network', subnet, 'tunnel']
+        use_tunnel = True
+        for node_pattern in tunnel_map:
+            if re.match(node_pattern, nodename) :
+                use_tunnel = tunnel_map[node_pattern]
+                break
+        return use_tunnel
 
     def get_login_node_name(self, subnet=''):
         logger.debug("get_login")
@@ -144,6 +155,14 @@ class ServerManager:
         newNodeLogin = self.map_login_name(subnet,originalNodeLogin)
         # print("############ ", newNodeLogin)
         new_session.hash['nodelogin'] = newNodeLogin
+
+        # set tunnel for node
+        node  = new_session.hash.get('node','')
+        use_tunnel = self.use_tunnel(subnet,node)
+        new_session.hash['tunnel'] = use_tunnel
+        if not use_tunnel:
+            external_node_name = self.map_login_name(subnet, node)
+            new_session.hash['node'] = external_node_name
 
         # mapping timeleft
         walltime = ses.hash.get('walltime', '')
