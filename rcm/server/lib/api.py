@@ -92,7 +92,8 @@ class ServerAPIs:
                                             vncpassword=vncpassword,
                                             vncpassword_crypted=vncpassword_crypted)
 
-            new_session.write()
+            return_session = self.server_manager.map_session(new_session, subnet)
+            return_session.write()
             return
         #
         print("we should not be here create new vnc display session")
