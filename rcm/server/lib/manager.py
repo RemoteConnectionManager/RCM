@@ -284,7 +284,12 @@ class ServerManager:
         new_session.serialize(self.session_manager.session_file_path(session_id))
         logger.debug("####### serialized  session #####\n" + new_session.get_string(format='json_indent'))
 
-        node,port  = self.active_service.search_port(service_logfile)
+        try:
+            scheduler_timeout = int(self.top_templates.get('SCHEDULER.QUEUE.TIMEOUT', '100'))
+        except:
+            scheduler_timeout = 100
+
+        node,port  = self.active_service.search_port(service_logfile,timeout=scheduler_timeout)
         new_session.hash['state'] = 'valid'
         new_session.hash['port'] = port
         new_session.hash['node'] = node

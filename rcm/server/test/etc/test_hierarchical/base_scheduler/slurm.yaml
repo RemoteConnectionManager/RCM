@@ -6,6 +6,7 @@ defaults:
         substitutions :
           # WARNING: on regex, \ must be escaped
           JOBID_REGEX: "Submitted batch job (\\d*)"
+          QUEUE.TIMEOUT: "60"
           HEADER: |
             #SBATCH --time=@{QUEUE.TIME}
             #SBATCH --job-name=@{RCM_SESSIONID}

@@ -5,7 +5,7 @@ defaults:
         QUEUE :
           gll_all_serial :
             MEMORY :
-              min : 4
+              min : 1
               max : 16
             TIME :
               max : '03:00:00'
@@ -14,6 +14,7 @@ defaults:
           gll_usr_gpuprod :
             substitutions:
               QUEUE_PAR: "-N 1 -n @{CPU} --partition=gll_usr_gpuprod --ntasks-per-node=16 @{GRES_STRING} #from defaults"
+              QUEUE.TIMEOUT: "120"
             MEMORY :
               min : 4
               max : 16

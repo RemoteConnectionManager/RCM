@@ -16,9 +16,6 @@ class Service(plugin.Plugin):
     def __init__(self, *args, **kwargs):
         super(Service, self).__init__(*args, **kwargs)
 
-    def search_port(self, logfile=''):
-        raise NotImplementedError()
-
     def run_preload(self, key='PRELOAD_LINE', substitutions=None):
         logger.debug("GENERIC run_preload for service: "+ self.NAME)
 
@@ -37,10 +34,14 @@ class Service(plugin.Plugin):
             for t in self.templates:
                 logger.debug("plugin template: " + t + "--->" + str(self.templates[t]) + "<--")
 
-
-    def search_logfile(self, logfile, regex_list=None, wait=1, timeout=30):
+    def search_logfile(self, logfile, regex_list=None, regex_list_key='START_REGEX_LIST', wait=1, timeout=0, timeout_key='TIMEOUT'):
         if regex_list == None:
-            regex_list = self.templates.get('START_REGEX_LIST', [])
+            regex_list = self.templates.get(regex_list_key, [])
+        try:
+                timeout = timeout  + int(self.templates.get(timeout_key, '10'))
+        except:
+            timeout = 100
+
         if logfile and regex_list:
             regex_clist = []
             for regex_string in regex_list:
@@ -65,6 +66,22 @@ class Service(plugin.Plugin):
             raise Exception("Timeouted (%d seconds) job not correcty running!!!" % (timeout) )
         raise Exception("Unable to search_logfile: %s with regex %s" % (logfile, str(regex_list)))
 
+    def search_port(self, logfile='', timeout=0):
+        for t in self.templates:
+            logger.debug("+++++++++++ plugin template: "+ t+ "--->"+str(self.templates[t])+"<--")
+        groupdict = self.search_logfile(logfile, timeout=timeout)
+        node = ''
+        port = 0
+        for k in groupdict:
+            logger.debug("+++++++++++ key: " + k + " ==> " + groupdict[k])
+            if k == 'display' :
+                port =  5900 + int(groupdict[k])
+            if k == 'node' :
+                node = groupdict[k]
+            if k == 'port' :
+                port = int(groupdict[k])
+
+        return (node, port)
 
 
 
@@ -75,43 +92,10 @@ class TurboVNCServer(Service):
         super(TurboVNCServer, self).__init__()
         self.NAME = "TurboVNC"
 
-    def search_port(self, logfile=''):
-        for t in self.templates:
-            logger.debug("+++++++++++ plugin template: "+ t+ "--->"+str(self.templates[t])+"<--")
-        groupdict = self.search_logfile(logfile)
-        node = ''
-        port = 0
-        for k in groupdict:
-            logger.debug("+++++++++++ key: " + k + " ==> " + groupdict[k])
-            if k == 'display' :
-                port =  5900 + int(groupdict[k])
-            if k == 'node' :
-                node = groupdict[k]
-            if k == 'port' :
-                port = int(groupdict[k])
-
-        return (node, port)
 
 
 class Fake(Service):
     def __init__(self):
         super(Fake, self).__init__()
         self.NAME = "FakeService"
-
-    def search_port(self, logfile=''):
-        for t in self.templates:
-            logger.debug("+++++++++++ plugin template: "+ t+ "--->"+str(self.templates[t])+"<--")
-        groupdict = self.search_logfile(logfile)
-        node = ''
-        port = 0
-        for k in groupdict:
-            logger.debug("+++++++++++ key: " + k + " ==> " + groupdict[k])
-            if k == 'display' :
-                port =  5900 + int(groupdict[k])
-            if k == 'node' :
-                node = groupdict[k]
-            if k == 'port' :
-                port = int(groupdict[k])
-
-        return (node, port)
 

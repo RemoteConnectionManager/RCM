@@ -8,8 +8,11 @@ defaults:
           JOBID_REGEX: "process id: (\\d*)"
           BACKGROUND: "&"
           FOOTER: "echo \"process id: $!\""
+          QUEUE.TIMEOUT: "3"
           HEADER: |
             # SSH scheduler just run this script
+
+
 
 
 
