@@ -23,7 +23,7 @@ from client.gui.new_display_dialog import QDisplayDialog as QDisplayDialogDevel
 from client.gui.display_session_widget import QDisplaySessionWidget
 from client.utils.pyinstaller_utils import resource_path
 from client.miscellaneous.logger import logger
-from client.miscellaneous.config_parser import parser, config_file_name, preset_sessions
+from client.miscellaneous.config_parser import parser, config_file_name, preset_sessions, merge_preset_sessions
 from client.logic import manager
 from client.gui.thread import LoginThread, ReloadThread
 from client.gui.worker import Worker
@@ -93,9 +93,10 @@ class QSSHSessionWidget(QWidget):
 
         try:
             sessions_list = parser.get('LoginFields', 'hostList', fallback=preset_sessions)
-            self.sessions_list = collections.deque(json.loads(sessions_list), maxlen=10)
+            user_sessions = json.loads(sessions_list)
+            self.sessions_list = collections.deque(merge_preset_sessions(user_sessions, json.loads(preset_sessions)), maxlen=20)
         except Exception:
-            pass
+            self.sessions_list = collections.deque(json.loads(preset_sessions), maxlen=20)
 
         session_label = QLabel(self)
         session_label.setText('Sessions:')
