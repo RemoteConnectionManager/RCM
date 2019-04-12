@@ -1,5 +1,5 @@
 # pyqt5
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, Qt
 
 # local includes
 from client.miscellaneous.logger import logger
@@ -28,6 +28,8 @@ class LoginThread(QThread):
                 if 'jobscript_json_menu' in self.session_widget.platform_config.config:
                     logger.info("--------------- connection with devel server: adding new session devel button")
                     self.session_widget.devel_new_display_button.show()
+                    self.session_widget.devel_new_display_button.setShortcut(Qt.Key_Plus)
+                    self.session_widget.new_display_btn.hide()
             self.session_widget.is_logged = True
         except Exception as e:
             self.session_widget.is_logged = False
