@@ -68,7 +68,7 @@ class ServerAPIs:
 
     def list(self, subnet=''):
         logger.debug("calling api list")
-        out_sessions = self.server_manager.active_sessions(self.server_manager.mapped_sessions(subnet))
+        out_sessions = self.server_manager.extract_running_sessions(self.server_manager.mapped_sessions(subnet))
         out_sessions.write()
 
     def new(self, geometry='',
@@ -115,7 +115,7 @@ class ServerAPIs:
         if session_id:
             if session_id in db_sessions.sessions() :
                 sessions_to_kill.add_session(db_sessions.sessions()[session_id])
-                active_sessions = self.server_manager.active_sessions(sessions_to_kill)
+                active_sessions = self.server_manager.extract_running_sessions(sessions_to_kill)
                 if len(active_sessions.get_sessions()) == 1:
                     ses = active_sessions.get_sessions()[0]
                     scheduler_name = ses.hash.get('scheduler','') 

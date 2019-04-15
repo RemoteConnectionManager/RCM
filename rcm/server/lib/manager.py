@@ -298,7 +298,7 @@ class ServerManager:
         logger.info("return valid session job " + jobid + " on node " + node + " port " + str(port))
         return new_session
 
-    def active_sessions(self, current_sessions):
+    def extract_running_sessions(self, current_sessions):
         active_sessions = rcm.rcm_sessions()
         logger.debug("initialized acitve session to " + str(active_sessions.get_sessions()))
         active_jobs = {}
