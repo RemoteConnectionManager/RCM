@@ -29,6 +29,9 @@ class Scheduler(plugin.Plugin):
     def kill_job(self, jobid=''):
         raise NotImplementedError()
 
+    def handled(self, jobid=''):
+        return True
+
     def generic_submit(self, script='', jobfile='', batch_command='/bin/batch', jobfile_executable=True):
 
         if jobfile:
@@ -53,6 +56,7 @@ class Scheduler(plugin.Plugin):
                     return jobid
                 else:
                     raise Exception("Unable to extract jobid from output: %s" % (raw_output))
+        return None
 
 
 
@@ -93,9 +97,16 @@ class OSScheduler(Scheduler):
     def __init__(self, *args, **kwargs):
         super(OSScheduler, self).__init__(*args, **kwargs)
         self.NAME = 'SSH'
+        if 'node' in kwargs:
+            self.prefix = kwargs['node'].split('.')[0] + '.'
+        self.prefix = ''
 
     def submit(self, script='', jobfile=''):
-        return self.generic_submit(script=script, jobfile=jobfile, batch_command='/bin/bash')
+        processid = self.generic_submit(script=script, jobfile=jobfile, batch_command='/bin/bash')
+        if processid:
+            return self.prefix  + str(processid)
+        else:
+            return ''
 
     def get_user_jobs(self, username=''):
         ps = self.COMMANDS.get('ps', None)
@@ -111,7 +122,8 @@ class OSScheduler(Scheduler):
 
             jobs={}
             for jline in raw:
-                jid = jline.lstrip().split(' ')[0]
+                processid = jline.lstrip().split(' ')[0]
+                jid = self.prefix + str(processid)
                 logger.debug("job_id " + str(jid))
                 jobs[jid] = jline
             return(jobs)
@@ -124,11 +136,12 @@ class OSScheduler(Scheduler):
         """
 
         logger.debug("Scheduler: " + self.NAME + "asked to kill_job: " + jobid)
-        if jobid:
+        processid = jobid.split('.')[-1:][0]
+        if processid:
             try:
                 ps = self.COMMANDS.get('ps', None)
                 if ps:
-                    params = ['opgid=', str(jobid)]
+                    params = ['opgid=', str(processid)]
                     process_group = ps( *params, output=str).strip()
                     logger.debug("killing process_group: " + process_group)
                     kill = self.COMMANDS.get('kill', None)
@@ -137,8 +150,13 @@ class OSScheduler(Scheduler):
                     out = kill( *params, output=str)
                     return True
             except:
-                sys.write.stderr("Can not kill  process with pid: %s." % (jobid))
+                sys.write.stderr("Can not kill  process with pid: %s." % (processid))
         return False
+
+    def handled(self, jobid=''):
+        jobid_nodename = jobid.split('.')[0]
+        prefix_nodename = self.prefix.split('.')[0]
+        return (jobid_nodename == prefix_nodename)
 
 
 

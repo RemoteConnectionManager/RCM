@@ -9,7 +9,7 @@ class Plugin(object):
 
     COMMANDS = {}
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.NAME = None
         self.PARAMS = {}
 
