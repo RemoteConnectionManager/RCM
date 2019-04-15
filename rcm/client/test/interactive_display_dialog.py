@@ -69,7 +69,7 @@ def print_result(choices):
     choices_string = json.dumps(choices, indent=4)
     logger.debug(choices_string)
     manager.handle_choices(choices_string)
-    manager.new_session()
+    manager.create_session()
     # SchedulerManager._allInstances[0].active_scheduler()
     for k, v in manager.top_templates.items():
         logger.debug(k + " :::>\n" + str(v) +"\n<:::::::::::::::::::::")

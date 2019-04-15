@@ -223,12 +223,12 @@ class ServerManager:
                 break
 
 
-    def new_session(self,
+    def create_session(self,
             sessionname='',
             subnet='',
             vncpassword='',
             vncpassword_crypted=''):
-        session_id = self.session_manager.new_session(tag=self.active_scheduler.NAME)
+        session_id = self.session_manager.allocate_session(tag=self.active_scheduler.NAME)
         new_session = rcm.rcm_session(sessionid=session_id,
                                       state='init',
                                       username=self.session_manager.username,

@@ -87,7 +87,7 @@ class ServerAPIs:
             for k, v in self.server_manager.top_templates.items():
                 logger.debug(k + " :::>\n" + str(v) +"\n<:::::::::::::::::::::")
 
-            new_session = self.server_manager.new_session(sessionname=sessionname,
+            new_session = self.server_manager.create_session(sessionname=sessionname,
                                             subnet=subnet,
                                             vncpassword=vncpassword,
                                             vncpassword_crypted=vncpassword_crypted)

@@ -32,7 +32,7 @@ class DbSessionManager:
         self.base_dir = os.path.expanduser("~%s/.rcm" % (self.username))
         self.sessions_dir = os.path.abspath(os.path.join(self.base_dir, 'sessions'))
 
-    def new_session(self,tag=''):
+    def allocate_session(self,tag=''):
         time_id = datetime.datetime.now().isoformat()
         session_id = tag + time_id.replace(':', '_')
         session_folder = os.path.join(self.sessions_dir, session_id)
