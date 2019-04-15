@@ -63,12 +63,12 @@ class ServerAPIs:
         # #r=rcm_protocol_server.rcm_protocol(dummy_server)
         # dummy_server.subnet = subnet
         # dummy_server.fill_sessions_hash()
-        out_sessions = self.server_manager.mapped_sessions(subnet)
+        out_sessions = self.server_manager.map_sessions(self.server_manager.session_manager.sessions(), subnet)
         out_sessions.write()
 
     def list(self, subnet=''):
         logger.debug("calling api list")
-        out_sessions = self.server_manager.extract_running_sessions(self.server_manager.mapped_sessions(subnet))
+        out_sessions = self.server_manager.map_sessions(self.server_manager.extract_running_sessions(), subnet)
         out_sessions.write()
 
     def new(self, geometry='',
@@ -113,19 +113,17 @@ class ServerAPIs:
         db_sessions = self.server_manager.session_manager
         sessions_to_kill = rcm.rcm_sessions()
         if session_id:
-            if session_id in db_sessions.sessions() :
-                sessions_to_kill.add_session(db_sessions.sessions()[session_id])
-                active_sessions = self.server_manager.extract_running_sessions(sessions_to_kill)
-                if len(active_sessions.get_sessions()) == 1:
-                    ses = active_sessions.get_sessions()[0]
-                    scheduler_name = ses.hash.get('scheduler','') 
-                    scheduler = self.server_manager.schedulers.get(scheduler_name,None)
-                    if scheduler:
-                        jobid = ses.hash.get('jobid','')
-                        if scheduler.kill_job(jobid):
-                            ses.hash['state']='killing'
-                            ses.serialize(db_sessions.session_file_path(session_id))
-                            ses.write()
+            active_sessions = self.server_manager.extract_running_sessions()
+            if session_id in active_sessions:
+                ses = active_sessions[session_id]
+                scheduler_name = ses.hash.get('scheduler','')
+                scheduler = self.server_manager.schedulers.get(scheduler_name,None)
+                if scheduler:
+                    jobid = ses.hash.get('jobid','')
+                    if scheduler.kill_job(jobid):
+                        ses.hash['state']='killing'
+                        ses.serialize(db_sessions.session_file_path(session_id))
+                        ses.write()
                     else:
                         sys.stderr.write("Scheduler: " + scheduler_name + " NOT DEFINED in " + str(self.server_manager.schedulers.keys()))
                         sys.stderr.flush()

@@ -182,6 +182,12 @@ class ServerManager:
             out_sessions.add_session(self.map_session(ses,subnet))
         return out_sessions
 
+    def map_sessions(self, sessions, subnet):
+        out_sessions=rcm.rcm_sessions()
+        for sid, ses in list(sessions.items()):
+            out_sessions.add_session(self.map_session(ses,subnet))
+        return out_sessions
+
 
     def get_checksum_and_url(self, build_platform):
         logger.debug("searching platform " + str(build_platform) + " into " + str(self.downloads))
@@ -299,10 +305,11 @@ class ServerManager:
         return new_session
 
     def extract_running_sessions(self, current_sessions):
-        active_sessions = rcm.rcm_sessions()
-        logger.debug("initialized acitve session to " + str(active_sessions.get_sessions()))
+        active_sessions = {}
+        ended_sessions = {}
+        logger.debug("initialized acitve session to " + str(active_sessions))
         active_jobs = {}
-        for ses in current_sessions.get_sessions():
+        for sid, ses in list(self.session_manager.sessions().items()):
             scheduler_name = ses.hash.get('scheduler','')
             if not scheduler_name in active_jobs:
                 if scheduler_name in self.schedulers:
@@ -313,7 +320,9 @@ class ServerManager:
             logger.debug("searching job " + jobid)
             if jobid in active_jobs.get(scheduler_name, dict()):
                 logger.debug("found job " + jobid + " in active jobs " + str(active_jobs.get(scheduler_name, dict())))
-                active_sessions.add_session(ses)
+                active_sessions[sid] = ses
+            else:
+                ended_sessions[sid] = ses
         return active_sessions
 
 
