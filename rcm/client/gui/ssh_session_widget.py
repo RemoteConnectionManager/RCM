@@ -23,7 +23,7 @@ from client.gui.new_display_dialog import QDisplayDialog as QDisplayDialogDevel
 from client.gui.display_session_widget import QDisplaySessionWidget
 from client.utils.pyinstaller_utils import resource_path
 from client.miscellaneous.logger import logger
-from client.miscellaneous.config_parser import parser, config_file_name, preset_sessions
+from client.miscellaneous.config_parser import parser, config_file_name, preset_sessions, merge_preset_sessions
 from client.logic import manager
 from client.gui.thread import LoginThread, ReloadThread
 from client.gui.worker import Worker
@@ -93,9 +93,10 @@ class QSSHSessionWidget(QWidget):
 
         try:
             sessions_list = parser.get('LoginFields', 'hostList', fallback=preset_sessions)
-            self.sessions_list = collections.deque(json.loads(sessions_list), maxlen=10)
+            user_sessions = json.loads(sessions_list)
+            self.sessions_list = collections.deque(merge_preset_sessions(user_sessions, json.loads(preset_sessions)), maxlen=20)
         except Exception:
-            pass
+            self.sessions_list = collections.deque(json.loads(preset_sessions), maxlen=20)
 
         session_label = QLabel(self)
         session_label.setText('Sessions:')
@@ -283,11 +284,11 @@ class QSSHSessionWidget(QWidget):
         self.new_display_ico = QIcon()
         self.new_display_ico.addFile(resource_path('gui/icons/plus.png'), QSize(16, 16))
 
-        new_display_btn = QPushButton()
-        new_display_btn.setIcon(self.new_display_ico)
-        new_display_btn.setToolTip('Create a new display session')
-        new_display_btn.clicked.connect(self.add_new_display)
-        new_display_btn.setShortcut(Qt.Key_Plus)
+        self.new_display_btn = QPushButton()
+        self.new_display_btn.setIcon(self.new_display_ico)
+        self.new_display_btn.setToolTip('Create a new display session')
+        self.new_display_btn.clicked.connect(self.add_new_display)
+        self.new_display_btn.setShortcut(Qt.Key_Plus)
 
         self.devel_new_display_button = QPushButton()
         self.devel_new_display_button.setIcon(self.new_display_ico)
@@ -303,7 +304,7 @@ class QSSHSessionWidget(QWidget):
         self.new_display_layout = QHBoxLayout()
         #self.new_display_layout.addSpacing(70)
         self.new_display_layout.addWidget(reload_btn)
-        self.new_display_layout.addWidget(new_display_btn)
+        self.new_display_layout.addWidget(self.new_display_btn)
         self.new_display_layout.addWidget(self.devel_new_display_button)
         self.devel_new_display_button.hide()
 
@@ -535,7 +536,8 @@ class QSSHSessionWidget(QWidget):
     def add_new_display_devel(self):
         display_dialog_ui = json.loads(self.platform_config.config.get('jobscript_json_menu', '{}'), object_pairs_hook=collections.OrderedDict)
         display_dialog = QDisplayDialogDevel(display_dialog_ui)
-        display_dialog.show()
+        display_dialog.setModal(True)
+        #display_dialog.show()
         if display_dialog.exec() != 1:
             return
         display_name = display_dialog.display_name

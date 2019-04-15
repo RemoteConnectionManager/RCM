@@ -16,6 +16,12 @@ defaults = {
 preset_sessions = """
 [
 	    [
+	        "@login.galileo.cineca.it?dev",
+	        "login.galileo.cineca.it",
+	        "",
+	        "module use /galileo/home/userinternal/lcalori0/spack_new/RCM_spack_deploy/deploy/rcm_chained/spack/share/spack/modules/linux-centos7-x86_64 /cineca/prod/spack/v002/RCM_spack_deploy/deploy/base_spack_devel/spack/share/spack/modules/linux-centos7-x86_64 /cineca/prod/spack/v002/RCM_spack_deploy/deploy/rcm_chained/spack/share/spack/modules/linux-centos7-x86_64; export RCM_CONFIG_BASE_PATH=test/etc/test_hierarchical; export RCM_CONFIG_PATHS='base_scheduler:base_service:slurm_gres:network:other:logging/debug/api.yaml'; module load rcm; python $RCM_HOME/src/rcm/server/bin/server"
+	    ],
+	    [
 	        "@login.marconi.cineca.it",
 	        "login.marconi.cineca.it",
 	        "",
@@ -35,6 +41,20 @@ preset_sessions = """
 	    ]
 	]
 """
+
+def merge_preset_sessions(curr_sessions,merge_sessions):
+    to_append = []
+
+    for merge_s in merge_sessions:
+        append = True
+        for curr_s in curr_sessions:
+            if curr_s[1] == merge_s[1] and curr_s[3] == merge_s[3]:
+                append =False
+                break
+        if append:
+            to_append.append(merge_s)
+    curr_sessions.extend(to_append)
+    return curr_sessions
 
 # parse config file to load the most recent sessions
 if os.path.exists(config_file_name):
