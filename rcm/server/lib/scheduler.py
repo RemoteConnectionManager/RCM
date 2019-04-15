@@ -99,7 +99,8 @@ class OSScheduler(Scheduler):
         self.NAME = 'SSH'
         if 'node' in kwargs:
             self.prefix = kwargs['node'].split('.')[0] + '.'
-        self.prefix = ''
+        else:
+            self.prefix = ''
 
     def submit(self, script='', jobfile=''):
         processid = self.generic_submit(script=script, jobfile=jobfile, batch_command='/bin/bash')

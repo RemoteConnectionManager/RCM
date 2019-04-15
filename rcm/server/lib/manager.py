@@ -304,9 +304,9 @@ class ServerManager:
         logger.info("return valid session job " + jobid + " on node " + node + " port " + str(port))
         return new_session
 
-    def extract_running_sessions(self, current_sessions):
+    def extract_running_sessions(self):
         active_sessions = {}
-        ended_sessions = {}
+        expired_sessions = {}
         logger.debug("initialized acitve session to " + str(active_sessions))
         active_jobs = {}
         for sid, ses in list(self.session_manager.sessions().items()):
@@ -322,7 +322,11 @@ class ServerManager:
                 logger.debug("found job " + jobid + " in active jobs " + str(active_jobs.get(scheduler_name, dict())))
                 active_sessions[sid] = ses
             else:
-                ended_sessions[sid] = ses
+                if scheduler_name in self.schedulers:
+                    if self.schedulers[scheduler_name].handled(jobid):
+                        expired_sessions[sid] = ses
+        for  sid in expired_sessions:
+            self.session_manager.remove_session(sid)
         return active_sessions
 
 

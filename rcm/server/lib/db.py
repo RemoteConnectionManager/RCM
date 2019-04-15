@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import pwd
+import shutil
 import datetime
 import traceback
 
@@ -31,6 +32,7 @@ class DbSessionManager:
         self.username = pwd.getpwuid(os.geteuid())[0]
         self.base_dir = os.path.expanduser("~%s/.rcm" % (self.username))
         self.sessions_dir = os.path.abspath(os.path.join(self.base_dir, 'sessions'))
+        self.old_sessions_dir = os.path.abspath(os.path.join(self.base_dir, 'old_sessions'))
 
     def allocate_session(self,tag=''):
         time_id = datetime.datetime.now().isoformat()
@@ -74,5 +76,36 @@ class DbSessionManager:
 
         return sessions
 
+    def remove_session(self, sess_id):
+        ses_folder = self.session_folder(sess_id)
+        if not os.path.exists(ses_folder):
+            logger.error("cleaning session id: " + sess_id + " MISSING SESSION FOLDER: " + ses_folder )
+            return
+        if not os.path.isdir(ses_folder):
+            logger.error("cleaning session id: " + sess_id + " PATH: " + ses_folder + " NOT A FOLDER" )
+            return
 
+        if not os.path.exists(self.old_sessions_dir):
+            try:
+                os.makedirs(self.old_sessions_dir)
+            except Exception as e:
+                sys.stderr.write("%s: %s CANNOT CREATE OLD SESSIONS FOLDER: %s" % (format(e), traceback.format_exc(), self.old_sessions_dir))
+                return
+        try:
+            shutil.move(ses_folder, self.old_sessions_dir)
+        except Exception as e:
+            sys.stderr.write("%s: %s CANNOT MOVE SESSION FOLDER %s INTO OLD SESSIONS FOLDER:" %
+                             (format(e), traceback.format_exc(), ses_folder, self.old_sessions_dir))
+            return
+        logger.info("session folder: " + ses_folder + " moved to " + self.old_sessions_dir)
+
+        # cleaning old_sessions_dir
+        old_sessions =  [s for s in os.listdir(self.old_sessions_dir) if os.path.isdir(os.path.join(self.old_sessions_dir, s))]
+        old_sessions.sort(key=lambda s: os.path.getmtime(os.path.join(self.old_sessions_dir, s)))
+        min_old_sessions = 5
+        if len(old_sessions) > 2 * min_old_sessions  :
+            for s in old_sessions[:-min_old_sessions]:
+                folder_to_remove = os.path.abspath(os.path.join(self.old_sessions_dir, s))
+                logger.info("removing old session folder: " + folder_to_remove)
+                #shutil.rmtree(folder_to_remove)
 
