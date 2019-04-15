@@ -60,6 +60,8 @@ class DbSessionManager:
 
     def sessions(self):
         sessions={}
+        if not os.path.isdir(self.sessions_dir):
+            return sessions
         for sess_id in os.listdir(self.sessions_dir):
             sess_file = self.session_file_path(sess_id)
             if os.path.exists(sess_file):
