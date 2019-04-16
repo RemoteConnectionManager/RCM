@@ -8,15 +8,19 @@ import shutil
 basepath = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(SPEC))))
 
 version = "1.0"
+distribution_name = ''
 if len(sys.argv) > 2:
     version = str(sys.argv[2])
     print("RCM version: " + version)
+if len(sys.argv) > 3:
+    distribution_name = '_' + str(sys.argv[3]).split('/')[0] + '_'
+    print("RCM distribution: " + version)
 # this, should extract the part of the version name that comes after '_' or ''
 # has to be applied to the output of git describe --tags --long
 # like "v0.0.8-132-gdb62f50" --> ''
 # "v0.0.8_dev-132-gdb62f50" --> 'dev'
 platform_version = (version.strip().rsplit("-")[0].split("_")[1:][-1:]+[""])[0]
-platform = str(sys.platform) + '_' + str(platform.architecture()[0]) + platform_version
+platform = str(sys.platform) + '_' + str(platform.architecture()[0]) + distribution_name + platform_version
 exe_name = 'RCM' + '_' + platform
 exe_path = os.path.join('dist', exe_name)
 
