@@ -12,8 +12,8 @@ download:
     'c06709a3578faa67672933b9f6c357b0' :
       - 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/RCM_linux_64bit?p=772'
   linux_64bitdev :
-    'da2e752a4a7829e2f91166aae02a33e5' :
-       - 'http://130.186.13.241/static/artifacts-dev/ubuntu16/64bit/v0.0.8_dev-139-g29df4a4/RCM_linux_64bitdev'
+    'bf4f4221248d9d0285bbd4feceec1c2b' :
+       - 'http://130.186.13.241/static/artifacts-dev/ubuntu16/64bit/v0.0.8_dev-206-g667b44d/RCM_linux_64bitdev'
   win32_64bit :
     '9d7d36422681a64011b6aeebc9575b7e' :
       - 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/RCM_win32_64bit.exe?p=778'
