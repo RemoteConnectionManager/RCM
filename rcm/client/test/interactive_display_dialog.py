@@ -1,13 +1,7 @@
 # stdlib
-import json
 import sys
-import re
-
 # pyqt5
-from PyQt5.QtCore import Qt, pyqtSlot
-from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
-    QHBoxLayout, QVBoxLayout, QPushButton, \
-    QApplication, QTabWidget, QWidget, QSlider, QSizePolicy, QFrame
+from PyQt5.QtWidgets import QApplication
 
 app = QApplication(sys.argv)
 
@@ -20,8 +14,6 @@ sys.path.append(os.path.join(root_rcm_path, 'utils'))
 sys.path.append(os.path.join(root_rcm_path, 'server', 'lib'))
 sys.path.append(os.path.join(root_rcm_path, 'client'))
 
-import logging
-import os
 
 from server.lib.jobscript_builder import *
 from server.lib.scheduler import *
