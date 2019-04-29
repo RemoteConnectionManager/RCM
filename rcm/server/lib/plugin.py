@@ -5,11 +5,12 @@ import utils
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
 
+
 class Plugin(object):
 
     COMMANDS = {}
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.NAME = None
         self.PARAMS = {}
 
@@ -24,7 +25,6 @@ class Plugin(object):
 
         self.templates = dict()
         self.selected = False
-
 
     @staticmethod
     def merge_list(preset, computed):

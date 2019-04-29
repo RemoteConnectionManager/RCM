@@ -7,6 +7,7 @@ import logging
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
 
+
 class CommandParser:
     """
     Class that parses the command line coming from the client
@@ -54,12 +55,11 @@ class CommandParser:
                 return False
         else:
             if isinstance(func, types.MethodType) and name != '__init__':
-               return True
+                return True
             else:
-               return False
+                return False
 
     def handle(self, args=None):
-        flags = dict()
         if args:
             flags = self.parser.parse_args(args).__dict__
             logger.debug("parsing command " + str(args))
