@@ -1,19 +1,16 @@
 # std import
-import copy
+
 import logging
-from collections import OrderedDict
 import re
-import subprocess
 import os
 import sys
 import stat
 
 # local import
-import jobscript_builder
 import plugin
-import utils
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
+
 
 class Scheduler(plugin.Plugin):
 
@@ -45,19 +42,18 @@ class Scheduler(plugin.Plugin):
             batch = self.COMMANDS.get(batch_command, None)
             if batch:
                 raw_output = batch(jobfile,
-                                    output=str)
+                                   output=str)
                 logger.debug("@@@@@@@@@@@@@@ raw_output: " + raw_output)
                 jobid_regex = self.templates.get('JOBID_REGEX', "Submitted  (\d*)")
                 logger.debug("@@@@@@@@@@@@@ jobid_regex " + jobid_regex)
-                r=re.match(jobid_regex, raw_output)
+                r = re.match(jobid_regex, raw_output)
                 if (r):
                     jobid = r.group(1)
                     logger.info("scheduler: " + self.NAME + " jobid: " + str(jobid))
                     return jobid
                 else:
-                    raise Exception("Unable to extract jobid from output: %s" % (raw_output))
+                    raise Exception("Unable to extract jobid from output: %s" % raw_output)
         return None
-
 
 
 class BatchScheduler(Scheduler):
@@ -77,9 +73,7 @@ class BatchScheduler(Scheduler):
         raise NotImplementedError()
 
 
-
 class PBSScheduler(BatchScheduler):
-
     COMMANDS = {'qstat': None,
                 'non_existing_command': None}
 
@@ -89,7 +83,6 @@ class PBSScheduler(BatchScheduler):
 
 
 class OSScheduler(Scheduler):
-
     COMMANDS = {'/bin/bash': None,
                 'ps': None,
                 'kill': None}
@@ -105,7 +98,7 @@ class OSScheduler(Scheduler):
     def submit(self, script='', jobfile=''):
         processid = self.generic_submit(script=script, jobfile=jobfile, batch_command='/bin/bash')
         if processid:
-            return self.prefix  + str(processid)
+            return self.prefix + str(processid)
         else:
             return ''
 
@@ -113,21 +106,21 @@ class OSScheduler(Scheduler):
         ps = self.COMMANDS.get('ps', None)
         if ps:
             params = []
-            if username :
+            if username:
                 params.extend(('-u ' + username).split(' '))
             logger.debug("params " + str(params))
-            raw_output = ps( *params,
-                             output=str)
+            raw_output = ps(*params,
+                            output=str)
 
-            raw=filter(None,raw_output.split('\n'))
+            raw = filter(None, raw_output.split('\n'))
 
-            jobs={}
+            jobs = {}
             for jline in raw:
                 processid = jline.lstrip().split(' ')[0]
                 jid = self.prefix + str(processid)
                 logger.debug("job_id " + str(jid))
                 jobs[jid] = jline
-            return(jobs)
+            return jobs
 
     def kill_job(self, jobid=''):
         """
@@ -143,28 +136,24 @@ class OSScheduler(Scheduler):
                 ps = self.COMMANDS.get('ps', None)
                 if ps:
                     params = ['opgid=', str(processid)]
-                    process_group = ps( *params, output=str).strip()
+                    process_group = ps(*params, output=str).strip()
                     logger.debug("killing process_group: " + process_group)
                     kill = self.COMMANDS.get('kill', None)
                     # it seems that in order to kill all process of a group, prepend the group with -
                     params = ['-TERM', '-' + process_group]
-                    out = kill( *params, output=str)
+                    out = kill(*params, output=str)
                     return True
             except:
-                sys.write.stderr("Can not kill  process with pid: %s." % (processid))
+                sys.stderr.write("Can not kill  process with pid: %s." % processid)
         return False
 
     def handled(self, jobid=''):
         jobid_nodename = jobid.split('.')[0]
         prefix_nodename = self.prefix.split('.')[0]
-        return (jobid_nodename == prefix_nodename)
-
-
-
+        return jobid_nodename == prefix_nodename
 
 
 class SlurmScheduler(BatchScheduler):
-
     COMMANDS = {'sshare': None,
                 'sinfo': None,
                 'sbatch': None,
@@ -191,8 +180,8 @@ class SlurmScheduler(BatchScheduler):
                 accounts.append(l.split('|')[0])
             return accounts
         else:
+            logger.debug("warning missing command sshare:")
             return []
-
 
     def validate_account(self, account):
         return True
@@ -207,7 +196,7 @@ class SlurmScheduler(BatchScheduler):
     def queues(self):
         # hints on useful slurm commands
         # sacctmgr show qos
-        logger.debug("Slurm get queues !!!!")
+        logger.debug("Slurm get queues")
         sinfo = self.COMMANDS.get('sinfo', None)
         if sinfo:
             raw_output = sinfo('--format=%R',
@@ -215,10 +204,10 @@ class SlurmScheduler(BatchScheduler):
             partitions = []
             for l in raw_output.splitlines()[1:]:
                 partitions.append(l)
-            logger.debug("Slurm found queues:" + str(partitions) + "!!!!")
+            logger.debug("Slurm found queues: " + str(partitions))
             return partitions
         else:
-            logger.debug("warning !!!!!! sinfo:" + str(sinfo))
+            logger.debug("warning missing command sinfo:")
             return []
 
     def submit(self, script='', jobfile=''):
@@ -228,25 +217,24 @@ class SlurmScheduler(BatchScheduler):
         squeue = self.COMMANDS.get('squeue', None)
         if squeue:
             params = '-o %i#%t#%j#%a -h -a'.split(' ')
-            if username :
+            if username:
                 params.extend(('-u ' + username).split(' '))
-            logger.debug("params " + str(params))
-            raw_output = squeue( *params,
-                               output=str)
+            logger.debug("squeue params " + str(params))
+            raw_output = squeue(*params,
+                                output=str)
 
             check_rcm_job_string = self.NAME
-            raw=raw_output.split('\n')
-            logger.debug("raw" + str(raw))
-            jobs={}
+            raw = raw_output.split('\n')
+            # logger.debug("raw output lines:\n" + str(raw))
+            jobs = {}
             for j in raw:
-                  logger.debug("j"+str(j))
-                  mo=j.split('#')
-                  logger.debug("mo split #"+str(len(mo))+" "+' '.join(str(p) for p in mo))
-                  if  len(mo) == 4 and check_rcm_job_string in mo[2]:
-                     sid=mo[0]
-                     jobs[sid]=mo[2]
-            return(jobs)
-
+                logger.debug("jobline: " + str(j))
+                mo = j.split('#')
+                logger.debug("mo split #" + str(len(mo)) + " " + ' '.join(str(p) for p in mo))
+                if len(mo) == 4 and check_rcm_job_string in mo[2]:
+                    sid = mo[0]
+                    jobs[sid] = mo[2]
+            return jobs
 
     def kill_job(self, jobid=''):
         logger.debug("Scheduler: " + self.NAME + "asked to kill_job: " + jobid)
@@ -254,10 +242,11 @@ class SlurmScheduler(BatchScheduler):
             try:
                 scancel = self.COMMANDS.get('scancel', None)
                 if scancel:
-                    params = [ str(jobid)]
-                    out = scancel( *params, output=str)
+                    params = [str(jobid)]
+                    out = scancel(*params, output=str)
+                    logger.debug("removed job: " + str(jobid) + " output:\n" + out)
                     return True
-            except:
-                sys.write.stderr("Can not kill  job: %s." % (jobid))
+            except Exception as e:
+                logger.warning("Exception: " + str(e) + " in killing job " + str(jobid))
+                sys.stderr.write("Can not kill  job: %s." % jobid)
         return False
-
