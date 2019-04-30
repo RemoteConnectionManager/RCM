@@ -234,6 +234,10 @@ class ServerManager:
             subnet='',
             vncpassword='',
             vncpassword_crypted=''):
+        if self.active_scheduler == None:
+            # if there is no active scheduler, return a dummy void sessions, otherwise excepion occur
+            logger.error("No active scheduler selected, returning void session")
+            return rcm.rcm_session()
         session_id = self.session_manager.allocate_session(tag=self.active_scheduler.NAME)
         new_session = rcm.rcm_session(sessionid=session_id,
                                       state='init',

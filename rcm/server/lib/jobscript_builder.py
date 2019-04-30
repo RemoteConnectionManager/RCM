@@ -326,7 +326,8 @@ class AutoManagerChoiceNode(ManagerChoiceNode):
                                               schema = child_schema,
                                               defaults = child_defaults,
                                               connected_plugin = class_table[self.NAME][class_name])
-                    # else:
+                    else:
+                        child = None
                     # When a connected manager is found, entries in defaults that do not have their corresponding plugin
                     # correctly instanced ( due, for example to a lacking required command) are not instanced
                     #     print("***********************************************************",class_name)
@@ -340,8 +341,9 @@ class AutoManagerChoiceNode(ManagerChoiceNode):
 
                 # here we override child shema_name, as is neede to be different from instance class name
                 # WARNING.... external set of member variable outside object methods
-                child.schema_name=self.NAME
-                self.add_child(child)
+                if child:
+                    child.schema_name=self.NAME
+                    self.add_child(child)
 
 
 class ConnectedManager(ManagerChoiceNode):
