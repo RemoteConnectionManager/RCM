@@ -1,4 +1,4 @@
-logging_configs:
+ logging_configs:
   formatters:
     colored_out:
       format: "\x1b[90m[%(levelname)-5s %(filename)s:%(lineno)s]%(message)s \x1b[0m"
@@ -14,7 +14,7 @@ logging_configs:
   loggers:
     rcmServer.jobscript_builder:
       level: DEBUG
-      handlers: [console]
+      # handlers: [console]
       propagate: False
     rcmServer.jobscript_builder.constructor:
       level: INFO

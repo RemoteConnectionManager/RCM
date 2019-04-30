@@ -8,19 +8,23 @@ logger = logging.getLogger('rcmServer' + '.' + __name__)
 
 class Plugin(object):
 
-    COMMANDS = {}
-
     def __init__(self):
-        self.NAME = None
+        if not hasattr(self, 'NAME'):
+            self.NAME = ''
+        if not hasattr(self, 'COMMANDS'):
+            self.COMMANDS = {}
         self.PARAMS = {}
-
+        if self.NAME:
+            self.logger = logging.getLogger('rcmServer' + '.' + __name__ + '.' + self.NAME)
+        else:
+            self.logger = logger
         for command in self.COMMANDS:
             exe = utils.which(command)
             if exe:
                 self.COMMANDS[command] = exe
-                logger.debug("command: " + command + " found")
+                self.logger.debug("command: " + command + " found")
             else:
-                logger.error("command: " + command + " not found !!!!")
+                self.logger.error("command: " + command + " not found !!!!")
                 raise RuntimeError("Plugin " + self.__class__.__name__ + " need command: " + command + " NOT FOUND")
 
         self.templates = dict()

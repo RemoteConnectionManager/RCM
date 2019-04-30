@@ -15,7 +15,7 @@ logger = logging.getLogger('rcmServer' + '.' + __name__)
 class Scheduler(plugin.Plugin):
 
     def __init__(self, *args, **kwargs):
-        super(Scheduler, self).__init__(*args, **kwargs)
+        super(Scheduler, self).__init__()
 
     def submit(self, script='', jobfile=''):
         raise NotImplementedError()
@@ -37,19 +37,19 @@ class Scheduler(plugin.Plugin):
                     f.write(script)
             if jobfile_executable:
                 os.chmod(jobfile, stat.S_IRWXU)
-            logger.info(self.__class__.__name__ + " " + self.NAME + " submitting " + jobfile)
+            self.logger.info(self.__class__.__name__ + " " + self.NAME + " submitting " + jobfile)
 
             batch = self.COMMANDS.get(batch_command, None)
             if batch:
                 raw_output = batch(jobfile,
                                    output=str)
-                logger.debug("@@@@@@@@@@@@@@ raw_output: " + raw_output)
+                self.logger.debug("generic_submit raw_output: " + raw_output)
                 jobid_regex = self.templates.get('JOBID_REGEX', "Submitted  (\d*)")
-                logger.debug("@@@@@@@@@@@@@ jobid_regex " + jobid_regex)
+                self.logger.debug("generic_submit jobid_regex " + jobid_regex)
                 r = re.match(jobid_regex, raw_output)
                 if (r):
                     jobid = r.group(1)
-                    logger.info("scheduler: " + self.NAME + " jobid: " + str(jobid))
+                    self.logger.info("scheduler: " + self.NAME + " jobid: " + str(jobid))
                     return jobid
                 else:
                     raise Exception("Unable to extract jobid from output: %s" % raw_output)
@@ -74,22 +74,23 @@ class BatchScheduler(Scheduler):
 
 
 class PBSScheduler(BatchScheduler):
-    COMMANDS = {'qstat': None,
-                'non_existing_command': None}
 
     def __init__(self, *args, **kwargs):
-        super(PBSScheduler, self).__init__(*args, **kwargs)
         self.NAME = 'PBS'
+        self.COMMANDS = {'qstat': None,
+                    'non_existing_command': None}
+        super(PBSScheduler, self).__init__(*args, **kwargs)
+
 
 
 class OSScheduler(Scheduler):
-    COMMANDS = {'/bin/bash': None,
-                'ps': None,
-                'kill': None}
 
     def __init__(self, *args, **kwargs):
-        super(OSScheduler, self).__init__(*args, **kwargs)
         self.NAME = 'SSH'
+        self.COMMANDS = {'/bin/bash': None,
+                         'ps': None,
+                         'kill': None}
+        super(OSScheduler, self).__init__(*args, **kwargs)
         if 'node' in kwargs:
             self.prefix = kwargs['node'].split('.')[0] + '.'
         else:
@@ -108,7 +109,7 @@ class OSScheduler(Scheduler):
             params = []
             if username:
                 params.extend(('-u ' + username).split(' '))
-            logger.debug("params " + str(params))
+            self.logger.debug("params " + str(params))
             raw_output = ps(*params,
                             output=str)
 
@@ -118,7 +119,7 @@ class OSScheduler(Scheduler):
             for jline in raw:
                 processid = jline.lstrip().split(' ')[0]
                 jid = self.prefix + str(processid)
-                logger.debug("job_id " + str(jid))
+                self.logger.debug("job_id " + str(jid))
                 jobs[jid] = jline
             return jobs
 
@@ -129,7 +130,7 @@ class OSScheduler(Scheduler):
         https://stackoverflow.com/questions/392022/whats-the-best-way-to-send-a-signal-to-all-members-of-a-process-group/15139734#15139734
         """
 
-        logger.debug("Scheduler: " + self.NAME + "asked to kill_job: " + jobid)
+        self.logger.debug("Scheduler: " + self.NAME + "asked to kill_job: " + jobid)
         processid = jobid.split('.')[-1:][0]
         if processid:
             try:
@@ -154,15 +155,15 @@ class OSScheduler(Scheduler):
 
 
 class SlurmScheduler(BatchScheduler):
-    COMMANDS = {'sshare': None,
-                'sinfo': None,
-                'sbatch': None,
-                'scancel': None,
-                'squeue': None}
 
     def __init__(self, *args, **kwargs):
-        super(SlurmScheduler, self).__init__(*args, **kwargs)
         self.NAME = 'Slurm'
+        self.COMMANDS = {'sshare': None,
+                         'sinfo': None,
+                         'sbatch': None,
+                         'scancel': None,
+                         'squeue': None}
+        super(SlurmScheduler, self).__init__(*args, **kwargs)
 
     def all_accounts(self):
         # sshare --parsable -a
@@ -180,7 +181,7 @@ class SlurmScheduler(BatchScheduler):
                 accounts.append(l.split('|')[0])
             return accounts
         else:
-            logger.debug("warning missing command sshare:")
+            self.logger.debug("warning missing command sshare:")
             return []
 
     def validate_account(self, account):
@@ -196,7 +197,7 @@ class SlurmScheduler(BatchScheduler):
     def queues(self):
         # hints on useful slurm commands
         # sacctmgr show qos
-        logger.debug("Slurm get queues")
+        self.logger.debug("Slurm get queues")
         sinfo = self.COMMANDS.get('sinfo', None)
         if sinfo:
             raw_output = sinfo('--format=%R',
@@ -204,10 +205,10 @@ class SlurmScheduler(BatchScheduler):
             partitions = []
             for l in raw_output.splitlines()[1:]:
                 partitions.append(l)
-            logger.debug("Slurm found queues: " + str(partitions))
+            self.logger.debug("Slurm found queues: " + str(partitions))
             return partitions
         else:
-            logger.debug("warning missing command sinfo:")
+            self.logger.debug("warning missing command sinfo:")
             return []
 
     def submit(self, script='', jobfile=''):
@@ -219,7 +220,7 @@ class SlurmScheduler(BatchScheduler):
             params = '-o %i#%t#%j#%a -h -a'.split(' ')
             if username:
                 params.extend(('-u ' + username).split(' '))
-            logger.debug("squeue params " + str(params))
+                self.logger.debug("squeue params " + str(params))
             raw_output = squeue(*params,
                                 output=str)
 
@@ -228,25 +229,25 @@ class SlurmScheduler(BatchScheduler):
             # logger.debug("raw output lines:\n" + str(raw))
             jobs = {}
             for j in raw:
-                logger.debug("jobline: " + str(j))
+                self.logger.debug("jobline: " + str(j))
                 mo = j.split('#')
-                logger.debug("mo split #" + str(len(mo)) + " " + ' '.join(str(p) for p in mo))
+                self.logger.debug("mo split #" + str(len(mo)) + " " + ' '.join(str(p) for p in mo))
                 if len(mo) == 4 and check_rcm_job_string in mo[2]:
                     sid = mo[0]
                     jobs[sid] = mo[2]
             return jobs
 
     def kill_job(self, jobid=''):
-        logger.debug("Scheduler: " + self.NAME + "asked to kill_job: " + jobid)
+        self.logger.debug("Scheduler: " + self.NAME + "asked to kill_job: " + jobid)
         if jobid:
             try:
                 scancel = self.COMMANDS.get('scancel', None)
                 if scancel:
                     params = [str(jobid)]
                     out = scancel(*params, output=str)
-                    logger.debug("removed job: " + str(jobid) + " output:\n" + out)
+                    self.logger.debug("removed job: " + str(jobid) + " output:\n" + out)
                     return True
             except Exception as e:
-                logger.warning("Exception: " + str(e) + " in killing job " + str(jobid))
+                self.logger.warning("Exception: " + str(e) + " in killing job " + str(jobid))
                 sys.stderr.write("Can not kill  job: %s." % jobid)
         return False
