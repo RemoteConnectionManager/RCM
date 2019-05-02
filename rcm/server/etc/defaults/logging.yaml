@@ -85,7 +85,7 @@ logging_configs:
       handlers: [console_colored_err_base]
       propagate: False
     rcmServer:
-      level: WARNING
+      level: DEBUG
       handlers: [console_colored_err_base]
       propagate: False
     rcmServer.jobscript_builder:
@@ -110,10 +110,26 @@ logging_configs:
       handlers: [console]
       propagate: False
       level: INFO
-    plugin:
-      handlers: [console]
+    rcmServer.plugin:
+      handlers: [console_colored_out_base]
       level: INFO
       propagate: False
+    rcmServer.manager:
+      level: INFO
+      handlers: [console_colored_out_base]
+      propagate: False
+    rcmServer.parser:
+      level: INFO
+      handlers: [console_colored_out_base]
+      propagate: False
+    rcmServer.api:
+      level: INFO
+      propagate: False
+      handlers: [console_colored_out_base]
+    RCM.protocol:
+      level: INFO
+      propagate: False
+      handlers: [console_colored_out_base]
     utils.run:
       level: WARNING
       handlers: [console]

@@ -13,7 +13,7 @@
 
   loggers:
     rcmServer.jobscript_builder:
-      level: DEBUG
+      level: INFO
       # handlers: [console]
       propagate: False
     rcmServer.jobscript_builder.constructor:

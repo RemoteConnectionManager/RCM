@@ -10,9 +10,13 @@ defaults:
               LOGFILE: "@{RCM_SESSION_FOLDER}/fakelog"
               COMMAND_LINE: "python -c 'exec(\"import sys,time,platform \\ntime.sleep(5)\\nprint(\\\"Some random stuff \\\" + platform.uname()[1]+\\\":333\\\")\\nfor i in range(1, 100): \\n   time.sleep(1)\\n   print(i)\\n   sys.stdout.flush()\")'"
               VNC_PASSWORDFILE: "@{RCM_SESSION_FOLDER}/vncpassword"
-              PRELOAD_LINE: "echo \"@{SETUP}; echo -e @{VNCPASSWORD} | vncpasswd -f > @{VNC_PASSWORDFILE}\""
               TIMEOUT: "4"
               START_REGEX_LIST:
               - ^Some  failing regex (?P<node>\w+):(?P<display>\d+)
               - ^Some (.*) stuff (?P<node>\w+):(?P<port>\d+)
               - ^Other '(.*)' (?P<node>\w+):(?P<display>\d+)
+
+logging_configs:
+  loggers:
+    rcmServer.plugin.FakeService:
+      level: DEBUG

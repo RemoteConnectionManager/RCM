@@ -1,0 +1,4 @@
+logging_configs:
+  loggers:
+    rcmServer.plugin.SSH:
+      level: DEBUG
