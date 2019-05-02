@@ -110,6 +110,10 @@ logging_configs:
       handlers: [console]
       propagate: False
       level: INFO
+    rcmServer.utils.misc:
+      handlers: [console_colored_out_base]
+      level: INFO
+      propagate: False
     rcmServer.plugin:
       handlers: [console_colored_out_base]
       level: INFO

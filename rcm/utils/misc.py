@@ -2,6 +2,30 @@
 import re
 import string
 import os
+import datetime
+import time
+import logging
+
+logger = logging.getLogger('rcmServer' + '.' + __name__)
+notimeleft_string = "~"
+
+
+def timeleft_string(walltime, created):
+    logger.debug("computing timeleft_string walltime: " + walltime + " created: " + created)
+    if walltime == notimeleft_string:
+        return notimeleft_string
+    walltime_py24 = time.strptime(walltime, "%H:%M:%S")
+    endtime_py24 = time.strptime(created, "%Y%m%d-%H:%M:%S")
+    walltime = datetime.datetime(*walltime_py24[0:6])
+    endtime = datetime.datetime(*endtime_py24[0:6])
+    endtime = endtime + datetime.timedelta(hours=walltime.hour, minutes=walltime.minute,
+                                           seconds=walltime.second)
+    timedelta = endtime - datetime.datetime.now()
+    # check if timedelta is positive
+    if timedelta <= datetime.timedelta(0):
+        timedelta = datetime.timedelta(0)
+    timeleft = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
+    return timeleft
 
 
 class StringTemplate(string.Template):

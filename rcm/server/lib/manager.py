@@ -8,8 +8,6 @@ import re
 import pwd
 import copy
 from collections import OrderedDict
-import datetime
-import time
 import traceback
 
 # set prefix.
@@ -37,25 +35,6 @@ import enumerate_interfaces
 import utils
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
-notimeleft_string = "~"
-
-
-def timeleft_string(walltime, created):
-    logger.debug("computing timeleft_string walltime: " + walltime + " created: " + created)
-    if walltime == notimeleft_string:
-        return notimeleft_string
-    walltime_py24 = time.strptime(walltime, "%H:%M:%S")
-    endtime_py24 = time.strptime(created, "%Y%m%d-%H:%M:%S")
-    walltime = datetime.datetime(*walltime_py24[0:6])
-    endtime = datetime.datetime(*endtime_py24[0:6])
-    endtime = endtime + datetime.timedelta(hours=walltime.hour, minutes=walltime.minute,
-                                           seconds=walltime.second)
-    timedelta = endtime - datetime.datetime.now()
-    # check if timedelta is positive
-    if timedelta <= datetime.timedelta(0):
-        timedelta = datetime.timedelta(0)
-    timeleft = (((datetime.datetime.min + timedelta).time())).strftime("%H:%M:%S")
-    return timeleft
 
 
 class ServerManager:
@@ -165,10 +144,10 @@ class ServerManager:
         walltime = ses.hash.get('walltime', '')
         created = ses.hash.get('created', '')
         try:
-            new_session.hash['timeleft'] = timeleft_string(walltime, created)
+            new_session.hash['timeleft'] = utils.timeleft_string(walltime, created)
         except Exception as e:
-            logger.debug("Excepion: " + str(e) + " - " + str(traceback.format_exc()))
-            new_session.hash['timeleft'] = notimeleft_string
+            logger.info("Excepion: " + str(e) + " - " + str(traceback.format_exc()))
+            new_session.hash['timeleft'] = utils.notimeleft_string
         return new_session
 
     def mapped_sessions(self, subnet):
@@ -280,7 +259,7 @@ class ServerManager:
         # set status and jobid in curent session and write on disk
         new_session.hash['state'] = 'pending'
         new_session.hash['jobid'] = jobid
-        new_session.hash['walltime'] = self.top_templates.get('SCHEDULER.QUEUE.TIMELIMIT', notimeleft_string)
+        new_session.hash['walltime'] = self.top_templates.get('SCHEDULER.QUEUE.TIMELIMIT', utils.notimeleft_string)
         new_session.serialize(self.session_manager.session_file_path(session_id))
         logger.debug("####### serialized  session #####\n" + new_session.get_string(format='json_indent'))
 
