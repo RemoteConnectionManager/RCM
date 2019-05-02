@@ -37,10 +37,12 @@ import utils
 
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
-
+notimeleft_string = "~"
 
 def timeleft_string(walltime, created):
-    logger.debug("timeleft_string")
+    logger.debug("computing timeleft_string walltime: " + walltime + " created: " + created)
+    if walltime == notimeleft_string:
+        return notimeleft_string
     walltime_py24 = time.strptime(walltime, "%H:%M:%S")
     endtime_py24 = time.strptime(created, "%Y%m%d-%H:%M:%S")
     walltime = datetime.datetime(*walltime_py24[0:6])
@@ -171,7 +173,7 @@ class ServerManager:
             new_session.hash['timeleft'] = timeleft_string(walltime, created)
         except Exception as e:
             logger.debug("Excepion: " + str(e) + " - " + str(traceback.format_exc()))
-            new_session.hash['timeleft'] = '~'
+            new_session.hash['timeleft'] = notimeleft_string
         return new_session
 
 
@@ -290,7 +292,7 @@ class ServerManager:
         # set status and jobid in curent session and write on disk
         new_session.hash['state'] = 'pending'
         new_session.hash['jobid'] = jobid
-        new_session.hash['walltime'] = self.top_templates.get('SCHEDULER.QUEUE.TIMELIMIT','~')
+        new_session.hash['walltime'] = self.top_templates.get('SCHEDULER.QUEUE.TIMELIMIT', notimeleft_string)
         new_session.serialize(self.session_manager.session_file_path(session_id))
         logger.debug("####### serialized  session #####\n" + new_session.get_string(format='json_indent'))
 
