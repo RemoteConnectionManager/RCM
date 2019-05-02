@@ -77,11 +77,11 @@ logging_configs:
 #      handlers: [console_colored_err_base]
 #      level: INFO
     root:
-      level: INFO
+      level: DEBUG
       handlers: [console_colored_err_base]
       propagate: False
     RCM:
-      level: WARNING
+      level: DEBUG
       handlers: [console_colored_err_base]
       propagate: False
     rcmServer:
@@ -115,6 +115,11 @@ logging_configs:
       level: INFO
       propagate: False
     rcmServer.plugin:
+      handlers: [console_colored_out_base]
+      level: INFO
+      propagate: False
+# under python2 the module naming is different, lib is appended ....
+    rcmServer.lib.plugin:
       handlers: [console_colored_out_base]
       level: INFO
       propagate: False

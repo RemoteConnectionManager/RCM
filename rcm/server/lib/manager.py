@@ -5,7 +5,6 @@ import os
 import json
 import socket
 import re
-import pwd
 import copy
 from collections import OrderedDict
 import traceback
@@ -26,10 +25,6 @@ sys.path.insert(0, current_lib_path)
 import config
 import jobscript_builder
 import db
-# import manager
-import scheduler
-from external import hiyapyco
-
 import rcm
 import enumerate_interfaces
 import utils
@@ -52,6 +47,7 @@ class ServerManager:
         self.session_manager = db.DbSessionManager()
         self.login_fullname = ''
         self.network_map = dict()
+        self.top_templates = dict()
 
     def init(self):
         self.login_fullname = socket.getfqdn()
@@ -206,7 +202,7 @@ class ServerManager:
                        subnet='',
                        vncpassword='',
                        vncpassword_crypted=''):
-        if self.active_scheduler == None:
+        if self.active_scheduler is None:
             # if there is no active scheduler, return a dummy void sessions, otherwise excepion occur
             logger.error("No active scheduler selected, returning void session")
             return rcm.rcm_session()
@@ -217,9 +213,9 @@ class ServerManager:
                                       sessionname=sessionname,
                                       nodelogin=self.login_fullname,
                                       vncpassword=vncpassword_crypted)
-        logger.debug("####### session #####\n" + new_session.get_string(format='json_indent'))
+        logger.debug("session\n---------------\n" + new_session.get_string(format='json_indent') + "\n-------------")
         logger.debug("login_name: " + self.get_login_node_name())
-        printout = "============submitting "
+        printout = "submitting "
         if self.active_service:
             printout += "service: " + self.active_service.NAME
         if self.active_scheduler:
@@ -238,11 +234,11 @@ class ServerManager:
         # assembly job script
         script = self.top_templates.get('SCRIPT', 'No script in templates')
         script = utils.StringTemplate(script).safe_substitute(substitutions)
-        logger.info("@@@@@@@@@@ script @@@@@@@@@\n" + script)
+        logger.info("job script content:\n--------------start------------\n" + script + "\n-------------end--------------")
 
         service_logfile = self.top_templates.get('SERVICE.COMMAND.LOGFILE', '')
         service_logfile = utils.StringTemplate(service_logfile).safe_substitute(substitutions)
-        logger.debug("@@@@@@@@@@ service_logfile @@@@@@@@@\n" + service_logfile)
+        logger.debug("service_logfile:\n" + service_logfile)
 
         # here we write the computed script into jobfile
         jobfile = self.session_manager.write_jobscript(session_id, script)
@@ -261,7 +257,7 @@ class ServerManager:
         new_session.hash['jobid'] = jobid
         new_session.hash['walltime'] = self.top_templates.get('SCHEDULER.QUEUE.TIMELIMIT', utils.notimeleft_string)
         new_session.serialize(self.session_manager.session_file_path(session_id))
-        logger.debug("####### serialized  session #####\n" + new_session.get_string(format='json_indent'))
+        logger.debug("serialized  session:\n---------------\n" + new_session.get_string(format='json_indent') + "\n-------------")
 
         try:
             scheduler_timeout = int(self.top_templates.get('SCHEDULER.QUEUE.TIMEOUT', '100'))
@@ -273,7 +269,7 @@ class ServerManager:
         new_session.hash['port'] = port
         new_session.hash['node'] = node
         new_session.serialize(self.session_manager.session_file_path(session_id))
-        logger.debug("####### serialized session #####\n" + new_session.get_string(format='json_indent'))
+        logger.debug("serialized  session:\n---------------\n" + new_session.get_string(format='json_indent') + "\n-------------")
         logger.info("return valid session job " + jobid + " on node " + node + " port " + str(port))
         return new_session
 
