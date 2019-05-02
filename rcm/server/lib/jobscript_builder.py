@@ -118,7 +118,7 @@ class LeafNode(Node):
     def substitute(self, choices):
         out_subst = choices
         for t in self.templates:
-            out_subst[t] = utils.stringtemplate(self.templates[t]).safe_substitute(choices)
+            out_subst[t] = utils.StringTemplate(self.templates[t]).safe_substitute(choices)
 
         for key, value in out_subst.items():
             substitute_logger.debug(" " + self.__class__.__name__ + " : " + str(self.NAME) + " : " + " leaf: " + str(self.NAME) + " : " + str(key) + " ::> " + str(value))
@@ -245,13 +245,13 @@ class AutoChoiceNode(CompositeNode):
         out_subst=OrderedDict()
         for t,val in self.templates.items():
             if type(val) in stringtypes:
-                out_subst[t] = utils.stringtemplate(val).safe_substitute(in_subst)
+                out_subst[t] = utils.StringTemplate(val).safe_substitute(in_subst)
             else:
                 if type(val) is list:
                     out=list()
                     for v in val:
                         if type(v) in stringtypes:
-                            out.append(utils.stringtemplate(v).safe_substitute(in_subst))
+                            out.append(utils.StringTemplate(v).safe_substitute(in_subst))
                         else:
                             substitute_logger.warning(
                                 " " + self.__class__.__name__ + " : " + str(

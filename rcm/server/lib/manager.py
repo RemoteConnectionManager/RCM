@@ -258,11 +258,11 @@ class ServerManager:
 
         # assembly job script
         script = self.top_templates.get('SCRIPT', 'No script in templates')
-        script = utils.stringtemplate(script).safe_substitute(substitutions)
+        script = utils.StringTemplate(script).safe_substitute(substitutions)
         logger.info("@@@@@@@@@@ script @@@@@@@@@\n" + script)
 
         service_logfile = self.top_templates.get('SERVICE.COMMAND.LOGFILE', '')
-        service_logfile = utils.stringtemplate(service_logfile).safe_substitute(substitutions)
+        service_logfile = utils.StringTemplate(service_logfile).safe_substitute(substitutions)
         logger.debug("@@@@@@@@@@ service_logfile @@@@@@@@@\n" + service_logfile)
 
         # here we write the computed script into jobfile

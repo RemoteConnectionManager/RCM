@@ -4,7 +4,7 @@ import string
 import os
 
 
-class stringtemplate(string.Template):
+class StringTemplate(string.Template):
     def __init__(self, s=''):
         string.Template.__init__(self, s)
         rr = """
@@ -23,11 +23,11 @@ class stringtemplate(string.Template):
         return m
 
 
-class filetemplate(stringtemplate):
+class filetemplate(StringTemplate):
     def __init__(self, file=''):
         if os.path.exists(file):
             s = file.read()
-            stringtemplate.__init__(self, s)
+            StringTemplate.__init__(self, s)
         else:
             print("file", file, "not found")
             return None
@@ -59,9 +59,9 @@ if __name__ == '__main__':
     print("---original--")
     print(download)
     print("-----------subst-----------")
-    out = stringtemplate(download).safe_substitute(d)
+    out = StringTemplate(download).safe_substitute(d)
     print(out)
-    m = stringtemplate().templ_match(out)
+    m = StringTemplate().templ_match(out)
     if m:
         print("----unmatched----")
         print(m.group())
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     print("----", bad)
 
     exit()
-    r = stringtemplate().pattern
+    r = StringTemplate().pattern
     print(r.pattern)
     dd = dict()
     for i in d:
@@ -80,7 +80,7 @@ if __name__ == '__main__':
         mi = r.search(download)
         if mi:
             print("matched input at pos ", mi.start())
-            t = stringtemplate(download)
+            t = StringTemplate(download)
             out = t.safe_substitute(dd)
             print(out)
             mo = r.search(out)

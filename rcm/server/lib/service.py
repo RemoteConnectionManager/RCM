@@ -22,7 +22,7 @@ class Service(plugin.Plugin):
         if key in self.templates:
             preload_command = self.templates[key]
             if substitutions:
-                preload_command = utils.stringtemplate(preload_command).safe_substitute(substitutions)
+                preload_command = utils.StringTemplate(preload_command).safe_substitute(substitutions)
             self.logger.info("Running preload command: " + preload_command)
             bash = self.COMMANDS.get('bash', None)
             params = ["-c", preload_command]
