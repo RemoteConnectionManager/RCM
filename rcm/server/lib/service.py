@@ -73,7 +73,7 @@ class Service(plugin.Plugin):
         node = ''
         port = 0
         for k in groupdict:
-            logger.debug("earching port, key: " + k + " ==> " + groupdict[k])
+            self.logger.debug("searching port, key: " + k + " ==> " + groupdict[k])
             if k == 'display' :
                 port =  5900 + int(groupdict[k])
             if k == 'node' :
