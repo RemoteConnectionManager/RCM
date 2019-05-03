@@ -1,11 +1,9 @@
 # std import
 import logging
-import json
 import copy
 from collections import OrderedDict
 
 # local import
-# from config import *
 import config
 import utils
 
@@ -28,7 +26,8 @@ class Node(object):
     Base class for tree nodes representing jobscript composotion and gui widget hierarchy.
     It instantiate a tree of nodes derived from this one, taking OrderedDict data loaded in yaml
     format from CascadeYamlConfig or passed trough __init__ constructor params.
-    it also accept it' s name as input (the name can be specilizes such as Slurm, name of the queue or generic such as QUEUE or SCHEDULER
+    it also accept it' s name as input (the name can be specilizes such as Slurm,
+    name of the queue or generic such as QUEUE or SCHEDULER
     it keep also a schema name that if not redefined is equal to name, schema name can be redefines
 
     """
@@ -72,32 +71,9 @@ class Node(object):
             constructor_logger.debug(
                 self.__class__.__name__ + " " + self.NAME + " templates defaults " + str(default_subst))
             # needed to prevent crash when key susbstitutions has no following substitutions
-            # needed to prevent crash when key susbstitutions has no following substitutions
             if hasattr(default_subst, '__getitem__'):
                 for key in default_subst:
                     self.templates[key] = default_subst[key]
-
-                # for key,val  in default_subst.items():
-                #     if type(val) in stringtypes:
-                #         self.templates[key] = str(default_subst[key])
-                #     else:
-                #         if type(val) is list:
-                #             outlist=[]
-                #             for v  in val:
-                #                 if type(v) in stringtypes:
-                #                     print("############# " + key + " ####>"+str(v)+"<###")
-                #                     outlist.append(str(v))
-                #                 else:
-                #                     outlist.append(v)
-                #                     substitute_logger.warning(
-                #                         " " + self.__class__.__name__ + " : " + str(
-                #                         self.NAME) + "key: " + key + " unknown type value " + str(
-                #                         type(v)) + " : " + str(v))
-                #
-                #             self.templates[key] = outlist
-                #         else:
-                #             self.templates[key] = default_subst[key]
-                #     print("@+@+@ " + key + "-->" + str(default_subst[key]) + "<--")
 
         constructor_logger.debug(self.__class__.__name__ + " " + self.NAME + " templates merged " + str(self.templates))
 
@@ -145,15 +121,11 @@ class CompositeNode(Node):
         options = OrderedDict()
         for child in self.children:
             options[child.NAME] = child.get_gui_options()
-        #        for keyword in ['children', 'substitutions']:
-        #            if keyword in options:
-        #                del options[keyword]
 
         gui_logger.debug(self.__class__.__name__ + " gui options " + str(options))
         return options
 
     def substitute(self, choices):
-        gui_logger.debug("@@@@@@@@@@@@@@  HERE")
         Node.substitute(self, choices)
         for child in self.children:
             child.substitute(choices)
@@ -186,7 +158,6 @@ class AutoChoiceNode(CompositeNode):
                 child_schema = copy.deepcopy(children_schema[child_name])
                 if child_name in self.defaults:
                     if 'children' in child_schema:
-                        # (manager_class, plugin_instances) = self.class_table.get(child_name, (AutoManagerChoiceNode,None))
                         child = AutoManagerChoiceNode(name=child_name,
                                                       schema=copy.deepcopy(child_schema),
                                                       defaults=copy.deepcopy(self.defaults[child_name]))
@@ -241,7 +212,6 @@ class AutoChoiceNode(CompositeNode):
 
         for child in self.children:
             if child_subst[child]:
-                # substitute_logger.debug(child_subst[child])
                 subst = child.substitute(child_subst[child])
                 substitute_logger.debug("child: " + child.NAME + " returned " + str(subst))
                 if subst:
@@ -250,7 +220,6 @@ class AutoChoiceNode(CompositeNode):
                         in_subst[child.schema_name + '.' + key_sub] = subst[key_sub]
                         # substitutions coming from child are reported upstream by prepending
                         # self.schema_name, the current node schema name
-                        # out_subst[self.schema_name + '.' + key_sub] = subst[key_sub]
                         if not key_sub in child_subst[child]:
                             collected_subst[child.schema_name + '.' + key_sub] = subst[key_sub]
 
@@ -289,10 +258,6 @@ class ManagedChoiceNode(AutoChoiceNode):
         options = OrderedDict()
         for child in self.children:
             options[child.NAME] = child.get_gui_options()
-
-        #        for keyword in ['children', 'substitutions']:
-        #            if keyword in options:
-        #                del options[keyword]
 
         if options:
             return {'children': options}
@@ -346,10 +311,7 @@ class AutoManagerChoiceNode(ManagerChoiceNode):
                         child = None
                     # When a connected manager is found, entries in defaults that do not have their corresponding plugin
                     # correctly instanced ( due, for example to a lacking required command) are not instanced
-                    #     print("***********************************************************",class_name)
-                    #     child = ManagedChoiceNode(name=class_name,
-                    #                               schema=child_schema,
-                    #                               defaults=child_defaults)
+
                 else:
                     child = ManagedChoiceNode(name=class_name,
                                               schema=child_schema,
@@ -403,7 +365,6 @@ class ManagedPlugin(ManagedChoiceNode):
                             kwargs.get('name', self.NAME)) + " calling connected plugin " +
                                                  self.connected_plugin.__class__.__name__ + " param " + str(param))
                         computed_param = self.connected_plugin.PARAMS[param]()
-                        # computed_param = getattr(self.connected_plugin, self.connected_plugin.PARAMS[param])()
                         constructor_logger.info(self.__class__.__name__ + str(
                             kwargs.get('name', self.NAME)) + " asking  connected plugin " +
                                                 self.connected_plugin.__class__.__name__ +
