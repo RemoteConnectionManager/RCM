@@ -137,7 +137,7 @@ class ChoiceNode(CompositeNode):
         composer_options = OrderedDict()
         excluded_keys = ['children', 'substitutions']
         for keyword in self.schema:
-            if not keyword in excluded_keys:
+            if keyword not in excluded_keys:
                 composer_options[keyword] = self.schema[keyword]
         composer_choice = OrderedDict()
         if self.children:
@@ -220,7 +220,7 @@ class AutoChoiceNode(CompositeNode):
                         in_subst[child.schema_name + '.' + key_sub] = subst[key_sub]
                         # substitutions coming from child are reported upstream by prepending
                         # self.schema_name, the current node schema name
-                        if not key_sub in child_subst[child]:
+                        if key_sub not in child_subst[child]:
                             collected_subst[child.schema_name + '.' + key_sub] = subst[key_sub]
 
         out_subst = OrderedDict()
@@ -324,27 +324,6 @@ class AutoManagerChoiceNode(ManagerChoiceNode):
                     self.add_child(child)
 
 
-class ConnectedManager(ManagerChoiceNode):
-
-    def __init__(self, *args, **kwargs):
-        super(ConnectedManager, self).__init__(*args, **kwargs)
-
-        if 'children' in self.schema and hasattr(self.defaults, 'get'):
-            for class_name in self.defaults:
-                constructor_logger.debug(self.__class__.__name__ + self.NAME + " handling child  : " + class_name)
-                if class_name in self.class_table:
-                    connected_plugin = self.class_table[class_name]
-                    plugin_params = self.class_table[class_name].PARAMS
-                    child = ManagedPlugin(name=class_name,
-                                          schema=copy.deepcopy(self.schema),
-                                          defaults=copy.deepcopy(self.defaults.get(class_name, OrderedDict())),
-                                          connected_plugin=self.class_table[class_name])
-                    # here we override child shema_name, as is neede to be different from instance class name
-                    # WARNING.... external set of member variable outside object methods
-                    child.schema_name = self.NAME
-                    self.add_child(child)
-
-
 class ManagedPlugin(ManagedChoiceNode):
 
     def __init__(self, *args, **kwargs):
@@ -354,7 +333,7 @@ class ManagedPlugin(ManagedChoiceNode):
         """
 
         merged_defaults = copy.deepcopy(kwargs['defaults'])
-        if merged_defaults == None:
+        if merged_defaults is None:
             merged_defaults = OrderedDict()
         if 'connected_plugin' in kwargs:
             self.connected_plugin = kwargs['connected_plugin']
