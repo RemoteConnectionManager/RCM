@@ -90,14 +90,18 @@ def client_folder():
 def log_folder():    
     return os.path.join(client_folder(), 'logs')
 
+# pack_info is a kind of singleton, this is the only instance
+pack_info_instance = None
 
-class pack_info:
+# this is the real class, hidden
+class _pack_info:
     def __init__(self):
         # Read file containing the platform on which the client were build
         build_platform_filename = pyinstaller_utils.resource_path("build_platform.txt")
 
         self.buildPlatformString = ""
         self.rcmVersion = ""
+        self.checksumString = ""
 
         if os.path.exists(build_platform_filename):
             logic_logger.debug("Reading build platform file " + build_platform_filename)
@@ -107,6 +111,18 @@ class pack_info:
                 logic_logger.debug("buildPlatformString=>>" + self.buildPlatformString + "<")
                 logic_logger.debug("rcmVersion=>>" + self.rcmVersion + "<")
 
+        if pyinstaller_utils.is_bundled():
+            self.checksumString = str(compute_checksum(sys.executable))
+
+    def to_dict(self):
+        return {'platform': self.buildPlatformString, 'version': self.rcmVersion, 'checksum': self.checksumString}
+
+
+
+def pack_info():
+    if pack_info_instance is None:
+        _pack_info_ = _pack_info()
+    return _pack_info_
 
 def get_unused_portnumber():
     sock = socket.socket()
