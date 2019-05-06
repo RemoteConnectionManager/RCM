@@ -173,15 +173,17 @@ class ServerManager:
                 logger.info("error in handling json encoded pack_info, Exception: " +
                             str(e) + " - " + str(traceback.format_exc()))
 
+        checksum = ""
+        downloadurl = ""
         if build_platform in self.downloads:
-            checksum = ""
-            downloadurl = ""
             for checksum, urls in self.downloads.get(build_platform, OrderedDict()).items():
                 for downloadurl in urls:
                     logger.debug("checksum: " + checksum + " url: " + downloadurl)
-            return checksum, downloadurl
         else:
-            logger.warning("platform: " + str(build_platform), ' NOT FOUND, available:\n' + str(list(self.downloads.keys())))
+            available_platforms = self.downloads.keys()
+            available_platforms_string = str(available_platforms)
+            logger.warning("platform: " + str(build_platform) + ' NOT FOUND, available:\n' + available_platforms_string)
+            return checksum, downloadurl
 
     def get_jobscript_json_menu(self):
         return json.dumps(self.root_node.get_gui_options())
@@ -275,7 +277,9 @@ class ServerManager:
         new_session.hash['jobid'] = jobid
         new_session.hash['walltime'] = self.top_templates.get('SCHEDULER.QUEUE.TIMELIMIT', utils.notimeleft_string)
         new_session.serialize(self.session_manager.session_file_path(session_id))
-        logger.debug("serialized  session:\n---------------\n" + new_session.get_string(format='json_indent') + "\n-------------")
+        logger.debug("serialized  session:\n---------------\n" +
+                     new_session.get_string(format='json_indent') +
+                     "\n-------------")
 
         try:
             scheduler_timeout = int(self.top_templates.get('SCHEDULER.QUEUE.TIMEOUT', '100'))
