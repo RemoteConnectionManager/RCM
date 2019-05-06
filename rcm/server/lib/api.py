@@ -3,8 +3,6 @@ import sys
 import logging
 
 # local import
-import manager
-import config
 import rcm
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
@@ -23,15 +21,24 @@ class ServerAPIs:
     """
 
     def __init__(self):
-        config.getConfig()
-        self.server_manager = manager.ServerManager()
-        self.server_manager.init()
+        self.server_manager = None
 
-    def config(self, build_platform=''):
+    def _server_init(self):
+        if self.server_manager is None:
+            import manager
+            import config
+            config.getConfig()
+            self.server_manager = manager.ServerManager()
+            self.server_manager.init()
+
+    def config(self, build_platform='', client_current_version='', client_current_checksum=''):
+        self._server_init()
         logger.debug("calling api config")
         conf = rcm.rcm_config()
         if build_platform:
-            (checksum, url) = self.server_manager.get_checksum_and_url(build_platform)
+            (checksum, url) = self.server_manager.get_checksum_and_url(build_platform,
+                                                                       client_current_version=client_current_version,
+                                                                       client_current_checksum=client_current_checksum)
             conf.set_version(checksum, url)
         jobscript_json_menu = self.server_manager.get_jobscript_json_menu()
         if jobscript_json_menu:
@@ -39,14 +46,17 @@ class ServerAPIs:
         conf.serialize()
 
     def version(self, build_platform=''):
+        self._server_init()
         logger.debug("calling api version")
 
     def loginlist(self, subnet=''):
+        self._server_init()
         logger.debug("calling api loginlist")
         out_sessions = self.server_manager.map_sessions(self.server_manager.session_manager.sessions(), subnet)
         out_sessions.write()
 
     def list(self, subnet=''):
+        self._server_init()
         logger.debug("calling api list")
         out_sessions = self.server_manager.map_sessions(self.server_manager.extract_running_sessions(), subnet)
         out_sessions.write()
@@ -59,7 +69,7 @@ class ServerAPIs:
             vncpassword_crypted='',
             vnc_id='',
             choices_string=''):
-
+        self._server_init()
         logger.debug("calling api new")
         if choices_string:
             # sys.stderr.write("----choices string:::>"+ choices_string + "<:::\n")
@@ -77,6 +87,7 @@ class ServerAPIs:
             return
 
     def kill(self, session_id=''):
+        self._server_init()
         logger.debug("calling api kill")
         db_sessions = self.server_manager.session_manager
         if session_id:
