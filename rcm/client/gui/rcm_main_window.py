@@ -26,7 +26,7 @@ class RCMMainWindow(QMainWindow):
 
         pack_info = rcm_utils.pack_info()
 
-        title = "Remote Connection Manager - CINECA - v" + pack_info.rcmVersion
+        title = "Remote Connection Manager - CINECA - " + pack_info.rcmVersion
         self.setWindowTitle(title)
 
         width = 900
@@ -191,11 +191,10 @@ class RCMMainWindow(QMainWindow):
 
     def about(self):
         show_message = self.windowTitle() + '\n'
-        show_message += "build_platform:" + rcm_utils.pack_info().buildPlatformString  + '\n'
-        if is_bundled():
-            show_message += "bundled exe: checksum: " + str(rcm_utils.compute_checksum(sys.executable))
-        else:
-            show_message += "NON BUNDLED!!!!"
+        if rcm_utils.pack_info().buildPlatformString:
+            show_message += "build_platform: " + rcm_utils.pack_info().buildPlatformString  + '\n'
+        if rcm_utils.pack_info().checksumString:
+            show_message += "RCM bundled exe, checksum string: " + rcm_utils.pack_info().checksumString  + '\n'
         QMessageBox.about(self, "RCM", show_message)
         return
 
