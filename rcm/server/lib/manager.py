@@ -181,7 +181,7 @@ class ServerManager:
                     logger.debug("checksum: " + checksum + " url: " + downloadurl)
             return checksum, downloadurl
         else:
-            logger.warning("platform: " + str(build_platform), ' NOT FOUND, available:\n' + str(list(self.download.keys())))
+            logger.warning("platform: " + str(build_platform), ' NOT FOUND, available:\n' + str(list(self.downloads.keys())))
 
     def get_jobscript_json_menu(self):
         return json.dumps(self.root_node.get_gui_options())
