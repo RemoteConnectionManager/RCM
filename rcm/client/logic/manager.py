@@ -315,7 +315,7 @@ class RemoteConnectionManager:
         client_build_platform=self.pack_info.buildPlatformString
         if not client_build_platform:
             client_build_platform='new_client_devel'
-        o = self.protocol.config(build_platform=client_build_platform)
+        o = self.protocol.config(build_platform=json.dumps(self.pack_info.to_dict()))
         self.server_config = rcm.rcm_config(o)
         logic_logger.debug("config---->" + str(self.server_config))
         if 'jobscript_json_menu' in self.server_config.config:
