@@ -8,7 +8,7 @@ root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 sys.path.append(root_rcm_path)
 
 # local includes
-from server import rcm_protocol_server
+from server.lib.api import ServerAPIs
 from client.miscellaneous.logger import logic_logger
 
 
@@ -39,20 +39,20 @@ def rcm_decorate(fn):
     return wrapper
 
 
-for name, fn in inspect.getmembers(rcm_protocol_server.rcm_protocol):
+for name, fn in inspect.getmembers(ServerAPIs):
     if sys.version_info >= (3, 0):
         # look for user-defined member functions
         if isinstance(fn, types.FunctionType) and name[:2] != '__':
             logic_logger.debug("wrapping-->" + name)
-            setattr(rcm_protocol_server.rcm_protocol, name, rcm_decorate(fn))
+            setattr(ServerAPIs, name, rcm_decorate(fn))
     else:
         if isinstance(fn, types.MethodType) and name[:2] != '__':
             logic_logger.debug("wrapping-->"+name)
-            setattr(rcm_protocol_server.rcm_protocol, name, rcm_decorate(fn))
+            setattr(ServerAPIs, name, rcm_decorate(fn))
 
 
 def get_protocol():
-    return rcm_protocol_server.rcm_protocol()
+    return ServerAPIs ()
 
 
 if __name__ == '__main__':
