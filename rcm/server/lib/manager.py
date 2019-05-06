@@ -48,6 +48,7 @@ class ServerManager:
         self.login_fullname = ''
         self.network_map = dict()
         self.top_templates = dict()
+        self.configuration = None
 
     def init(self):
         self.login_fullname = socket.getfqdn()
@@ -159,15 +160,28 @@ class ServerManager:
             out_sessions.add_session(self.map_session(ses, subnet))
         return out_sessions
 
-    def get_checksum_and_url(self, build_platform):
-        logger.debug("searching platform " + str(build_platform) + " into " + str(self.downloads))
-        checksum = ""
-        downloadurl = ""
-        for checksum, urls in self.downloads.get(build_platform, OrderedDict()).items():
-            for downloadurl in urls:
-                logger.debug("checksum: " + checksum + " url: " + downloadurl)
+    def get_checksum_and_url(self, build_platform, client_current_version='', client_current_checksum=''):
+        logger.debug("searching platform " + str(build_platform) )
+        if '{' == build_platform[0]:
+            # interpreting build_platfrm as a json encodef pack_info field
+            try:
+                client_info = json.loads(build_platform)
+                build_platform = client_info['platform']
+                client_current_version = client_info['version']
+                client_current_checksum = client_info['checksum']
+            except Exception as e:
+                logger.info("error in handling json encoded pack_info, Exception: " +
+                            str(e) + " - " + str(traceback.format_exc()))
 
-        return checksum, downloadurl
+        if build_platform in self.downloads:
+            checksum = ""
+            downloadurl = ""
+            for checksum, urls in self.downloads.get(build_platform, OrderedDict()).items():
+                for downloadurl in urls:
+                    logger.debug("checksum: " + checksum + " url: " + downloadurl)
+            return checksum, downloadurl
+        else:
+            logger.warning("platform: " + str(build_platform), ' NOT FOUND, available:\n' + str(list(self.download.keys())))
 
     def get_jobscript_json_menu(self):
         return json.dumps(self.root_node.get_gui_options())
@@ -213,7 +227,9 @@ class ServerManager:
                                       sessionname=sessionname,
                                       nodelogin=self.login_fullname,
                                       vncpassword=vncpassword_crypted)
-        logger.debug("session\n---------------\n" + new_session.get_string(format='json_indent') + "\n-------------")
+        logger.debug("session\n---------------\n" +
+                     new_session.get_string(format='json_indent') +
+                     "\n-------------")
         logger.debug("login_name: " + self.get_login_node_name())
         printout = "submitting "
         if self.active_service:
@@ -234,7 +250,9 @@ class ServerManager:
         # assembly job script
         script = self.top_templates.get('SCRIPT', 'No script in templates')
         script = utils.StringTemplate(script).safe_substitute(substitutions)
-        logger.info("job script content:\n--------------start------------\n" + script + "\n-------------end--------------")
+        logger.info("job script content:\n--------------start------------\n" +
+                    script +
+                    "\n-------------end--------------")
 
         service_logfile = self.top_templates.get('SERVICE.COMMAND.LOGFILE', '')
         service_logfile = utils.StringTemplate(service_logfile).safe_substitute(substitutions)
@@ -269,7 +287,9 @@ class ServerManager:
         new_session.hash['port'] = port
         new_session.hash['node'] = node
         new_session.serialize(self.session_manager.session_file_path(session_id))
-        logger.debug("serialized  session:\n---------------\n" + new_session.get_string(format='json_indent') + "\n-------------")
+        logger.debug("serialized  session:\n---------------\n" +
+                     new_session.get_string(format='json_indent') +
+                     "\n-------------")
         logger.info("return valid session job " + jobid + " on node " + node + " port " + str(port))
         return new_session
 
@@ -282,8 +302,8 @@ class ServerManager:
             scheduler_name = ses.hash.get('scheduler', '')
             if not scheduler_name in active_jobs:
                 if scheduler_name in self.schedulers:
-                    logger.debug(
-                        "getting active jobs for scheduler " + scheduler_name + " and user " + self.session_manager.username)
+                    logger.debug("getting active jobs for scheduler " +
+                                 scheduler_name + " and user " + self.session_manager.username)
                     active_jobs[scheduler_name] = self.schedulers[scheduler_name].get_user_jobs(
                         self.session_manager.username)
                     logger.debug(str(active_jobs[scheduler_name]))
