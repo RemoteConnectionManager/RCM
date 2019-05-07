@@ -24,6 +24,7 @@ platform = str(sys.platform) + '_' + str(platform.architecture()[0]) + distribut
 exe_name = 'RCM' + '_' + platform
 exe_path = os.path.join('dist', exe_name)
 
+
 build_platform_filename = os.path.join(basepath, 'build_platform.txt')
 with open(build_platform_filename, "w") as f:
     f.write(platform + '\n')
@@ -75,3 +76,10 @@ exe_se = EXE(pyz,
              upx=True,
              runtime_tmpdir=None,
              console=False)
+
+
+workdir = os.path.abspath(os.path.join('dist', platform, version))
+if not os.path.exists(workdir):
+    os.makedirs(workdir)
+for filename in [exe_name, exe_name + '.zip']:
+    shutil.move(os.path.join('dist', filename), os.path.join(workdir, filename))
