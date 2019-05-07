@@ -13,15 +13,15 @@ if len(sys.argv) > 2:
     version = str(sys.argv[2])
     print("RCM version: " + version)
 if len(sys.argv) > 3:
-    distribution_name = '_' + str(sys.argv[3]).split('/')[0] + '_'
-    print("RCM distribution: " + version)
+    distribution_name = str(sys.argv[3]).split('/')[0]
+    print("RCM distribution: " + distribution_name)
 # this, should extract the part of the version name that comes after '_' or ''
 # has to be applied to the output of git describe --tags --long
 # like "v0.0.8-132-gdb62f50" --> ''
 # "v0.0.8_dev-132-gdb62f50" --> 'dev'
 platform_version = (version.strip().rsplit("-")[0].split("_")[1:][-1:]+[""])[0]
-platform = str(sys.platform) + '_' + str(platform.architecture()[0]) + distribution_name + platform_version
-exe_name = 'RCM' + '_' + platform
+platform = str(sys.platform) + '_' + str(platform.architecture()[0]) + '_' + distribution_name + '_' + platform_version
+exe_name = 'RCM' + platform_version
 exe_path = os.path.join('dist', exe_name)
 
 
