@@ -1,4 +1,5 @@
 # std lib
+import os
 import sys
 import threading
 import subprocess
@@ -86,6 +87,7 @@ class SessionThread(threading.Thread):
             self.gui_cmd(active=True)
 
         if self.configFile:
+            print("CONFIG file branchs")
             commandlist = self.vnc_command.split()
             commandlist.append(self.configFile)
             logic_logger.debug('This is thread ' + str(self.threadnum)
@@ -100,6 +102,7 @@ class SessionThread(threading.Thread):
             self.vnc_process.wait()
         else:
             if self.tunnelling_method == 'internal':
+                
                 self.execute_vnc_command_with_internal_ssh_tunnel()
             elif self.tunnelling_method == 'external' or self.tunnelling_method == 'via':
                 self.execute_vnc_command_with_external_ssh_tunnel()
@@ -112,6 +115,7 @@ class SessionThread(threading.Thread):
             self.gui_cmd(active=False)
 
     def execute_vnc_command_with_internal_ssh_tunnel(self):
+
         with SSHTunnelForwarder(
                 (self.host, 22),
                 ssh_username=self.username,
@@ -119,6 +123,8 @@ class SessionThread(threading.Thread):
                 remote_bind_address=(self.node, self.portnumber),
                 local_bind_address=('127.0.0.1', self.local_portnumber)
         ) as self.ssh_server:
+
+            
             self.vnc_process = subprocess.Popen(self.vnc_command,
                                                    bufsize=1,
                                                    stdout=subprocess.PIPE,
@@ -146,8 +152,8 @@ class SessionThread(threading.Thread):
                                                        stdout=subprocess.PIPE,
                                                        stderr=subprocess.PIPE,
                                                        stdin=subprocess.PIPE,
-                                                       shell=True,
-                                                       universal_newlines=True)
+                                                       shell=False,
+                                                       env=os.environ)
                 self.tunnel_process.stdin.close()
                 while True:
                     o = self.tunnel_process.stdout.readline()
