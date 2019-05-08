@@ -20,13 +20,15 @@ build_platform_filename = os.path.join(basepath, 'build_platform.txt')
 with open(build_platform_filename, "w") as f:
     f.write(platform + '\n')
     f.write(version)
-
+datas = [(os.path.join(basepath, 'rcm/client/gui/icons/*.png'), 'gui/icons/'),
+                    (os.path.join(basepath, 'build_platform.txt'), '')]
+ 
+if sys.platform != "darwin":
+    data.append((os.path.join(basepath, 'rcm/client/external/turbovnc'), 'turbovnc'))
 a = Analysis(['rcm_client_qt.py'],
              pathex=[(os.path.join(basepath, 'rcm/server'))],
              binaries=[],
-             datas=[(os.path.join(basepath, 'rcm/client/gui/icons/*.png'), 'gui/icons/'),
-                    (os.path.join(basepath, 'rcm/client/external/turbovnc'), 'turbovnc'),
-                    (os.path.join(basepath, 'build_platform.txt'), '')],
+             datas=datas,
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
