@@ -82,7 +82,7 @@ workdir = os.path.abspath(os.path.join('dist', platform, version))
 if not os.path.exists(workdir):
     os.makedirs(workdir)
 if sys.platform == 'win32':
-    exe_extension = '-exe'
+    exe_extension = '.exe'
 else:
     exe_extension = ''
 for filename in [exe_name + exe_extension, exe_name + '.zip']:
