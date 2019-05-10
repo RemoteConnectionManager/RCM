@@ -2,6 +2,7 @@ import logging
 import copy
 from collections import OrderedDict
 import utils
+from utils.executable import which
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
 
@@ -19,7 +20,7 @@ class Plugin(object):
         else:
             self.logger = logger
         for command in self.COMMANDS:
-            exe = utils.which(command)
+            exe = utils.executable.which(command)
             if exe:
                 self.COMMANDS[command] = exe
                 self.logger.debug("command: " + command + " found")
