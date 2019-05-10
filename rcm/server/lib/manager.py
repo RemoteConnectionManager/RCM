@@ -72,7 +72,7 @@ class ServerManager:
                             " - " + scheduler_obj.NAME)
             except Exception as e:
                 logger.error("plugin " + scheduler_str + " loading failed")
-                logger.error(e)
+                logger.error("Excepion: " + str(e) + " - " + str(traceback.format_exc()))
 
         # load services
         for service_str in self.configuration['plugins', 'services']:
@@ -84,7 +84,7 @@ class ServerManager:
                 logger.info('loaded service plugin ' + service_obj.__class__.__name__ + " - " + service_obj.NAME)
             except Exception as e:
                 logger.error("plugin loading failed")
-                logger.error(e)
+                logger.error("Excepion: " + str(e) + " - " + str(traceback.format_exc()))
 
         # instantiate widget tree
         jobscript_builder.class_table = {'SCHEDULER': self.schedulers,
