@@ -7,6 +7,7 @@ import platform
 import shutil
 basepath = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(SPEC))))
 
+
 version = "1.0"
 distribution_name = ''
 if len(sys.argv) > 2:
@@ -79,13 +80,36 @@ exe_se = EXE(pyz,
              runtime_tmpdir=None,
              console=False)
 
+##################################################################
+source_root = os.path.dirname(os.path.dirname(os.path.abspath(SPEC)))
+print("adding path: ",source_root)
+sys.path.append(source_root)
+import client.logic.rcm_utils
+import utils, utils.external
+import yaml
 
-workdir = os.path.abspath(os.path.join('dist', platform, version))
-if not os.path.exists(workdir):
-    os.makedirs(workdir)
 if sys.platform == 'win32':
     exe_extension = '.exe'
 else:
     exe_extension = ''
-for filename in [exe_name + exe_extension, exe_name + '.zip']:
+
+hash = client.logic.rcm_utils.compute_checksum(os.path.join('dist', exe_name + exe_extension))
+
+yaml_dict = {'download' :
+                {platform :
+                    {version :
+                        {'hash' : hash, 'path' : os.path.join(platform, version, exe_name + exe_extension)}
+                    }
+                }
+            }
+
+yaml_file = exe_name + '.yaml'
+print("writing: " + yaml_file)
+with open(os.path.join('dist', yaml_file), 'w') as f:
+        yaml.dump(yaml_dict, f, default_flow_style=False)
+
+workdir = os.path.abspath(os.path.join('dist', platform, version))
+if not os.path.exists(workdir):
+    os.makedirs(workdir)
+for filename in [exe_name + exe_extension, exe_name + '.zip', yaml_file]:
     shutil.move(os.path.join('dist', filename), os.path.join(workdir, filename))
