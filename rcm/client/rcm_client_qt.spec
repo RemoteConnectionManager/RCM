@@ -85,7 +85,7 @@ source_root = os.path.dirname(os.path.dirname(os.path.abspath(SPEC)))
 print("adding path: ",source_root)
 sys.path.append(source_root)
 import client.logic.rcm_utils
-import utils, utils.external
+import utils.external
 import yaml
 
 if sys.platform == 'win32':
