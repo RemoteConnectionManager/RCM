@@ -173,17 +173,26 @@ class ServerManager:
                 logger.info("error in handling json encoded pack_info, Exception: " +
                             str(e) + " - " + str(traceback.format_exc()))
 
-        checksum = ""
-        downloadurl = ""
-        if build_platform in self.downloads:
-            for checksum, urls in self.downloads.get(build_platform, OrderedDict()).items():
-                for downloadurl in urls:
-                    logger.debug("checksum: " + checksum + " url: " + downloadurl)
+        baseurl = self.downloads.get('baseurl', "")
+        platforms = self.downloads.get('platforms', dict())
+        if build_platform in platforms:
+            baseurl = platforms[build_platform].get('baseurl', baseurl)
+            versions = platforms[build_platform].get('versions', dict())
+            for version in sorted(versions.keys()):
+                checksum = versions[version].get('hash',"")
+                downloadurl = baseurl + versions[version].get('path',"")
+                logger.debug("FOUND checksum: " + checksum + " url: " + downloadurl)
+            if version > client_current_version:
+                logger.info("CLIENT UPDATE version: " + version + " checksum: " + checksum + " url: " + downloadurl)
+                return checksum, downloadurl
+            else:
+                logger.info("CLIENT NEWER, version: " + client_current_version + " server version: " + version)
+                return "", ""
         else:
-            available_platforms = self.downloads.keys()
+            available_platforms = platforms.keys()
             available_platforms_string = str(available_platforms)
             logger.warning("platform: " + str(build_platform) + ' NOT FOUND, available:\n' + available_platforms_string)
-            return checksum, downloadurl
+            return "", ""
 
     def get_jobscript_json_menu(self):
         return json.dumps(self.root_node.get_gui_options())

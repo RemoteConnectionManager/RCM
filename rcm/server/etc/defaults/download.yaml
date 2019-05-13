@@ -1,22 +1,45 @@
 download:
-  darwin_64bit :
-    '4c207010376c67f3a2821beee43909ef' :
-      - 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/RCM_darwin_64bit'
-  osx_64bit :
-    'a3e3d0b6a3e3f6895bbdae93fe15abc2' :
-      - 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/RCM_osx_64bit?p=783'
-  linux_32bit :
-    'ab7be0ab44a1e0628250e52d11398534' :
-      - 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/RCM_linux_32bit?p=769'
-  linux_64bit :
-    'c06709a3578faa67672933b9f6c357b0' :
-      - 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/RCM_linux_64bit?p=772'
-  linux_64bitdev :
-    'bf4f4221248d9d0285bbd4feceec1c2b' :
-       - 'http://130.186.13.241/static/artifacts-dev/ubuntu16/64bit/v0.0.8_dev-206-g667b44d/RCM_linux_64bitdev'
-  win32_64bit :
-    '9d7d36422681a64011b6aeebc9575b7e' :
-      - 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/RCM_win32_64bit.exe?p=778'
-  win32_32bit :
-    '5c81bbbfc8b6280db94ab686fb2d5b2c' :
-      - 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/RCM_win32_32bit.exe?p=780'
+  baseurl : 'http://130.186.13.241/static/artifacts-dev/'
+  platforms :
+    darwin_64bit :
+      baseurl : 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/'
+      versions :
+        old:
+          hash: '4c207010376c67f3a2821beee43909ef'
+          path: 'RCM_darwin_64bit'
+    osx_64bit :
+      baseurl : 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/'
+      versions :
+        old_783:
+          hash: 'a3e3d0b6a3e3f6895bbdae93fe15abc2'
+          path: 'RCM_osx_64bit?p=783'
+    linux_32bit :
+      baseurl : 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/'
+      versions :
+        old_769:
+          hash: 'ab7be0ab44a1e0628250e52d11398534'
+          path: 'RCM_linux_32bit?p=769'
+    linux_64bit :
+      baseurl : 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/'
+      versions :
+        old_772:
+          hash: 'c06709a3578faa67672933b9f6c357b0'
+          path: 'RCM_linux_64bit?p=772'
+    win32_64bit :
+      baseurl : 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/'
+      versions :
+        old_778:
+          hash: '9d7d36422681a64011b6aeebc9575b7e'
+          path: 'RCM_win32_64bit.exe?p=778'
+    win32_32bit :
+      baseurl : 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/'
+      versions :
+        old_780:
+          hash: '5c81bbbfc8b6280db94ab686fb2d5b2c'
+          path: 'RCM_win32_32bit.exe?p=780'
+
+    linux_64bit_ubuntu16_dev:
+      versions :
+        v0.0.8_dev-254-gcdc2aac:
+          hash: 9e15d0ae86925f15c05b7bd2ca786b0a
+          path: linux_64bit_ubuntu16_dev/v0.0.8_dev-254-gcdc2aac/RCMdev

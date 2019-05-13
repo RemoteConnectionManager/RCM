@@ -96,9 +96,13 @@ else:
 hash = client.logic.rcm_utils.compute_checksum(os.path.join('dist', exe_name + exe_extension))
 
 yaml_dict = {'download' :
-                {platform :
-                    {version :
-                        {'hash' : hash, 'path' : os.path.join(platform, version, exe_name + exe_extension)}
+                {'platforms' :
+                    {platform :
+                        {'versions':
+                            {version :
+                                {'hash' : hash, 'path' : os.path.join(platform, version, exe_name + exe_extension)}
+                            }
+                        }
                     }
                 }
             }
