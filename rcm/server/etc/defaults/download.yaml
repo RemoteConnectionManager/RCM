@@ -43,3 +43,10 @@ download:
         v0.0.8_dev-254-gcdc2aac:
           hash: 9e15d0ae86925f15c05b7bd2ca786b0a
           path: linux_64bit_ubuntu16_dev/v0.0.8_dev-254-gcdc2aac/RCMdev
+
+    win32_64bit__dev:
+      versions:
+        v0.0.8_dev-258-g4caa4ae:
+          hash: 112fc3f57ad25d822c933e8e9dbad5a0
+          path: win32_64bit__dev\v0.0.8_dev-258-g4caa4ae\RCMdev.exe
+          

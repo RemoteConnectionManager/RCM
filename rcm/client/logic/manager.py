@@ -104,8 +104,9 @@ class RemoteConnectionManager:
 
                 home_path = os.path.expanduser('~')
                 desktop_path = os.path.join(home_path, 'Desktop')
+                exe_dir_path=os.path.dirname(sys.executable)
                 if os.path.exists(desktop_path) :
-                    rcm_unprotected_path = os.path.join(desktop_path, '.rcm', 'executables')
+                    rcm_unprotected_path = os.path.join(exe_dir_path, '.rcm', 'executables')
                     os.makedirs(rcm_unprotected_path, exist_ok=True)
                     dest_dir = os.path.join(rcm_unprotected_path, 'turbovnc')
                     #distutils.dir_util.copy_tree(resource_path('turbovnc'), dest_dir)
