@@ -31,7 +31,7 @@ with open(build_platform_filename, "w") as f:
     f.write(platform + '\n')
     f.write(version)
 datas = [(os.path.join(basepath, 'rcm/client/gui/icons/*.png'), 'gui/icons/'),
-                    (os.path.join(basepath, 'build_platform.txt'), '')]
+                    (os.path.join(basepath, 'build_platform.txt'), '.')]
  
 if sys.platform != "darwin":
     datas.append((os.path.join(basepath, 'rcm/client/external/turbovnc'), 'turbovnc'))
