@@ -52,6 +52,7 @@ class Rcm(Package):
     version('v0.0.4', '215537f33ce5e17c67ec901334404c79')
     version('develop', git='https://github.com/RemoteConnectionManager/RCM.git', tag='dev')
     version('refactoring', git='https://github.com/RemoteConnectionManager/RCM.git', branch='refactoring')
+    version('yaml_config', git='https://github.com/RemoteConnectionManager/RCM.git', branch='feature/yaml_config')
 
     variant('linksource', default=False, description='link to source instead of copying scripts')
     variant('client', default=False, description='install client part')
@@ -105,7 +106,7 @@ class Rcm(Package):
         if '+server' in self.spec:
             mkdirp(prefix.bin)
             configdir = spec.variants['configdir'].value
-            if not os.path.exixt(configdir) :
+            if not os.path.exists(configdir) :
                 tty.warn(' non existing configdir :' + configdir)
                 configdir = os.path.join(rcm_source,
                 'config/generic/ssh')
@@ -116,14 +117,15 @@ class Rcm(Package):
                     tty.warn('copy RCM source tree in prefix: '+rcm_source + ' -->'+dest)
                     shutil.copytree(rcm_source,dest)
                     rcm_source=dest
-                if '@refactoring' in self.spec:
-                    rcm_source=os.path.join(rcm_source,'rcm')
+            if '@refactoring' in self.spec or '@yaml_config' in self.spec :
+                rcm_source=os.path.join(rcm_source,'rcm')
+            if '+linksource' in self.spec:
                 tty.warn('linking to source->'+rcm_source)
                 os.symlink(os.path.join(rcm_source,'server'),
                            os.path.join(prefix.bin,'server'))
                 os.symlink(configdir, os.path.join(prefix.bin,'config'))
             else:
-                copy_tree('server', os.path.join(prefix.bin,'server'),verbose=1)
+                copy_tree(os.path.join(rcm_source,'server'), os.path.join(prefix.bin,'server'),verbose=1)
                 copy_tree(configdir, os.path.join(prefix.bin,'config'),verbose=1)
         if '+client' in self.spec:
             rcm_client_dir=os.path.join(os.path.abspath(self.stage.source_path),'client')
