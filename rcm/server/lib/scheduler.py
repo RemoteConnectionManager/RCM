@@ -178,7 +178,10 @@ class SlurmScheduler(BatchScheduler):
             )
             accounts = []
             for l in out.splitlines()[1:]:
-                accounts.append(l.split('|')[0])
+                fields = l.split('|')
+                # user (second field ) must not be null
+                if fields[1]:
+                    accounts.append(fields[0])
             return accounts
         else:
             self.logger.debug("warning missing command sshare:")
