@@ -27,7 +27,7 @@ def absolute_paths(relative_paths, search_paths=(), glob_suffix=None):
 
         if os.path.isdir(abs_path):
             if glob_suffix:
-                list_paths.extend(glob.glob(os.path.join(abs_path, glob_suffix)))
+                list_paths.extend(sorted(glob.glob(os.path.join(abs_path, glob_suffix))))
             else:
                 list_paths.append(abs_path)
             continue
