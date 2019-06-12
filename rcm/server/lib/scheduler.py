@@ -204,13 +204,23 @@ class SlurmScheduler(BatchScheduler):
         self.logger.debug("Slurm get queues")
         sinfo = self.COMMANDS.get('sinfo', None)
         if sinfo:
-            params = "-o '%R|%l|%m|%c'".split(' ')
+            params = "-o %R|%l|%m|%c".split(' ')
             raw_output = sinfo(*params,
                                output=str)
-            partitions = []
+            partitions = {}
             for l in raw_output.splitlines()[1:]:
                 partition = l.split('|')[0]
-                partitions.append(l.split('|')[0])
+                stringtime = l.split('|')[1]
+                if len(stringtime.split('-')) == 1:
+                    time=stringtime
+                else:
+                    time='23:59:59'
+                memory = int(int(l.split('|')[2]) / 1000)
+                cpu = int(l.split('|')[3])
+                partitions[partition] = {'TIME' : {'max' : time},
+                                         'MEMORY' : {'max' : memory},
+                                         'CPU' : {'max' : cpu},
+                                        }
             self.logger.debug("Slurm found queues: " + str(partitions))
             return partitions
         else:

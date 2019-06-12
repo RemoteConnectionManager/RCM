@@ -35,11 +35,24 @@ class Plugin(object):
     def merge_list(preset, computed):
         logger.debug("merging:" + str(preset) + "----" + str(computed))
         out = copy.deepcopy(preset)
-        for a in computed:
-            if a not in out:
-                if hasattr(out, 'append'):
-                    out.append(a)
+        if hasattr(computed, 'append'): 
+            for a in computed:
+                if a not in out:
+                    if hasattr(out, 'append'):
+                        out.append(a)
+                    else:
+                        out[a] = OrderedDict()
+        elif hasattr(computed, 'get'):
+            for a in computed:
+                if a not in out:
+                    if hasattr(out, 'append'):
+                        out.append(a)
+                    else:
+                        out[a] = computed[a]
                 else:
-                    out[a] = OrderedDict()
+                    if hasattr(out[a], 'get'):
+                        out[a] = Plugin.merge_list(out[a], computed[a])
+
+
         logger.debug("merged:" + str(out))
         return out
