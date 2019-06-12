@@ -197,17 +197,20 @@ class SlurmScheduler(BatchScheduler):
                 accounts.append(a)
         return accounts
 
+
     def queues(self):
         # hints on useful slurm commands
         # sacctmgr show qos
         self.logger.debug("Slurm get queues")
         sinfo = self.COMMANDS.get('sinfo', None)
         if sinfo:
-            raw_output = sinfo('--format=%R',
+            params = "-o '%R|%l|%m|%c'".split(' ')
+            raw_output = sinfo(*params,
                                output=str)
             partitions = []
             for l in raw_output.splitlines()[1:]:
-                partitions.append(l)
+                partition = l.split('|')[0]
+                partitions.append(l.split('|')[0])
             self.logger.debug("Slurm found queues: " + str(partitions))
             return partitions
         else:
