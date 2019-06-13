@@ -31,7 +31,17 @@ schema:
                 substitutions :
                   WM_COMMAND: ""
                   WM_FLAGS: ""
-                children:
-              DISPLAY :
-                label : 'Display size'
-                type : 'combobox'
+                  DISPLAY: "@{XSIZE}x@{YSIZE}"
+                children :
+                  XSIZE :
+                    label : 'X size'
+                    type : 'slider'
+                    values :
+                      min : 300
+                      max : 3000
+                  YSIZE :
+                    label : 'Y size'
+                    type : 'slider'
+                    values :
+                      min : 300
+                      max : 3000

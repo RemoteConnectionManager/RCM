@@ -19,6 +19,8 @@ defaults:
               Fluxbox :
                 substitutions :
                   WM_COMMAND: "-xstartup ${RCM_HOME}/bin/config/xstartup.fluxbox"
-            DISPLAY :
-              - 1024x968
-              - 1000x1000
+                XSIZE:
+                  min : 400
+                YSIZE:
+                  min : 400
+
