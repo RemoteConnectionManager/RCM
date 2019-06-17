@@ -392,14 +392,14 @@ def widget_factory(widget_type):
 
     class TimeSlider(Slider):
 
-        def __init__(self, values=None, path='', var='', parent_widget=None):
+        def __init__(self, values=None, path='', var='', parent_widget=None, description=None):
 
             Slider.__init__(self,
                             values={'min' :time_to_sec(values.get('min', 0)),
                                     'max' :time_to_sec(values.get('max', 1)) },
                             path=path,
                             var=var,
-                            parent_widget=parent_widget)
+                            parent_widget=parent_widget, description=description)
 
             qregex = QRegExp("^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$")
             validator = QRegExpValidator(qregex)
