@@ -13,12 +13,12 @@ schema:
           ACCOUNT :
             label : 'Account'
             type : 'combobox'
-
+            description : "Select the account for submitting the job service"
       #composites
           QUEUE :
             label : 'Queue'
             type : 'combobox'
-
+            description : "Select the slurm partition to run the job service"
             substitutions:
               QUEUE_PAR: "-N 1 -n @{CPU} --mem=@{MEMORY}GB @{GRES.GRES_STRING} #from schema"
               GRES.GRES_STRING: ""
@@ -28,24 +28,28 @@ schema:
               MEMORY :
                 label : 'Memory'
                 type : 'slider'
+                description : "Select the required memory (GigaBytes) for job service"
                 values :
                   min : 1
                   max : 120
               CPU :
                 label : 'CPU'
                 type : 'slider'
+                description : "Select the required number of cores for job service"
                 values :
                   min : 1
                   max : 36
               TIME :
                 label : 'Time (sec)'
                 type : 'timeslider'
+                description : "Select the wall clock time for job service to run"
                 values :
                   min : '00:00:01'
                   max : '10:00:00'
               GRES :
                 label : 'GPU'
                 type : 'combobox'
+                description : "Select the number of GPU required"
                 children :
 
 
