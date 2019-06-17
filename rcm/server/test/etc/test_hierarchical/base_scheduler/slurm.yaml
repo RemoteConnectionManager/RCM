@@ -2,7 +2,7 @@ defaults:
   TOP:
     SCHEDULER :
       Slurm :
-
+        description : "Start service using Slurm batch scheduler"
         substitutions :
           # WARNING: on regex, \ must be escaped
           JOBID_REGEX: "Submitted batch job (\\d*)"

@@ -2,7 +2,7 @@ defaults:
   TOP:
     SCHEDULER :
       SSH :
-
+        description : "Start service using a process on the login node"
         substitutions :
           # WARNING: on regex, \ and " must be escaped
           JOBID_REGEX: "process id: (\\d*)"

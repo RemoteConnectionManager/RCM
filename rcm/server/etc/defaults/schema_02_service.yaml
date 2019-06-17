@@ -17,7 +17,7 @@ schema:
           COMMAND :
             label : 'Command'
             type : 'combobox'
-
+            description : "Select the specific command to start the service"
             substitutions :
   #            COMMAND: "vncserver @{WM_FLAGS} $vnc_foreground -geometry @{DISPLAY} -rfbauth $RCM_JOBLOG.pwd  @{WM_COMMAND "
               COMMAND_LINE: ""
@@ -28,6 +28,7 @@ schema:
               WM :
                 label : 'Window Manager'
                 type : 'combobox'
+                description : "Select the window manager"
                 substitutions :
                   WM_COMMAND: ""
                   WM_FLAGS: ""
@@ -36,12 +37,14 @@ schema:
                   XSIZE :
                     label : 'X size'
                     type : 'slider'
+                    description : "Horizontal dimension of VNC Display window"
                     values :
                       min : 300
                       max : 3000
                   YSIZE :
                     label : 'Y size'
                     type : 'slider'
+                    description : "Vertical dimension of VNC Display window"
                     values :
                       min : 300
                       max : 3000

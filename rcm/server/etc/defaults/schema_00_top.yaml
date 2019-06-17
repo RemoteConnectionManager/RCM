@@ -23,6 +23,8 @@ schema:
       SCHEDULER:
         label : 'Scheduler'
         type : 'combobox'
+        description : "Select the scheduler for starting the service"
+
 
 
       DIVIDER:
@@ -33,6 +35,8 @@ schema:
       SERVICE :
         label : 'Service Type'
         type: 'combobox'
+        description : "Select the service type to start"
+
         substitutions :
           COMMAND.SETUP: ""
           COMMAND.COMMAND_LINE: ""

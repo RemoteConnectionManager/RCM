@@ -135,6 +135,7 @@ class QJobWidget(QContainerWidget):
             values = d.get('values', None)
             label = d.get('label', None)
             widget_type = d.get('type', None)
+            description = d.get('description', None)
 
             if values:
                 gui_widget = create_hor_composite_widget(parent_widget,
@@ -143,7 +144,8 @@ class QJobWidget(QContainerWidget):
                                                          widget_type,
                                                          values,
                                                          path,
-                                                         var)
+                                                         var,
+                                                         description )
                 gui_widget.parent = self
                 gui_widget.update()
                 parent_widget.widgets.append(gui_widget)
@@ -207,7 +209,8 @@ def create_hor_composite_widget(parent_widget,
                                 widget_type=None,
                                 parameters=None,
                                 path='',
-                                var=''):
+                                var='',
+                                description=''):
     """
     Create a horizontal composite widget to be added in the main vertical layout
     The composite widget is made of a qlabel + an interactive gui widget
@@ -228,7 +231,7 @@ def create_hor_composite_widget(parent_widget,
             label_widget = QLabel("%s:" % label)
             hor_layout.addWidget(label_widget)
 
-        qvar_widget = widget_factory(widget_type)(parameters, path, var, parent_widget)
+        qvar_widget = widget_factory(widget_type)(parameters, path, var, parent_widget, description)
 
         hor_layout.addWidget(qvar_widget)
         main_widget.setLayout(hor_layout)
@@ -263,7 +266,7 @@ def widget_factory(widget_type):
 
     # nested class
     class ComboBox(QComboBox):
-        def __init__(self, values=None, path='', var='', parent_widget=None):
+        def __init__(self, values=None, path='', var='', parent_widget=None, description=None):
             QComboBox.__init__(self)
             self.parent_widget = parent_widget
             self.var = var
@@ -272,7 +275,15 @@ def widget_factory(widget_type):
             self.path = path
             self.currentIndexChanged.connect(lambda: self.combo_box_change(self.choices))
             self.addItems(values)
+            count = 0
+            for v in values:
+                choice_description = values[v].get('description','')
+                if choice_description:
+                    self.setItemData(count, choice_description, Qt.ToolTipRole)
+                count += 1
             self.setCurrentIndex(0)
+            if description:
+                self.setToolTip(description)
 
         def update(self):
             self.currentIndexChanged.emit(0)
@@ -301,7 +312,7 @@ def widget_factory(widget_type):
                                 hide_childs(self.parent.containers[new_key])
 
     class Divider(QFrame):
-        def __init__(self, values=None, path='', var='', parent_widget=None):
+        def __init__(self, values=None, path='', var='', parent_widget=None, description=None):
             QFrame.__init__(self)
             self.setFrameShape(QFrame.HLine)
             self.setFrameShadow(QFrame.Sunken)
@@ -312,7 +323,7 @@ def widget_factory(widget_type):
             return
 
     class Slider(QWidget):
-        def __init__(self, values=None, path='', var='', parent_widget=None):
+        def __init__(self, values=None, path='', var='', parent_widget=None, description=None):
             QWidget.__init__(self)
             self.parent = None
             self.var = var
@@ -329,6 +340,11 @@ def widget_factory(widget_type):
             self.slider.setFixedWidth(100)
             self.slider.setMinimum(values.get('min'))
             self.slider.setMaximum(values.get('max'))
+            if 'description' in values:
+                self.slider.setToolTip(values['description'])
+            else:
+                if description:
+                    self.slider.setToolTip(description)
 
             self.slider_edit.textChanged.connect(self.slider_edit_change)
             self.slider.valueChanged.connect(self.slider_change)

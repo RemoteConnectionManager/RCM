@@ -6,9 +6,11 @@ defaults:
           TurboVNC :
             WM :
               KDE :
+                description : "Start KDE as Window manager for the VNC session (heavvier choice)"
                 substitutions :
                   WM_COMMAND: "-xstartup ${RCM_HOME}/bin/config/xstartup.kde"
               GnomeGL :
+                description : "Start Gnome as Window manager for the VNC session, needs OpenGL (VirtualGL support)"
                 substitutions :
                   WM_COMMAND: "-xstartup ${RCM_HOME}/bin/config/xstartup.gnomegl"
                   WM_FLAGS: " -3dwm "

@@ -2,8 +2,10 @@ defaults:
   TOP:
     SERVICE :
       VNC :
+        description : "Start service of type VNC "
         COMMAND :
           TurboVNC :
+            description : "Select TurboVNC as VNC server "
             substitutions :
               SETUP: "module load rcm"
               LOGFILE: "@{RCM_SESSION_FOLDER}/vnclog"
@@ -17,9 +19,11 @@ defaults:
 
             WM :
               Fluxbox :
+                description : "Start Fluxbox as Window manager for the VNC session (lightest choice)"
                 substitutions :
                   WM_COMMAND: "-xstartup ${RCM_HOME}/bin/config/xstartup.fluxbox"
                 XSIZE:
+                  description : "Screen hor size "
                   min : 400
                 YSIZE:
                   min : 400

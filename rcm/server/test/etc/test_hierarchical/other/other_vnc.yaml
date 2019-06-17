@@ -4,6 +4,7 @@ defaults:
       VNC :
         COMMAND :
           OtherVNC :
+            description : "Placeholder for Other VNC server"
             substitutions :
               COMMAND_LINE: "other_vncserver "
             DISPLAY :

@@ -2,9 +2,11 @@ defaults:
   TOP:
     SERVICE :
       Other :
+        description : "Placeholder for other type of sarvice"
         COMMAND :
           FakeService :
             otherstuff :
+            description : " this is a dummy service example"
             substitutions :
               SETUP: "# fake module load "
               LOGFILE: "@{RCM_SESSION_FOLDER}/fakelog"

@@ -260,9 +260,13 @@ class ManagedChoiceNode(AutoChoiceNode):
             options[child.NAME] = child.get_gui_options()
 
         if options:
-            return {'children': options}
+            result = {'children': options}
         else:
-            return options
+            result = options
+        if 'description' in self.defaults:
+            result['description'] = self.defaults['description']
+        return result
+
 
 
 class ManagerChoiceNode(ChoiceNode):
