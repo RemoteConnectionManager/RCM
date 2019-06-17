@@ -195,7 +195,9 @@ class ServerManager:
             return "", ""
 
     def get_jobscript_json_menu(self):
-        return json.dumps(self.root_node.get_gui_options())
+        json_string = json.dumps(self.root_node.get_gui_options())
+        logger.debug("################ jobscript_json_gui ##############\n" + json_string + "\n#####################################")
+        return json_string
 
     def handle_choices(self, choices_string):
         choices = json.loads(choices_string)
