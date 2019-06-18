@@ -149,7 +149,10 @@ class rcm_server(rcm_base_server.rcm_base_server):
       stdout,stderr=p1.communicate()
       if len(stderr) == 0:
         queueList.append(key)
-        self.kill_job(stdout.strip().split('.')[0])
+        try:
+            self.kill_job(stdout.strip().split('.')[0])
+        except:
+            pass
     return queueList
 
     
