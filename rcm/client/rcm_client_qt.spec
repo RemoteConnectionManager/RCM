@@ -60,6 +60,7 @@ exe_sd = EXE(pyz,
              debug=False,
              strip=False,
              upx=True,
+             icon=os.path.join(basepath, 'rcm/client/gui/logo/logo.ico'),
              console=False)
 coll = COLLECT(exe_sd,
                a.binaries,
