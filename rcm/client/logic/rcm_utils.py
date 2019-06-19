@@ -90,8 +90,10 @@ def client_folder():
 def log_folder():    
     return os.path.join(client_folder(), 'logs')
 
+
 # pack_info is a kind of singleton, this is the only instance
 pack_info_instance = None
+
 
 # this is the real class, hidden
 class _pack_info:
@@ -108,21 +110,23 @@ class _pack_info:
             with open(build_platform_filename, "r") as f:
                 self.buildPlatformString = f.readline().strip()
                 self.rcmVersion = f.readline()
-                logic_logger.debug("buildPlatformString=>>" + self.buildPlatformString + "<")
-                logic_logger.debug("rcmVersion=>>" + self.rcmVersion + "<")
+                logic_logger.debug("buildPlatformString: " + self.buildPlatformString)
+                logic_logger.debug("rcmVersion: " + self.rcmVersion)
 
         if pyinstaller_utils.is_bundled():
             self.checksumString = str(compute_checksum(sys.executable))
 
     def to_dict(self):
-        return {'platform': self.buildPlatformString, 'version': self.rcmVersion, 'checksum': self.checksumString}
-
+        return {'platform': self.buildPlatformString,
+                'version': self.rcmVersion,
+                'checksum': self.checksumString}
 
 
 def pack_info():
     if pack_info_instance is None:
         _pack_info_ = _pack_info()
     return _pack_info_
+
 
 def get_unused_portnumber():
     sock = socket.socket()
@@ -158,7 +162,6 @@ def get_server_command(host, user, passwd=''):
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    logic_logger.info("getting server command from host " + host + " with user " + user)
     try:
         ssh.connect(host, username=user, password=passwd)
     except Exception as e:
@@ -192,7 +195,7 @@ def get_server_command(host, user, passwd=''):
             # python2
             else:
                 line = stdout.readline()
-            logic_logger.debug("parsing output line: ->" + line + "<-")
+            logic_logger.debug("parsing output line: " + line)
 
             if end_string in line and start_string in line:
                 tmp_command = line.split(end_string)[0].split(start_string)[1]
@@ -201,7 +204,7 @@ def get_server_command(host, user, passwd=''):
                     loop = False
             output += line
         except socket.timeout:
-            logic_logger.warning("WARNING TIMEOUT: unable to grab output of -->" +
-                                  get_rcm_server_command + "< on host:" + host)
+            logic_logger.warning("WARNING TIMEOUT: unable to grab output of " +
+                                  get_rcm_server_command + " on host:" + host)
             loop = False
     return rcm_server_command

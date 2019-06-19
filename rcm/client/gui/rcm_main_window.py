@@ -29,7 +29,7 @@ class RCMMainWindow(QMainWindow):
         title = "Remote Connection Manager - CINECA - " + pack_info.rcmVersion
         self.setWindowTitle(title)
 
-        width = 900
+        width = 1200
         height = 450
 
         screen_width = QDesktopWidget().width()
@@ -192,10 +192,10 @@ class RCMMainWindow(QMainWindow):
     def about(self):
         show_message = self.windowTitle() + '\n'
         if rcm_utils.pack_info().buildPlatformString:
-            show_message += "build_platform: " + rcm_utils.pack_info().buildPlatformString  + '\n'
+            show_message += "build platform: " + rcm_utils.pack_info().buildPlatformString + '\n'
         if rcm_utils.pack_info().checksumString:
-            show_message += "RCM bundled exe, checksum string: " + rcm_utils.pack_info().checksumString  + '\n'
-        QMessageBox.about(self, "RCM", show_message)
+            show_message += "bundle checksum: " + rcm_utils.pack_info().checksumString  + '\n'
+        QMessageBox.about(self, "About", show_message)
         return
 
     @pyqtSlot()
