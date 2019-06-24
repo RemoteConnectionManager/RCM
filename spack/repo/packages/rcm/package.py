@@ -50,7 +50,7 @@ class Rcm(Package):
     version('v0.0.2', 'a9ee0ddfa533701a3a538011f9c2349c')
     version('v0.0.3', 'a9ee0ddfa533701a3a538011f9c2349c')
     version('v0.0.4', '215537f33ce5e17c67ec901334404c79')
-    version('develop', git='https://github.com/RemoteConnectionManager/RCM.git', tag='dev')
+    version('v0.0.5', '80c8700cfb3ba9f2709dd3ab6a4d3cdd')
     version('refactoring', git='https://github.com/RemoteConnectionManager/RCM.git', branch='refactoring')
     version('yaml_config', git='https://github.com/RemoteConnectionManager/RCM.git', branch='feature/yaml_config')
 
