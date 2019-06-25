@@ -27,21 +27,21 @@ class RCMMainWindow(QMainWindow):
         title = "Remote Connection Manager - CINECA - " + pack_info.rcmVersion
         self.setWindowTitle(title)
 
-        width = 1200
-        height = 450
-
         screen_width = QGuiApplication.primaryScreen().size().width()
         screen_height = QGuiApplication.primaryScreen().size().height()
+
+        app_width = 0.6 * screen_width # 1200
+        app_height = 0.375 * app_width # 450
 
         logger.debug("screen_width: " + str(screen_width))
         logger.debug("screen_height: " + str(screen_height))
 
-        self.setGeometry((screen_width / 2) - (width / 2),
-                         (screen_height / 2) - (height / 2),
-                         width, height)
+        self.setGeometry((screen_width / 2) - (app_width / 2),
+                         (screen_height / 2) - (app_height / 2),
+                         app_width, app_height)
 
-        self.setMinimumHeight(height)
-        self.setMinimumWidth(width)
+        self.setMinimumHeight(app_height)
+        self.setMinimumWidth(app_width)
 
         self.build_menu()
 
