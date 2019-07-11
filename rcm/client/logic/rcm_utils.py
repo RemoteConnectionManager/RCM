@@ -175,8 +175,8 @@ def get_server_command(host, user, passwd=''):
 
     start_string = '_##start##_'
     end_string = '_##end##_'
-    evn_variable = '${RCM_SERVER_COMMAND}'
-    get_rcm_server_command = 'echo ' + start_string + evn_variable + end_string + '\n'
+    env_variable = '${RCM_SERVER_COMMAND}'
+    get_rcm_server_command = 'echo ' + start_string + env_variable + end_string + '\n'
     chan.invoke_shell()
     chan.sendall(get_rcm_server_command)
     stdin.flush()
@@ -197,11 +197,9 @@ def get_server_command(host, user, passwd=''):
                 line = stdout.readline()
             logic_logger.debug("parsing output line: " + line)
 
-            if end_string in line and start_string in line:
-                tmp_command = line.split(end_string)[0].split(start_string)[1]
-                if not evn_variable in tmp_command:
-                    rcm_server_command=tmp_command
-                    loop = False
+            if end_string in line and start_string in line and not 'echo' in line:
+                rcm_server_command=line.split(end_string)[0].split(start_string)[1]
+                loop = False
             output += line
         except socket.timeout:
             logic_logger.warning("WARNING TIMEOUT: unable to grab output of " +
