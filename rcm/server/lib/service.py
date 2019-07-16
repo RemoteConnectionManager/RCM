@@ -15,6 +15,17 @@ class Service(plugin.Plugin):
     def __init__(self, *args, **kwargs):
         self.COMMANDS = {'bash': None}
         super(Service, self).__init__(*args, **kwargs)
+        if 'client_info' in kwargs:
+            self.client_info = kwargs['client_info']
+            if 'screen_width' in self.client_info and 'screen_height' in self.client_info:
+                self.PARAMS['WM'] = self.size_param
+
+    def size_param(self,default_params=None):
+        if default_params:
+            print("$$$$$$$$$$$$$$" + str(default_params))
+        return {'Fluxbox': {'XSIZE': {'max': self.client_info['screen_width']},
+                            'YSIZE': {'max': self.client_info['screen_height']}}}
+
 
     def run_preload(self, key='PRELOAD_LINE', substitutions=None):
         self.logger.debug("GENERIC run_preload for service: "+ self.NAME)
@@ -88,14 +99,14 @@ class Service(plugin.Plugin):
 
 
 class TurboVNCServer(Service):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.NAME = "TurboVNC"
-        super(TurboVNCServer, self).__init__()
+        super(TurboVNCServer, self).__init__(*args, **kwargs)
 
 
 
 class Fake(Service):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.NAME = "FakeService"
-        super(Fake, self).__init__()
+        super(Fake, self).__init__(*args, **kwargs)
 

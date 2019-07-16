@@ -1,6 +1,8 @@
 # std import
 import sys
 import logging
+import traceback
+import json
 
 # local import
 import rcm
@@ -23,20 +25,35 @@ class ServerAPIs:
     def __init__(self):
         self.server_manager = None
 
-    def _server_init(self):
+    def _server_init(self, client_info=None):
         if self.server_manager is None:
             import manager
             import config
             config.getConfig()
             self.server_manager = manager.ServerManager()
-            self.server_manager.init()
+            self.server_manager.init(client_info)
 
     def config(self, build_platform='', client_current_version='', client_current_checksum=''):
-        self._server_init()
+        logger.debug("platform string" + str(build_platform) )
+        platform_info = ''
+        client_info = dict()
+        if build_platform:
+            if '{' == build_platform[0]:
+                # interpreting build_platfrm as a json encodef pack_info field
+                try:
+                    client_info = json.loads(build_platform)
+                    platform_info = client_info['platform']
+                    client_current_version = client_info['version']
+                    client_current_checksum = client_info['checksum']
+                except Exception as e:
+                    logger.info("error in handling json encoded pack_info, Exception: " +
+                            str(e) + " - " + str(traceback.format_exc()))
+
+        self._server_init(client_info)
         logger.debug("calling api config")
         conf = rcm.rcm_config()
-        if build_platform:
-            (checksum, url) = self.server_manager.get_checksum_and_url(build_platform,
+        if platform_info:
+            (checksum, url) = self.server_manager.get_checksum_and_url(platform_info,
                                                                        client_current_version=client_current_version,
                                                                        client_current_checksum=client_current_checksum)
             conf.set_version(checksum, url)

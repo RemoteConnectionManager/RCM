@@ -49,8 +49,11 @@ class ServerManager:
         self.network_map = dict()
         self.top_templates = dict()
         self.configuration = None
+        self.info = dict()
 
-    def init(self):
+    def init(self, info=None):
+        if not info is None:
+            self.info = info
         self.login_fullname = socket.getfqdn()
 
         self.configuration = config.getConfig('default')
@@ -79,7 +82,9 @@ class ServerManager:
             try:
                 module_name, class_name = service_str.rsplit(".", 1)
                 service_class = getattr(importlib.import_module(module_name), class_name)
-                service_obj = service_class()
+                client_info = info.get('client_info',dict())
+                service_obj = service_class(client_info=client_info)
+                print("############## "+str(client_info))
                 self.services[service_obj.NAME] = service_obj
                 logger.info('loaded service plugin ' + service_obj.__class__.__name__ + " - " + service_obj.NAME)
             except Exception as e:
@@ -162,16 +167,6 @@ class ServerManager:
 
     def get_checksum_and_url(self, build_platform, client_current_version='', client_current_checksum=''):
         logger.debug("searching platform " + str(build_platform) )
-        if '{' == build_platform[0]:
-            # interpreting build_platfrm as a json encodef pack_info field
-            try:
-                client_info = json.loads(build_platform)
-                build_platform = client_info['platform']
-                client_current_version = client_info['version']
-                client_current_checksum = client_info['checksum']
-            except Exception as e:
-                logger.info("error in handling json encoded pack_info, Exception: " +
-                            str(e) + " - " + str(traceback.format_exc()))
 
         baseurl = self.downloads.get('baseurl', "")
         platforms = self.downloads.get('platforms', dict())

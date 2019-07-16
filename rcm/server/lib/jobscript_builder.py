@@ -347,7 +347,7 @@ class ManagedPlugin(ManagedChoiceNode):
                         constructor_logger.debug(self.__class__.__name__ + str(
                             kwargs.get('name', self.NAME)) + " calling connected plugin " +
                                                  self.connected_plugin.__class__.__name__ + " param " + str(param))
-                        computed_param = self.connected_plugin.PARAMS[param]()
+                        computed_param = self.connected_plugin.PARAMS[param](default_params=merged_defaults.get(param, OrderedDict()))
                         constructor_logger.info(self.__class__.__name__ + str(
                             kwargs.get('name', self.NAME)) + " asking  connected plugin " +
                                                 self.connected_plugin.__class__.__name__ +

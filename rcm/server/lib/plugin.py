@@ -9,7 +9,7 @@ logger = logging.getLogger('rcmServer' + '.' + __name__)
 
 class Plugin(object):
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         if not hasattr(self, 'NAME'):
             self.NAME = ''
         if not hasattr(self, 'COMMANDS'):

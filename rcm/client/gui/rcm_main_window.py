@@ -29,6 +29,7 @@ class RCMMainWindow(QMainWindow):
 
         screen_width = QGuiApplication.primaryScreen().size().width()
         screen_height = QGuiApplication.primaryScreen().size().height()
+        pack_info.add_client_screen_dimensions(screen_width, screen_height)
 
         app_width = 0.6 * screen_width # 1200
         app_height = 0.375 * app_width # 450
