@@ -41,6 +41,7 @@ schema:
                     values :
                       min : 300
                       max : 3000
+                      default : 0.7
                   YSIZE :
                     label : 'Y size'
                     type : 'slider'
@@ -48,3 +49,4 @@ schema:
                     values :
                       min : 300
                       max : 3000
+                      default : 0.7
