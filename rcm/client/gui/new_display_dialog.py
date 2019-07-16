@@ -334,12 +334,24 @@ def widget_factory(widget_type):
             main_layout = QHBoxLayout()
 
             self.slider_edit = QLineEdit()
-            self.slider_edit.setText(str(values.get('min')))
+            s_min = int(values.get('min', 0))
+            s_max = int(values.get('max', 1))
+            slider_default = values.get('default', int((s_max + s_min) / 2 ))
+            if 0 < slider_default and slider_default < 1:
+                slider_min = min(s_min, s_max)
+                slider_max = max(s_min, s_max)
+                slider_default =int(slider_min  + (slider_max - slider_min) * slider_default)
+            else:
+                slider_min = min(s_min, s_max, slider_default)
+                slider_max = max(s_min, s_max, slider_default)
+
+
+            self.slider_edit.setText(str(slider_default))
 
             self.slider = QSlider(Qt.Horizontal)
             self.slider.setFixedWidth(100)
-            self.slider.setMinimum(values.get('min'))
-            self.slider.setMaximum(values.get('max'))
+            self.slider.setMinimum(slider_min)
+            self.slider.setMaximum(slider_max)
             if 'description' in values:
                 self.slider.setToolTip(values['description'])
             else:
@@ -348,15 +360,13 @@ def widget_factory(widget_type):
 
             self.slider_edit.textChanged.connect(self.slider_edit_change)
             self.slider.valueChanged.connect(self.slider_change)
+            self.slider.setValue(slider_default)
 
             main_layout.addStretch(1)
             main_layout.addWidget(self.slider_edit)
             main_layout.addWidget(self.slider)
 
             self.setLayout(main_layout)
-
-        def update(self):
-            self.slider.valueChanged.emit(self.values.get('min'))
 
         @pyqtSlot()
         def slider_edit_change(self):
@@ -394,9 +404,18 @@ def widget_factory(widget_type):
 
         def __init__(self, values=None, path='', var='', parent_widget=None, description=None):
 
+            int_values = {'min' : 0, 'max' : 1}
+            if values :
+                for k in values:
+                    if k == 'default' :
+                        try:
+                           int_values[k]  = float(values[k])
+                        except ValueError:
+                            int_values[k] = time_to_sec(values[k])
+                    else:
+                        int_values[k] = time_to_sec(values[k])
             Slider.__init__(self,
-                            values={'min' :time_to_sec(values.get('min', 0)),
-                                    'max' :time_to_sec(values.get('max', 1)) },
+                            values=int_values,
                             path=path,
                             var=var,
                             parent_widget=parent_widget, description=description)
