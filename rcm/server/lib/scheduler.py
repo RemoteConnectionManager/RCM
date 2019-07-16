@@ -66,10 +66,10 @@ class BatchScheduler(Scheduler):
     def all_accounts(self):
         raise NotImplementedError()
 
-    def valid_accounts(self):
+    def valid_accounts(self, **kwargs):
         raise NotImplementedError()
 
-    def queues(self):
+    def queues(self, **kwargs):
         raise NotImplementedError()
 
 
@@ -190,7 +190,7 @@ class SlurmScheduler(BatchScheduler):
     def validate_account(self, account):
         return True
 
-    def valid_accounts(self):
+    def valid_accounts(self, **kwargs):
         accounts = []
         for a in self.all_accounts():
             if self.validate_account(a):
@@ -198,7 +198,7 @@ class SlurmScheduler(BatchScheduler):
         return accounts
 
 
-    def queues(self):
+    def queues(self, **kwargs):
         # hints on useful slurm commands
         # sacctmgr show qos
         self.logger.debug("Slurm get queues")

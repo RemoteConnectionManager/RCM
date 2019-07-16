@@ -21,10 +21,12 @@ class Service(plugin.Plugin):
                 self.PARAMS['WM'] = self.size_param
 
     def size_param(self,default_params=None):
+        params = dict()
         if default_params:
-            print("$$$$$$$$$$$$$$" + str(default_params))
-        return {'Fluxbox': {'XSIZE': {'max': self.client_info['screen_width']},
-                            'YSIZE': {'max': self.client_info['screen_height']}}}
+            for par in default_params:
+                params[par] = {'XSIZE': {'max': self.client_info['screen_width']},
+                               'YSIZE': {'max': self.client_info['screen_height']}}
+        return params
 
 
     def run_preload(self, key='PRELOAD_LINE', substitutions=None):
