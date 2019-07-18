@@ -82,7 +82,7 @@ class ServerManager:
             try:
                 module_name, class_name = service_str.rsplit(".", 1)
                 service_class = getattr(importlib.import_module(module_name), class_name)
-                client_info = info.get('client_info',dict())
+                client_info = self.info.get('client_info',dict())
                 service_obj = service_class(client_info=client_info)
                 print("############## "+str(client_info))
                 self.services[service_obj.NAME] = service_obj
