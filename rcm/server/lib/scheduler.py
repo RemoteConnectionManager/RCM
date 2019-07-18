@@ -215,7 +215,7 @@ class SlurmScheduler(BatchScheduler):
                     time=stringtime
                 else:
                     time='23:59:59'
-                memory = int(int(l.split('|')[2]) / 1000)
+                memory = int(int(l.split('|')[2]) / 1000 * 0.90 ) 
                 cpu = int(l.split('|')[3])
                 partitions[partition] = {'TIME' : {'max' : time},
                                          'MEMORY' : {'max' : memory},
