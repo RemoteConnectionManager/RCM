@@ -292,7 +292,11 @@ class ServerManager:
         except:
             scheduler_timeout = 100
 
-        node, port = self.active_service.search_port(service_logfile, timeout=scheduler_timeout)
+        try:
+            node, port = self.active_service.search_port(service_logfile, timeout=scheduler_timeout)
+        except Exception as e:
+            self.active_scheduler.kill_job(jobid)
+            raise e
         new_session.hash['state'] = 'valid'
         new_session.hash['port'] = port
         new_session.hash['node'] = node
