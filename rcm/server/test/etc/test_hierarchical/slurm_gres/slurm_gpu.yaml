@@ -9,16 +9,21 @@ defaults:
               max : 16
             CPU :
               max : 2
+          gll_usr_prod :
+            substitutions:
+              TIMEOUT: "30"
           gll_usr_gpuprod :
             substitutions:
-              QUEUE_PAR: "-N 1 -n @{CPU} --partition=gll_usr_gpuprod --ntasks-per-node=16 @{GRES_STRING} #from defaults"
-              QUEUE.TIMEOUT: "120"
+              QUEUE_PAR: "-N 1 -n @{CPU} --partition=gll_usr_gpuprod --ntasks-per-node=@{CPU} --mem=@{MEMORY}GB @{GRES_STRING} #from defaults"
+              TIMEOUT: "120"
             MEMORY :
               min : 4
+              default: 113
             TIME :
               max : '01:30:00'
             CPU :
               min : 4
+              default: 16
             GRES :
               Kepler :
                 substitutions :
@@ -35,10 +40,9 @@ defaults:
             #!/bin/bash
             ## thisc come from defaults slurm_gpu
             #SBATCH --time=@{QUEUE.TIME}
+            #SBATCH -A @{ACCOUNT}
             #SBATCH --job-name=@{RCM_SESSIONID}
             #SBATCH --output @{RCM_JOBLOG}
             #SBATCH -N 1 -n @{QUEUE.CPU} --partition=@{QUEUE} --mem=@{QUEUE.MEMORY}GB @{QUEUE.GRES.GRES_STRING} #direct setup
-            #SBATCH  @{QUEUE_PAR} #indirect setup
-            #SBATCH -A @{ACCOUNT}
-            #SBATCH --partition=@{QUEUE}
+            ###old##SBATCH  @{QUEUE_PAR} #indirect setup
             #
