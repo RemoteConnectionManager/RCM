@@ -10,12 +10,13 @@ defaults:
             CPU :
               max : 2
           gll_usr_prod :
-            substitutions:
-              TIMEOUT: "30"
+              TIMEOUT: 
+                max: 500
           gll_usr_gpuprod :
             substitutions:
               QUEUE_PAR: "-N 1 -n @{CPU} --partition=gll_usr_gpuprod --ntasks-per-node=@{CPU} --mem=@{MEMORY}GB @{GRES_STRING} #from defaults"
-              TIMEOUT: "120"
+              TIMEOUT:
+                max: 1000
             MEMORY :
               min : 4
               default: 113
