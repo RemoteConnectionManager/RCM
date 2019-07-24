@@ -68,7 +68,7 @@ class ServerManager:
             try:
                 module_name, class_name = scheduler_str.rsplit(".", 1)
                 scheduler_class = getattr(importlib.import_module(module_name), class_name)
-                scheduler_obj = scheduler_class(node=self.login_fullname)
+                scheduler_obj = scheduler_class(node=self.login_fullname, username=self.session_manager.username)
                 self.schedulers[scheduler_obj.NAME] = scheduler_obj
                 logger.info('loaded scheduler plugin ' +
                             scheduler_obj.__class__.__name__ +
