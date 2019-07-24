@@ -5,6 +5,8 @@ import re
 import os
 import sys
 import stat
+import pwd
+from collections import OrderedDict
 
 # local import
 import plugin
@@ -15,6 +17,10 @@ logger = logging.getLogger('rcmServer' + '.' + __name__)
 class Scheduler(plugin.Plugin):
 
     def __init__(self, *args, **kwargs):
+        if 'username' in kwargs:
+            self.username = kwargs['username']
+        else:
+            self.username = pwd.getpwuid(os.geteuid())[0]
         super(Scheduler, self).__init__()
 
     def submit(self, script='', jobfile=''):
@@ -162,8 +168,47 @@ class SlurmScheduler(BatchScheduler):
                          'sinfo': None,
                          'sbatch': None,
                          'scancel': None,
+                         'scontrol': None,
+                         'sacctmgr': None,
                          'squeue': None}
         super(SlurmScheduler, self).__init__(*args, **kwargs)
+        self.cluster_name = ''
+
+    def get_cluster_name(self):
+        if not self.cluster_name:
+            scontrol = self.COMMANDS.get('scontrol', None)
+            if scontrol:
+                params = 'show config'.split(' ')
+                raw_output = scontrol(*params,
+                                    output=str)
+                cluster_match = re.search(r'ClusterName\s*=\s*(\w*)', raw_output)
+                if cluster_match:
+                    self.cluster_name = cluster_match.group(1)
+                    self.logger.debug("computed cluster name:::>" + self.cluster_name + "<:::")
+        return self.cluster_name
+
+    def all_accounts_and_qos(self):
+        accounts = OrderedDict()
+        sacctmgr = self.COMMANDS.get('sacctmgr', None)
+        if sacctmgr:
+            param_string = "show user " + self.username + " " + "withass where cluster=" + self.get_cluster_name() + " " + "format=account%20,qos%120 -P"
+            self.logger.debug("retrieving account and qos with command sacctmgr ::>" + param_string + "<::")
+            params = param_string.split(' ')
+            raw_output = sacctmgr(*params,
+
+                               output=str)
+
+            for l in raw_output.splitlines()[1:]:
+                fields = l.split('|')
+                if fields[1]:
+                    qos=OrderedDict()
+                    for q in fields[1].split(','):
+                        qos[q] = {'description': "Select " + q + " as Quality of Service"}
+                    accounts[fields[0]] = {'QOS': qos}
+        else:
+            self.logger.warning("warning missing command sacctmgr:")
+        return accounts
+ 
 
     def all_accounts(self):
         # sshare --parsable -a
@@ -191,10 +236,14 @@ class SlurmScheduler(BatchScheduler):
         return True
 
     def valid_accounts(self, **kwargs):
-        accounts = []
-        for a in self.all_accounts():
+        #accounts = []
+        accounts = dict()
+        #for a in self.all_accounts():
+        all_accounts = self.all_accounts_and_qos()
+        for a in all_accounts:
             if self.validate_account(a):
-                accounts.append(a)
+                #accounts.append(a)
+                accounts[a] = all_accounts[a]
         return accounts
 
 

@@ -14,6 +14,15 @@ schema:
             label : 'Account'
             type : 'combobox'
             description : "Select the account for submitting the job service"
+            children :
+              QOS :
+                label : 'QoS'
+                type : 'combobox'
+                description : "Select the Quality of Service for job submission"
+              children:
+                normal :
+                  description: "default choice for Quality of Service"
+
       #composites
           QUEUE :
             label : 'Queue'
