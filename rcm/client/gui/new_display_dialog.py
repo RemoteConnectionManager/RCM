@@ -160,7 +160,9 @@ class QJobWidget(QContainerWidget):
             count = 0
 
             nested_widget = QWidget()
+            #nested_widget.setMaximumHeight(30)
             nested_ver_layout = QVBoxLayout()
+            nested_ver_layout.setSpacing(0)
             nested_ver_layout.setContentsMargins(0, 0, 0, 0)
             nested_widget.setLayout(nested_ver_layout)
             parent_layout.addWidget(nested_widget)
@@ -226,9 +228,11 @@ def create_hor_composite_widget(parent_widget,
     if widget_type:
         main_widget = QWidget()
         hor_layout = QHBoxLayout()
+        hor_layout.setContentsMargins(2, 2, 2, 2)
 
         if label:
             label_widget = QLabel("%s:" % label)
+            label_widget.setMaximumHeight(30)
             hor_layout.addWidget(label_widget)
 
         qvar_widget = widget_factory(widget_type)(parameters, path, var, parent_widget, description)
@@ -268,6 +272,9 @@ def widget_factory(widget_type):
     class ComboBox(QComboBox):
         def __init__(self, values=None, path='', var='', parent_widget=None, description=None):
             QComboBox.__init__(self)
+            self.setMaximumHeight(30)
+            self.setContentsMargins(0, 0, 0, 0)
+            self.setFrame(False)
             self.parent_widget = parent_widget
             self.var = var
             self.parent = None
@@ -315,6 +322,8 @@ def widget_factory(widget_type):
         def __init__(self, values=None, path='', var='', parent_widget=None, description=None):
             QFrame.__init__(self)
             self.setFrameShape(QFrame.HLine)
+            self.setMaximumHeight(3)
+            self.setContentsMargins(0, 0, 0, 0)
             self.setFrameShadow(QFrame.Sunken)
             self.var = var
             self.path = path
@@ -325,6 +334,7 @@ def widget_factory(widget_type):
     class Slider(QWidget):
         def __init__(self, values=None, path='', var='', parent_widget=None, description=None):
             QWidget.__init__(self)
+            self.setMaximumHeight(35)
             self.parent = None
             self.var = var
             self.path = path
@@ -332,8 +342,13 @@ def widget_factory(widget_type):
             self.values = values
 
             main_layout = QHBoxLayout()
+            main_layout.setSpacing(0)
+            main_layout.setContentsMargins(0, 0, 0, 0)
+
 
             self.slider_edit = QLineEdit()
+            self.slider_edit.setMaximumHeight(30)
+            self.slider_edit.setFrame(False)
             s_min = int(values.get('min', 0))
             s_max = int(values.get('max', 1))
             slider_default = values.get('default', int((s_max + s_min) / 2 ))
