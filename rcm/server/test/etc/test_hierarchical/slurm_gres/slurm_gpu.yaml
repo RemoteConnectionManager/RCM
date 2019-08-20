@@ -28,10 +28,10 @@ defaults:
             GRES :
               Kepler :
                 substitutions :
-                  GRES_STRING: "gres=gpu:kepler:1"
+                  GRES_STRING: "--gres=gpu:kepler:1"
               Kepler2 :
                 substitutions :
-                  GRES_STRING: "gres=gpu:kepler:2"
+                  GRES_STRING: "--gres=gpu:kepler:2"
               None :
                 substitutions :
                   GRES_STRING: ""
