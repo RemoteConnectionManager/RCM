@@ -1,13 +1,16 @@
 network:
   130.186.17 :
     mapping:
-      #login02.galileo.cineca.it: login.galileo.cineca.it
-      node170.galileo.cineca.it: login06.galileo.cineca.it
-      node171.galileo.cineca.it: login07.galileo.cineca.it
-      node172.galileo.cineca.it: login08.galileo.cineca.it
-      node165.galileo.cineca.it: login01.galileo.cineca.it
+      r033c01s03.galileo.cineca.it: login01.galileo.cineca.it
+      r033c01s05.galileo.cineca.it: login02.galileo.cineca.it
+      r033c01s04.galileo.cineca.it: login03.galileo.cineca.it
+      r033c02s05.galileo.cineca.it: login04.galileo.cineca.it
+      #node170.galileo.cineca.it: login06.galileo.cineca.it
+      #node171.galileo.cineca.it: login07.galileo.cineca.it
+      #node172.galileo.cineca.it: login08.galileo.cineca.it
+      #node165.galileo.cineca.it: login01.galileo.cineca.it
       #node165.galileo.cineca.it: login.galileo.cineca.it
-      node166.galileo.cineca.it: login02.galileo.cineca.it
+      #node166.galileo.cineca.it: login02.galileo.cineca.it
       #login01.galileo.cineca.it: login.galileo.cineca.it
       #login02.galileo.cineca.it: login.galileo.cineca.it
     tunnel:
