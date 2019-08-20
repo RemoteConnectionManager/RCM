@@ -189,24 +189,24 @@ class SlurmScheduler(BatchScheduler):
 
     def all_accounts_and_qos(self):
         accounts = OrderedDict()
-        sacctmgr = self.COMMANDS.get('sacctmgr', None)
-        if sacctmgr:
-            param_string = "show user " + self.username + " " + "withass where cluster=" + self.get_cluster_name() + " " + "format=account%20,qos%120 -P"
-            self.logger.debug("retrieving account and qos with command sacctmgr ::>" + param_string + "<::")
-            params = param_string.split(' ')
-            raw_output = sacctmgr(*params,
-
-                               output=str)
-
-            for l in raw_output.splitlines()[1:]:
-                fields = l.split('|')
-                if fields[1]:
-                    qos=OrderedDict()
-                    for q in fields[1].split(','):
-                        qos[q] = {'description': "Select " + q + " as Quality of Service"}
-                    accounts[fields[0]] = {'QOS': qos}
-        else:
-            self.logger.warning("warning missing command sacctmgr:")
+        try:
+            sacctmgr = self.COMMANDS.get('sacctmgr', None)
+            if sacctmgr:
+                param_string = "show user " + self.username + " " + "withass where cluster=" + self.get_cluster_name() + " " + "format=account%20,qos%120 -P"
+                self.logger.debug("retrieving account and qos with command sacctmgr ::>" + param_string + "<::")
+                params = param_string.split(' ')
+                raw_output = sacctmgr(*params, output=str)
+                for l in raw_output.splitlines()[1:]:
+                    fields = l.split('|')
+                    if fields[1]:
+                        qos=OrderedDict()
+                        for q in fields[1].split(','):
+                            qos[q] = {'description': "Select " + q + " as Quality of Service"}
+                        accounts[fields[0]] = {'QOS': qos}
+            else:
+                self.logger.warning("warning missing command sacctmgr:")
+        except:
+           pass
         return accounts
  
 
