@@ -241,7 +241,7 @@ class AutoChoiceNode(CompositeNode):
                 else:
                     substitute_logger.warning(
                         " " + self.__class__.__name__ + " : " + str(
-                            self.NAME) + "key: " + t + " unknown type value " + str(type(val)) + " : " + val)
+                            self.NAME) + "key: " +str( t ) + " unknown type value " + str(type(val)) + " : " +str( val))
         out_subst.update(copy.deepcopy(choices))
         out_subst.update(copy.deepcopy(collected_subst))
 
