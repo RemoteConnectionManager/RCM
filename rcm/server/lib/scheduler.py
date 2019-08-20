@@ -200,7 +200,11 @@ class SlurmScheduler(BatchScheduler):
                     fields = l.split('|')
                     if fields[1]:
                         qos=OrderedDict()
-                        for q in fields[1].split(','):
+                        qos_list = fields[1].split(',')
+                        if 'normal' in qos_list:
+                            qos_list.remove('normal')
+                            qos_list = ['normal'] + qos_list
+                        for q in  qos_list:
                             qos[q] = {'description': "Select " + q + " as Quality of Service"}
                         accounts[fields[0]] = {'QOS': qos}
             else:
