@@ -19,7 +19,7 @@ preset_sessions = """
 	        "@login.galileo.cineca.it?dev",
 	        "login.galileo.cineca.it",
 	        "",
-	        "module use /galileo/home/userinternal/lcalori0/spack_new/RCM_spack_deploy/deploy/rcm_chained/spack/share/spack/modules/linux-centos7-x86_64 /cineca/prod/spack/v002/RCM_spack_deploy/deploy/base_spack_devel/spack/share/spack/modules/linux-centos7-x86_64 /cineca/prod/spack/v002/RCM_spack_deploy/deploy/rcm_chained/spack/share/spack/modules/linux-centos7-x86_64; export RCM_CONFIG_BASE_PATH=test/etc/test_hierarchical; export RCM_CONFIG_PATHS='base_scheduler:base_service:slurm_gres:network:other:logging/debug/api.yaml'; module load rcm; python $RCM_HOME/src/rcm/server/bin/server"
+	        "module unuse /galileo/prod/spack/v001/RCM_spack_deploy/deploy/galileo_dev00/insitu01/spack/share/spack/modules/linux-centos7-x86_64; module unuse /galileo/home/userinternal/lcalori0/spack/RCM_spack_deploy/deploy/rcm_chained/modules/linux-centos7-x86_64;  module use --prepend  /galileo/prod/spack/v001/RCM_spack_deploy/deploy/galileo_dev00/insitu01/spack/share/spack/modules/linux-centos7-x86_64 /galileo/home/userinternal/lcalori0/spack/RCM_spack_deploy/deploy/base_spack_devel/modules/linux-centos7-x86_64 /galileo/home/userinternal/lcalori0/spack/RCM_spack_deploy/deploy/rcm_chained/modules/linux-centos7-x86_64;   export RCM_CONFIG_BASE_PATH=test/etc/test_hierarchical; export RCM_CONFIG_PATHS='base_scheduler:base_service:slurm_gres:network:other:logging/debug/api.yaml'; module load rcm; python $RCM_HOME/src/rcm/server/bin/server",
 	    ],
 	    [
 	        "@login.marconi.cineca.it",
@@ -28,14 +28,14 @@ preset_sessions = """
 	        ""
 	    ],
 	    [
-	        "@login.galileo.cineca.it?defaultpbs",
+	        "@login.galileo.cineca.it",
 	        "login.galileo.cineca.it",
 	        "",
 	        ""
 	    ],
 	    [
-	        "@login.galileo.cineca.it?slurm",
-	        "login.galileo.cineca.it",
+	        "@login04.galileo.cineca.it?interactiveGPU",
+	        "login04.galileo.cineca.it",
 	        "",
 	        "module use /galileo/prod/spack/v001/RCM_spack_deploy/deploy/galileo_dev00/insitu01/spack/share/spack/modules/linux-centos7-x86_64; "
 	    ]
