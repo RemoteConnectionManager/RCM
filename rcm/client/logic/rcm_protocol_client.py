@@ -52,7 +52,7 @@ for name, fn in inspect.getmembers(ServerAPIs):
 
 
 def get_protocol():
-    return ServerAPIs ()
+    return ServerAPIs()
 
 
 if __name__ == '__main__':

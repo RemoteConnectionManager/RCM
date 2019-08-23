@@ -370,7 +370,7 @@ class QSSHSessionWidget(QWidget):
                 if not preload_name:
                     preload_name = hashlib.md5(self.preload.encode()).hexdigest()[:4]
                 self.session_name += "?" + preload_name
-        logger.info("Logging into " + self.session_name)
+        logger.info("Logging...")
 
         # Show the waiting widget
         self.containerLoginWidget.hide()
@@ -391,7 +391,7 @@ class QSSHSessionWidget(QWidget):
             self.containerWaitingWidget.hide()
             self.containerSessionWidget.show()
 
-            logger.info("Logged in " + self.session_name)
+            logger.info("Logged as " + self.user + " to " + self.host)
 
             # update sessions list
             # warning, json load turns tuple into list

@@ -223,7 +223,7 @@ class RemoteConnectionManager:
         else :
             fullcommand = self.config['remote_rcm_server']
         fullcommand += ' ' + cmd
-        logic_logger.info("on " + host + " run: <br><span style=\" font-size:5; font-weight:400; color:#101010;\" >" +
+        logic_logger.info("On " + host + " run: <br><span style=\" font-size:5; font-weight:400; color:#101010;\" >" +
                           fullcommand + "</span>")
 
         stdin, stdout, stderr = ssh.exec_command(fullcommand)

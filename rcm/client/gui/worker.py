@@ -68,4 +68,4 @@ class Worker(QRunnable):
 
             logger.debug("Worker for display " + str(self.display_id) + " finished")
         except Exception as e:
-            logger.error("Excepion: " + str(e) + " - " + str(traceback.format_exc()))
+            logger.error("Exception: " + str(e) + " - " + str(traceback.format_exc()))
