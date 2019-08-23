@@ -370,13 +370,13 @@ class RemoteConnectionManager:
 
             elif sys.platform == 'win32':
                 vnc_command = "echo " + vncpassword_decrypted + " | " + self.vnc_cmdline_builder.get_executable_path() \
-                              + " -autopass -nounixlogin"
+                              + " -autopass -nounixlogin -noreconnect -nonewconn"
                 vnc_command += " -logfile " + os.path.join(rcm_utils.log_folder(), 'vncviewer_' + nodelogin + '_' +
                                                            session.hash.get('sessionid', '') + '.log')
                 vnc_command += " -loglevel " + str(rcm_utils.vnc_loglevel)
             else:
                 vnc_command = self.vnc_cmdline_builder.get_executable_path() + " -quality 80 " \
-                              + " -password " + vncpassword_decrypted
+                              + " -password " + vncpassword_decrypted + " -noreconnect -nonewconn "
 
             if sys.platform == 'win32': #or sys.platform.startswith('darwin'):
                 if tunnel == 'y':
