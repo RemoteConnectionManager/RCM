@@ -24,7 +24,7 @@ class RCMMainWindow(QMainWindow):
 
         pack_info = rcm_utils.pack_info()
 
-        title = "Remote Connection Manager - CINECA - " + pack_info.rcmVersion
+        title = "RCM Client " + pack_info.rcmVersion
         self.setWindowTitle(title)
 
         screen_width = QGuiApplication.primaryScreen().size().width()
@@ -85,7 +85,7 @@ class RCMMainWindow(QMainWindow):
         edit_settings_action.triggered.connect(self.edit_settings)
 
         # Create the about action
-        about_action = QAction('&About', self)
+        about_action = QAction('&About RCM Client', self)
         about_action.setShortcut('Ctrl+A')
         about_action.setStatusTip('About the application')
         about_action.triggered.connect(self.about)
@@ -192,12 +192,23 @@ class RCMMainWindow(QMainWindow):
         edit_settings_dlg.exec()
 
     def about(self):
-        show_message = self.windowTitle() + '\n'
+        copyright = "(C) 2014-2019 by <b>CINECA</b>"
+        authors = "Luigi Calori, Simone Bna"
+
+        show_message = "<p><b>" + self.windowTitle() + "</b><br>" + copyright + ": " + authors + "<\p>"
+
         if rcm_utils.pack_info().buildPlatformString:
-            show_message += "build platform: " + rcm_utils.pack_info().buildPlatformString + '\n'
+            show_message += "<p>build platform: " + rcm_utils.pack_info().buildPlatformString + "</p>"
+
         if rcm_utils.pack_info().checksumString:
-            show_message += "bundle checksum: " + rcm_utils.pack_info().checksumString  + '\n'
-        QMessageBox.about(self, "About", show_message)
+            show_message += "<p>bundle checksum: " + rcm_utils.pack_info().checksumString + "</p>"
+
+        show_message += "<p>This is a python client wrapper around TurboVNC to simplify tunneled VNC connections " \
+                        "to HPC clusters for remote visualization, developed by CINECA." \
+                        "<br>Please contact the user support for any information or to report bugs: " \
+                        "<a href=\"mailto:superc@cineca.it\">superc@cineca.it</a></p>"
+
+        QMessageBox.about(self, "About RCM Client", show_message)
         return
 
     @pyqtSlot()
