@@ -634,8 +634,9 @@ class QSSHSessionWidget(QWidget):
                 if display_id in self.displays.keys():
                     logger.debug("Display " + display_id + " already exists")
                     self.displays[display_id].session = session
-                    self.displays[display_id].status = Status(display_state)
-                    self.displays[display_id].update_gui()
+                    if self.displays[display_id].status != Status(display_state):
+                        self.displays[display_id].status = Status(display_state)
+                        self.displays[display_id].update_gui()
                 else:
                     display_widget = QDisplaySessionWidget(parent=self,
                                                            display_id=display_id,
