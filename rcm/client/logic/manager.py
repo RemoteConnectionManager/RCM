@@ -223,7 +223,7 @@ class RemoteConnectionManager:
         else :
             fullcommand = self.config['remote_rcm_server']
         fullcommand += ' ' + cmd
-        logic_logger.info("on " + host + " run: <br><span style=\" font-size:5; font-weight:400; color:#101010;\" >" +
+        logic_logger.info("On " + host + " run: <br><span style=\" font-size:5; font-weight:400; color:#101010;\" >" +
                           fullcommand + "</span>")
 
         stdin, stdout, stderr = ssh.exec_command(fullcommand)
@@ -370,13 +370,13 @@ class RemoteConnectionManager:
 
             elif sys.platform == 'win32':
                 vnc_command = "echo " + vncpassword_decrypted + " | " + self.vnc_cmdline_builder.get_executable_path() \
-                              + " -autopass -nounixlogin"
+                              + " -autopass -nounixlogin -noreconnect -nonewconn"
                 vnc_command += " -logfile " + os.path.join(rcm_utils.log_folder(), 'vncviewer_' + nodelogin + '_' +
                                                            session.hash.get('sessionid', '') + '.log')
                 vnc_command += " -loglevel " + str(rcm_utils.vnc_loglevel)
             else:
                 vnc_command = self.vnc_cmdline_builder.get_executable_path() + " -quality 80 " \
-                              + " -password " + vncpassword_decrypted
+                              + " -password " + vncpassword_decrypted + " -noreconnect -nonewconn "
 
             if sys.platform == 'win32': #or sys.platform.startswith('darwin'):
                 if tunnel == 'y':

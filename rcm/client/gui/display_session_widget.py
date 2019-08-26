@@ -1,5 +1,6 @@
 # python import
 from datetime import timedelta, datetime
+import time
 
 # pyqt5
 from PyQt5.QtCore import pyqtSignal, QTimer, pyqtSlot
@@ -209,6 +210,14 @@ class QDisplaySessionWidget(QWidget):
                 self.time.setText(str(self.timeleft))
                 self.time.update()
 
+                x = time.strptime(str(self.timeleft).split(',')[0], '%H:%M:%S')
+                num_seconds = int(timedelta(hours=x.tm_hour,
+                                            minutes=x.tm_min,
+                                            seconds=x.tm_sec).total_seconds())
+                if num_seconds == 0:
+                    self.status = Status.FINISHED
+                    self.kill_display()
+
     def enable_connect_button(self, active):
         if active:
             self.connect_btn.setEnabled(False)
@@ -266,28 +275,11 @@ class QDisplaySessionWidget(QWidget):
             self.connect_btn.setEnabled(False)
             self.share_btn.setEnabled(False)
             self.kill_btn.setEnabled(False)
-            if self.session:
-                timeleft = str(self.session.hash['timeleft'])
-                self.time.setText(timeleft)
-
-                try:
-                    strp_time = datetime.strptime(timeleft, "%H:%M:%S")
-                    self.timeleft = timedelta(hours=strp_time.hour,
-                                              minutes=strp_time.minute,
-                                              seconds=strp_time.second)
-                except:
-                    self.timeleft=None
-                self.resources_label.setText(str(self.session.hash['node']))
-            else:
-                self.time.setText('Not defined')
-                self.resources_label.setText('Not defined')
 
         if self.status is Status.FINISHED:
             self.connect_btn.setEnabled(False)
             self.share_btn.setEnabled(False)
             self.kill_btn.setEnabled(True)
-            self.time.setText('Not defined')
-            self.resources_label.setText('Not defined')
 
         self.status_label.setText(str(self.status))
         self.status_label.update()

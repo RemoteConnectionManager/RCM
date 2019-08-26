@@ -370,7 +370,7 @@ class QSSHSessionWidget(QWidget):
                 if not preload_name:
                     preload_name = hashlib.md5(self.preload.encode()).hexdigest()[:4]
                 self.session_name += "?" + preload_name
-        logger.info("Logging into " + self.session_name)
+        logger.info("Logging...")
 
         # Show the waiting widget
         self.containerLoginWidget.hide()
@@ -391,7 +391,7 @@ class QSSHSessionWidget(QWidget):
             self.containerWaitingWidget.hide()
             self.containerSessionWidget.show()
 
-            logger.info("Logged in " + self.session_name)
+            logger.info("Logged as " + self.user + " to " + self.host)
 
             # update sessions list
             # warning, json load turns tuple into list
@@ -534,7 +534,8 @@ class QSSHSessionWidget(QWidget):
         logger.info("Added new display")
 
     def add_new_display_devel(self):
-        display_dialog_ui = json.loads(self.platform_config.config.get('jobscript_json_menu', '{}'), object_pairs_hook=collections.OrderedDict)
+        display_dialog_ui = json.loads(self.platform_config.config.get('jobscript_json_menu', '{}'),
+                                       object_pairs_hook=collections.OrderedDict)
         display_dialog = QDisplayDialogDevel(display_dialog_ui)
         display_dialog.setModal(True)
         #display_dialog.show()
@@ -634,8 +635,9 @@ class QSSHSessionWidget(QWidget):
                 if display_id in self.displays.keys():
                     logger.debug("Display " + display_id + " already exists")
                     self.displays[display_id].session = session
-                    self.displays[display_id].status = Status(display_state)
-                    self.displays[display_id].update_gui()
+                    if self.displays[display_id].status != Status(display_state):
+                        self.displays[display_id].status = Status(display_state)
+                        self.displays[display_id].update_gui()
                 else:
                     display_widget = QDisplaySessionWidget(parent=self,
                                                            display_id=display_id,
