@@ -534,7 +534,8 @@ class QSSHSessionWidget(QWidget):
         logger.info("Added new display")
 
     def add_new_display_devel(self):
-        display_dialog_ui = json.loads(self.platform_config.config.get('jobscript_json_menu', '{}'), object_pairs_hook=collections.OrderedDict)
+        display_dialog_ui = json.loads(self.platform_config.config.get('jobscript_json_menu', '{}'),
+                                       object_pairs_hook=collections.OrderedDict)
         display_dialog = QDisplayDialogDevel(display_dialog_ui)
         display_dialog.setModal(True)
         #display_dialog.show()

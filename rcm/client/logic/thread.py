@@ -3,6 +3,7 @@ import os
 import sys
 import threading
 import subprocess
+import shlex
 from sshtunnel import SSHTunnelForwarder
 if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
     import pexpect
@@ -124,14 +125,13 @@ class SessionThread(threading.Thread):
                 local_bind_address=('127.0.0.1', self.local_portnumber)
         ) as self.ssh_server:
 
-            
-            self.vnc_process = subprocess.Popen(self.vnc_command,
-                                                   bufsize=1,
-                                                   stdout=subprocess.PIPE,
-                                                   stderr=subprocess.PIPE,
-                                                   stdin=subprocess.PIPE,
-                                                   shell=True,
-                                                   universal_newlines=True)
+            self.vnc_process = subprocess.Popen(shlex.split(self.vnc_command),
+                                                bufsize=1,
+                                                stdout=subprocess.PIPE,
+                                                stderr=subprocess.PIPE,
+                                                stdin=subprocess.PIPE,
+                                                shell=False,
+                                                universal_newlines=True)
             self.vnc_process.stdin.close()
             while self.vnc_process.poll() is None:
                 stdout = self.vnc_process.stdout.readline()
