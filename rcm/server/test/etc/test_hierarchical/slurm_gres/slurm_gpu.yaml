@@ -19,20 +19,23 @@ defaults:
                 max: 1000
             MEMORY :
               min : 4
-              default: 113
+              default: 60
             TIME :
-              max : '01:30:00'
+              max : '03:00:00'
             CPU :
               min : 4
               default: 16
             GRES :
-              Kepler :
+              1GPU :
+                description : "use one kepler gpu"
                 substitutions :
                   GRES_STRING: "--gres=gpu:kepler:1"
-              Kepler2 :
+              2GPU :
+                description : "use two kepler gpu"
                 substitutions :
                   GRES_STRING: "--gres=gpu:kepler:2"
               None :
+                description : "use no gpu"
                 substitutions :
                   GRES_STRING: ""
         substitutions :
