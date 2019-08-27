@@ -378,7 +378,7 @@ class RemoteConnectionManager:
                 vnc_command = self.vnc_cmdline_builder.get_executable_path() + " -quality 80 " \
                               + " -password " + vncpassword_decrypted + " -noreconnect -nonewconn "
 
-            if sys.platform == 'win32': #or sys.platform.startswith('darwin'):
+            if sys.platform == 'win32':
                 if tunnel == 'y':
                     tunnel_command = self.ssh_command + " -L 127.0.0.1:" + str(local_portnumber) + ":" + node + ":" \
                                      + str(portnumber) + " " + self.login_options + "@" + nodelogin
@@ -398,9 +398,6 @@ class RemoteConnectionManager:
                     elif tunnelling_method == 'external':
                         tunnel_command = self.ssh_command + " -L 127.0.0.1:" + str(local_portnumber) + ":" + node + ":" \
                                          + str(portnumber) + " " + self.login_options + "@" + nodelogin
-                    elif tunnelling_method == 'via':
-                        vnc_command += " -via '" + self.login_options + "@" + nodelogin + "' " \
-                                       + node + ":" + str(session.hash['display'])
                     else:
                         logic_logger.error(tunnelling_method + ' is not a valid option')
                         return
@@ -408,10 +405,6 @@ class RemoteConnectionManager:
                     vnc_command += ' ' + nodelogin + ":" + session.hash['display']
         else:
             vnc_command = self.vnc_cmdline_builder.get_executable_path() + " -config "
-        
-        #ATTENTION = logger instruction return exception
-        #logic_logger.debug("tunnel->" + tunnel_command.replace(self.passwd, "****") +
-        #                    "< vnc->" + vnc_command + "< conffile->" + str(configFile) + "<")
         
         st = thread.SessionThread(tunnel_command,
                                   vnc_command,
@@ -428,7 +421,7 @@ class RemoteConnectionManager:
                                   portnumber,
                                   tunnelling_method)
 
-        logic_logger.debug("session  thread--->" + str(st) + "<--- num thread:" + str(len(self.session_thread)))
+        logic_logger.debug("session thread: " + str(st) + "; thread number: " + str(len(self.session_thread)))
         self.session_thread.append(st)
         st.start()
 

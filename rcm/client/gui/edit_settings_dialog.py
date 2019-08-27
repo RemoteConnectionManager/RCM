@@ -68,19 +68,19 @@ class QEditSettingsDialog(QDialog):
         ssh_client_group_box = QGroupBox(self)
         self.ssh_client_btn_int = QRadioButton("internal")
         self.ssh_client_btn_ext = QRadioButton("external")
-        self.ssh_client_btn_via = QRadioButton("via")
         if self.settings['ssh_client'] == "internal":
             self.ssh_client_btn_int.setChecked(True)
+            self.ssh_client_btn_ext.setChecked(False)
         elif self.settings['ssh_client'] == "external":
+            self.ssh_client_btn_int.setChecked(False)
             self.ssh_client_btn_ext.setChecked(True)
         else:
-            self.ssh_client_btn_via.setChecked(True)
+            self.ssh_client_btn_int.setChecked(False)
+            self.ssh_client_btn_ext.setChecked(False)
 
         ssh_client_vbox = QVBoxLayout()
         ssh_client_vbox.addWidget(self.ssh_client_btn_int)
         ssh_client_vbox.addWidget(self.ssh_client_btn_ext)
-        if sys.platform != 'win32':
-            ssh_client_vbox.addWidget(self.ssh_client_btn_via)
         ssh_client_vbox.addStretch(1)
         ssh_client_group_box.setLayout(ssh_client_vbox)
 
@@ -162,5 +162,5 @@ class QEditSettingsDialog(QDialog):
         elif self.ssh_client_btn_ext.isChecked():
             self.settings['ssh_client'] = "external"
         else:
-            self.settings['ssh_client'] = "via"
+            self.settings['ssh_client'] = None
         self.settings['preload_command'] = self.findChild(QLineEdit, 'preload_command').text()

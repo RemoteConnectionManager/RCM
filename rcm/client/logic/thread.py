@@ -103,9 +103,8 @@ class SessionThread(threading.Thread):
             self.vnc_process.wait()
         else:
             if self.tunnelling_method == 'internal':
-                
                 self.execute_vnc_command_with_internal_ssh_tunnel()
-            elif self.tunnelling_method == 'external' or self.tunnelling_method == 'via':
+            elif self.tunnelling_method == 'external':
                 self.execute_vnc_command_with_external_ssh_tunnel()
             else:
                 logic_logger.error(str(self.tunnelling_method) + 'is not a valid option!')
