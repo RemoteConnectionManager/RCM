@@ -139,10 +139,10 @@ class QDisplaySessionWidget(QWidget):
     def connect_display(self):
         try:
             logger.info("Connecting to remote display " + str(self.display_name))
-            self.parent.remote_connection_manager.vncsession(self.session,
-                                                             gui_cmd=self.enable_connect_button)
+            self.parent.remote_connection_manager.submit(self.session,
+                                                         gui_cmd=self.enable_connect_button)
         except:
-            logger.error("Failed to connecting to remote display " + str(self.display_name))
+            logger.error("Failed to connect to remote display " + str(self.display_name))
 
     def share_display(self):
         try:

@@ -157,10 +157,10 @@ class TestManager(unittest.TestCase):
         out = remote_connection_manager.list()
         out.write(2)
 
-        session = remote_connection_manager.newconn(queue='light_2gb_1cor',
-                                                    geometry='1024x968',
-                                                    sessionname=sessionname,
-                                                    vnc_id='fluxbox_turbovnc_vnc')
+        session = remote_connection_manager.newsession(queue='light_2gb_1cor',
+                                                       geometry='1024x968',
+                                                       sessionname=sessionname,
+                                                       vnc_id='fluxbox_turbovnc_vnc')
 
         remote_connection_manager.vncsession(session)
         out = remote_connection_manager.list()

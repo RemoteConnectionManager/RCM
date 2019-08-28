@@ -149,14 +149,7 @@ class RemoteConnectionManager:
     def login_setup(self, host, remoteuser, password=None, preload=''):
         self.proxynode = host
         self.preload=preload
-
-        if remoteuser == '':
-            if sys.version_info >= (3, 0):
-                self.remoteuser = input("Remote user: ")
-            else:
-                self.remoteuser = raw_input("Remote user: ")
-        else:
-            self.remoteuser = remoteuser
+        self.remoteuser = remoteuser
 
         keyfile = pyinstaller_utils.resource_path(os.path.join('keys', self.remoteuser + '.ppk'))
         if os.path.exists(keyfile):
@@ -185,17 +178,24 @@ class RemoteConnectionManager:
         self.ssh_remote_exec_command = self.ssh_command + " " + self.login_options
         self.ssh_remote_exec_command_withproxy = self.ssh_command + " " + self.login_options_withproxy
 
-        check_cred = self.checkCredential()
-        if check_cred:
-            self.subnet = '.'.join(socket.gethostbyname(self.proxynode).split('.')[0:-1])
-            logic_logger.debug("Login host: " + self.proxynode + " subnet: " + self.subnet)
-        return check_cred
+        rcm_server_command = rcm_utils.get_server_command(self.proxynode,
+                                                          self.remoteuser,
+                                                          passwd=self.passwd)
+
+        if rcm_server_command != '':
+            self.config['remote_rcm_server'] = rcm_server_command
+
+        self.subnet = '.'.join(socket.gethostbyname(self.proxynode).split('.')[0:-1])
+        logic_logger.debug("Login host: " + self.proxynode + " subnet: " + self.subnet)
+
+        return True
 
     def prex(self, cmd):
         """
-        This is the function that wrap all the remote comman execution, accept the input command
-        and return the remote server output that comes after the rcm.serverOutputString separation
-        string
+        A wrapper around all the remote command execution;
+        accept the input command and
+        return the remote server output that comes after
+        the rcm.serverOutputString separation string
         """
         if self.commandnode == '':
             host = self.proxynode
@@ -203,6 +203,21 @@ class RemoteConnectionManager:
             host = self.commandnode
             self.commandnode = ''
 
+        # build the full command
+        if self.preload.strip():
+            fullcommand = self.preload.strip()
+
+            # if fullcommand ends with ';' add the preset rcm server command, otherwise use it as is
+            if fullcommand[-1] == ';':
+                fullcommand += ' ' + self.config['remote_rcm_server']
+        else:
+            fullcommand = self.config['remote_rcm_server']
+
+        fullcommand += ' ' + cmd
+        logic_logger.info("On " + host + " run: <br><span style=\" font-size:5; font-weight:400; color:#101010;\" >" +
+                          fullcommand + "</span>")
+
+        # ssh full command execution
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
@@ -215,74 +230,62 @@ class RemoteConnectionManager:
 
         self.auth_method = ssh.get_transport().auth_handler.auth_method
 
-        if self.preload.strip() :
-            fullcommand = self.preload.strip()
-            # if fullcommand  ends with ';' add the preset rcm server command, otherwise use it as is
-            if fullcommand[-1] == ';':
-                fullcommand += ' ' + self.config['remote_rcm_server']
-        else :
-            fullcommand = self.config['remote_rcm_server']
-        fullcommand += ' ' + cmd
-        logic_logger.info("On " + host + " run: <br><span style=\" font-size:5; font-weight:400; color:#101010;\" >" +
-                          fullcommand + "</span>")
-
         stdin, stdout, stderr = ssh.exec_command(fullcommand)
-        myout = ''.join(stdout)
-        myerr = stderr.readlines()
-        if myerr:
-            logic_logger.warning("Server report error: {0}".format(myerr))
+        out = ''.join(stdout)
+        err = stderr.readlines()
+        if err:
+            logic_logger.warning("Server report error: {0}".format(err))
 
         # find where the real server output starts
-        index = myout.find(rcm.serverOutputString)
+        index = out.find(rcm.serverOutputString)
         if index != -1:
             index += len(rcm.serverOutputString)
-            myout = myout[index:]
+            out = out[index:]
         else:
             logic_logger.error("Missing serverOutputString: {0} in server output".format(rcm.serverOutputString))
-            if myerr:
-                raise Exception("Server error: {0}".format(myerr))
+            if err:
+                raise Exception("Server error: {0}".format(err))
 
         ssh.close()
-        return myout
+        return out
 
     def list(self):
-        # get list of nodes to check of possible sessions
+        # Get the list of sessions for each login node of the cluster
+        # and return the merge of all of them
+
         rcm_utils.get_threads_exceptions()
 
         # here we remotely call loginlist function of rcm_protocol_server
+        # get from each login nodes to check of possible sessions
         o = self.protocol.loginlist(subnet=self.subnet)
         sessions = rcm.rcm_sessions(o)
 
         merged_sessions = rcm.rcm_sessions(fromstring='{}')
         nodeloginList = []
-        proxynode = ''
-        state = ''
+
         for ses in sessions.get_sessions():
-            proxynode = ses.hash.get('nodelogin', '')
+            nodelogin = ses.hash.get('nodelogin', '')
             state = ses.hash.get('state', 'killed')
-            if proxynode != '' and not proxynode in nodeloginList and state != 'killed':
-                nodeloginList.append(proxynode)
-                self.commandnode = proxynode
+            if nodelogin != '' and not nodelogin in nodeloginList and state != 'killed':
+                nodeloginList.append(nodelogin)
+                self.commandnode = nodelogin
                 # here we call list of rcm_protocol_server to get the sessions
                 o = self.protocol.list(subnet=self.subnet)
                 if o:
                     tmp = rcm.rcm_sessions(o)
-                    #a.extend(tmp.array)
                     for sess in tmp.get_sessions():
                         merged_sessions.add_session(sess)
 
-        #ret = rcm.rcm_sessions()
-        #ret.array = a
         return merged_sessions
 
-    def newconn(self, queue, geometry, sessionname='', vnc_id='turbovnc_vnc', choices=None):
+    def new(self, queue, geometry, sessionname='', vnc_id='turbovnc_vnc', choices=None):
         rcm_cipher = cipher.RCMCipher()
         vncpassword = rcm_cipher.vncpassword
         vncpassword_crypted = rcm_cipher.encrypt()
-        choices_string=''
+
         if choices:
             choices_string = json.dumps(choices)
-            logic_logger.debug("HERE in Newconn, chooices:" + choices_string + " TODO!!!!!!!!!!!")
+            logic_logger.debug("Newconn protocol choices: " + choices_string)
 
             o = self.protocol.new(geometry=geometry,
                                   queue=queue,
@@ -301,36 +304,21 @@ class RemoteConnectionManager:
                                   vncpassword_crypted=vncpassword_crypted,
                                   vnc_id=vnc_id)
 
-
         session = rcm.rcm_session(o)
         return session
 
-    def kill(self, session):
-        sessionid = session.hash['sessionid']
-        nodelogin = session.hash['nodelogin']
-
-        self.commandnode = nodelogin
-        o = self.protocol.kill(session_id=sessionid)
-
     def get_config(self):
-        client_build_platform=self.pack_info.buildPlatformString
+        client_build_platform = self.pack_info.buildPlatformString
         if not client_build_platform:
-            client_build_platform='new_client_devel'
+            client_build_platform = 'new_client_devel'
         o = self.protocol.config(build_platform=json.dumps(self.pack_info.to_dict()))
         self.server_config = rcm.rcm_config(o)
-        logic_logger.debug("config---->" + str(self.server_config))
+        logic_logger.debug("config: " + str(self.server_config))
         if 'jobscript_json_menu' in self.server_config.config:
-            logic_logger.debug("jobscript gui json:::>" + self.server_config.config.get('jobscript_json_menu', ''))
+            logic_logger.debug("jobscript gui json: " + self.server_config.config.get('jobscript_json_menu', ''))
         return self.server_config
 
-    def queues(self):
-        return self.server_config.config.get('queues', [])
-
-    def vncs(self):
-        vncs = self.server_config.config.get('vnc_commands', [])
-        return vncs
-
-    def vncsession(self, session=None, otp='', gui_cmd=None, configFile=None):
+    def submit(self, session=None, otp='', gui_cmd=None, configFile=None):
         tunnel_command = ''
         vnc_command = ''
         vncpassword_decrypted = ''
@@ -425,19 +413,19 @@ class RemoteConnectionManager:
         self.session_thread.append(st)
         st.start()
 
-    def vncsession_kill(self):
+    def kill(self, session):
+        sessionid = session.hash['sessionid']
+        nodelogin = session.hash['nodelogin']
+
+        self.commandnode = nodelogin
+        self.protocol.kill(session_id=sessionid)
+
+    def kill_session_thread(self):
         try:
             if self.session_thread:
                 for thread in self.session_thread:
                     thread.terminate()
             self.session_thread = None
         except Exception:
-            logic_logger.error('error: failed to kill a session thread still alive')
+            logic_logger.error('Failed to kill a session thread still alive')
 
-    def checkCredential(self):
-        rcm_server_command = rcm_utils.get_server_command(self.proxynode,
-                                                          self.remoteuser,
-                                                          passwd=self.passwd)
-        if rcm_server_command != '':
-            self.config['remote_rcm_server'] = rcm_server_command
-        return True

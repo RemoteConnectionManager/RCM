@@ -665,7 +665,7 @@ class QSSHSessionWidget(QWidget):
                 self.displays[display_session_id].kill_all_threads()
 
             if self.remote_connection_manager:
-                self.remote_connection_manager.vncsession_kill()
+                self.remote_connection_manager.kill_session_thread()
         except Exception as e:
             logger.error('Failed to kill running threads')
             logger.error(e)
