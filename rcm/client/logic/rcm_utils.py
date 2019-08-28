@@ -5,6 +5,7 @@ import os
 import sys
 import paramiko
 import socket
+import shutil
 import queue
 import hashlib
 import urllib.request
@@ -90,6 +91,28 @@ def client_folder():
 def log_folder():    
     return os.path.join(client_folder(), 'logs')
 
+
+def copytree(src, dst, symlinks=False, ignore=None):
+    if not os.path.exists(dst):
+        logic_logger.debug("Creating folder " + dst)
+        os.makedirs(dst)
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            copytree(s, d, symlinks, ignore)
+        else:
+            if not os.path.exists(d):
+                logic_logger.debug("Copy: " + s + " >> " + d)
+                shutil.copy2(s, d)
+            else:
+                source_hash = compute_checksum(s)
+                dest_hash = compute_checksum(d)
+                if source_hash == dest_hash:
+                    logic_logger.debug("Found previous: " + d)
+                else:
+                    logic_logger.warning("Update previous: " + s + " >> " + d)
+                    shutil.copy2(s, d)
 
 
 # this is the real class, hidden

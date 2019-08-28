@@ -7,8 +7,6 @@ import os
 import getpass
 import socket
 import paramiko
-import shutil
-
 
 # in order to parse the pickle message coming from the server, we need to import rcm as below
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -68,8 +66,6 @@ class RemoteConnectionManager:
         self.config['ssh']['darwin'] = ("ssh", "", "")
         self.config['remote_rcm_server'] = json.loads(parser.get('Settings', 'preload_command', fallback=defaults['preload_command']))
 
-        self.activeConnectionsList = []
-
         # set the environment
         if getattr(sys, 'frozen', False):
             logic_logger.debug("Running in a bundle")
@@ -80,28 +76,6 @@ class RemoteConnectionManager:
                 # on windows 10, administration policies prevent execution  of external programs
                 # located in %TEMP% ... it seems that it cannot be loaded
 
-                def copytree(src, dst, symlinks=False, ignore=None):
-                    if not os.path.exists(dst):
-                        logic_logger.info("WINDOWS PROTECTION WORKAROUND: Creating folder " + dst)
-                        os.makedirs(dst)
-                    for item in os.listdir(src):
-                        s = os.path.join(src, item)
-                        d = os.path.join(dst, item)
-                        if os.path.isdir(s):
-                            copytree(s, d, symlinks, ignore)
-                        else:
-                            if not os.path.exists(d):
-                                logic_logger.debug("WINDOWS PROTECTION WORKAROUND Copy: " + s + " >> " + d)
-                                shutil.copy2(s, d)
-                            else:
-                                source_hash = rcm_utils.compute_checksum(s)
-                                dest_hash = rcm_utils.compute_checksum(d)
-                                if source_hash == dest_hash:
-                                    logic_logger.debug("WINDOWS PROTECTION WORKAROUND FOUND PREVIUS: " + d )
-                                else:
-                                    logic_logger.WARNING("WINDOWS PROTECTION WORKAROUND UPDATE PREVIOUS: " + s + " >> " + d)
-                                    shutil.copy2(s, d)
-
                 home_path = os.path.expanduser('~')
                 desktop_path = os.path.join(home_path, 'Desktop')
                 exe_dir_path=os.path.dirname(sys.executable)
@@ -109,8 +83,7 @@ class RemoteConnectionManager:
                     rcm_unprotected_path = os.path.join(exe_dir_path, '.rcm', 'executables')
                     os.makedirs(rcm_unprotected_path, exist_ok=True)
                     dest_dir = os.path.join(rcm_unprotected_path, 'turbovnc')
-                    #distutils.dir_util.copy_tree(resource_path('turbovnc'), dest_dir)
-                    copytree(resource_path('turbovnc'), dest_dir)
+                    rcm_utils.copytree(resource_path('turbovnc'), dest_dir)
                     os.environ['JAVA_HOME'] = dest_dir
 
             os.environ['JDK_HOME'] = os.environ['JAVA_HOME']
