@@ -7,6 +7,37 @@ schema:
 
         substitutions :
           HEADER : ""
+          QUEUE.GRES.VGLRUN_SLURM_DISPLAY : |
+            XDPYINFO_OUT=$(xdpyinfo -display :0)
+            if [ 0 == $? ]
+            then
+              declare -a screens
+              screen_count = 0
+              for screen in $(echo "$XDPYINFO_OUT" | grep 'screen #' | cut -d'#' -f 2 | cut -d':' -f 1)
+              do
+                screens[$screen_count]=$screen
+                screen_count=$(($screen_count +1))
+              done
+              #echo "FOUND $screen_count  NUMBER OF SCREENS on DISPLAY :0"
+              export VGLRUN_DISPLAY_FLAG="-d :0.$(shuf -i 0-$(($screen_count -1)) -n 1)"
+              #echo "vglrun $VGLRUN_DISPLAY_FLAG"
+              module load virtualgl
+              vglrun() { $(which vglrun) $VGLRUN_DISPLAY_FLAG $@; }
+              export -f  vglrun
+            else
+              vglrun() { echo 'vglrun can not be used without gpu'; }
+              export -f  vglrun
+            fi
+
+          SERVICE_SETUP: |
+            if [[ "$RCM_SERVICES_SETUP" == *VGLRUN* ]]
+            then
+            # Here is the VGLRUN setup from different scheduler and queues
+            # is activate just when the selected service requires it
+            echo "Redefining vglrun" >&2
+            @{QUEUE.GRES.VGLRUN_SLURM_DISPLAY}
+            fi
+
           QUEUE.TIMELIMIT : "~"
 
         children :
