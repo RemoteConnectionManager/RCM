@@ -19,7 +19,7 @@ defaults:
                 max: 1000
             MEMORY :
               min : 4
-              default: 60
+              default: 50
             TIME :
               max : '03:00:00'
             CPU :
@@ -30,16 +30,30 @@ defaults:
                 description : "use one kepler gpu"
                 substitutions :
                   GRES_STRING: "--gres=gpu:kepler:1"
+                  VGLRUN_SLURM_DISPLAY: |
+                    # This use two X11 displays, select the one that is attached to the right GPU device Slurm has assigned
+                    module load virtualgl
+                    export VGLRUN_DISPLAY_FLAG="-d :$(( $(/sbin/lspci -d 10de: | grep -in $(nvidia-smi --query-gpu=pci.bus_id --format=csv,noheader | cut -d: -f2,3) | cut -d: -f1) -1 )).0"
+                    vglrun() { $(which vglrun) $VGLRUN_DISPLAY_FLAG $@; }
+                    export -f  vglrun
+
+
               2GPU :
                 description : "use two kepler gpu"
                 substitutions :
                   GRES_STRING: "--gres=gpu:kepler:2"
+                  VGLRUN_SLURM_DISPLAY: |
+                    # no need to redefine vglrun, there are two display available, :0.0 is default
+                    module load virtualgl
+
               None :
                 description : "use no gpu"
                 substitutions :
                   GRES_STRING: ""
         substitutions :
           QUEUE.GRES.GRES_STRING: ""
+
+
           HEADER: |
             #!/bin/bash
             ## thisc come from defaults slurm_gpu
@@ -50,3 +64,5 @@ defaults:
             #SBATCH -N 1 -n @{QUEUE.CPU} --partition=@{QUEUE} --mem=@{QUEUE.MEMORY}GB @{QUEUE.GRES.GRES_STRING} #direct setup
             ###old##SBATCH  @{QUEUE_PAR} #indirect setup
             #
+
+

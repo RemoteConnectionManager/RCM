@@ -15,3 +15,8 @@ defaults:
             #SBATCH --partition=@{QUEUE}
             #
 
+
+
+          QUEUE.GRES.VGLRUN_SLURM_DISPLAY : |
+            #This setup is default for no GPU (fixed)
+            vglrun() { echo 'vglrun can not be used without gpu'; }; export -f  vglrun
