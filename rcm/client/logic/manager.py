@@ -357,11 +357,12 @@ class RemoteConnectionManager:
                 logic_logger.debug("VNC command macOS: "+vnc_command)
 
             elif sys.platform == 'win32':
-                vnc_command = "echo " + vncpassword_decrypted + " | " + self.vnc_cmdline_builder.get_executable_path() \
-                              + " -autopass -nounixlogin -noreconnect -nonewconn"
-                vnc_command += " -logfile " + os.path.join(rcm_utils.log_folder(), 'vncviewer_' + nodelogin + '_' +
-                                                           session.hash.get('sessionid', '') + '.log')
-                vnc_command += " -loglevel " + str(rcm_utils.vnc_loglevel)
+                vnc_command = self.vnc_cmdline_builder.get_executable_path() \
+                              + " /nounixlogin /noreconnect /nonewconn"
+                # vnc_command += " -logfile " + os.path.join(rcm_utils.log_folder(), 'vncviewer_' + nodelogin + '_' +
+                #                                           session.hash.get('sessionid', '') + '.log')
+                vnc_command += " /loglevel " + str(rcm_utils.vnc_loglevel)
+                vnc_command += " /password " + vncpassword_decrypted + " " 
             else:
                 vnc_command = self.vnc_cmdline_builder.get_executable_path() + " -quality 80 " \
                               + " -password " + vncpassword_decrypted + " -noreconnect -nonewconn "
