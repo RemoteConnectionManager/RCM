@@ -2,6 +2,7 @@
 import sys
 import os
 import json
+import pexpect
 
 # local includes
 import client.logic.rcm_utils as rcm_utils
@@ -156,8 +157,8 @@ class TurboVNCExecutable(Executable):
 
         if not sys.platform.startswith('darwin'):
             if tunnel == 'y':
-                if tunnelling_method == 'internal':
-                    self.add_default_arg("127.0.0.1:" + str(local_portnumber))
+                # if tunnelling_method == 'internal':
+                self.add_default_arg("127.0.0.1:" + str(local_portnumber))
             else:
                 self.add_default_arg(nodelogin + ":" + session.hash['display'])
 
@@ -186,10 +187,65 @@ class SSHExecutable(Executable):
 
     def set_env(self):
         # Not implemented
-        raise NotImplementedError
+        if not sys.platform == 'win32':
+            return
+        else:
+            raise NotImplementedError
 
-    def build(self):
-        # Not implemented
+    def build(self, user, session, local_portnumber):
         # On windows: echo yes | PLINK.EXE -ssh
-        raise NotImplementedError
+        # Linux "/usr/bin/ssh -L 127.0.0.1:local_portnumber:node:portnumber user@nodelogin"
 
+        if not sys.platform == 'win32':
+            node = session.hash['node']
+            nodelogin = session.hash['nodelogin']
+
+            portstring = session.hash.get('port', '')
+            if portstring:
+                portnumber = int(portstring)
+            else:
+                portnumber = 5900 + int(session.hash['display'])
+
+            self.add_arg_value("-L", "127.0.0.1:" + str(local_portnumber) + ":" + node + ":" + str(portnumber) )
+            self.add_default_arg(user + "@" + nodelogin)
+            # self.add_arg_value("echo", "'rcm_tunnel';")
+            # self.add_arg_value("sleep", "10")
+        else:
+            raise NotImplementedError
+
+
+class NativeSSHTunnelForwarder(object):
+    def __init__(self, tunnel_command, password):
+        self.tunnel_command = tunnel_command
+        self.password = password
+
+    def __enter__(self):
+        child = pexpect.spawn(self.tunnel_command,
+                              timeout=50)
+        self.vnc_process = child
+
+        i = child.expect(['continue connecting',
+                          'password',
+                          'standard VNC authentication',
+                          pexpect.TIMEOUT,
+                          pexpect.EOF],
+                          timeout=5)
+
+        if i == 0:
+            child.sendline('yes')
+            i = child.expect(['continue connecting',
+                              'password',
+                              'standard VNC authentication',
+                              pexpect.TIMEOUT,
+                              pexpect.EOF],
+                              timeout=5)
+
+        if i == 1:
+            child.sendline(self.password)
+
+
+    def __exit__(self, exc_type, exc_value, tb):
+        return
+
+    def stop(self):
+        return

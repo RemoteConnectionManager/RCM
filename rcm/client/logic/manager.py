@@ -15,7 +15,7 @@ sys.path.append(os.path.join(root_rcm_path, 'server'))
 # local includes
 import rcm
 import client.logic.rcm_utils as rcm_utils
-import client.logic.vnc_client as vnc_client
+import client.logic.plugin as plugin
 import client.logic.cipher as cipher
 import client.logic.thread as thread
 import client.logic.rcm_protocol_client as rcm_protocol_client
@@ -224,26 +224,19 @@ class RemoteConnectionManager:
             tunnelling_method = "internal"
         logic_logger.info("Using " + str(tunnelling_method) + " ssh tunnelling")
 
-        tunnel_command = ""
+        plugin_exe = plugin.TurboVNCExecutable()
+        plugin_exe.build(session=session, local_portnumber=local_portnumber)
 
-        # Decrypt password
-        vncpassword = session.hash.get('vncpassword', '')
-        rcm_cipher = cipher.RCMCipher()
-        vncpassword_decrypted = rcm_cipher.decrypt(vncpassword)
+        ssh_exe = plugin.SSHExecutable()
+        ssh_exe.build(self.user, session, local_portnumber)
 
-        prg = vnc_client.TurboVNCExecutable()
-        prg.build(session=session, local_portnumber=local_portnumber)
-
-        st = thread.SessionThread(tunnel_command,
-                                  prg.command,
+        st = thread.SessionThread(ssh_exe.command,
+                                  plugin_exe.command,
                                   self.proxynode,
                                   self.user,
                                   self.password,
-                                  vncpassword_decrypted,
-                                  otp,
                                   gui_cmd,
                                   configFile,
-                                  self.auth_method,
                                   local_portnumber,
                                   node,
                                   portnumber,

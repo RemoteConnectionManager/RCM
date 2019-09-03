@@ -88,7 +88,7 @@ def client_folder():
     return os.path.join(os.path.expanduser('~'), '.rcm')
 
 
-def log_folder():    
+def log_folder():
     return os.path.join(client_folder(), 'logs')
 
 
