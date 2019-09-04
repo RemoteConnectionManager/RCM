@@ -1,5 +1,6 @@
 # std lib
 import collections
+import traceback
 
 # pyqt5
 from PyQt5.QtCore import pyqtSlot, QThreadPool, Qt
@@ -164,15 +165,15 @@ class RCMMainWindow(QMainWindow):
                                               nodelogin=node,
                                               username=user,
                                               vncpassword=password)
-                    current_session_widget.remote_connection_manager.vncsession(session=session)
+                    current_session_widget.remote_connection_manager.submit(session=session)
                     logger.info("Connected to remote display " +
                                 str(display) + " on " + node +
                                 " as " + str(user) + " with tunnel")
                 else:
                     current_session_widget.create_remote_connection_manager()
-                    current_session_widget.remote_connection_manager.vncsession(configFile=filename)
+                    current_session_widget.remote_connection_manager.submit(configFile=filename)
         except Exception as e:
-            logger.error(e)
+            logger.error(str(e) + " - " + str(traceback.format_exc()))
 
     def closeEvent(self, QCloseEvent):
         self.exit()
