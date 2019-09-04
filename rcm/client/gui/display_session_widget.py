@@ -1,6 +1,7 @@
 # python import
 from datetime import timedelta, datetime
 import time
+import traceback
 
 # pyqt5
 from PyQt5.QtCore import pyqtSignal, QTimer, pyqtSlot
@@ -166,10 +167,16 @@ class QDisplaySessionWidget(QWidget):
                         out_file.write("host={0}\n".format(self.session.hash['node']))
                     else:
                         out_file.write("host={0}\n".format(self.session.hash['nodelogin']))
-                    out_file.write("port={0}\n".format(5900 + int(self.session.hash['display'])))
+                    try:
+                        port = int(self.session.hash['port'])
+                    except Exception as e:
+                        logger.debug(str(e) + " - " + str(traceback.format_exc()))
+                        port = 5900 + int(self.session.hash['display'])
+                    out_file.write("port={0}\n".format( port ))
                     out_file.write("password={0}\n".format(self.session.hash['vncpassword']))
         except Exception as e:
-            logger.error(e)
+            logger.debug(str(e) + " - " + str(traceback.format_exc()))
+            logger.debug(str(self.session.hash))
             logger.error("Failed to share display " + str(self.display_name))
 
     def kill_display(self):
