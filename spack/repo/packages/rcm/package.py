@@ -51,8 +51,8 @@ class Rcm(Package):
     version('v0.0.3', 'a9ee0ddfa533701a3a538011f9c2349c')
     version('v0.0.4', '215537f33ce5e17c67ec901334404c79')
     version('v0.0.5', '80c8700cfb3ba9f2709dd3ab6a4d3cdd')
-    version('refactoring', git='https://github.com/RemoteConnectionManager/RCM.git', branch='refactoring')
-    version('yaml_config', git='https://github.com/RemoteConnectionManager/RCM.git', branch='feature/yaml_config')
+    version('dev', git='https://github.com/RemoteConnectionManager/RCM.git', branch='dev')
+    version('master', git='https://github.com/RemoteConnectionManager/RCM.git', branch='master')
 
     variant('linksource', default=False, description='link to source instead of copying scripts')
     variant('client', default=False, description='install client part')
@@ -85,7 +85,7 @@ class Rcm(Package):
     depends_on('xkbutils', when='+server', type='run')
     depends_on('xlsfonts', when='+server', type='run')
     depends_on('xfontsel', when='+server', type='run')
-    depends_on('font-adobe-75dpi', when='+server', type='run')
+    depends_on('font-util fonts=font-adobe-75dpi', when='+server', type='run')
     depends_on('mesa', when='+mesa', type='run')
     depends_on('virtualgl', when='+virtualgl', type='run')
     
