@@ -19,7 +19,7 @@ class LoginThread(QThread):
     def run(self):
         try:
             self.session_widget.remote_connection_manager.login_setup(host=self.host,
-                                                                      remoteuser=self.user,
+                                                                      user=self.user,
                                                                       password=self.password,
                                                                       preload=self.preload)
             self.session_widget.platform_config = self.session_widget.remote_connection_manager.get_config()
