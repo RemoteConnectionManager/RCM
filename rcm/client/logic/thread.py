@@ -73,7 +73,7 @@ class SessionThread(threading.Thread):
             self.ssh_server.stop()
 
         if self.gui_cmd:
-            self.gui_cmd(active=True)
+            self.gui_cmd(active=False)
 
     def run(self):
         try:
