@@ -204,18 +204,18 @@ class SSHExecutable(Executable):
         if sys.platform == 'win32':
             self.add_default_arg("-ssh")
             self.add_arg_value("-pw", str(password))
-            # self.add_arg_value("echo", "'rcm_tunnel';")
-            # self.add_arg_value("sleep", "20")            
 
 
 class NativeSSHTunnelForwarder(object):
     def __init__(self, tunnel_command, password):
         self.tunnel_command = tunnel_command
+        self.tunnel_process = None
         self.password = password
 
+
     def __enter__(self):
+        logic_logger.debug(self.tunnel_command)
         if sys.platform == 'win32':
-            logic_logger.debug(self.tunnel_command)
             self.tunnel_process = subprocess.Popen(self.tunnel_command,
                                                    bufsize=1,
                                                    stdout=subprocess.PIPE,
@@ -225,10 +225,8 @@ class NativeSSHTunnelForwarder(object):
                                                    universal_newlines=True,
                                                    env=os.environ)
             while True:
-                logic_logger.debug("output from stderr")
                 o = self.tunnel_process.stderr.readline()
-                
-                logic_logger.debug("output from stderr---->" + str(o.strip()) + "<---")
+                logic_logger.debug("tunnel process stderr: " + str(o.strip()))
 
                 if o.strip().split()[0] == 'Store':
                    break
@@ -239,34 +237,37 @@ class NativeSSHTunnelForwarder(object):
                    continue
 
         else:
-            child = pexpect.spawn(self.tunnel_command,
-                                  timeout=50)
+            self.tunnel_process = pexpect.spawn(self.tunnel_command,
+                                                timeout=50)
 
-            i = child.expect(['continue connecting',
-                              'password',
-                              'standard VNC authentication',
-                              pexpect.TIMEOUT,
-                              pexpect.EOF],
-                              timeout=5)
+            i = self.tunnel_process.expect(['continue connecting',
+                                            'password',
+                                            r'.+',
+                                            pexpect.TIMEOUT,
+                                            pexpect.EOF],
+                                            timeout=5)
 
             if i == 0:
-                child.sendline('yes')
-                i = child.expect(['continue connecting',
-                                  'password',
-                                  'standard VNC authentication',
-                                  pexpect.TIMEOUT,
-                                  pexpect.EOF],
-                                  timeout=5)
+                self.tunnel_process.sendline('yes')
+                i = self.tunnel_process.expect(['continue connecting',
+                                                'password',
+                                                pexpect.TIMEOUT,
+                                                pexpect.EOF],
+                                                timeout=5)
 
             if i == 1:
-                child.sendline(self.password)
+                self.tunnel_process.sendline(self.password)
 
     def __exit__(self, exc_type, exc_value, tb):
         self.stop()
 
     def stop(self):
         logic_logger.debug("Stopping ssh tunnelling")
+
         if self.tunnel_process:
-            logic_logger.debug("Killing ssh tunnel process " +
-                               str(self.self.tunnel_process.pid))
-            self.tunnel_process.terminate()
+            if sys.platform == 'win32':
+                logic_logger.debug("Killing ssh tunnel process " +
+                                   str(self.tunnel_process.pid))
+                self.tunnel_process.terminate()
+            else:
+                self.tunnel_process.close(force=True)

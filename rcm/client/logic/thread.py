@@ -58,7 +58,7 @@ class SessionThread(threading.Thread):
 
         # kill the process
         if self.service_process:
-            arguments = 'Args not available in Popen'
+            arguments = ''
             if hasattr(self.service_process, 'args'):
                 arguments = str(self.service_process.args)
 
@@ -77,18 +77,14 @@ class SessionThread(threading.Thread):
 
     def run(self):
         try:
-
             logic_logger.debug('Thread ' + str(self.threadnum) + ' is started')
 
             if self.gui_cmd:
                 self.gui_cmd(active=True)
 
             if self.configFile:
-                print("CONFIG file branchs")
                 commandlist = self.service_command.split()
                 commandlist.append(self.configFile)
-                logic_logger.debug('This is thread ' + str(self.threadnum)
-                                   + ' CONFIGFILE, executing-->' + ' '.join(commandlist) + "<--")
                 self.service_process = subprocess.Popen(commandlist,
                                                         bufsize=1,
                                                         stdout=subprocess.PIPE,
@@ -105,8 +101,7 @@ class SessionThread(threading.Thread):
                 else:
                     logic_logger.error(str(self.tunnelling_method) + 'is not a valid option!')
 
-            if self.gui_cmd:
-                self.gui_cmd(active=False)
+            self.terminate()
 
         except Exception as e:
             self.terminate()
@@ -132,7 +127,8 @@ class SessionThread(threading.Thread):
             while self.service_process.poll() is None:
                 stdout = self.service_process.stdout.readline()
                 if stdout:
-                    logic_logger.debug("output from process: " + stdout.strip())
+                    logic_logger.debug("service process stdout: " + stdout.strip())
+
 
     def execute_service_command_with_external_ssh_tunnel(self):
 
@@ -152,6 +148,4 @@ class SessionThread(threading.Thread):
             while self.service_process.poll() is None:
                 stdout = self.service_process.stdout.readline()
                 if stdout:
-                    logic_logger.debug("output from process: " + stdout.strip())
-                    
-        self.terminate()
+                    logic_logger.debug("service process stdout: " + stdout.strip())

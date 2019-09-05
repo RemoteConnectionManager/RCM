@@ -232,7 +232,6 @@ class RemoteConnectionManager:
                                   portnumber,
                                   tunnelling_method)
 
-        logic_logger.debug("session thread: " + str(st) + "; thread number: " + str(len(self.session_threads)))
         self.session_threads.append(st)
         st.start()
 
