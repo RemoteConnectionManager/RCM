@@ -63,13 +63,6 @@ class RemoteConnectionManager:
         self.user = user
         self.password = password
 
-        rcm_server_command = rcm_utils.get_server_command(self.proxynode,
-                                                          self.user,
-                                                          passwd=self.password)
-
-        if rcm_server_command != '':
-            self.rcm_server_command = rcm_server_command
-
         self.subnet = '.'.join(socket.gethostbyname(self.proxynode).split('.')[0:-1])
         logic_logger.debug("Login host: " + self.proxynode + " subnet: " + self.subnet)
 
@@ -107,15 +100,14 @@ class RemoteConnectionManager:
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
             ssh.connect(host, username=self.user, password=self.password, timeout=10)
+            self.auth_method = ssh.get_transport().auth_handler.auth_method
+            stdin, stdout, stderr = ssh.exec_command(fullcommand)
         except Exception as e:
-            logic_logger.warning("ERROR {0}: ".format(e) + "in ssh.connect to node->" +
-                                 host + "< user->" + self.user + "<")
             ssh.close()
-            return ''
+            raise RuntimeError(e)
+        finally:
+            ssh.close()
 
-        self.auth_method = ssh.get_transport().auth_handler.auth_method
-
-        stdin, stdout, stderr = ssh.exec_command(fullcommand)
         out = ''.join(stdout)
         err = stderr.readlines()
         if err:
@@ -131,7 +123,6 @@ class RemoteConnectionManager:
             if err:
                 raise Exception("Server error: {0}".format(err))
 
-        ssh.close()
         return out
 
     def list(self):
@@ -192,15 +183,14 @@ class RemoteConnectionManager:
         session = rcm.rcm_session(o)
         return session
 
-    def get_config(self):
-        client_build_platform = self.pack_info.buildPlatformString
-        if not client_build_platform:
-            client_build_platform = 'new_client_devel'
+    def get_config(self):        
         o = self.protocol.config(build_platform=json.dumps(self.pack_info.to_dict()))
         self.server_config = rcm.rcm_config(o)
         logic_logger.debug("config: " + str(self.server_config))
+        
         if 'jobscript_json_menu' in self.server_config.config:
             logic_logger.debug("jobscript gui json: " + self.server_config.config.get('jobscript_json_menu', ''))
+        
         return self.server_config
 
     def submit(self, session=None, otp='', gui_cmd=None, configFile=None):
@@ -228,7 +218,7 @@ class RemoteConnectionManager:
         plugin_exe.build(session=session, local_portnumber=local_portnumber)
 
         ssh_exe = plugin.SSHExecutable()
-        ssh_exe.build(self.user, session, local_portnumber)
+        ssh_exe.build(self.user, self.password, session, local_portnumber)
 
         st = thread.SessionThread(ssh_exe.command,
                                   plugin_exe.command,

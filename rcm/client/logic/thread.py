@@ -54,7 +54,6 @@ class SessionThread(threading.Thread):
         logic_logger.debug('Thread ' + str(self.threadnum) + ' is initialized')
 
     def terminate(self):
-        self.gui_cmd = None
         logic_logger.debug('Killing thread ' + str(self.threadnum))
 
         if self.ssh_server:
@@ -70,6 +69,9 @@ class SessionThread(threading.Thread):
                                " with args " + arguments)
 
             self.service_process.terminate()
+            
+        if self.gui_cmd:
+            self.gui_cmd(active=True)
 
     def run(self):
         logic_logger.debug('Thread ' + str(self.threadnum) + ' is started')
@@ -98,8 +100,6 @@ class SessionThread(threading.Thread):
                 self.execute_service_command_with_external_ssh_tunnel()
             else:
                 logic_logger.error(str(self.tunnelling_method) + 'is not a valid option!')
-
-        self.service_process = None
 
         if self.gui_cmd:
             self.gui_cmd(active=False)
@@ -146,3 +146,5 @@ class SessionThread(threading.Thread):
                 stdout = self.service_process.stdout.readline()
                 if stdout:
                     logic_logger.debug("output from process: " + stdout.strip())
+                    
+        self.terminate()
