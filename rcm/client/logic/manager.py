@@ -102,16 +102,16 @@ class RemoteConnectionManager:
             ssh.connect(host, username=self.user, password=self.password, timeout=10)
             self.auth_method = ssh.get_transport().auth_handler.auth_method
             stdin, stdout, stderr = ssh.exec_command(fullcommand)
+            out = ''.join(stdout)
+            err = stderr.readlines()
         except Exception as e:
             ssh.close()
             raise RuntimeError(e)
         finally:
             ssh.close()
 
-        out = ''.join(stdout)
-        err = stderr.readlines()
         if err:
-            logic_logger.warning("Server report error: {0}".format(err))
+            logic_logger.warning(err)
 
         # find where the real server output starts
         index = out.find(rcm.serverOutputString)

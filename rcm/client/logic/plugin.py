@@ -265,6 +265,8 @@ class NativeSSHTunnelForwarder(object):
         self.stop()
 
     def stop(self):
-        logic_logger.debug("killing ssh tunnel")
+        logic_logger.debug("Stopping ssh tunnelling")
         if self.tunnel_process:
+            logic_logger.debug("Killing ssh tunnel process " +
+                               str(self.self.tunnel_process.pid))
             self.tunnel_process.terminate()

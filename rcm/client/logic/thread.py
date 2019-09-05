@@ -56,9 +56,7 @@ class SessionThread(threading.Thread):
     def terminate(self):
         logic_logger.debug('Killing thread ' + str(self.threadnum))
 
-        if self.ssh_server:
-            self.ssh_server.stop()
-
+        # kill the process
         if self.service_process:
             arguments = 'Args not available in Popen'
             if hasattr(self.service_process, 'args'):
@@ -69,40 +67,49 @@ class SessionThread(threading.Thread):
                                " with args " + arguments)
 
             self.service_process.terminate()
-            
+
+        # stop the tunnelling
+        if self.ssh_server:
+            self.ssh_server.stop()
+
         if self.gui_cmd:
             self.gui_cmd(active=True)
 
     def run(self):
-        logic_logger.debug('Thread ' + str(self.threadnum) + ' is started')
+        try:
 
-        if self.gui_cmd:
-            self.gui_cmd(active=True)
+            logic_logger.debug('Thread ' + str(self.threadnum) + ' is started')
 
-        if self.configFile:
-            print("CONFIG file branchs")
-            commandlist = self.service_command.split()
-            commandlist.append(self.configFile)
-            logic_logger.debug('This is thread ' + str(self.threadnum)
-                               + ' CONFIGFILE, executing-->' + ' '.join(commandlist) + "<--")
-            self.service_process = subprocess.Popen(commandlist,
-                                                    bufsize=1,
-                                                    stdout=subprocess.PIPE,
-                                                    stderr=subprocess.PIPE,
-                                                    stdin=subprocess.PIPE,
-                                                    shell=False,
-                                                    universal_newlines=True)
-            self.service_process.wait()
-        else:
-            if self.tunnelling_method == 'internal':
-                self.execute_service_command_with_internal_ssh_tunnel()
-            elif self.tunnelling_method == 'external':
-                self.execute_service_command_with_external_ssh_tunnel()
+            if self.gui_cmd:
+                self.gui_cmd(active=True)
+
+            if self.configFile:
+                print("CONFIG file branchs")
+                commandlist = self.service_command.split()
+                commandlist.append(self.configFile)
+                logic_logger.debug('This is thread ' + str(self.threadnum)
+                                   + ' CONFIGFILE, executing-->' + ' '.join(commandlist) + "<--")
+                self.service_process = subprocess.Popen(commandlist,
+                                                        bufsize=1,
+                                                        stdout=subprocess.PIPE,
+                                                        stderr=subprocess.PIPE,
+                                                        stdin=subprocess.PIPE,
+                                                        shell=False,
+                                                        universal_newlines=True)
+                self.service_process.wait()
             else:
-                logic_logger.error(str(self.tunnelling_method) + 'is not a valid option!')
+                if self.tunnelling_method == 'internal':
+                    self.execute_service_command_with_internal_ssh_tunnel()
+                elif self.tunnelling_method == 'external':
+                    self.execute_service_command_with_external_ssh_tunnel()
+                else:
+                    logic_logger.error(str(self.tunnelling_method) + 'is not a valid option!')
 
-        if self.gui_cmd:
-            self.gui_cmd(active=False)
+            if self.gui_cmd:
+                self.gui_cmd(active=False)
+
+        except Exception as e:
+            self.terminate()
 
     def execute_service_command_with_internal_ssh_tunnel(self):
 
