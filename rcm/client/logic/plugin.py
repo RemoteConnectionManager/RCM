@@ -214,7 +214,11 @@ class NativeSSHTunnelForwarder(object):
 
 
     def __enter__(self):
-        logic_logger.debug(self.tunnel_command)
+        tunnel_command_without_password = self.tunnel_command
+        if self.password:
+            tunnel_command_without_password = self.tunnel_command.replace(self.password, "***")
+        logic_logger.debug(tunnel_command_without_password)
+
         if sys.platform == 'win32':
             self.tunnel_process = subprocess.Popen(self.tunnel_command,
                                                    bufsize=1,
@@ -242,7 +246,6 @@ class NativeSSHTunnelForwarder(object):
 
             i = self.tunnel_process.expect(['continue connecting',
                                             'password',
-                                            r'.+',
                                             pexpect.TIMEOUT,
                                             pexpect.EOF],
                                             timeout=5)
