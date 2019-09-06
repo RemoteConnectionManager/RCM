@@ -3,7 +3,8 @@ import sys
 import os
 import json
 import pexpect
-import subprocess
+if sys.platform == 'win32':
+    from pexpect.popen_spawn import PopenSpawn
 
 # local includes
 import client.logic.rcm_utils as rcm_utils
@@ -79,7 +80,7 @@ class TurboVNCExecutable(Executable):
             exe = "open"
         else:
             exe = rcm_utils.which('vncviewer')
-            if not exe :
+            if not exe:
                 logic_logger.error("vncviewer not found! Check the PATH environment variable.")
             if sys.platform == 'win32':
                 # if the executable path contains spaces, it has to be put inside apexes
@@ -162,6 +163,11 @@ class TurboVNCExecutable(Executable):
             else:
                 self.add_default_arg(nodelogin + ":" + session.hash['display'])
 
+        service_command_without_password = self.command
+        if vncpassword_decrypted:
+            service_command_without_password = service_command_without_password.replace(vncpassword_decrypted, "***")
+        logic_logger.debug("service cmd: " + str(service_command_without_password))
+
 
 class SSHExecutable(Executable):
     def __init__(self):
@@ -198,12 +204,17 @@ class SSHExecutable(Executable):
         else:
             portnumber = 5900 + int(session.hash['display'])
 
-        self.add_arg_value("-L", "127.0.0.1:" + str(local_portnumber) + ":" + node + ":" + str(portnumber) )
-        self.add_default_arg(user + "@" + nodelogin)
-
+        self.add_arg_value("-L", "127.0.0.1:" + str(local_portnumber) + ":" + node + ":" + str(portnumber))
         if sys.platform == 'win32':
             self.add_default_arg("-ssh")
             self.add_arg_value("-pw", str(password))
+
+        self.add_default_arg(user + "@" + nodelogin)
+
+        tunnel_command_without_password = self.command
+        if password:
+            tunnel_command_without_password = tunnel_command_without_password.replace(password, "***")
+        logic_logger.debug("tunnel cmd: " + str(tunnel_command_without_password))
 
 
 class NativeSSHTunnelForwarder(object):
@@ -212,33 +223,16 @@ class NativeSSHTunnelForwarder(object):
         self.tunnel_process = None
         self.password = password
 
-
     def __enter__(self):
-        tunnel_command_without_password = self.tunnel_command
-        if self.password:
-            tunnel_command_without_password = self.tunnel_command.replace(self.password, "***")
-        logic_logger.debug(tunnel_command_without_password)
-
         if sys.platform == 'win32':
-            self.tunnel_process = subprocess.Popen(self.tunnel_command,
-                                                   bufsize=1,
-                                                   stdout=subprocess.PIPE,
-                                                   stderr=subprocess.PIPE,
-                                                   stdin=subprocess.PIPE,
-                                                   shell=False,
-                                                   universal_newlines=True,
-                                                   env=os.environ)
-            while True:
-                o = self.tunnel_process.stderr.readline()
-                logic_logger.debug("tunnel process stderr: " + str(o.strip()))
+            self.tunnel_process = pexpect.popen_spawn.PopenSpawn(self.tunnel_command)
 
-                if o.strip().split()[0] == 'Store':
-                   break
-                if o.strip().split()[0] == 'Using':
-                   break
-                if o.strip().split()[0] == 'connection.':
-                   self.tunnel_process.stdin.write("yes\r\n")
-                   continue
+            i = self.tunnel_process.expect(['connection',
+                                            pexpect.TIMEOUT,
+                                            pexpect.EOF],
+                                           timeout=2)
+            if i == 0:
+                self.tunnel_process.sendline('yes')
 
         else:
             self.tunnel_process = pexpect.spawn(self.tunnel_command,
@@ -248,7 +242,7 @@ class NativeSSHTunnelForwarder(object):
                                             'password',
                                             pexpect.TIMEOUT,
                                             pexpect.EOF],
-                                            timeout=5)
+                                           timeout=2)
 
             if i == 0:
                 self.tunnel_process.sendline('yes')
@@ -256,7 +250,7 @@ class NativeSSHTunnelForwarder(object):
                                                 'password',
                                                 pexpect.TIMEOUT,
                                                 pexpect.EOF],
-                                                timeout=5)
+                                               timeout=2)
 
             if i == 1:
                 self.tunnel_process.sendline(self.password)
@@ -266,11 +260,5 @@ class NativeSSHTunnelForwarder(object):
 
     def stop(self):
         logic_logger.debug("Stopping ssh tunnelling")
-
         if self.tunnel_process:
-            if sys.platform == 'win32':
-                logic_logger.debug("Killing ssh tunnel process " +
-                                   str(self.tunnel_process.pid))
-                self.tunnel_process.terminate()
-            else:
-                self.tunnel_process.close(force=True)
+            self.tunnel_process.close(force=True)

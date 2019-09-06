@@ -58,14 +58,8 @@ class SessionThread(threading.Thread):
 
         # kill the process
         if self.service_process:
-            arguments = ''
-            if hasattr(self.service_process, 'args'):
-                arguments = str(self.service_process.args)
-
             logic_logger.debug("Killing service process " +
-                               str(self.service_process.pid) +
-                               " with args " + arguments)
-
+                               str(self.service_process.pid))
             self.service_process.terminate()
 
         # stop the tunnelling
