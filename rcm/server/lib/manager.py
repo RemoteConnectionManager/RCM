@@ -281,14 +281,14 @@ class ServerManager:
         # set status and jobid in curent session and write on disk
         new_session.hash['state'] = 'pending'
         new_session.hash['jobid'] = jobid
-        new_session.hash['walltime'] = self.top_templates.get('SCHEDULER.QUEUE.TIMELIMIT', utils.notimeleft_string)
+        new_session.hash['walltime'] = self.top_templates.get('SCHEDULER.ACCOUNT.QUEUE.QOS.TIMELIMIT', utils.notimeleft_string)
         new_session.serialize(self.session_manager.session_file_path(session_id))
         logger.debug("serialized  session:\n---------------\n" +
                      new_session.get_string(format='json_indent') +
                      "\n-------------")
 
         try:
-            scheduler_timeout = int(self.top_templates.get('SCHEDULER.QUEUE.TIMEOUT', '100'))
+            scheduler_timeout = int(self.top_templates.get('SCHEDULER.ACCOUNT.QUEUE.QOS.TIMEOUT', '100'))
         except:
             scheduler_timeout = 100
 

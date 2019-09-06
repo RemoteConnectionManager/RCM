@@ -6,17 +6,17 @@ defaults:
         substitutions :
           # WARNING: on regex, \ must be escaped
           JOBID_REGEX: "Submitted batch job (\\d*)"
-          QUEUE.TIMEOUT: "60"
+          ACCOUNT.QUEUE.QOS.TIMEOUT: "60"
           HEADER: |
-            #SBATCH --time=@{QUEUE.TIME}
+            #SBATCH --time=@{ACCOUNT.QUEUE.QOS.TIME}
             #SBATCH --job-name=@{RCM_SESSIONID}
             #SBATCH --output @{RCM_JOBLOG}
             #SBATCH -A @{ACCOUNT}
-            #SBATCH --partition=@{QUEUE}
+            #SBATCH --partition=@{ACCOUNT.QUEUE}
             #
 
 
 
-          QUEUE.GRES.VGLRUN_SLURM_DISPLAY : |
+          ACCOUNT.QUEUE.QOS.GRES.VGLRUN_SLURM_DISPLAY : |
             #This setup is default for no GPU (fixed)
             vglrun() { echo 'vglrun can not be used without gpu'; }; export -f  vglrun

@@ -173,6 +173,9 @@ class SlurmScheduler(BatchScheduler):
                          'squeue': None}
         super(SlurmScheduler, self).__init__(*args, **kwargs)
         self.cluster_name = ''
+        self.qos=OrderedDict()
+        self.accounts=OrderedDict()
+        self.partitions=OrderedDict()
 
     def get_cluster_name(self):
         if not self.cluster_name:

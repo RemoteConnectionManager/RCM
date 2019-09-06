@@ -7,7 +7,7 @@ schema:
 
         substitutions :
           HEADER : ""
-          QUEUE.GRES.VGLRUN_SLURM_DISPLAY : |
+          ACCOUNT.QUEUE.QOS.GRES.VGLRUN_SLURM_DISPLAY : |
             XDPYINFO_OUT=$(xdpyinfo -display :0)
             if [ 0 == $? ]
             then
@@ -35,10 +35,10 @@ schema:
             # Here is the VGLRUN setup from different scheduler and queues
             # is activate just when the selected service requires it
             echo "Redefining vglrun" >&2
-            @{QUEUE.GRES.VGLRUN_SLURM_DISPLAY}
+            @{QUEUE.QOS.GRES.VGLRUN_SLURM_DISPLAY}
             fi
 
-          QUEUE.TIMELIMIT : "~"
+          ACCOUNT.QUEUE.QOS.TIMELIMIT : "~"
 
         children :
           ACCOUNT :
@@ -46,62 +46,60 @@ schema:
             type : 'combobox'
             description : "Select the account for submitting the job service"
             children :
-              QOS :
-                label : 'QoS'
-                type : 'combobox'
-                description : "Select the Quality of Service for job submission"
-              children:
-                normal :
-                  description: "default choice for Quality of Service"
-
       #composites
-          QUEUE :
-            label : 'Queue'
-            type : 'combobox'
-            description : "Select the slurm partition to run the job service"
-            substitutions:
-              QUEUE_PAR: "-N 1 -n @{CPU} --mem=@{MEMORY}GB @{GRES.GRES_STRING} #from schema"
-              GRES.GRES_STRING: ""
-              TIMELIMIT: "@{TIME}"
-
-            children :
-              MEMORY :
-                label : 'Memory'
-                type : 'slider'
-                description : "Select the required memory (GigaBytes) for job service"
-                values :
-                  min : 1
-                  max : 120
-                  default: 0.25
-              CPU :
-                label : 'CPU'
-                type : 'slider'
-                description : "Select the required number of cores for job service"
-                values :
-                  min : 1
-                  max : 36
-                  default: 0.25
-              TIME :
-                label : 'Time (hour:min:sec)'
-                type : 'timeslider'
-                description : "Select the wall clock time for job service to run"
-                values :
-                  min : '00:00:01'
-                  max : '10:00:00'
-                  default: 0.1
-              TIMEOUT :
-                label : 'Timeout (sec)'
-                type : 'slider'
-                description : "Waiting timeout for job submission (after job is cancelled)"
-                values :
-                  min : 10
-                  max : 120
-                  default: 0.1
-              GRES :
-                label : 'GPU'
+              QUEUE :
+                label : 'Queue'
                 type : 'combobox'
-                description : "Select the number of GPU required"
+                description : "Select the slurm partition to run the job service"
+                substitutions:
+                  QUEUE_PAR: "-N 1 -n @{CPU} --mem=@{MEMORY}GB @{GRES.GRES_STRING} #from schema"
+                  QOS.GRES.GRES_STRING: ""
+                  TIMELIMIT: "@{QOS.TIME}"
+
                 children :
+                  QOS :
+                    label : 'QoS'
+                    type : 'combobox'
+                    description : "Select the Quality of Service for job submission"
+                    children:
+
+                      MEMORY :
+                        label : 'Memory'
+                        type : 'slider'
+                        description : "Select the required memory (GigaBytes) for job service"
+                        values :
+                          min : 1
+                          max : 120
+                          default: 0.25
+                      CPU :
+                        label : 'CPU'
+                        type : 'slider'
+                        description : "Select the required number of cores for job service"
+                        values :
+                          min : 1
+                          max : 36
+                          default: 0.25
+                      TIME :
+                        label : 'Time (hour:min:sec)'
+                        type : 'timeslider'
+                        description : "Select the wall clock time for job service to run"
+                        values :
+                          min : '00:00:01'
+                          max : '10:00:00'
+                          default: 0.1
+                      TIMEOUT :
+                        label : 'Timeout (sec)'
+                        type : 'slider'
+                        description : "Waiting timeout for job submission (after job is cancelled)"
+                        values :
+                          min : 10
+                          max : 120
+                          default: 0.1
+                      GRES :
+                        label : 'GPU'
+                        type : 'combobox'
+                        description : "Select the number of GPU required"
+                        children :
 
 
 
