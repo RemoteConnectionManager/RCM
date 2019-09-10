@@ -209,7 +209,12 @@ class SSHExecutable(Executable):
         self.add_arg_value("-L", "127.0.0.1:" + str(local_portnumber) + ":" + node + ":" + str(portnumber))
         if sys.platform == 'win32':
             self.add_default_arg("-ssh")
-            self.add_arg_value("-pw", str(password))
+            if password:
+                self.add_arg_value("-pw", str(password))
+
+            default_ssh_pkey = os.path.join(os.path.abspath(os.path.expanduser("~")), '.ssh', 'id_rsa.ppk')
+            if os.path.exists(default_ssh_pkey):
+                self.add_arg_value("-i", default_ssh_pkey)
 
         self.add_default_arg(user + "@" + nodelogin)
 

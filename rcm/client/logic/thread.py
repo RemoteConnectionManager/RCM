@@ -3,6 +3,7 @@ import threading
 import subprocess
 import shlex
 from sshtunnel import SSHTunnelForwarder
+import os
 
 # local includes
 from client.miscellaneous.logger import logic_logger
@@ -101,11 +102,12 @@ class SessionThread(threading.Thread):
             self.terminate()
 
     def execute_service_command_with_internal_ssh_tunnel(self):
-
+        default_ssh_pkey = os.path.join(os.path.abspath(os.path.expanduser("~")), '.ssh', 'id_rsa')
         with SSHTunnelForwarder(
                 (self.host, 22),
                 ssh_username=self.username,
                 ssh_password=self.password,
+                ssh_pkey=default_ssh_pkey,
                 remote_bind_address=(self.node, self.portnumber),
                 local_bind_address=('127.0.0.1', self.local_portnumber)
         ) as self.ssh_server:
