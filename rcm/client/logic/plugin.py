@@ -5,6 +5,7 @@ import json
 import pexpect
 if sys.platform == 'win32':
     from pexpect.popen_spawn import PopenSpawn
+import threading
 
 # local includes
 import client.logic.rcm_utils as rcm_utils
@@ -204,6 +205,7 @@ class SSHExecutable(Executable):
         else:
             portnumber = 5900 + int(session.hash['display'])
 
+        self.add_default_arg("-N")
         self.add_arg_value("-L", "127.0.0.1:" + str(local_portnumber) + ":" + node + ":" + str(portnumber))
         if sys.platform == 'win32':
             self.add_default_arg("-ssh")
@@ -222,6 +224,9 @@ class NativeSSHTunnelForwarder(object):
         self.tunnel_command = tunnel_command
         self.tunnel_process = None
         self.password = password
+        self.thread_tunnel = None
+
+        super(NativeSSHTunnelForwarder, self).__init__()
 
     def __enter__(self):
         if sys.platform == 'win32':
@@ -236,7 +241,7 @@ class NativeSSHTunnelForwarder(object):
 
         else:
             self.tunnel_process = pexpect.spawn(self.tunnel_command,
-                                                timeout=50)
+                                                timeout=None)
 
             i = self.tunnel_process.expect(['continue connecting',
                                             'password',
@@ -253,12 +258,22 @@ class NativeSSHTunnelForwarder(object):
                                                timeout=2)
 
             if i == 1:
+                logic_logger.debug("sending password")
                 self.tunnel_process.sendline(self.password)
+
+            def wait():
+                self.tunnel_process.expect(pexpect.EOF)
+
+            self.thread_tunnel = threading.Thread(target=wait)
+            self.thread_tunnel.start()
+
+            return self
 
     def __exit__(self, exc_type, exc_value, tb):
         self.stop()
 
     def stop(self):
-        logic_logger.debug("Stopping ssh tunnelling")
         if self.tunnel_process:
+            logic_logger.debug("Stopping ssh tunnelling")
             self.tunnel_process.close(force=True)
+            self.tunnel_process = None
