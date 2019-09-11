@@ -195,40 +195,56 @@ class SSHExecutable(Executable):
     def set_env(self):
         return
 
-    def build(self, user, password, session, local_portnumber):
-        node = session.hash['node']
-        nodelogin = session.hash['nodelogin']
+    def build(self,
+              login_node,
+              ssh_username,
+              ssh_password,
+              remote_bind_address,
+              local_bind_address):
 
-        portstring = session.hash.get('port', '')
-        if portstring:
-            portnumber = int(portstring)
-        else:
-            portnumber = 5900 + int(session.hash['display'])
+        compute_node = str(remote_bind_address[0])
+        port_number = str(remote_bind_address[1])
+
+        local_host = str(local_bind_address[0])
+        local_port_number = str(local_bind_address[1])
 
         self.add_default_arg("-N")
-        self.add_arg_value("-L", "127.0.0.1:" + str(local_portnumber) + ":" + node + ":" + str(portnumber))
+        self.add_arg_value("-L", local_host + ":" + local_port_number + ":" + compute_node + ":" + port_number)
         if sys.platform == 'win32':
             self.add_default_arg("-ssh")
-            if password:
-                self.add_arg_value("-pw", str(password))
+            if ssh_password:
+                self.add_arg_value("-pw", str(ssh_password))
 
             default_ssh_pkey = os.path.join(os.path.abspath(os.path.expanduser("~")), '.ssh', 'id_rsa.ppk')
             if os.path.exists(default_ssh_pkey):
                 self.add_arg_value("-i", default_ssh_pkey)
 
-        self.add_default_arg(user + "@" + nodelogin)
+        self.add_default_arg(ssh_username + "@" + login_node)
 
         tunnel_command_without_password = self.command
-        if password:
-            tunnel_command_without_password = tunnel_command_without_password.replace(password, "***")
+        if ssh_password:
+            tunnel_command_without_password = tunnel_command_without_password.replace(ssh_password, "***")
         logic_logger.debug("tunnel cmd: " + str(tunnel_command_without_password))
 
 
 class NativeSSHTunnelForwarder(object):
-    def __init__(self, tunnel_command, password):
-        self.tunnel_command = tunnel_command
+    def __init__(self,
+                 login_node,
+                 ssh_username,
+                 ssh_password,
+                 remote_bind_address,
+                 local_bind_address):
+
+        ssh_exe = SSHExecutable()
+        ssh_exe.build(login_node=login_node,
+                      ssh_username=ssh_username,
+                      ssh_password=ssh_password,
+                      remote_bind_address=remote_bind_address,
+                      local_bind_address=local_bind_address)
+
+        self.tunnel_command = ssh_exe.command
         self.tunnel_process = None
-        self.password = password
+        self.password = ssh_password
         self.thread_tunnel = None
 
         super(NativeSSHTunnelForwarder, self).__init__()
@@ -256,6 +272,7 @@ class NativeSSHTunnelForwarder(object):
 
             if i == 0:
                 self.tunnel_process.sendline('yes')
+                logic_logger.debug("accepted host verification")
                 i = self.tunnel_process.expect(['continue connecting',
                                                 'password',
                                                 pexpect.TIMEOUT,
@@ -263,8 +280,8 @@ class NativeSSHTunnelForwarder(object):
                                                timeout=2)
 
             if i == 1:
-                logic_logger.debug("sending password")
                 self.tunnel_process.sendline(self.password)
+                logic_logger.debug("sent password")
 
             def wait():
                 self.tunnel_process.expect(pexpect.EOF)

@@ -199,14 +199,15 @@ class RemoteConnectionManager:
 
         logic_logger.debug("session: " + str(session.hash))
 
-        portstring = session.hash.get('port', '')
-        if portstring:
-            portnumber = int(portstring)
+        compute_node = session.hash['node']
+        port_string = session.hash.get('port', '')
+        if port_string:
+            port_number = int(port_string)
         else:
-            portnumber = 5900 + int(session.hash['display'])
+            port_number = 5900 + int(session.hash['display'])
 
-        local_portnumber = rcm_utils.get_unused_portnumber()
-        node = session.hash['node']
+        login_node = session.hash['nodelogin']
+        local_port_number = rcm_utils.get_unused_portnumber()
 
         try:
             tunnelling_method = json.loads(parser.get('Settings', 'ssh_client'))
@@ -215,21 +216,18 @@ class RemoteConnectionManager:
         logic_logger.info("Using " + str(tunnelling_method) + " ssh tunnelling")
 
         plugin_exe = plugin.TurboVNCExecutable()
-        plugin_exe.build(session=session, local_portnumber=local_portnumber)
+        plugin_exe.build(session=session, local_portnumber=local_port_number)
 
-        ssh_exe = plugin.SSHExecutable()
-        ssh_exe.build(self.user, self.password, session, local_portnumber)
-
-        st = thread.SessionThread(ssh_exe.command,
-                                  plugin_exe.command,
+        st = thread.SessionThread(plugin_exe.command,
+                                  login_node,
                                   self.proxynode,
                                   self.user,
                                   self.password,
                                   gui_cmd,
                                   configFile,
-                                  local_portnumber,
-                                  node,
-                                  portnumber,
+                                  local_port_number,
+                                  compute_node,
+                                  port_number,
                                   tunnelling_method)
 
         self.session_threads.append(st)
@@ -250,4 +248,3 @@ class RemoteConnectionManager:
             self.session_threads = None
         except Exception:
             logic_logger.error('Failed to kill a session thread still alive')
-

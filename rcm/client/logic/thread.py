@@ -19,31 +19,31 @@ class SessionThread(threading.Thread):
     threadscount = 0
 
     def __init__(self,
-                 tunnel_cmd='',
                  service_cmd='',
+                 login_node='',
                  host='',
                  username='',
                  passwd='',
                  gui_cmd=None,
                  configFile='',
-                 local_portnumber=0,
-                 node='',
-                 portnumber=0,
+                 local_port_number=0,
+                 compute_node='',
+                 port_number=0,
                  tunnelling_method='internal'
                  ):
         self.ssh_server = None
         self.tunnelling_method = tunnelling_method
 
-        self.tunnel_command = tunnel_cmd
         self.service_command = service_cmd
         self.service_process = None
 
-        self.node = node
-        self.host = host
+        self.login_node = login_node
+        self.node = compute_node
+        self.host = host # proxynode
         self.username = username
         self.password = passwd
-        self.local_portnumber = local_portnumber
-        self.portnumber = portnumber
+        self.local_portnumber = local_port_number
+        self.portnumber = port_number
 
         self.gui_cmd = gui_cmd
         self.configFile = configFile
@@ -100,6 +100,7 @@ class SessionThread(threading.Thread):
 
         except Exception as e:
             self.terminate()
+            logic_logger.error(e)
 
     def execute_service_command_with_internal_ssh_tunnel(self):
         default_ssh_pkey = os.path.join(os.path.abspath(os.path.expanduser("~")), '.ssh', 'id_rsa')
@@ -129,8 +130,11 @@ class SessionThread(threading.Thread):
     def execute_service_command_with_external_ssh_tunnel(self):
 
         with NativeSSHTunnelForwarder(
-                self.tunnel_command,
-                self.password
+                login_node=self.login_node,
+                ssh_username=self.username,
+                ssh_password=self.password,
+                remote_bind_address=(self.node, self.portnumber),
+                local_bind_address=('127.0.0.1', self.local_portnumber)
         ) as self.ssh_server:
 
             self.service_process = subprocess.Popen(shlex.split(self.service_command),
