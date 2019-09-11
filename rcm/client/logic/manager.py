@@ -30,7 +30,7 @@ class RemoteConnectionManager:
     create/start/kill/list display remote sessions.
     """
 
-    def __init__(self, pack_info=None):
+    def __init__(self):
         self.user = ''
         self.password = ''
         self.auth_method = ''
@@ -47,11 +47,6 @@ class RemoteConnectionManager:
         def mycall(command):
             return self.prex(command)
         self.protocol.mycall = mycall
-
-        if not pack_info:
-            self.pack_info = rcm_utils.pack_info()
-        else:
-            self.pack_info = pack_info
 
         self.rcm_server_command = json.loads(parser.get('Settings',
                                                         'preload_command',
@@ -129,8 +124,6 @@ class RemoteConnectionManager:
         # Get the list of sessions for each login node of the cluster
         # and return the merge of all of them
 
-        rcm_utils.get_threads_exceptions()
-
         # here we remotely call loginlist function of rcm_protocol_server
         # get from each login nodes to check of possible sessions
         o = self.protocol.loginlist(subnet=self.subnet)
@@ -183,8 +176,8 @@ class RemoteConnectionManager:
         session = rcm.rcm_session(o)
         return session
 
-    def get_config(self):        
-        o = self.protocol.config(build_platform=json.dumps(self.pack_info.to_dict()))
+    def get_config(self):
+        o = self.protocol.config(build_platform=json.dumps(rcm_utils.pack_info().to_dict()))
         self.server_config = rcm.rcm_config(o)
         logic_logger.debug("config: " + str(self.server_config))
         

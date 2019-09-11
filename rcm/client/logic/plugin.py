@@ -148,7 +148,7 @@ class TurboVNCExecutable(Executable):
             self.add_default_arg("/nounixlogin")
             self.add_default_arg("/noreconnect")
             self.add_default_arg("/nonewconn")
-            self.add_arg_value("/loglevel", str(rcm_utils.vnc_loglevel))
+            self.add_arg_value("/loglevel", "0")
             self.add_arg_value("/password", vncpassword_decrypted)
 
         # Linux

@@ -3,10 +3,8 @@
 # std lib
 import os
 import sys
-import paramiko
 import socket
 import shutil
-import queue
 import hashlib
 import urllib.request
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,10 +13,6 @@ sys.path.append(root_rcm_path)
 # local includes
 from client.miscellaneous.logger import logic_logger
 import client.utils.pyinstaller_utils as pyinstaller_utils
-
-
-exceptionformat = " {1}"
-vnc_loglevel = 0
 
 
 def compute_checksum(filename):
@@ -165,20 +159,3 @@ def get_unused_portnumber():
     sn=sock.getsockname()[1]
     sock.close()
     return sn
-
-
-threads_exception_queue=queue.Queue()
-
-
-def get_threads_exceptions():
-    go = True
-    exc = None
-    while go:
-        try:
-            exc = threads_exception_queue.get(block=False)
-        except queue.Empty:
-            go = False
-        else:
-            logic_logger.error("one thread raised ->" + exc)
-    if exc:
-        raise Exception("ERROR: " + exc + " in thread")
