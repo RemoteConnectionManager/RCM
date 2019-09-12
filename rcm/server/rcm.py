@@ -66,10 +66,10 @@ class rcm_session:
             self.hash['file'] = fromfile
         elif fromstring != '':
             if fromstring[0] == '(':
-                logger.debug("Using pickle for rcm_session from string: " + fromstring[0])
+                logger.debug("Using pickle for rcm_session from string")
                 self.hash = pickle.loads(fromstring.encode('utf-8'))
             elif fromstring[0] == '{':
-                logger.debug("Using json for rcm_session from string: " + fromstring[0])
+                logger.debug("Using json for rcm_session from string")
                 self.hash = json.loads(fromstring)
         else:
             self.hash = {
@@ -125,12 +125,12 @@ class rcm_sessions:
                 self._array = json.load(open(fromfile, "r"))
         elif fromstring != '':
             if fromstring[0] == '(':
-                logger.debug("Using pickle for rcm_sessions from string: " + fromstring[0])
+                logger.debug("Using pickle for rcm_sessions from string")
                 old_sessions = pickle.loads(fromstring.encode('utf-8'))
                 for s in old_sessions:
                     self._array.append(s.hash)
             elif format_default == 'json':
-                logger.debug("Using json for rcm_sessions from string: " + fromstring[0])
+                logger.debug("Using json for rcm_sessions from string")
                 hashes = json.loads(fromstring)
                 for h in hashes:
                     self._array.append(h)
@@ -191,7 +191,7 @@ class rcm_config:
                 self.config = json.load(open(fromfile, "r"))
         elif fromstring != '':
             if fromstring[0] == '(':
-                logger.debug("Using pickle for rcm_config from string: " + fromstring[0])
+                logger.debug("Using pickle for rcm_config from string")
                 self.config = pickle.loads(fromstring.encode('utf-8'))
             elif format_default == 'json':
                 self.config = json.loads(fromstring)
