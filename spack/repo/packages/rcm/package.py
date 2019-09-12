@@ -70,6 +70,8 @@ class Rcm(Package):
     )
 
     # FIXME: Add dependencies if required.
+    depends_on('git', when='@dev', type='build')
+    depends_on('git', when='@master', type='build')
     depends_on('xkeyboard-config+xorg',  when='+server', type='run')
     # depends_on('turbovnc+x11deps ^xkeyboard-config+xorg', when='+server', type='run')
     depends_on('turbovnc+x11deps+server', when='+server', type='run')
@@ -89,7 +91,8 @@ class Rcm(Package):
     depends_on('mesa', when='+mesa', type='run')
     depends_on('virtualgl', when='+virtualgl', type='run')
     
-    depends_on('python+tk', when='+client', type='run')
+    depends_on('python', type='run')
+    depends_on('py-six', when='+server', type='run')
     depends_on('py-paramiko', when='+client', type='run')
     depends_on('py-packaging', when='+client', type='run')
     depends_on('py-pycrypto', when='+client', type='run')
@@ -123,6 +126,8 @@ class Rcm(Package):
                 tty.warn('linking to source->'+rcm_source)
                 os.symlink(os.path.join(rcm_source,'server'),
                            os.path.join(prefix.bin,'server'))
+                os.symlink(rcm_source,
+                           os.path.join(prefix,'src'))
                 os.symlink(configdir, os.path.join(prefix.bin,'config'))
             else:
                 copy_tree(os.path.join(rcm_source,'server'), os.path.join(prefix.bin,'server'),verbose=1)
