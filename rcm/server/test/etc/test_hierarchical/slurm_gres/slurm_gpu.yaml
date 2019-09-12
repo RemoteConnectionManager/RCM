@@ -20,8 +20,6 @@ defaults:
             MEMORY :
               min : 4
               default: 50
-            TIME :
-              max : '03:00:00'
             CPU :
               min : 4
               default: 16
