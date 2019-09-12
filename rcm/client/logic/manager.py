@@ -179,7 +179,7 @@ class RemoteConnectionManager:
 
     def get_version(self):
         try:
-            self.version = self.protocol.version(build_platform=json.dumps(rcm_utils.pack_info().to_dict()))
+            self.version = self.protocol.version()
         except Exception:
             # if the server fails to send the version,
             # we assume that the api are the oldest (v0.0.1)

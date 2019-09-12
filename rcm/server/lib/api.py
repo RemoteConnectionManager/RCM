@@ -64,7 +64,7 @@ class ServerAPIs:
             conf.config['jobscript_json_menu'] = jobscript_json_menu
         conf.serialize()
 
-    def version(self, build_platform=''):
+    def version(self):
         self._server_init()
         logger.debug("calling api version")
         sys.stdout.write(rcm.serverOutputString + self.api_version)
