@@ -184,6 +184,7 @@ class RemoteConnectionManager:
             # if the server fails to send the version,
             # we assume that the api are the oldest (v0.0.1)
             self.version = "0.0.1"
+        logic_logger.debug("api version: " + str(self.version))
 
     def get_config(self):
         o = self.protocol.config(build_platform=json.dumps(rcm_utils.pack_info().to_dict()))
