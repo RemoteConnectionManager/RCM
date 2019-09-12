@@ -30,10 +30,6 @@ def rcm_decorate(fn):
         for p in list(kw.keys()):
             if p in argnames:
                 command += ' --' + p + '=' + "'" + kw[p] + "'"
-        logic_logger.debug("calling " + name + " argnames " + str(argnames))
-        logic_logger.debug(str(kw) + " -- " + str(args))
-        logic_logger.debug("self: " + str(args[0]))
-        logic_logger.debug("running remote: " + command)
         ret = args[0].mycall(command)
         return ret
     return wrapper

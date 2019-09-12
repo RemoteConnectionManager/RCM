@@ -24,9 +24,7 @@ class LoginThread(QThread):
                                                                       preload=self.preload)
             self.session_widget.platform_config = self.session_widget.remote_connection_manager.get_config()
             if self.session_widget.platform_config:
-                logger.debug("platform_config.config: " + str(self.session_widget.platform_config.config))
                 if 'jobscript_json_menu' in self.session_widget.platform_config.config:
-                    logger.debug("connection with devel server: adding new session devel button")
                     self.session_widget.devel_new_display_button.show()
                     self.session_widget.devel_new_display_button.setShortcut(Qt.Key_Plus)
                     self.session_widget.new_display_btn.hide()
