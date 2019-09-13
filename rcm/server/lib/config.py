@@ -82,7 +82,9 @@ def getConfig(name="default", paths=(), glob_suffix="*.yaml"):
     if name in dict_paths:
         return dict_paths[name]
 
-    default_paths = [os.path.join('etc', 'defaults'), 'etc']
+    default_paths = [os.path.join('etc', 'defaults'),
+                     'etc',
+                     os.path.join('etc', 'site')]
 
     env_config_base_path = os.environ.get("RCM_CONFIG_BASE_PATH", None)
     env_config_paths = os.environ.get("RCM_CONFIG_PATHS", '').split(':')
