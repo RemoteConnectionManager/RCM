@@ -34,11 +34,13 @@ class RemoteConnectionManager:
         self.user = ''
         self.password = ''
         self.auth_method = ''
-
-        self.session_threads = []
-        self.proxynode = ''
         self.preload = ''
+
+        self.subnet = ''
+        self.proxynode = ''
         self.commandnode = ''
+
+        self.server_config = None
         self._api_version = None
 
         # here we instantiate the remote procedure call stub, it will automatically
@@ -46,6 +48,7 @@ class RemoteConnectionManager:
         self.protocol = rcm_protocol_client.get_protocol()
         self.protocol.decorate = self.prex
 
+        self.session_threads = []
         self.rcm_server_command = json.loads(parser.get('Settings',
                                                         'preload_command',
                                                         fallback=defaults['preload_command']))
