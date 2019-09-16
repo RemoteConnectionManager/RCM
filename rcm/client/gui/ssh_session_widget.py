@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
 
 # local includes
 from client.gui.display_dialog import QDisplayDialog
-from client.gui.new_display_dialog import QDisplayDialog as QDisplayDialogDevel
+from client.gui.dynamic_display_dialog import QDynamicDisplayDialog
 from client.gui.display_session_widget import QDisplaySessionWidget
 from client.utils.pyinstaller_utils import resource_path
 from client.miscellaneous.logger import logger
@@ -290,11 +290,6 @@ class QSSHSessionWidget(QWidget):
         self.new_display_btn.clicked.connect(self.add_new_display)
         self.new_display_btn.setShortcut(Qt.Key_Plus)
 
-        self.devel_new_display_button = QPushButton()
-        self.devel_new_display_button.setIcon(self.new_display_ico)
-        self.devel_new_display_button.setToolTip('DEVEL:  new display session')
-        self.devel_new_display_button.clicked.connect(self.add_new_display_devel)
-
         reload_btn = QPushButton()
         reload_btn.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
         reload_btn.setToolTip('Reload the page')
@@ -302,11 +297,8 @@ class QSSHSessionWidget(QWidget):
         reload_btn.setShortcut("F5")
 
         self.new_display_layout = QHBoxLayout()
-        #self.new_display_layout.addSpacing(70)
         self.new_display_layout.addWidget(reload_btn)
         self.new_display_layout.addWidget(self.new_display_btn)
-        self.new_display_layout.addWidget(self.devel_new_display_button)
-        self.devel_new_display_button.hide()
 
         plusbutton_layout.addLayout(self.new_display_layout)
 
@@ -507,8 +499,16 @@ class QSSHSessionWidget(QWidget):
             logger.warning("You have already 5 displays")
             return
 
-        display_dlg = QDisplayDialog(list(self.displays.keys()),
-                                     self.platform_config)
+        display_dialog_ui = None
+        if self.platform_config:
+            if 'jobscript_json_menu' in self.platform_config.config:
+                display_dialog_ui = json.loads(self.platform_config.config.get('jobscript_json_menu', '{}'),
+                                               object_pairs_hook=collections.OrderedDict)
+        if display_dialog_ui:
+            display_dlg = QDynamicDisplayDialog(display_dialog_ui)
+        else:
+            display_dlg = QDisplayDialog(list(self.displays.keys()),
+                                         self.platform_config)
         display_dlg.setModal(True)
 
         if display_dlg.exec() != 1:
@@ -525,36 +525,7 @@ class QSSHSessionWidget(QWidget):
         # start the worker
         worker = Worker(display_widget,
                         self.remote_connection_manager,
-                        display_dlg.session_queue,
-                        display_dlg.session_vnc,
-                        display_dlg.display_size)
-        worker.signals.status.connect(display_widget.on_status_change)
-        self.window().thread_pool.start(worker)
-
-        logger.info("Added new display")
-
-    def add_new_display_devel(self):
-        display_dialog_ui = json.loads(self.platform_config.config.get('jobscript_json_menu', '{}'),
-                                       object_pairs_hook=collections.OrderedDict)
-        display_dialog = QDisplayDialogDevel(display_dialog_ui)
-        display_dialog.setModal(True)
-        #display_dialog.show()
-        if display_dialog.exec() != 1:
-            return
-        display_name = display_dialog.display_name
-        display_id = '-'.join((display_name, str(uuid.uuid4())))
-        display_widget = QDisplaySessionWidget(self,
-                                               display_id=display_id,
-                                               display_name=display_name)
-        self.rows_ver_layout.addWidget(display_widget)
-        self.displays[display_id] = display_widget
-        # start the worker
-        worker = Worker(display_widget,
-                        self.remote_connection_manager,
-                        'dummy_queue',
-                        'dummy_vnc',
-                        'dummy_size',
-                        choices=display_dialog.choices)
+                        display_dlg)
         worker.signals.status.connect(display_widget.on_status_change)
         self.window().thread_pool.start(worker)
 

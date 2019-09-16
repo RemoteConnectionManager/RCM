@@ -20,7 +20,7 @@ from server.lib.scheduler import *
 from server.lib.manager import *
 import config
 
-from gui.new_display_dialog import *
+from gui.dynamic_display_dialog import *
 
 # This is needed, otherwise no default logging happen
 logging.debug("Start test app")
@@ -58,6 +58,6 @@ def print_result(choices):
                          "\n<")
 
 
-display_dialog = QDisplayDialog(display_dialog_ui, callback=print_result)
+display_dialog = QDynamicDisplayDialog(display_dialog_ui, callback=print_result)
 display_dialog.show()
 sys.exit(app.exec_())

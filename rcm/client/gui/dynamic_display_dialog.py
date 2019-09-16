@@ -13,8 +13,7 @@ from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
     QApplication, QTabWidget, QWidget, QSlider, QSizePolicy, QFrame
 
 
-
-class QDisplayDialog(QDialog):
+class QDynamicDisplayDialog(QDialog):
 
     def __init__(self, display_dialog_ui, callback=None,
                  name_choices=('SCHEDULER', 'SCHEDULER.QUEUE', 'SERVICE', 'SERVICE.COMMAND')):

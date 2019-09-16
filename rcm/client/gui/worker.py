@@ -32,33 +32,34 @@ class Worker(QRunnable):
     def __init__(self,
                  display_widget,
                  remote_connection_manager,
-                 session_queue,
-                 session_vnc,
-                 display_size,
-                 choices=None):
+                 display_dlg):
         super().__init__()
         self.display_widget = display_widget
         self.display_id = display_widget.display_id
         self.remote_connection_manager = remote_connection_manager
-        self.session_queue = session_queue
-        self.session_vnc = session_vnc
-        self.display_size = display_size
+        self.display_dlg = display_dlg
         self.signals = WorkerSignals()
-        self.choices = choices
-
 
     @pyqtSlot()
     def run(self):
         try:
-
             logger.debug("Worker for display " + str(self.display_id) + " started")
             self.signals.status.emit(Status.PENDING)
 
-            display_session = self.remote_connection_manager.new(queue=self.session_queue,
-                                                                 geometry=self.display_size,
-                                                                 sessionname=self.display_id,
-                                                                 vnc_id=self.session_vnc,
-                                                                 choices=self.choices)
+            version = self.remote_connection_manager.version()
+
+            if version >= "1.0.0":
+                display_session = self.remote_connection_manager.new(queue="dummy_queue",
+                                                                     geometry="dummy_display_size",
+                                                                     sessionname=self.display_id,
+                                                                     vnc_id="dummy_vnc",
+                                                                     choices=self.display_dlg.choices)
+            else:
+                display_session = self.remote_connection_manager.new(queue=self.display_dlg.session_queue,
+                                                                     geometry=self.display_dlg.display_size,
+                                                                     sessionname=self.display_id,
+                                                                     vnc_id=self.display_dlg.session_vnc,
+                                                                     choices=None)
 
             self.signals.status.emit(Status.RUNNING)
 

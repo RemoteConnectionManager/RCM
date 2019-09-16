@@ -39,7 +39,7 @@ class RemoteConnectionManager:
         self.proxynode = ''
         self.preload = ''
         self.commandnode = ''
-        self.version = ''
+        self.version = None
 
         # here we instatiate the remote procedure call stub, it will automatically
         # have all the methods of rcm_protoclo_server.rcm_protocol class
@@ -177,14 +177,16 @@ class RemoteConnectionManager:
         session = rcm.rcm_session(o)
         return session
 
-    def get_version(self):
-        try:
-            self.version = self.protocol.version()
-        except Exception:
-            # if the server fails to send the version,
-            # we assume that the api are the oldest (v0.0.1)
-            self.version = "0.0.1"
-        logic_logger.debug("api version: " + str(self.version))
+    def version(self):
+        if not self.version:
+            try:
+                self.version = self.protocol.version()
+            except Exception:
+                # if the server fails to send the version,
+                # we assume that the api are the oldest (v0.0.1)
+                self.version = "0.0.1"
+            logic_logger.debug("api version: " + str(self.version))
+        return self.version
 
     def get_config(self):
         o = self.protocol.config(build_platform=json.dumps(rcm_utils.pack_info().to_dict()))
