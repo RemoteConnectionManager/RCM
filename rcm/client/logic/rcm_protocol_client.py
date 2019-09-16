@@ -24,13 +24,13 @@ def rcm_decorate(fn):
     def wrapper(*args, **kw):
         """
         This is the wrapper for functions into ssh command line, it add debug info before calling actual command
-        It uses mycall defined in manager to get return from ssh command output
+        It uses the prex function defined in manager to get return from ssh command output
         """
         command = '--command=' + name
         for p in list(kw.keys()):
             if p in argnames:
                 command += ' --' + p + '=' + "'" + kw[p] + "'"
-        ret = args[0].mycall(command)
+        ret = args[0].decorate(command)
         return ret
     return wrapper
 

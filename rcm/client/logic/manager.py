@@ -41,13 +41,10 @@ class RemoteConnectionManager:
         self.commandnode = ''
         self._api_version = None
 
-        # here we instatiate the remote procedure call stub, it will automatically
-        # have all the methods of rcm_protoclo_server.rcm_protocol class
+        # here we instantiate the remote procedure call stub, it will automatically
+        # have all the methods of rcm_protocol_server.rcm_protocol class
         self.protocol = rcm_protocol_client.get_protocol()
-
-        def mycall(command):
-            return self.prex(command)
-        self.protocol.mycall = mycall
+        self.protocol.decorate = self.prex
 
         self.rcm_server_command = json.loads(parser.get('Settings',
                                                         'preload_command',
