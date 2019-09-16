@@ -46,9 +46,9 @@ class Worker(QRunnable):
             logger.debug("Worker for display " + str(self.display_id) + " started")
             self.signals.status.emit(Status.PENDING)
 
-            version = self.remote_connection_manager.version()
+            api_version = self.remote_connection_manager.api_version()
 
-            if version >= "1.0.0":
+            if api_version >= "1.0.0":
                 display_session = self.remote_connection_manager.new(queue="dummy_queue",
                                                                      geometry="dummy_display_size",
                                                                      sessionname=self.display_id,
