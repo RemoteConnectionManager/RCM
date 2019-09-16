@@ -3,9 +3,8 @@
 # std lib
 import os
 import sys
-import paramiko
 import socket
-import queue
+import shutil
 import hashlib
 import urllib.request
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -14,10 +13,6 @@ sys.path.append(root_rcm_path)
 # local includes
 from client.miscellaneous.logger import logic_logger
 import client.utils.pyinstaller_utils as pyinstaller_utils
-
-
-exceptionformat = " {1}"
-vnc_loglevel = 0
 
 
 def compute_checksum(filename):
@@ -87,9 +82,31 @@ def client_folder():
     return os.path.join(os.path.expanduser('~'), '.rcm')
 
 
-def log_folder():    
+def log_folder():
     return os.path.join(client_folder(), 'logs')
 
+
+def copytree(src, dst, symlinks=False, ignore=None):
+    if not os.path.exists(dst):
+        logic_logger.debug("Creating folder " + dst)
+        os.makedirs(dst)
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            copytree(s, d, symlinks, ignore)
+        else:
+            if not os.path.exists(d):
+                logic_logger.debug("Copy: " + s + " >> " + d)
+                shutil.copy2(s, d)
+            else:
+                source_hash = compute_checksum(s)
+                dest_hash = compute_checksum(d)
+                if source_hash == dest_hash:
+                    logic_logger.debug("Found previous: " + d)
+                else:
+                    logic_logger.warning("Update previous: " + s + " >> " + d)
+                    shutil.copy2(s, d)
 
 
 # this is the real class, hidden
@@ -142,75 +159,3 @@ def get_unused_portnumber():
     sn=sock.getsockname()[1]
     sock.close()
     return sn
-
-
-threads_exception_queue=queue.Queue()
-
-
-def get_threads_exceptions():
-    go = True
-    exc = None
-    while go:
-        try:
-            exc = threads_exception_queue.get(block=False)
-        except queue.Empty:
-            go = False
-        else:
-            logic_logger.error("one thread raised ->" + exc)
-    if exc:
-        raise Exception("ERROR: " + exc + " in thread")
-
-
-def get_server_command(host, user, passwd=''):
-    """
-    It call bare ssh server to  check if on login node, the user has defined a variable
-    named RCM_SERVER_COMMAND, in tht case the content of that variable overrides the default
-    rcm command string used for the remaining part of the server interaction
-     """
-
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    try:
-        ssh.connect(host, username=user, password=passwd)
-    except Exception as e:
-        logic_logger.error("ERROR {0}: ".format(e) + "in ssh.connect to host " + host)
-        raise e
-
-    chan = ssh.get_transport().open_session()
-    chan.get_pty()
-    stdin = chan.makefile('wb')
-    stdout = chan.makefile('rb')
-
-    start_string = '_##start##_'
-    end_string = '_##end##_'
-    env_variable = '${RCM_SERVER_COMMAND}'
-    get_rcm_server_command = 'echo ' + start_string + env_variable + end_string + '\n'
-    chan.invoke_shell()
-    chan.sendall(get_rcm_server_command)
-    stdin.flush()
-
-    chan.settimeout(20)
-
-    loop = True
-    output = ''
-    rcm_server_command = ''
-
-    while loop:
-        try:
-            # python3
-            if sys.version_info >= (3, 0):
-                line = str(stdout.readline(), 'utf-8')
-            # python2
-            else:
-                line = stdout.readline()
-            logic_logger.debug("parsing output line: " + line)
-
-            if end_string in line and start_string in line and not 'echo' in line:
-                rcm_server_command=line.split(end_string)[0].split(start_string)[1]
-                loop = False
-            output += line
-        except socket.timeout:
-            logic_logger.warning("WARNING TIMEOUT: unable to grab output of " +
-                                  get_rcm_server_command + " on host:" + host)
-            loop = False
-    return rcm_server_command

@@ -12,7 +12,7 @@ schema:
             if [ 0 == $? ]
             then
               declare -a screens
-              screen_count = 0
+              screen_count=0
               for screen in $(echo "$XDPYINFO_OUT" | grep 'screen #' | cut -d'#' -f 2 | cut -d':' -f 1)
               do
                 screens[$screen_count]=$screen

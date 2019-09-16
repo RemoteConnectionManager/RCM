@@ -242,7 +242,7 @@ class QDisplaySessionWidget(QWidget):
         and set the buttons enabled True/False accordingly
         :return:
         """
-        logger.debug("updating display widget for status " + str(self.status))
+        logger.debug("Updating display widget with status " + str(self.status))
 
         if self.status is Status.NOTDEFINED:
             self.connect_btn.setEnabled(False)

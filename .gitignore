@@ -112,5 +112,6 @@ spack_patched
 
 # Ignore everything in /rcm/etc except /rcm/etc/defaults
 /rcm/etc/*
+/rcm/server/etc/site
 !/rcm/etc/defaults
 

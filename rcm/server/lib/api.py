@@ -22,6 +22,8 @@ class ServerAPIs:
       - kill a session
     """
 
+    api_version = "1.0.0"
+
     def __init__(self):
         self.server_manager = None
 
@@ -62,9 +64,10 @@ class ServerAPIs:
             conf.config['jobscript_json_menu'] = jobscript_json_menu
         conf.serialize()
 
-    def version(self, build_platform=''):
+    def version(self):
         self._server_init()
         logger.debug("calling api version")
+        sys.stdout.write(rcm.serverOutputString + self.api_version)
 
     def loginlist(self, subnet=''):
         self._server_init()

@@ -30,10 +30,6 @@ def rcm_decorate(fn):
         for p in list(kw.keys()):
             if p in argnames:
                 command += ' --' + p + '=' + "'" + kw[p] + "'"
-        logic_logger.debug("calling " + name + " argnames-> " + str(argnames))
-        logic_logger.debug(str(kw) + " -- " + str(args))
-        logic_logger.debug("self-->" + str(args[0]))
-        logic_logger.debug("running remote:" + command)
         ret = args[0].mycall(command)
         return ret
     return wrapper
@@ -43,25 +39,13 @@ for name, fn in inspect.getmembers(ServerAPIs):
     if sys.version_info >= (3, 0):
         # look for user-defined member functions
         if isinstance(fn, types.FunctionType) and name[:2] != '__':
-            logic_logger.debug("wrapping-->" + name)
+            logic_logger.debug("wrapping: " + name)
             setattr(ServerAPIs, name, rcm_decorate(fn))
     else:
         if isinstance(fn, types.MethodType) and name[:2] != '__':
-            logic_logger.debug("wrapping-->"+name)
+            logic_logger.debug("wrapping: "+name)
             setattr(ServerAPIs, name, rcm_decorate(fn))
 
 
 def get_protocol():
     return ServerAPIs()
-
-
-if __name__ == '__main__':
-    def prex(command='', commandnode=''):
-        return "prex:node " + commandnode + " run -->" + command + "<--"
-
-    r = get_protocol()
-    for i in ['uno', 'due', 'tre']:
-        def mycall(command):
-            return prex(command, i)
-        logic_logger.debug("config return:", r.config(build_platform='mia_build_platform_' + i))
-        logic_logger.debug("queue return:", r.queue())
