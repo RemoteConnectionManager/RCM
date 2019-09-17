@@ -172,34 +172,30 @@ class SlurmScheduler(BatchScheduler):
                          'sacctmgr': None,
                          'squeue': None}
         super(SlurmScheduler, self).__init__(*args, **kwargs)
-        self.cluster_name = ''
         self.cluster_name = self.get_cluster_name()
         self.qos = self.qos_info()
         self.accounts = self.account_info()
         self.partitions = self.partitions_info(['AllowQos', 'AllowAccounts', 'DenyAccounts', 'MaxTime', 'DefaultTime', 'MaxCPUsPerNode', 'MaxMemPerNode'])
 
     def get_cluster_name(self):
-        if self.cluster_name:
-            cluster_name = ''
-            scontrol = self.COMMANDS.get('scontrol', None)
-            if scontrol:
-                params = 'show config'.split(' ')
-                raw_output = scontrol(*params,
-                                    output=str)
-                cluster_match = re.search(r'ClusterName\s*=\s*(\w*)', raw_output)
-                if cluster_match:
-                    cluster_name = cluster_match.group(1)
-                    self.logger.debug("computed cluster name:::>" + cluster_name + "<:::")
-            return cluster_name
-        else:
-            return self.cluster_name
+        cluster_name = ''
+        scontrol = self.COMMANDS.get('scontrol', None)
+        if scontrol:
+            params = 'show config'.split(' ')
+            raw_output = scontrol(*params,
+                                output=str)
+            cluster_match = re.search(r'ClusterName\s*=\s*(\w*)', raw_output)
+            if cluster_match:
+                cluster_name = cluster_match.group(1)
+                self.logger.debug("computed cluster name:::>" + cluster_name + "<:::")
+        return cluster_name
 
     def account_info(self):
         accounts = OrderedDict()
         try:
             sacctmgr = self.COMMANDS.get('sacctmgr', None)
             if sacctmgr:
-                param_string = "show user " + self.username + " " + "withass where cluster=" + self.get_cluster_name() + " " + "format=account%20,qos%120 -P"
+                param_string = "show user " + self.username + " " + "withass where cluster=" + self.cluster_name + " " + "format=account%20,qos%120 -P"
                 self.logger.debug("retrieving account and qos with command sacctmgr ::>" + param_string + "<::")
                 params = param_string.split(' ')
                 raw_output = sacctmgr(*params, output=str)
@@ -346,6 +342,7 @@ class SlurmScheduler(BatchScheduler):
             if partitions_schema :
                 out_schema[account] = {'QUEUE' : partitions_schema}
         return out_schema
+
     def all_accounts_and_qos(self):
         if not self.qos:
             self.qos = self.qos_info()
@@ -355,7 +352,7 @@ class SlurmScheduler(BatchScheduler):
             try:
                 sacctmgr = self.COMMANDS.get('sacctmgr', None)
                 if sacctmgr:
-                    param_string = "show user " + self.username + " " + "withass where cluster=" + self.get_cluster_name() + " " + "format=account%20,qos%120 -P"
+                    param_string = "show user " + self.username + " " + "withass where cluster=" + self.cluster_name + " " + "format=account%20,qos%120 -P"
                     self.logger.debug("retrieving account and qos with command sacctmgr ::>" + param_string + "<::")
                     params = param_string.split(' ')
                     raw_output = sacctmgr(*params, output=str)
