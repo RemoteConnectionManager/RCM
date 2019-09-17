@@ -1,0 +1,8 @@
+#!/bin/bash
+echo "PARTITION
+gll_all_serial
+gll_usr_gpudev
+gll_usr_gpuprod
+gll_meteo_prod
+gll_usr_prod
+gll_spc_prod"
