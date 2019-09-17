@@ -1,4 +1,23 @@
-# pyqt5
+#
+# Copyright (c) 2014-2019 CINECA.
+#
+# This file is part of RCM (Remote Connection Manager) 
+# (see http://www.hpc.cineca.it/software/rcm).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
 from PyQt5.QtCore import QThread, Qt
 
 # local includes
@@ -22,15 +41,8 @@ class LoginThread(QThread):
                                                                       user=self.user,
                                                                       password=self.password,
                                                                       preload=self.preload)
-            self.session_widget.remote_connection_manager.get_version()
+
             self.session_widget.platform_config = self.session_widget.remote_connection_manager.get_config()
-
-            if self.session_widget.platform_config:
-                if 'jobscript_json_menu' in self.session_widget.platform_config.config:
-                    self.session_widget.devel_new_display_button.show()
-                    self.session_widget.devel_new_display_button.setShortcut(Qt.Key_Plus)
-                    self.session_widget.new_display_btn.hide()
-
             self.session_widget.is_logged = True
         except Exception as e:
             self.session_widget.is_logged = False

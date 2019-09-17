@@ -1,9 +1,0 @@
-[Desktop Entry]
-Version=1.0
-Encoding=UTF-8
-Name=Vaa3D
-Type=Application
-Terminal=false
-Name[en_US]=Vaa3D
-Exec='@RCM_SERVER_DIR@/Desktop_setup/vaa3d.sh'
-Icon=@RCM_SERVER_DIR@/Desktop_setup/v3dIcon128.png

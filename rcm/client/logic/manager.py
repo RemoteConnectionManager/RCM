@@ -1,4 +1,23 @@
 #!/bin/env python
+#
+# Copyright (c) 2014-2019 CINECA.
+#
+# This file is part of RCM (Remote Connection Manager) 
+# (see http://www.hpc.cineca.it/software/rcm).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
 
 # std lib
 import sys
@@ -34,21 +53,21 @@ class RemoteConnectionManager:
         self.user = ''
         self.password = ''
         self.auth_method = ''
+        self.preload = ''
+
+        self.subnet = ''
+        self.proxynode = ''
+        self.commandnode = ''
+
+        self.server_config = None
+        self._api_version = None
+
+        # here we instantiate the remote procedure call stub, it will automatically
+        # have all the methods of rcm_protocol_server.rcm_protocol class
+        self.protocol = rcm_protocol_client.get_protocol()
+        self.protocol.decorate = self.prex
 
         self.session_threads = []
-        self.proxynode = ''
-        self.preload = ''
-        self.commandnode = ''
-        self.version = ''
-
-        # here we instatiate the remote procedure call stub, it will automatically
-        # have all the methods of rcm_protoclo_server.rcm_protocol class
-        self.protocol = rcm_protocol_client.get_protocol()
-
-        def mycall(command):
-            return self.prex(command)
-        self.protocol.mycall = mycall
-
         self.rcm_server_command = json.loads(parser.get('Settings',
                                                         'preload_command',
                                                         fallback=defaults['preload_command']))
@@ -177,14 +196,16 @@ class RemoteConnectionManager:
         session = rcm.rcm_session(o)
         return session
 
-    def get_version(self):
-        try:
-            self.version = self.protocol.version()
-        except Exception:
-            # if the server fails to send the version,
-            # we assume that the api are the oldest (v0.0.1)
-            self.version = "0.0.1"
-        logic_logger.debug("api version: " + str(self.version))
+    def api_version(self):
+        if not self._api_version:
+            try:
+                self._api_version = self.protocol.version()
+            except Exception:
+                # if the server fails to send the version,
+                # we assume that the api are the oldest (v0.0.1)
+                self._api_version = "0.0.1"
+            logic_logger.debug("api version: " + str(self._api_version))
+        return self._api_version
 
     def get_config(self):
         o = self.protocol.config(build_platform=json.dumps(rcm_utils.pack_info().to_dict()))
