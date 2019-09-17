@@ -190,7 +190,7 @@ class SlurmScheduler(BatchScheduler):
                     self.logger.debug("computed cluster name:::>" + self.cluster_name + "<:::")
         return self.cluster_name
 
-    def all_accounts_and_qos(self):
+    def account_info(self):
         accounts = OrderedDict()
         try:
             sacctmgr = self.COMMANDS.get('sacctmgr', None)
@@ -202,62 +202,125 @@ class SlurmScheduler(BatchScheduler):
                 for l in raw_output.splitlines()[1:]:
                     fields = l.split('|')
                     if fields[1]:
-                        qos=OrderedDict()
                         qos_list = fields[1].split(',')
                         if 'normal' in qos_list:
                             qos_list.remove('normal')
                             qos_list = ['normal'] + qos_list
-                        for q in  qos_list:
-                            qos[q] = {'description': "Select " + q + " as Quality of Service"}
-                        accounts[fields[0]] = {'QOS': qos}
+                        accounts[fields[0]] = qos_list
             else:
                 self.logger.warning("warning missing command sacctmgr:")
         except:
            pass
         return accounts
- 
 
-    def all_accounts(self):
-        # sshare --parsable -a
-        # Eric: sshare --parsable --format %
-        # saldo -b
-        # Lstat.py
-        sshare = self.COMMANDS.get('sshare', None)
-        if sshare:
-            out = sshare(
-                '--parsable',
-                output=str
-            )
-            accounts = []
-            for l in out.splitlines()[1:]:
-                fields = l.split('|')
-                # user (second field ) must not be null
-                if fields[1]:
-                    accounts.append(fields[0])
-            return accounts
-        else:
-            self.logger.debug("warning missing command sshare:")
-            return []
+    def all_accounts_and_qos(self):
+        if not self.qos:
+            self.qos = self.qos_info()
+            print("QOS--->", self.qos)
+
+        if not self.accounts:
+            try:
+                sacctmgr = self.COMMANDS.get('sacctmgr', None)
+                if sacctmgr:
+                    param_string = "show user " + self.username + " " + "withass where cluster=" + self.get_cluster_name() + " " + "format=account%20,qos%120 -P"
+                    self.logger.debug("retrieving account and qos with command sacctmgr ::>" + param_string + "<::")
+                    params = param_string.split(' ')
+                    raw_output = sacctmgr(*params, output=str)
+                    for l in raw_output.splitlines()[1:]:
+                        fields = l.split('|')
+                        if fields[1]:
+                            qos=OrderedDict()
+                            qos_list = fields[1].split(',')
+                            if 'normal' in qos_list:
+                                qos_list.remove('normal')
+                                qos_list = ['normal'] + qos_list
+                            for q in  qos_list:
+                                qos[q] = {'description': "Select " + q + " as Quality of Service"}
+                                if not q in self.qos:
+                                    self.qos[q] = q
+                            self.accounts[fields[0]] = {'QOS': qos}
+                else:
+                    self.logger.warning("warning missing command sacctmgr:")
+            except:
+               pass
+        return self.accounts
+ 
 
     def validate_account(self, account):
         return True
 
     def valid_accounts(self, **kwargs):
-        #accounts = []
         accounts = dict()
-        #for a in self.all_accounts():
         all_accounts = self.all_accounts_and_qos()
         for a in all_accounts:
             if self.validate_account(a):
-                #accounts.append(a)
                 accounts[a] = all_accounts[a]
         return accounts
+
+
+    def qos_info(self):
+        qos = OrderedDict()
+        sacctmgr = self.COMMANDS.get('sacctmgr', None)
+        if sacctmgr:
+            param_string = "show qos format=Name%20,MaxWall%20,MaxTRESPU%40 -P"
+            self.logger.debug("retrieving all qos info with command sacctmgr ::>" + param_string + "<::")
+            params = param_string.split(' ')
+            raw_output = sacctmgr(*params, output=str)
+            for l in raw_output.splitlines()[1:]:
+                name,max_wall,max_trespu = l.split('|')
+                qos[name] = {'max_wall': max_wall, 'max_trespu': max_trespu}
+        return qos
+
+    def partitions_info(self,keywords):
+        partitions = OrderedDict()
+        scontrol = self.COMMANDS.get('scontrol', None)
+        if scontrol:
+            params = '--oneliner show partition'.split(' ')
+            raw_output = scontrol(*params,
+                                output=str)
+            for l in raw_output.splitlines():
+                partition_name_match = re.search(r'PartitionName\s*=\s*(\w*)', l)
+                if partition_name_match:
+                    partition_name = partition_name_match.group(1)
+                    part_keys = OrderedDict()
+                    for field in l.split(' '):
+                        key,val = field.split('=',1)
+                        if key in keywords:
+                            part_keys[key] = val
+                    partitions[partition_name] = part_keys
+
+        sinfo = self.COMMANDS.get('sinfo', None)
+        if sinfo:
+            params = "-o %R|%l|%m|%c".split(' ')
+            raw_output = sinfo(*params,
+                               output=str)
+            for l in raw_output.splitlines()[1:]:
+                partition = l.split('|')[0]
+                stringtime = l.split('|')[1]
+                if len(stringtime.split('-')) == 1:
+                    time=stringtime
+                else:
+                    time='23:59:59'
+                memory = int(int(l.split('|')[2]) / 1000 * 0.90 ) 
+                cpu = int(l.split('|')[3])
+                if partitions[partition]['MaxTime'] != stringtime:
+                    print("################## MaxTime ### ",partitions[partition]['MaxTime']," ####stringtime## ",stringtime)
+                if partitions[partition]['MaxMemPerNode'] == 'UNLIMITED':
+                    partitions[partition]['MaxMemPerNode'] = memory
+                if partitions[partition]['MaxCPUsPerNode'] == 'UNLIMITED':
+                    partitions[partition]['MaxCPUsPerNode'] = cpu
+
+        return partitions
 
 
     def queues(self, **kwargs):
         # hints on useful slurm commands
         # sacctmgr show qos
+        if not self.partitions:
+            self.partitions = self.partitions_info(['AllowQos', 'AllowAccounts', 'DenyAccounts', 'MaxTime', 'DefaultTime', 'MaxCPUsPerNode', 'MaxMemPerNode'])
+            print(self.partitions)
         self.logger.debug("Slurm get queues")
+
         sinfo = self.COMMANDS.get('sinfo', None)
         if sinfo:
             params = "-o %R|%l|%m|%c".split(' ')
