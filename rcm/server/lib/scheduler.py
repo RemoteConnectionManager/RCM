@@ -67,7 +67,7 @@ class BatchScheduler(Scheduler):
     def __init__(self, *args, **kwargs):
         super(BatchScheduler, self).__init__(*args, **kwargs)
         self.PARAMS['ACCOUNT'] = self.valid_accounts
-        self.PARAMS['QUEUE'] = self.queues
+        #self.PARAMS['QUEUE'] = self.queues
 
     def all_accounts(self):
         raise NotImplementedError()
@@ -173,12 +173,14 @@ class SlurmScheduler(BatchScheduler):
                          'squeue': None}
         super(SlurmScheduler, self).__init__(*args, **kwargs)
         self.cluster_name = ''
-        self.qos=OrderedDict()
-        self.accounts=OrderedDict()
-        self.partitions=OrderedDict()
+        self.cluster_name = self.get_cluster_name()
+        self.qos = self.qos_info()
+        self.accounts = self.account_info()
+        self.partitions = self.partitions_info(['AllowQos', 'AllowAccounts', 'DenyAccounts', 'MaxTime', 'DefaultTime', 'MaxCPUsPerNode', 'MaxMemPerNode'])
 
     def get_cluster_name(self):
-        if not self.cluster_name:
+        if self.cluster_name:
+            cluster_name = ''
             scontrol = self.COMMANDS.get('scontrol', None)
             if scontrol:
                 params = 'show config'.split(' ')
@@ -186,9 +188,11 @@ class SlurmScheduler(BatchScheduler):
                                     output=str)
                 cluster_match = re.search(r'ClusterName\s*=\s*(\w*)', raw_output)
                 if cluster_match:
-                    self.cluster_name = cluster_match.group(1)
-                    self.logger.debug("computed cluster name:::>" + self.cluster_name + "<:::")
-        return self.cluster_name
+                    cluster_name = cluster_match.group(1)
+                    self.logger.debug("computed cluster name:::>" + cluster_name + "<:::")
+            return cluster_name
+        else:
+            return self.cluster_name
 
     def account_info(self):
         accounts = OrderedDict()
@@ -212,51 +216,6 @@ class SlurmScheduler(BatchScheduler):
         except:
            pass
         return accounts
-
-    def all_accounts_and_qos(self):
-        if not self.qos:
-            self.qos = self.qos_info()
-            print("QOS--->", self.qos)
-
-        if not self.accounts:
-            try:
-                sacctmgr = self.COMMANDS.get('sacctmgr', None)
-                if sacctmgr:
-                    param_string = "show user " + self.username + " " + "withass where cluster=" + self.get_cluster_name() + " " + "format=account%20,qos%120 -P"
-                    self.logger.debug("retrieving account and qos with command sacctmgr ::>" + param_string + "<::")
-                    params = param_string.split(' ')
-                    raw_output = sacctmgr(*params, output=str)
-                    for l in raw_output.splitlines()[1:]:
-                        fields = l.split('|')
-                        if fields[1]:
-                            qos=OrderedDict()
-                            qos_list = fields[1].split(',')
-                            if 'normal' in qos_list:
-                                qos_list.remove('normal')
-                                qos_list = ['normal'] + qos_list
-                            for q in  qos_list:
-                                qos[q] = {'description': "Select " + q + " as Quality of Service"}
-                                if not q in self.qos:
-                                    self.qos[q] = q
-                            self.accounts[fields[0]] = {'QOS': qos}
-                else:
-                    self.logger.warning("warning missing command sacctmgr:")
-            except:
-               pass
-        return self.accounts
- 
-
-    def validate_account(self, account):
-        return True
-
-    def valid_accounts(self, **kwargs):
-        accounts = dict()
-        all_accounts = self.all_accounts_and_qos()
-        for a in all_accounts:
-            if self.validate_account(a):
-                accounts[a] = all_accounts[a]
-        return accounts
-
 
     def qos_info(self):
         qos = OrderedDict()
@@ -318,6 +277,120 @@ class SlurmScheduler(BatchScheduler):
                     self.logger.warning("Exception: " + str(e) + " in processing line:\n" + l)
 
         return partitions
+
+
+    def allowed_accounts(self, partition):
+
+        partition_info = self.partitions.get(partition, dict())
+        deny_accounts = partition_info.get('DenyAccounts', '').split(',')
+        allow_accounts_string = partition_info.get('AllowAccounts', 'ALL')
+        if allow_accounts_string == 'ALL':
+            allow_accounts_list = list(self.accounts.keys())
+        else:
+            allow_accounts_list = allow_accounts_string.split(',')
+        ok_accounts = []
+        for a in self.accounts.keys():
+            if a in allow_accounts_list and not a in deny_accounts:
+                ok_accounts.append(a)
+        return ok_accounts
+
+
+    def allowed_qos(self, partition):
+
+        partition_info = self.partitions.get(partition, dict())
+        allow_qos_string = partition_info.get('AllowQos', 'ALL')
+        if allow_qos_string == 'ALL':
+            allow_qos_list = list(self.qos.keys())
+        else:
+            allow_qos_list = allow_qos_string.split(',')
+        ok_qos = []
+        for q in self.qos.keys():
+            if q in allow_qos_list:
+                ok_qos.append(q)
+        return ok_qos
+
+    def partition_schema(self, partition, account):
+        allowed_accounts = self.allowed_accounts(partition)
+        partition_qos = self.allowed_qos(partition)
+        partitition_schema = OrderedDict()
+        if account in allowed_accounts:
+            account_qos = self.accounts.get(account,[])
+            valid_qos = OrderedDict()
+            for qos in account_qos:
+                if qos in partition_qos:
+                    qos_parameters = OrderedDict()
+
+                    stringtime = self.qos.get(qos,dict()).get('max_wall', self.partitions.get(partition, dict()).get('MaxTime',''))
+                    if len(stringtime.split('-')) == 1:
+                        max_time=stringtime
+                    else:
+                        max_time='23:59:59'
+
+                    max_memory = self.partitions.get(partition, dict()).get('MaxMemPerNode', '')
+                    max_cpu = self.partitions.get(partition, dict()).get('MaxCPUsPerNode', '')
+                    if max_time : qos_parameters['TIME'] = {'max' : max_time}
+                    if max_memory : qos_parameters['MEMORY'] = {'max' : max_memory}
+                    if max_cpu : qos_parameters['CPU'] = {'max' : max_cpu}
+                    valid_qos[qos] = qos_parameters
+            if valid_qos: partitition_schema['QOS'] =  valid_qos
+        return partitition_schema
+
+    def valid_accounts(self, **kwargs):
+        out_schema = OrderedDict()
+        for account in self.accounts:
+            partitions_schema = OrderedDict()
+            for partition in self.partitions:
+                partition_schema = self.partition_schema(partition,account)
+                if partition_schema:
+                    partitions_schema[partition] = partition_schema
+            if partitions_schema :
+                out_schema[account] = {'QUEUE' : partitions_schema}
+        return out_schema
+    def all_accounts_and_qos(self):
+        if not self.qos:
+            self.qos = self.qos_info()
+            print("QOS--->", self.qos)
+
+        if not self.accounts:
+            try:
+                sacctmgr = self.COMMANDS.get('sacctmgr', None)
+                if sacctmgr:
+                    param_string = "show user " + self.username + " " + "withass where cluster=" + self.get_cluster_name() + " " + "format=account%20,qos%120 -P"
+                    self.logger.debug("retrieving account and qos with command sacctmgr ::>" + param_string + "<::")
+                    params = param_string.split(' ')
+                    raw_output = sacctmgr(*params, output=str)
+                    for l in raw_output.splitlines()[1:]:
+                        fields = l.split('|')
+                        if fields[1]:
+                            qos=OrderedDict()
+                            qos_list = fields[1].split(',')
+                            if 'normal' in qos_list:
+                                qos_list.remove('normal')
+                                qos_list = ['normal'] + qos_list
+                            for q in  qos_list:
+                                qos[q] = {'description': "Select " + q + " as Quality of Service"}
+                                if not q in self.qos:
+                                    self.qos[q] = q
+                            self.accounts[fields[0]] = {'QOS': qos}
+                else:
+                    self.logger.warning("warning missing command sacctmgr:")
+            except:
+               pass
+        return self.accounts
+ 
+
+    def validate_account(self, account):
+        return True
+
+    def valid_accounts_old(self, **kwargs):
+        accounts = dict()
+        all_accounts = self.all_accounts_and_qos()
+        for a in all_accounts:
+            if self.validate_account(a):
+                accounts[a] = all_accounts[a]
+        return accounts
+
+
 
 
     def queues(self, **kwargs):
