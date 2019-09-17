@@ -267,8 +267,12 @@ class SlurmScheduler(BatchScheduler):
             params = param_string.split(' ')
             raw_output = sacctmgr(*params, output=str)
             for l in raw_output.splitlines()[1:]:
-                name,max_wall,max_trespu = l.split('|')
-                qos[name] = {'max_wall': max_wall, 'max_trespu': max_trespu}
+                try:
+                    name,max_wall,max_trespu = l.split('|')
+                    qos[name] = {'max_wall': max_wall, 'max_trespu': max_trespu}
+                except Exception as e:
+                    self.logger.warning("Exception: " + str(e) + " in processing line:\n" + l)
+
         return qos
 
     def partitions_info(self,keywords):
@@ -295,20 +299,23 @@ class SlurmScheduler(BatchScheduler):
             raw_output = sinfo(*params,
                                output=str)
             for l in raw_output.splitlines()[1:]:
-                partition = l.split('|')[0]
-                stringtime = l.split('|')[1]
-                if len(stringtime.split('-')) == 1:
-                    time=stringtime
-                else:
-                    time='23:59:59'
-                memory = int(int(l.split('|')[2]) / 1000 * 0.90 ) 
-                cpu = int(l.split('|')[3])
-                if partitions[partition]['MaxTime'] != stringtime:
-                    print("################## MaxTime ### ",partitions[partition]['MaxTime']," ####stringtime## ",stringtime)
-                if partitions[partition]['MaxMemPerNode'] == 'UNLIMITED':
-                    partitions[partition]['MaxMemPerNode'] = memory
-                if partitions[partition]['MaxCPUsPerNode'] == 'UNLIMITED':
-                    partitions[partition]['MaxCPUsPerNode'] = cpu
+                try:
+                    partition = l.split('|')[0]
+                    stringtime = l.split('|')[1]
+                    if len(stringtime.split('-')) == 1:
+                        time=stringtime
+                    else:
+                        time='23:59:59'
+                    memory = int(int(l.split('|')[2]) / 1000 * 0.90 )
+                    cpu = int(l.split('|')[3])
+                    if partitions[partition]['MaxTime'] != stringtime:
+                        print("################## MaxTime ### ",partitions[partition]['MaxTime']," ####stringtime## ",stringtime)
+                    if partitions[partition]['MaxMemPerNode'] == 'UNLIMITED':
+                        partitions[partition]['MaxMemPerNode'] = memory
+                    if partitions[partition]['MaxCPUsPerNode'] == 'UNLIMITED':
+                        partitions[partition]['MaxCPUsPerNode'] = cpu
+                except Exception as e:
+                    self.logger.warning("Exception: " + str(e) + " in processing line:\n" + l)
 
         return partitions
 
