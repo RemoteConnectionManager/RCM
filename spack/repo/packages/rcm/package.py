@@ -99,10 +99,12 @@ class Rcm(Package):
     depends_on('py-pexpect', when='+client', type='run')
     depends_on('py-pyinstaller', when='+client', type='run')
     def install(self, spec, prefix):
-        # Sublime text comes as a pre-compiled binary.
-        #print("sono qui!!!! in "+os.path.abspath('server')+'<--->'+prefix.bin)
-#        mkpath(prefix.bin)
         rcm_source=os.path.abspath(self.stage.source_path)
+        if os.path.abspath(os.path.dirname(rcm_source)) == os.path.abspath(self.stage.path):
+            dest=os.path.join(os.path.abspath(self.prefix),'source')
+            tty.warn('copy RCM source tree in prefix: '+rcm_source + ' -->'+dest)
+            shutil.copytree(rcm_source,dest)
+            rcm_source=dest
         tty.warn('source->'+rcm_source)
         tty.warn('stage->'+self.stage.path)
 
@@ -115,23 +117,18 @@ class Rcm(Package):
                 'config/generic/ssh')
                 tty.warn(' forcing configdir :' + configdir)
             if '+linksource' in self.spec:
-                if os.path.abspath(os.path.dirname(rcm_source)) == os.path.abspath(self.stage.path):
-                    dest=os.path.join(os.path.abspath(self.prefix),'src')
-                    tty.warn('copy RCM source tree in prefix: '+rcm_source + ' -->'+dest)
-                    shutil.copytree(rcm_source,dest)
-                    rcm_source=dest
-            if '@refactoring' in self.spec or '@yaml_config' in self.spec :
-                rcm_source=os.path.join(rcm_source,'rcm')
-            if '+linksource' in self.spec:
                 tty.warn('linking to source->'+rcm_source)
-                os.symlink(os.path.join(rcm_source,'server'),
-                           os.path.join(prefix.bin,'server'))
                 os.symlink(rcm_source,
                            os.path.join(prefix,'src'))
+                mkdirp(os.path.join(prefix.bin,'server'))
+                os.symlink(os.path.join(rcm_source,'rcm','server','bin','server'),
+                           os.path.join(prefix.bin,'server','rcm_new_server.py'))
                 os.symlink(configdir, os.path.join(prefix.bin,'config'))
+                os.symlink(configdir, os.path.join(rcm_source,'rcm','server','etc','site'))
             else:
-                copy_tree(os.path.join(rcm_source,'server'), os.path.join(prefix.bin,'server'),verbose=1)
+                copy_tree(os.path.join(rcm_source,'rcm','server'), os.path.join(prefix.bin,'server'),verbose=1)
                 copy_tree(configdir, os.path.join(prefix.bin,'config'),verbose=1)
+                copy_tree(configdir, os.path.join(prefix.bin,'server','etc','site'),verbose=1)
         if '+client' in self.spec:
             rcm_client_dir=os.path.join(os.path.abspath(self.stage.source_path),'client')
             mkdirp(prefix.bin)
