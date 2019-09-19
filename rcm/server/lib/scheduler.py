@@ -305,16 +305,17 @@ class SlurmScheduler(BatchScheduler):
                 ok_qos.append(q)
         return ok_qos
 
-    def partition_schema(self, partition, account):
+    def partition_schema(self, partition, account, **kwargs):
         allowed_accounts = self.allowed_accounts(partition)
         partition_qos = self.allowed_qos(partition)
-        partitition_schema = OrderedDict()
+        partitition_schema = kwargs.get('default_params', OrderedDict())
+        qos_defaults = partitition_schema.get('QOS', OrderedDict())
         if account in allowed_accounts:
             account_qos = self.accounts.get(account,[])
             valid_qos = OrderedDict()
             for qos in account_qos:
                 if qos in partition_qos:
-                    qos_parameters = OrderedDict()
+                    qos_parameters = qos_defaults.get(qos, qos_defaults.get('ALL', OrderedDict()))
 
                     stringtime = self.qos.get(qos,dict()).get('max_wall', self.partitions.get(partition, dict()).get('MaxTime',''))
                     if len(stringtime.split('-')) == 1:
@@ -328,15 +329,22 @@ class SlurmScheduler(BatchScheduler):
                     if max_memory : qos_parameters['MEMORY'] = {'max' : max_memory}
                     if max_cpu : qos_parameters['CPU'] = {'max' : max_cpu}
                     valid_qos[qos] = qos_parameters
-            if valid_qos: partitition_schema['QOS'] =  valid_qos
+            if valid_qos:
+                partitition_schema['QOS'] =  valid_qos
         return partitition_schema
 
     def valid_accounts(self, **kwargs):
         out_schema = OrderedDict()
+        default_params = kwargs.get('default_params', dict())
         for account in self.accounts:
+            partitions_default_params = default_params.get(account, default_params.get('ALL', OrderedDict())).get('QUEUE', OrderedDict())
             partitions_schema = OrderedDict()
             for partition in self.partitions:
-                partition_schema = self.partition_schema(partition,account)
+                partition_default_params = partitions_default_params.get(partition, partitions_default_params.get('ALL', dict()))
+                if partition_default_params:
+                    partition_schema = self.partition_schema(partition,account, default_params=partition_default_params)
+                else:
+                    partition_schema = self.partition_schema(partition,account)
                 if partition_schema:
                     partitions_schema[partition] = partition_schema
             if partitions_schema :
