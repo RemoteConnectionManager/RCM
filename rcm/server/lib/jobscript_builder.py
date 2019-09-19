@@ -353,9 +353,11 @@ class ManagedPlugin(ManagedChoiceNode):
                                                 self.connected_plugin.__class__.__name__ +
                                                 " param " + param + " returned " + str(computed_param))
 
-                        merged_defaults[param] = self.connected_plugin.merge_list(
-                            merged_defaults.get(param, OrderedDict()),
-                            computed_param)
+#                        merged_defaults[param] = self.connected_plugin.merge_list(
+#                            merged_defaults.get(param, OrderedDict()),
+#                            computed_param)
+# do not merge anymore defaults computed from plugins with yaml-defined defaults, let the merge be done inside plugin function
+                        merged_defaults[param] = computed_param
         kwargs['defaults'] = merged_defaults
         super(ManagedPlugin, self).__init__(*args, **kwargs)
 
