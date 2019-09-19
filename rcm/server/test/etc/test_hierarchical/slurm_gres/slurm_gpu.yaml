@@ -2,64 +2,58 @@ defaults:
   TOP:
     SCHEDULER :
       Slurm :
-        QUEUE :
-          gll_all_serial :
-            MEMORY :
-              min : 1
-              max : 16
-            CPU :
-              max : 2
-          gll_usr_prod :
-              TIMEOUT: 
-                max: 500
-          gll_usr_gpuprod :
-            substitutions:
-              QUEUE_PAR: "-N 1 -n @{CPU} --partition=gll_usr_gpuprod --ntasks-per-node=@{CPU} --mem=@{MEMORY}GB @{GRES_STRING} #from defaults"
-              TIMEOUT:
-                max: 1000
-            MEMORY :
-              min : 4
-              default: 50
-            CPU :
-              min : 4
-              default: 16
-            GRES :
-              1GPU :
-                description : "use one kepler gpu"
-                substitutions :
-                  GRES_STRING: "--gres=gpu:kepler:1"
-                  VGLRUN_SLURM_DISPLAY: |
-                    # This use two X11 displays, select the one that is attached to the right GPU device Slurm has assigned
-                    module load virtualgl
-                    export VGLRUN_DISPLAY_FLAG="-d :$(( $(/sbin/lspci -d 10de: | grep -in $(nvidia-smi --query-gpu=pci.bus_id --format=csv,noheader | cut -d: -f2,3) | cut -d: -f1) -1 )).0"
-                    vglrun() { $(which vglrun) $VGLRUN_DISPLAY_FLAG $@; }
-                    export -f  vglrun
+        ACCOUNT:
+          ALL:
+            QUEUE :
+              gll_usr_gpuprod :
+                substitutions:
+                  QUEUE_PAR: "-N 1 -n @{CPU} --partition=gll_usr_gpuprod --ntasks-per-node=@{CPU} --mem=@{MEMORY}GB @{GRES_STRING} #from defaults"
+                QOS:
+                  ALL:
+                    MEMORY :
+                      min : 4
+                      default: 50
+                    CPU :
+                      min : 4
+                      default: 16
+                    TIMEOUT:
+                      max: 1000
+                    GRES :
+                      1GPU :
+                        description : "use one kepler gpu"
+                        substitutions :
+                          GRES_STRING: "--gres=gpu:kepler:1"
+                          VGLRUN_SLURM_DISPLAY: |
+                            # This use two X11 displays, select the one that is attached to the right GPU device Slurm has assigned
+                            module load virtualgl
+                            export VGLRUN_DISPLAY_FLAG="-d :$(( $(/sbin/lspci -d 10de: | grep -in $(nvidia-smi --query-gpu=pci.bus_id --format=csv,noheader | cut -d: -f2,3) | cut -d: -f1) -1 )).0"
+                            vglrun() { $(which vglrun) $VGLRUN_DISPLAY_FLAG $@; }
+                            export -f  vglrun
 
+                      2GPU :
+                        description : "use two kepler gpu"
+                        substitutions :
+                          GRES_STRING: "--gres=gpu:kepler:2"
+                          VGLRUN_SLURM_DISPLAY: |
+                            # no need to redefine vglrun, there are two display available, :0.0 is default
+                            module load virtualgl
 
-              2GPU :
-                description : "use two kepler gpu"
-                substitutions :
-                  GRES_STRING: "--gres=gpu:kepler:2"
-                  VGLRUN_SLURM_DISPLAY: |
-                    # no need to redefine vglrun, there are two display available, :0.0 is default
-                    module load virtualgl
-
-              None :
-                description : "use no gpu"
-                substitutions :
-                  GRES_STRING: ""
+                      None :
+                        description : "use no gpu"
+                        substitutions :
+                          GRES_STRING: ""
         substitutions :
-          QUEUE.GRES.GRES_STRING: ""
+          ACCOUNT.QUEUE.QOS.GRES.GRES_STRING: ""
 
 
           HEADER: |
             #!/bin/bash
             ## thisc come from defaults slurm_gpu
-            #SBATCH --time=@{QUEUE.TIME}
+            #SBATCH --time=@{ACCOUNT.QUEUE.QOS.TIME}
             #SBATCH -A @{ACCOUNT}
             #SBATCH --job-name=@{RCM_SESSIONID}
             #SBATCH --output @{RCM_JOBLOG}
-            #SBATCH -N 1 -n @{QUEUE.CPU} --partition=@{QUEUE} --mem=@{QUEUE.MEMORY}GB @{QUEUE.GRES.GRES_STRING} #direct setup
+            #SBATCH -N 1 -n @{ACCOUNT.QUEUE.QOS.CPU} --partition=@{ACCOUNT.QUEUE} --mem=@{ACCOUNT.QUEUE.QOS.MEMORY}GB @{.ACCOUNT.QUEUE.QOS.GRES.GRES_STRING} #direct setup
             ###old##SBATCH  @{QUEUE_PAR} #indirect setup
             #
 
