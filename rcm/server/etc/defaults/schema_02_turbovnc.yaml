@@ -29,4 +29,13 @@ defaults:
                   min : 400
                 YSIZE:
                   min : 400
+              Openbox :
+                description : "Start LXDE Openbox as Window manager for the VNC session "
+                substitutions :
+                  WM_COMMAND: "-xstartup ${RCM_HOME}/bin/config/xstartup.openbox"
+                XSIZE:
+                  description : "Screen hor size "
+                  min : 400
+                YSIZE:
+                  min : 400
 
