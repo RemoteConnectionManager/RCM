@@ -6,6 +6,7 @@ import os
 import sys
 import stat
 import pwd
+import copy
 from collections import OrderedDict
 
 # local import
@@ -340,9 +341,9 @@ class SlurmScheduler(BatchScheduler):
             partitions_default_params = default_params.get(account, default_params.get('ALL', OrderedDict())).get('QUEUE', OrderedDict())
             partitions_schema = OrderedDict()
             for partition in self.partitions:
-                partition_default_params = partitions_default_params.get(partition, partitions_default_params.get('ALL', dict()))
-                if partition_default_params:
-                    partition_schema = self.partition_schema(partition,account, default_params=partition_default_params)
+                part_default_params = partitions_default_params.get(partition, partitions_default_params.get('ALL', dict()))
+                if part_default_params:
+                    partition_schema = self.partition_schema(partition,account, default_params=copy.deepcopy(part_default_params))
                 else:
                     partition_schema = self.partition_schema(partition,account)
                 if partition_schema:
