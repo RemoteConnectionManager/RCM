@@ -77,7 +77,18 @@ class Rcm(Package):
     depends_on('turbovnc+x11deps+server', when='+server', type='run')
     depends_on('turbovnc+x11deps+java~server', when='+client platform=linux', type='run')
     depends_on('turbovnc+java~x11deps~server', when='+client platform=darwin', type='run')
+    # lxde dependencies
+    ###########################################
     depends_on('lxde-lxterminal', when='+server', type='run')
+    depends_on('lxde-icon-theme', when='+server', type='run')
+    depends_on('openbox', when='+server', type='run')
+    depends_on('pcmanfm', when='+server', type='run')
+    depends_on('leafpad', when='+server', type='run')
+    depends_on('gpicview', when='+server', type='run')
+    depends_on('tint2', when='+server', type='run')
+
+    depends_on('image-magick', when='+server', type='run')
+    ###########################################
     depends_on('fluxbox', when='+server', type='run')
     depends_on('xdpyinfo', when='+server', type='run')
     depends_on('xedit', when='+server', type='run')
