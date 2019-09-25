@@ -176,7 +176,7 @@ class SlurmScheduler(BatchScheduler):
         self.cluster_name = self.get_cluster_name()
         self.qos = self.qos_info()
         self.accounts = self.account_info()
-        self.partitions = self.partitions_info(['AllowQos', 'AllowAccounts', 'DenyAccounts', 'MaxTime', 'DefaultTime', 'MaxCPUsPerNode', 'MaxMemPerNode'])
+        self.partitions = self.partitions_info(['AllowQos', 'AllowAccounts', 'DenyAccounts', 'MaxTime', 'DefaultTime', 'MaxCPUsPerNode', 'MaxMemPerNode', 'QoS'])
 
     def get_cluster_name(self):
         cluster_name = ''
@@ -218,14 +218,19 @@ class SlurmScheduler(BatchScheduler):
         qos = OrderedDict()
         sacctmgr = self.COMMANDS.get('sacctmgr', None)
         if sacctmgr:
-            param_string = "show qos format=Name%20,MaxWall%20,MaxTRESPU%40 -P"
+            param_string = "show qos format=Name%20,MaxWall%20,MaxTRES%40 -P"
             self.logger.debug("retrieving all qos info with command sacctmgr ::>" + param_string + "<::")
             params = param_string.split(' ')
             raw_output = sacctmgr(*params, output=str)
             for l in raw_output.splitlines()[1:]:
                 try:
-                    name,max_wall,max_trespu = l.split('|')
-                    qos[name] = {'max_wall': max_wall, 'max_trespu': max_trespu}
+                    name,max_wall,max_tres = l.split('|')
+                    qos[name] = {'max_wall': max_wall}
+                    if max_tres:
+                        for key_assign in max_tres.split(','):
+                            key,val = key_assign.split('=')
+                            qos[name]['max_' + key]  = val
+
                 except Exception as e:
                     self.logger.warning("Exception: " + str(e) + " in processing line:\n" + l)
 
@@ -307,6 +312,13 @@ class SlurmScheduler(BatchScheduler):
         return ok_qos
 
     def partition_schema(self, partition, account, **kwargs):
+        """
+
+        :param partition: name of the partition to produce the default schema for
+        :param account:  name of the account
+        :param kwargs:
+        :return: OrderedDict of default schema for the partition, if the dict is void, partiton can not be selected, option not shown
+        """
         allowed_accounts = self.allowed_accounts(partition)
         partition_qos = self.allowed_qos(partition)
         partitition_schema = kwargs.get('default_params', OrderedDict())
@@ -316,9 +328,12 @@ class SlurmScheduler(BatchScheduler):
             valid_qos = OrderedDict()
             for qos in account_qos:
                 if qos in partition_qos:
-                    qos_parameters = qos_defaults.get(qos, qos_defaults.get('ALL', OrderedDict()))
+                    # use deepcopy to avoid pollute original input dict
+                    qos_parameters = copy.deepcopy(qos_defaults.get(qos, qos_defaults.get('ALL', OrderedDict())))
 
-                    stringtime = self.qos.get(qos,dict()).get('max_wall', self.partitions.get(partition, dict()).get('MaxTime',''))
+                    stringtime = self.qos.get(qos,dict()).get('max_wall', '')
+                    if not stringtime:
+                        stringtime = self.partitions.get(partition, dict()).get('MaxTime','')
                     if len(stringtime.split('-')) == 1:
                         max_time=stringtime
                     else:
