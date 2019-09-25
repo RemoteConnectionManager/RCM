@@ -38,7 +38,7 @@ schema:
             @{ACCOUNT.QUEUE.QOS.GRES.VGLRUN_SLURM_DISPLAY}
             fi
 
-          ACCOUNT.QUEUE.QOS.TIMELIMIT : "~"
+          ACCOUNT.QUEUE.TIMELIMIT : "~"
 
         children :
           ACCOUNT :
