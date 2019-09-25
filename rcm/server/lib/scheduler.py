@@ -14,6 +14,19 @@ import plugin
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
 
+def convert_memory_to_megabytes(mem_string):
+    #try:
+        return {'G' : 1024, 'M' : 1}.get(mem_string[-1:], 0) * int(mem_string[:-1])
+    #except:
+        #return 0
+
+def non_zero_min(a,b):
+    # intended to return non zero min between two positive numbers
+    if a and b:
+        return min(a, b)
+    else:
+        return max(a, b)
+
 
 class Scheduler(plugin.Plugin):
 
@@ -218,18 +231,26 @@ class SlurmScheduler(BatchScheduler):
         qos = OrderedDict()
         sacctmgr = self.COMMANDS.get('sacctmgr', None)
         if sacctmgr:
-            param_string = "show qos format=Name%20,MaxWall%20,MaxTRES%40 -P"
+            param_string = "show qos format=Name%20,MaxWall%20,MaxTRES%40,Flags%60,MaxTRESPerNode%60 -P"
             self.logger.debug("retrieving all qos info with command sacctmgr ::>" + param_string + "<::")
             params = param_string.split(' ')
             raw_output = sacctmgr(*params, output=str)
             for l in raw_output.splitlines()[1:]:
                 try:
-                    name,max_wall,max_tres = l.split('|')
+                    name,max_wall,max_tres,flags,max_tres_per_node = l.split('|')
                     qos[name] = {'max_wall': max_wall}
                     if max_tres:
                         for key_assign in max_tres.split(','):
                             key,val = key_assign.split('=')
                             qos[name]['max_' + key]  = val
+                    if flags:
+                        flags_list = flags.split(',')
+                        for key in ['OverPartQOS']:
+                            qos[name][key] = key in flags_list
+                    if max_tres_per_node:
+                        for key_assign in max_tres_per_node.split(','):
+                            key,val = key_assign.split('=')
+                            qos[name]['max_per_node_' + key]  = val
 
                 except Exception as e:
                     self.logger.warning("Exception: " + str(e) + " in processing line:\n" + l)
@@ -267,14 +288,16 @@ class SlurmScheduler(BatchScheduler):
                         time=stringtime
                     else:
                         time='23:59:59'
-                    memory = int(int(l.split('|')[2]) / 1000 * 0.90 )
-                    cpu = int(l.split('|')[3])
+                    #memory = int(int(l.split('|')[2]) / 1000 * 0.90 )
+                    memory_string = l.split('|')[2]+'M'
+                    #cpu = int(l.split('|')[3])
+                    cpu_string = l.split('|')[3]
                     if partitions[partition]['MaxTime'] != stringtime:
                         print("################## MaxTime ### ",partitions[partition]['MaxTime']," ####stringtime## ",stringtime)
                     if partitions[partition]['MaxMemPerNode'] == 'UNLIMITED':
-                        partitions[partition]['MaxMemPerNode'] = memory
+                        partitions[partition]['MaxMemPerNode'] = memory_string
                     if partitions[partition]['MaxCPUsPerNode'] == 'UNLIMITED':
-                        partitions[partition]['MaxCPUsPerNode'] = cpu
+                        partitions[partition]['MaxCPUsPerNode'] = cpu_string
                 except Exception as e:
                     self.logger.warning("Exception: " + str(e) + " in processing line:\n" + l)
 
@@ -331,7 +354,26 @@ class SlurmScheduler(BatchScheduler):
                     # use deepcopy to avoid pollute original input dict
                     qos_parameters = copy.deepcopy(qos_defaults.get(qos, qos_defaults.get('ALL', OrderedDict())))
 
-                    stringtime = self.qos.get(qos,dict()).get('max_wall', '')
+                    stringtime = ''
+                    max_node_memory_for_partition = convert_memory_to_megabytes(self.partitions.get(partition, dict()).get('MaxMemPerNode', '0M'))
+                    max_node_cpu_for_partition = int(self.partitions.get(partition, dict()).get('MaxCPUsPerNode', '0'))
+                    partition_specific_qos_data = self.qos.get(self.partitions.get(partition, dict()).get('QoS', ''),dict())
+                    max_memory_per_node_for_partition_qos = convert_memory_to_megabytes(partition_specific_qos_data.get('max_per_node_mem','0M'))
+                    max_cpu_per_node_for_partition_qos = int(partition_specific_qos_data.get('max_per_node_cpu','0'))
+                    max_memory_for_partition_qos = convert_memory_to_megabytes(partition_specific_qos_data.get('max_mem','0M'))
+                    max_cpu_for_partition_qos = int(partition_specific_qos_data.get('max_cpu','0'))
+
+                    max_memory = non_zero_min(non_zero_min(max_node_memory_for_partition, max_memory_per_node_for_partition_qos), max_memory_for_partition_qos)
+                    max_cpu = non_zero_min(non_zero_min(max_node_cpu_for_partition, max_cpu_per_node_for_partition_qos), max_cpu_for_partition_qos)
+
+
+                    if self.qos.get(qos,dict()).get('OverPartQOS', False):
+                        stringtime = self.qos.get(qos,dict()).get('max_wall', '')
+                        max_memory_for_qos = convert_memory_to_megabytes(self.qos.get(qos,dict()).get('max_mem','0M'))
+                        max_memory = non_zero_min(max_memory, max_memory_for_qos)
+                        max_cpu_for_qos = int(self.qos.get(qos,dict()).get('max_cpu','0'))
+                        max_cpu = non_zero_min(max_cpu, max_cpu_for_qos)
+
                     if not stringtime:
                         stringtime = self.partitions.get(partition, dict()).get('MaxTime','')
                     if len(stringtime.split('-')) == 1:
@@ -339,10 +381,8 @@ class SlurmScheduler(BatchScheduler):
                     else:
                         max_time='23:59:59'
 
-                    max_memory = self.partitions.get(partition, dict()).get('MaxMemPerNode', '')
-                    max_cpu = self.partitions.get(partition, dict()).get('MaxCPUsPerNode', '')
                     if max_time : qos_parameters['TIME'] = {'max' : max_time}
-                    if max_memory : qos_parameters['MEMORY'] = {'max' : max_memory}
+                    if max_memory : qos_parameters['MEMORY'] = {'max' : int(max_memory / 1024)}
                     if max_cpu : qos_parameters['CPU'] = {'max' : max_cpu}
                     valid_qos[qos] = qos_parameters
             if valid_qos:
