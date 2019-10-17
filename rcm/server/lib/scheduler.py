@@ -6,12 +6,26 @@ import os
 import sys
 import stat
 import pwd
+import copy
 from collections import OrderedDict
 
 # local import
 import plugin
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
+
+def convert_memory_to_megabytes(mem_string):
+    #try:
+        return {'G' : 1024, 'M' : 1}.get(mem_string[-1:], 0) * int(mem_string[:-1])
+    #except:
+        #return 0
+
+def non_zero_min(a,b):
+    # intended to return non zero min between two positive numbers
+    if a and b:
+        return min(a, b)
+    else:
+        return max(a, b)
 
 
 class Scheduler(plugin.Plugin):
@@ -67,7 +81,7 @@ class BatchScheduler(Scheduler):
     def __init__(self, *args, **kwargs):
         super(BatchScheduler, self).__init__(*args, **kwargs)
         self.PARAMS['ACCOUNT'] = self.valid_accounts
-        self.PARAMS['QUEUE'] = self.queues
+        #self.PARAMS['QUEUE'] = self.queues
 
     def all_accounts(self):
         raise NotImplementedError()
@@ -172,113 +186,228 @@ class SlurmScheduler(BatchScheduler):
                          'sacctmgr': None,
                          'squeue': None}
         super(SlurmScheduler, self).__init__(*args, **kwargs)
-        self.cluster_name = ''
+        self.cluster_name = self.get_cluster_name()
+        self.qos = self.qos_info()
+        self.accounts = self.account_info()
+        self.partitions = self.partitions_info(['AllowQos', 'AllowAccounts', 'DenyAccounts', 'MaxTime', 'DefaultTime', 'MaxCPUsPerNode', 'MaxMemPerNode', 'QoS'])
 
     def get_cluster_name(self):
-        if not self.cluster_name:
-            scontrol = self.COMMANDS.get('scontrol', None)
-            if scontrol:
-                params = 'show config'.split(' ')
-                raw_output = scontrol(*params,
-                                    output=str)
-                cluster_match = re.search(r'ClusterName\s*=\s*(\w*)', raw_output)
-                if cluster_match:
-                    self.cluster_name = cluster_match.group(1)
-                    self.logger.debug("computed cluster name:::>" + self.cluster_name + "<:::")
-        return self.cluster_name
+        cluster_name = ''
+        scontrol = self.COMMANDS.get('scontrol', None)
+        if scontrol:
+            params = 'show config'.split(' ')
+            raw_output = scontrol(*params,
+                                output=str)
+            cluster_match = re.search(r'ClusterName\s*=\s*(\w*)', raw_output)
+            if cluster_match:
+                cluster_name = cluster_match.group(1)
+                self.logger.debug("computed cluster name:::>" + cluster_name + "<:::")
+        return cluster_name
 
-    def all_accounts_and_qos(self):
+    def account_info(self):
         accounts = OrderedDict()
         try:
             sacctmgr = self.COMMANDS.get('sacctmgr', None)
             if sacctmgr:
-                param_string = "show user " + self.username + " " + "withass where cluster=" + self.get_cluster_name() + " " + "format=account%20,qos%120 -P"
+                param_string = "show user " + self.username + " " + "withass where cluster=" + self.cluster_name + " " + "format=account%20,qos%120 -P"
                 self.logger.debug("retrieving account and qos with command sacctmgr ::>" + param_string + "<::")
                 params = param_string.split(' ')
                 raw_output = sacctmgr(*params, output=str)
                 for l in raw_output.splitlines()[1:]:
                     fields = l.split('|')
                     if fields[1]:
-                        qos=OrderedDict()
                         qos_list = fields[1].split(',')
                         if 'normal' in qos_list:
                             qos_list.remove('normal')
                             qos_list = ['normal'] + qos_list
-                        for q in  qos_list:
-                            qos[q] = {'description': "Select " + q + " as Quality of Service"}
-                        accounts[fields[0]] = {'QOS': qos}
+                        accounts[fields[0]] = qos_list
             else:
                 self.logger.warning("warning missing command sacctmgr:")
         except:
            pass
         return accounts
- 
 
-    def all_accounts(self):
-        # sshare --parsable -a
-        # Eric: sshare --parsable --format %
-        # saldo -b
-        # Lstat.py
-        sshare = self.COMMANDS.get('sshare', None)
-        if sshare:
-            out = sshare(
-                '--parsable',
-                output=str
-            )
-            accounts = []
-            for l in out.splitlines()[1:]:
-                fields = l.split('|')
-                # user (second field ) must not be null
-                if fields[1]:
-                    accounts.append(fields[0])
-            return accounts
-        else:
-            self.logger.debug("warning missing command sshare:")
-            return []
+    def qos_info(self):
+        qos = OrderedDict()
+        sacctmgr = self.COMMANDS.get('sacctmgr', None)
+        if sacctmgr:
+            param_string = "show qos format=Name%20,MaxWall%20,MaxTRES%40,Flags%60,MaxTRESPerNode%60 -P"
+            self.logger.debug("retrieving all qos info with command sacctmgr ::>" + param_string + "<::")
+            params = param_string.split(' ')
+            raw_output = sacctmgr(*params, output=str)
+            for l in raw_output.splitlines()[1:]:
+                try:
+                    name,max_wall,max_tres,flags,max_tres_per_node = l.split('|')
+                    qos[name] = {'max_wall': max_wall}
+                    if max_tres:
+                        for key_assign in max_tres.split(','):
+                            key,val = key_assign.split('=')
+                            qos[name]['max_' + key]  = val
+                    if flags:
+                        flags_list = flags.split(',')
+                        for key in ['OverPartQOS']:
+                            qos[name][key] = key in flags_list
+                    if max_tres_per_node:
+                        for key_assign in max_tres_per_node.split(','):
+                            key,val = key_assign.split('=')
+                            qos[name]['max_per_node_' + key]  = val
 
-    def validate_account(self, account):
-        return True
+                except Exception as e:
+                    self.logger.warning("Exception: " + str(e) + " in processing line:\n" + l)
 
-    def valid_accounts(self, **kwargs):
-        #accounts = []
-        accounts = dict()
-        #for a in self.all_accounts():
-        all_accounts = self.all_accounts_and_qos()
-        for a in all_accounts:
-            if self.validate_account(a):
-                #accounts.append(a)
-                accounts[a] = all_accounts[a]
-        return accounts
+        return qos
 
+    def partitions_info(self,keywords):
+        partitions = OrderedDict()
+        scontrol = self.COMMANDS.get('scontrol', None)
+        if scontrol:
+            params = '--oneliner show partition'.split(' ')
+            raw_output = scontrol(*params,
+                                output=str)
+            for l in raw_output.splitlines():
+                partition_name_match = re.search(r'PartitionName\s*=\s*(\w*)', l)
+                if partition_name_match:
+                    partition_name = partition_name_match.group(1)
+                    part_keys = OrderedDict()
+                    for field in l.split(' '):
+                        key,val = field.split('=',1)
+                        if key in keywords:
+                            part_keys[key] = val
+                    partitions[partition_name] = part_keys
 
-    def queues(self, **kwargs):
-        # hints on useful slurm commands
-        # sacctmgr show qos
-        self.logger.debug("Slurm get queues")
         sinfo = self.COMMANDS.get('sinfo', None)
         if sinfo:
             params = "-o %R|%l|%m|%c".split(' ')
             raw_output = sinfo(*params,
                                output=str)
-            partitions = {}
             for l in raw_output.splitlines()[1:]:
-                partition = l.split('|')[0]
-                stringtime = l.split('|')[1]
-                if len(stringtime.split('-')) == 1:
-                    time=stringtime
-                else:
-                    time='23:59:59'
-                memory = int(int(l.split('|')[2]) / 1000 * 0.90 ) 
-                cpu = int(l.split('|')[3])
-                partitions[partition] = {'TIME' : {'max' : time},
-                                         'MEMORY' : {'max' : memory},
-                                         'CPU' : {'max' : cpu},
-                                        }
-            self.logger.debug("Slurm found queues: " + str(partitions))
-            return partitions
+                try:
+                    partition = l.split('|')[0]
+                    stringtime = l.split('|')[1]
+                    if len(stringtime.split('-')) == 1:
+                        time=stringtime
+                    else:
+                        time='23:59:59'
+                    #memory = int(int(l.split('|')[2]) / 1000 * 0.90 )
+                    memory_string = l.split('|')[2]+'M'
+                    #cpu = int(l.split('|')[3])
+                    cpu_string = l.split('|')[3]
+                    if partitions[partition]['MaxTime'] != stringtime:
+                        print("################## MaxTime ### ",partitions[partition]['MaxTime']," ####stringtime## ",stringtime)
+                    if partitions[partition]['MaxMemPerNode'] == 'UNLIMITED':
+                        partitions[partition]['MaxMemPerNode'] = memory_string
+                    if partitions[partition]['MaxCPUsPerNode'] == 'UNLIMITED':
+                        partitions[partition]['MaxCPUsPerNode'] = cpu_string
+                except Exception as e:
+                    self.logger.warning("Exception: " + str(e) + " in processing line:\n" + l)
+
+        return partitions
+
+
+    def allowed_accounts(self, partition):
+
+        partition_info = self.partitions.get(partition, dict())
+        deny_accounts = partition_info.get('DenyAccounts', '').split(',')
+        allow_accounts_string = partition_info.get('AllowAccounts', 'ALL')
+        if allow_accounts_string == 'ALL':
+            allow_accounts_list = list(self.accounts.keys())
         else:
-            self.logger.debug("warning missing command sinfo:")
-            return []
+            allow_accounts_list = allow_accounts_string.split(',')
+        ok_accounts = []
+        for a in self.accounts.keys():
+            if a in allow_accounts_list and not a in deny_accounts:
+                ok_accounts.append(a)
+        return ok_accounts
+
+
+    def allowed_qos(self, partition):
+
+        partition_info = self.partitions.get(partition, dict())
+        allow_qos_string = partition_info.get('AllowQos', 'ALL')
+        if allow_qos_string == 'ALL':
+            allow_qos_list = list(self.qos.keys())
+        else:
+            allow_qos_list = allow_qos_string.split(',')
+        ok_qos = []
+        for q in self.qos.keys():
+            if q in allow_qos_list:
+                ok_qos.append(q)
+        return ok_qos
+
+    def partition_schema(self, partition, account, **kwargs):
+        """
+
+        :param partition: name of the partition to produce the default schema for
+        :param account:  name of the account
+        :param kwargs:
+        :return: OrderedDict of default schema for the partition, if the dict is void, partiton can not be selected, option not shown
+        """
+        allowed_accounts = self.allowed_accounts(partition)
+        partition_qos = self.allowed_qos(partition)
+        partitition_schema = kwargs.get('default_params', OrderedDict())
+        qos_defaults = partitition_schema.get('QOS', OrderedDict())
+        if account in allowed_accounts:
+            account_qos = self.accounts.get(account,[])
+            valid_qos = OrderedDict()
+            for qos in account_qos:
+                if qos in partition_qos:
+                    # use deepcopy to avoid pollute original input dict
+                    qos_parameters = copy.deepcopy(qos_defaults.get(qos, qos_defaults.get('ALL', OrderedDict())))
+
+                    stringtime = ''
+                    max_node_memory_for_partition = convert_memory_to_megabytes(self.partitions.get(partition, dict()).get('MaxMemPerNode', '0M'))
+                    max_node_cpu_for_partition = int(self.partitions.get(partition, dict()).get('MaxCPUsPerNode', '0'))
+                    partition_specific_qos_data = self.qos.get(self.partitions.get(partition, dict()).get('QoS', ''),dict())
+                    max_memory_per_node_for_partition_qos = convert_memory_to_megabytes(partition_specific_qos_data.get('max_per_node_mem','0M'))
+                    max_cpu_per_node_for_partition_qos = int(partition_specific_qos_data.get('max_per_node_cpu','0'))
+                    max_memory_for_partition_qos = convert_memory_to_megabytes(partition_specific_qos_data.get('max_mem','0M'))
+                    max_cpu_for_partition_qos = int(partition_specific_qos_data.get('max_cpu','0'))
+
+                    max_memory = non_zero_min(non_zero_min(max_node_memory_for_partition, max_memory_per_node_for_partition_qos), max_memory_for_partition_qos)
+                    max_cpu = non_zero_min(non_zero_min(max_node_cpu_for_partition, max_cpu_per_node_for_partition_qos), max_cpu_for_partition_qos)
+
+
+                    if self.qos.get(qos,dict()).get('OverPartQOS', False):
+                        stringtime = self.qos.get(qos,dict()).get('max_wall', '')
+                        max_memory_for_qos = convert_memory_to_megabytes(self.qos.get(qos,dict()).get('max_mem','0M'))
+                        max_memory = non_zero_min(max_memory, max_memory_for_qos)
+                        max_cpu_for_qos = int(self.qos.get(qos,dict()).get('max_cpu','0'))
+                        max_cpu = non_zero_min(max_cpu, max_cpu_for_qos)
+
+                    if not stringtime:
+                        stringtime = self.partitions.get(partition, dict()).get('MaxTime','')
+                    if len(stringtime.split('-')) == 1:
+                        max_time=stringtime
+                    else:
+                        max_time='23:59:59'
+
+                    if max_time : qos_parameters['TIME'] = {'max' : max_time}
+                    if max_memory : qos_parameters['MEMORY'] = {'max' : int(max_memory / 1024)}
+                    if max_cpu : qos_parameters['CPU'] = {'max' : max_cpu}
+                    valid_qos[qos] = qos_parameters
+            if valid_qos:
+                partitition_schema['QOS'] =  valid_qos
+        return partitition_schema
+
+    def valid_accounts(self, **kwargs):
+        out_schema = OrderedDict()
+        default_params = kwargs.get('default_params', dict())
+        for account in self.accounts:
+            partitions_default_params = default_params.get(account, default_params.get('ALL', OrderedDict())).get('QUEUE', OrderedDict())
+            partitions_schema = OrderedDict()
+            for partition in self.partitions:
+                part_default_params = partitions_default_params.get(partition, partitions_default_params.get('ALL', dict()))
+                if part_default_params:
+                    partition_schema = self.partition_schema(partition,account, default_params=copy.deepcopy(part_default_params))
+                else:
+                    partition_schema = self.partition_schema(partition,account)
+                if partition_schema:
+                    partitions_schema[partition] = partition_schema
+            if partitions_schema :
+                out_schema[account] = {'QUEUE' : partitions_schema}
+        return out_schema
+
+
 
     def submit(self, script='', jobfile=''):
         return self.generic_submit(script=script, jobfile=jobfile, batch_command='sbatch')

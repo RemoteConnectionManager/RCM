@@ -1,4 +1,23 @@
-# std lib
+#
+# Copyright (c) 2014-2019 CINECA.
+#
+# This file is part of RCM (Remote Connection Manager) 
+# (see http://www.hpc.cineca.it/software/rcm).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
 import collections
 import traceback
 
@@ -32,8 +51,8 @@ class RCMMainWindow(QMainWindow):
         screen_height = QGuiApplication.primaryScreen().size().height()
         pack_info.add_client_screen_dimensions(screen_width, screen_height)
 
-        app_width = 0.6 * screen_width # 1200
-        app_height = 0.375 * app_width # 450
+        app_width = 0.6 * screen_width  # 1200
+        app_height = max(0.375 * app_width, 360)  # 450
 
         logger.debug("screen_width: " + str(screen_width))
         logger.debug("screen_height: " + str(screen_height))

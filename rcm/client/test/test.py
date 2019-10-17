@@ -1,4 +1,23 @@
-# std lib
+#
+# Copyright (c) 2014-2019 CINECA.
+#
+# This file is part of RCM (Remote Connection Manager) 
+# (see http://www.hpc.cineca.it/software/rcm).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
 import unittest
 import sys
 import os
@@ -152,17 +171,17 @@ class TestManager(unittest.TestCase):
 
         state = ["pending", "valid", "killing"]
 
-        remote_connection_manager.login_setup(host=host, remoteuser=user, password=pswd)
+        remote_connection_manager.login_setup(host=host, user=user, password=pswd)
         print("open sessions on " + host)
         out = remote_connection_manager.list()
         out.write(2)
 
-        session = remote_connection_manager.newsession(queue='light_2gb_1cor',
-                                                       geometry='1024x968',
-                                                       sessionname=sessionname,
-                                                       vnc_id='fluxbox_turbovnc_vnc')
+        session = remote_connection_manager.new(queue='light_2gb_1cor',
+                                                geometry='1024x968',
+                                                sessionname=sessionname,
+                                                vnc_id='fluxbox_turbovnc_vnc')
 
-        remote_connection_manager.vncsession(session)
+        remote_connection_manager.submit(session)
         out = remote_connection_manager.list()
         out.write(2)
 
@@ -185,12 +204,9 @@ class TestManager(unittest.TestCase):
         self.assertTrue(datetime.strptime(session.hash['timeleft'], "%H:%M:%S")
                         <= datetime.strptime(session.hash['walltime'], "%H:%M:%S"))
 
-        print("created session -->",
-              session.hash['sessionid'],
-              "<- display->",
-              session.hash['display'],
-              "<-- node-->",
-              session.hash['node'])
+        print("created session:", session.hash['sessionid'],
+              " display: ", session.hash['display'],
+              " node:", session.hash['node'])
 
         remote_connection_manager.kill(session)
         out = remote_connection_manager.list()

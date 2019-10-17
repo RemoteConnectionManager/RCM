@@ -1,14 +1,30 @@
 #!/bin/env python
+#
+# Copyright (c) 2014-2019 CINECA.
+#
+# This file is part of RCM (Remote Connection Manager) 
+# (see http://www.hpc.cineca.it/software/rcm).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
 
 # std lib
 import sys
 import json
 import os
-import getpass
 import socket
 import paramiko
-import shutil
-
 
 # in order to parse the pickle message coming from the server, we need to import rcm as below
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,13 +34,11 @@ sys.path.append(os.path.join(root_rcm_path, 'server'))
 # local includes
 import rcm
 import client.logic.rcm_utils as rcm_utils
-import client.logic.vnc_client as vnc_client
+import client.logic.plugin as plugin
 import client.logic.cipher as cipher
 import client.logic.thread as thread
 import client.logic.rcm_protocol_client as rcm_protocol_client
-from client.utils.pyinstaller_utils import resource_path
 from client.miscellaneous.logger import logic_logger
-import client.utils.pyinstaller_utils as pyinstaller_utils
 from client.miscellaneous.config_parser import parser, defaults
 
 
@@ -35,155 +49,34 @@ class RemoteConnectionManager:
     create/start/kill/list display remote sessions.
     """
 
-    def __init__(self, pack_info=None):
-        self.proxynode = ''
-        self.preload=''
-        self.remoteuser = ''
-        self.passwd = ''
+    def __init__(self):
+        self.user = ''
+        self.password = ''
         self.auth_method = ''
+        self.preload = ''
 
-        self.session_thread = []
+        self.subnet = ''
+        self.proxynode = ''
         self.commandnode = ''
 
-        # here we instatiate the remote procedure call stub, it will automatically
-        # have all the methods of rcm_protoclo_server.rcm_protocol class
-        # --- TO BE DONE --- handle automatically output type
+        self.server_config = None
+        self._api_version = None
+
+        # here we instantiate the remote procedure call stub, it will automatically
+        # have all the methods of rcm_protocol_server.rcm_protocol class
         self.protocol = rcm_protocol_client.get_protocol()
+        self.protocol.decorate = self.prex
 
-        def mycall(command):
-            return self.prex(command)
-        self.protocol.mycall = mycall
+        self.session_threads = []
+        self.rcm_server_command = json.loads(parser.get('Settings',
+                                                        'preload_command',
+                                                        fallback=defaults['preload_command']))
 
-        if not pack_info:
-            self.pack_info = rcm_utils.pack_info()
-        else:
-            self.pack_info = pack_info
-
-        self.config = dict()
-        self.config['ssh'] = dict()
-        self.config['ssh']['win32'] = ("PLINK.EXE", " -ssh", "echo yes | ")
-        self.config['ssh']['linux2'] = ("ssh", "", "")
-        # for python3
-        self.config['ssh']['linux'] = ("ssh", "", "")
-        self.config['ssh']['darwin'] = ("ssh", "", "")
-        self.config['remote_rcm_server'] = json.loads(parser.get('Settings', 'preload_command', fallback=defaults['preload_command']))
-
-        self.activeConnectionsList = []
-
-        # set the environment
-        if getattr(sys, 'frozen', False):
-            logic_logger.debug("Running in a bundle")
-            # if running in a bundle, we hardcode the path
-            # of the built-in vnc viewer and plink (windows only)
-            os.environ['JAVA_HOME'] = resource_path('turbovnc')
-            if sys.platform == 'win32':
-                # on windows 10, administration policies prevent execution  of external programs
-                # located in %TEMP% ... it seems that it cannot be loaded
-
-                def copytree(src, dst, symlinks=False, ignore=None):
-                    if not os.path.exists(dst):
-                        logic_logger.info("WINDOWS PROTECTION WORKAROUND: Creating folder " + dst)
-                        os.makedirs(dst)
-                    for item in os.listdir(src):
-                        s = os.path.join(src, item)
-                        d = os.path.join(dst, item)
-                        if os.path.isdir(s):
-                            copytree(s, d, symlinks, ignore)
-                        else:
-                            if not os.path.exists(d):
-                                logic_logger.debug("WINDOWS PROTECTION WORKAROUND Copy: " + s + " >> " + d)
-                                shutil.copy2(s, d)
-                            else:
-                                source_hash = rcm_utils.compute_checksum(s)
-                                dest_hash = rcm_utils.compute_checksum(d)
-                                if source_hash == dest_hash:
-                                    logic_logger.debug("WINDOWS PROTECTION WORKAROUND FOUND PREVIUS: " + d )
-                                else:
-                                    logic_logger.WARNING("WINDOWS PROTECTION WORKAROUND UPDATE PREVIOUS: " + s + " >> " + d)
-                                    shutil.copy2(s, d)
-
-                home_path = os.path.expanduser('~')
-                desktop_path = os.path.join(home_path, 'Desktop')
-                exe_dir_path=os.path.dirname(sys.executable)
-                if os.path.exists(desktop_path) :
-                    rcm_unprotected_path = os.path.join(exe_dir_path, '.rcm', 'executables')
-                    os.makedirs(rcm_unprotected_path, exist_ok=True)
-                    dest_dir = os.path.join(rcm_unprotected_path, 'turbovnc')
-                    #distutils.dir_util.copy_tree(resource_path('turbovnc'), dest_dir)
-                    copytree(resource_path('turbovnc'), dest_dir)
-                    os.environ['JAVA_HOME'] = dest_dir
-
-            os.environ['JDK_HOME'] = os.environ['JAVA_HOME']
-            os.environ['JRE_HOME'] = os.path.join(os.environ['JAVA_HOME'], 'jre')
-            os.environ['CLASSPATH'] = os.path.join(os.environ['JAVA_HOME'], 'lib') + \
-                os.pathsep + os.path.join(os.environ['JRE_HOME'], 'lib')
-            os.environ['PATH'] = os.path.join(os.environ['JAVA_HOME'], 'bin') + os.pathsep + os.environ['PATH']
-            logic_logger.debug("JAVA_HOME: " + str(os.environ['JAVA_HOME']))
-            logic_logger.debug("JRE_HOME: " + str(os.environ['JRE_HOME']))
-            logic_logger.debug("JDK_HOME: " + str(os.environ['JDK_HOME']))
-            logic_logger.debug("CLASSPATH: " + str(os.environ['CLASSPATH']))
-        logic_logger.debug("PATH: " + str(os.environ['PATH']))
-
-        # ssh executable
-        if sys.platform == 'win32':
-            sshexe = rcm_utils.which('PLINK')
-        else:
-            sshexe = rcm_utils.which('ssh')
-        if not sshexe:
-            if sys.platform == 'win32':
-                logic_logger.error("plink.exe not found! Check the PATH environment variable.")
-            else:
-                logic_logger.error("ssh not found!")
-            sys.exit()
-        if sys.platform == 'win32':
-            # if the executable path contains spaces, it has to be put inside apexes
-            sshexe = "\"" + sshexe + "\""
-        self.ssh_command = self.config['ssh'][sys.platform][2] + \
-                           sshexe + \
-                           self.config['ssh'][sys.platform][1]
-        logic_logger.debug("ssh command: " + self.ssh_command)
-
-        self.vnc_cmdline_builder = vnc_client.VNCClientCommandLineBuilder()
-        self.vnc_cmdline_builder.build()
-
-    def login_setup(self, host, remoteuser, password=None, preload=''):
+    def login_setup(self, host, user, password=None, preload=''):
         self.proxynode = host
-        self.preload=preload
-        self.remoteuser = remoteuser
-
-        keyfile = pyinstaller_utils.resource_path(os.path.join('keys', self.remoteuser + '.ppk'))
-        if os.path.exists(keyfile):
-            if sys.platform == 'win32':
-                self.login_options = " -i " + keyfile + " " + self.remoteuser
-
-            else:
-                logic_logger.warning("PASSING PRIVATE KEY FILE NOT IMPLEMENTED ON PLATFORM -->" + sys.platform + "<--")
-                self.login_options = " -i " + keyfile + " " + self.remoteuser
-
-        else:
-            if sys.platform == 'win32':
-                if password is None:
-                    self.passwd = getpass.getpass("Get password for " + self.remoteuser + "@" + self.proxynode + " : ")
-                else:
-                    self.passwd = password
-                self.login_options = " -pw " + self.passwd + " " + self.remoteuser
-            else:
-                if password is None:
-                    self.passwd = getpass.getpass("Get password for " + self.remoteuser + "@" + self.proxynode + " : ")
-                else:
-                    self.passwd = password
-                self.login_options = self.remoteuser
-
-        self.login_options_withproxy = self.login_options + "@" + self.proxynode
-        self.ssh_remote_exec_command = self.ssh_command + " " + self.login_options
-        self.ssh_remote_exec_command_withproxy = self.ssh_command + " " + self.login_options_withproxy
-
-        rcm_server_command = rcm_utils.get_server_command(self.proxynode,
-                                                          self.remoteuser,
-                                                          passwd=self.passwd)
-
-        if rcm_server_command != '':
-            self.config['remote_rcm_server'] = rcm_server_command
+        self.preload = preload
+        self.user = user
+        self.password = password
 
         self.subnet = '.'.join(socket.gethostbyname(self.proxynode).split('.')[0:-1])
         logic_logger.debug("Login host: " + self.proxynode + " subnet: " + self.subnet)
@@ -209,9 +102,9 @@ class RemoteConnectionManager:
 
             # if fullcommand ends with ';' add the preset rcm server command, otherwise use it as is
             if fullcommand[-1] == ';':
-                fullcommand += ' ' + self.config['remote_rcm_server']
+                fullcommand += ' ' + self.rcm_server_command
         else:
-            fullcommand = self.config['remote_rcm_server']
+            fullcommand = self.rcm_server_command
 
         fullcommand += ' ' + cmd
         logic_logger.info("On " + host + " run: <br><span style=\" font-size:5; font-weight:400; color:#101010;\" >" +
@@ -221,20 +114,19 @@ class RemoteConnectionManager:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            ssh.connect(host, username=self.remoteuser, password=self.passwd, timeout=10)
+            ssh.connect(host, username=self.user, password=self.password, timeout=10)
+            self.auth_method = ssh.get_transport().auth_handler.auth_method
+            stdin, stdout, stderr = ssh.exec_command(fullcommand)
+            out = ''.join(stdout)
+            err = stderr.readlines()
         except Exception as e:
-            logic_logger.warning("ERROR {0}: ".format(e) + "in ssh.connect to node->" +
-                                 host + "< user->" + self.remoteuser + "<")
             ssh.close()
-            return ''
+            raise RuntimeError(e)
+        finally:
+            ssh.close()
 
-        self.auth_method = ssh.get_transport().auth_handler.auth_method
-
-        stdin, stdout, stderr = ssh.exec_command(fullcommand)
-        out = ''.join(stdout)
-        err = stderr.readlines()
         if err:
-            logic_logger.warning("Server report error: {0}".format(err))
+            logic_logger.warning(err)
 
         # find where the real server output starts
         index = out.find(rcm.serverOutputString)
@@ -246,14 +138,11 @@ class RemoteConnectionManager:
             if err:
                 raise Exception("Server error: {0}".format(err))
 
-        ssh.close()
         return out
 
     def list(self):
         # Get the list of sessions for each login node of the cluster
         # and return the merge of all of them
-
-        rcm_utils.get_threads_exceptions()
 
         # here we remotely call loginlist function of rcm_protocol_server
         # get from each login nodes to check of possible sessions
@@ -307,111 +196,65 @@ class RemoteConnectionManager:
         session = rcm.rcm_session(o)
         return session
 
+    def api_version(self):
+        if not self._api_version:
+            try:
+                self._api_version = self.protocol.version()
+            except Exception:
+                # if the server fails to send the version,
+                # we assume that the api are the oldest (v0.0.1)
+                self._api_version = "0.0.1"
+            logic_logger.debug("api version: " + str(self._api_version))
+        return self._api_version
+
     def get_config(self):
-        client_build_platform = self.pack_info.buildPlatformString
-        if not client_build_platform:
-            client_build_platform = 'new_client_devel'
-        o = self.protocol.config(build_platform=json.dumps(self.pack_info.to_dict()))
+        o = self.protocol.config(build_platform=json.dumps(rcm_utils.pack_info().to_dict()))
         self.server_config = rcm.rcm_config(o)
         logic_logger.debug("config: " + str(self.server_config))
+
         if 'jobscript_json_menu' in self.server_config.config:
             logic_logger.debug("jobscript gui json: " + self.server_config.config.get('jobscript_json_menu', ''))
+
         return self.server_config
 
     def submit(self, session=None, otp='', gui_cmd=None, configFile=None):
-        tunnel_command = ''
-        vnc_command = ''
-        vncpassword_decrypted = ''
+        if not session:
+            return
+
+        logic_logger.debug("session: " + str(session.hash))
+
+        compute_node = session.hash['node']
+        port_string = session.hash.get('port', '')
+        if port_string:
+            port_number = int(port_string)
+        else:
+            port_number = 5900 + int(session.hash['display'])
+
+        login_node = session.hash['nodelogin']
+        local_port_number = rcm_utils.get_unused_portnumber()
+
         try:
             tunnelling_method = json.loads(parser.get('Settings', 'ssh_client'))
         except Exception:
             tunnelling_method = "internal"
         logic_logger.info("Using " + str(tunnelling_method) + " ssh tunnelling")
 
-        local_portnumber = 0
-        portnumber = 0
-        node = None
+        plugin_exe = plugin.TurboVNCExecutable()
+        plugin_exe.build(session=session, local_portnumber=local_port_number)
 
-        if session:
-            logic_logger.debug("session: " + str(session.hash))
-            portstring = session.hash.get('port', '')
-            if portstring:
-                portnumber = int(portstring)
-            else:
-                portnumber = 5900 + int(session.hash['display'])
-            local_portnumber = rcm_utils.get_unused_portnumber()
-            node = session.hash['node']
-            nodelogin = session.hash['nodelogin']
-            tunnel = session.hash['tunnel']
-            vncpassword = session.hash.get('vncpassword', '')
-
-            # Decrypt password
-            rcm_cipher = cipher.RCMCipher()
-            vncpassword_decrypted = rcm_cipher.decrypt(vncpassword)
-
-            logic_logger.debug("portnumber --> " + str(portnumber) + " node --> " + str(node) + " nodelogin --> "
-                                + str(nodelogin) + " tunnel --> " + str(tunnel))
-
-            if sys.platform.startswith('darwin'):
-                vnc_command="open -W vnc://:"+vncpassword_decrypted+"@127.0.0.1:"+str(local_portnumber)
-                logic_logger.debug("VNC command macOS: "+vnc_command)
-
-            elif sys.platform == 'win32':
-                vnc_command = self.vnc_cmdline_builder.get_executable_path() \
-                              + " /nounixlogin /noreconnect /nonewconn"
-                # vnc_command += " -logfile " + os.path.join(rcm_utils.log_folder(), 'vncviewer_' + nodelogin + '_' +
-                #                                           session.hash.get('sessionid', '') + '.log')
-                vnc_command += " /loglevel " + str(rcm_utils.vnc_loglevel)
-                vnc_command += " /password " + vncpassword_decrypted + " " 
-            else:
-                vnc_command = self.vnc_cmdline_builder.get_executable_path() + " -quality 80 " \
-                              + " -password " + vncpassword_decrypted + " -noreconnect -nonewconn "
-
-            if sys.platform == 'win32':
-                if tunnel == 'y':
-                    tunnel_command = self.ssh_command + " -L 127.0.0.1:" + str(local_portnumber) + ":" + node + ":" \
-                                     + str(portnumber) + " " + self.login_options + "@" + nodelogin
-                    if sys.platform.startswith('darwin'):
-                        tunnel_command += " echo 'rcm_tunnel'; sleep 20"
-                    else:
-                        tunnel_command += " echo 'rcm_tunnel'; sleep 10"
-                    vnc_command += " 127.0.0.1:" + str(local_portnumber)
-                else:
-                    vnc_command += " " + nodelogin + ":" + str(portnumber)
-            elif sys.platform == 'darwin':
-                pass
-            else:
-                if tunnel == 'y':
-                    if tunnelling_method == 'internal':
-                        vnc_command += " 127.0.0.1:" + str(local_portnumber)
-                    elif tunnelling_method == 'external':
-                        tunnel_command = self.ssh_command + " -L 127.0.0.1:" + str(local_portnumber) + ":" + node + ":" \
-                                         + str(portnumber) + " " + self.login_options + "@" + nodelogin
-                    else:
-                        logic_logger.error(tunnelling_method + ' is not a valid option')
-                        return
-                else:
-                    vnc_command += ' ' + nodelogin + ":" + session.hash['display']
-        else:
-            vnc_command = self.vnc_cmdline_builder.get_executable_path() + " -config "
-        
-        st = thread.SessionThread(tunnel_command,
-                                  vnc_command,
+        st = thread.SessionThread(plugin_exe.command,
+                                  login_node,
                                   self.proxynode,
-                                  self.remoteuser,
-                                  self.passwd,
-                                  vncpassword_decrypted,
-                                  otp,
+                                  self.user,
+                                  self.password,
                                   gui_cmd,
                                   configFile,
-                                  self.auth_method,
-                                  local_portnumber,
-                                  node,
-                                  portnumber,
+                                  local_port_number,
+                                  compute_node,
+                                  port_number,
                                   tunnelling_method)
 
-        logic_logger.debug("session thread: " + str(st) + "; thread number: " + str(len(self.session_thread)))
-        self.session_thread.append(st)
+        self.session_threads.append(st)
         st.start()
 
     def kill(self, session):
@@ -423,10 +266,9 @@ class RemoteConnectionManager:
 
     def kill_session_thread(self):
         try:
-            if self.session_thread:
-                for thread in self.session_thread:
+            if self.session_threads:
+                for thread in self.session_threads:
                     thread.terminate()
-            self.session_thread = None
+            self.session_threads = None
         except Exception:
             logic_logger.error('Failed to kill a session thread still alive')
-

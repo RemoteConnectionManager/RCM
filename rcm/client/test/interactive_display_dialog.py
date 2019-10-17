@@ -1,4 +1,23 @@
-# stdlib
+#
+# Copyright (c) 2014-2019 CINECA.
+#
+# This file is part of RCM (Remote Connection Manager) 
+# (see http://www.hpc.cineca.it/software/rcm).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
 import sys
 # pyqt5
 from PyQt5.QtWidgets import QApplication
@@ -20,7 +39,7 @@ from server.lib.scheduler import *
 from server.lib.manager import *
 import config
 
-from gui.new_display_dialog import *
+from gui.dynamic_display_dialog import *
 
 # This is needed, otherwise no default logging happen
 logging.debug("Start test app")
@@ -58,6 +77,6 @@ def print_result(choices):
                          "\n<")
 
 
-display_dialog = QDisplayDialog(display_dialog_ui, callback=print_result)
+display_dialog = QDynamicDisplayDialog(display_dialog_ui, callback=print_result)
 display_dialog.show()
 sys.exit(app.exec_())
