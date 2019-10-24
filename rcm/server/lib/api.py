@@ -40,6 +40,7 @@ class ServerAPIs:
         platform_info = ''
         client_info = dict()
         if build_platform:
+            print("#### build_platform:" + str(build_platform))
             if '{' == build_platform[0]:
                 # interpreting build_platfrm as a json encodef pack_info field
                 try:
@@ -50,6 +51,8 @@ class ServerAPIs:
                 except Exception as e:
                     logger.info("error in handling json encoded pack_info, Exception: " +
                             str(e) + " - " + str(traceback.format_exc()))
+            else:
+                platform_info = build_platform 
 
         self._server_init(client_info)
         logger.debug("calling api config")
@@ -62,6 +65,8 @@ class ServerAPIs:
         jobscript_json_menu = self.server_manager.get_jobscript_json_menu()
         if jobscript_json_menu:
             conf.config['jobscript_json_menu'] = jobscript_json_menu
+        conf.add_queue('ssh')
+        conf.add_vnc('fluxbox_turbovnc_vnc','use turbovnc with fluxbox')
         conf.serialize()
 
     def version(self):
@@ -91,20 +96,21 @@ class ServerAPIs:
             choices_string=''):
         self._server_init()
         logger.debug("calling api new")
-        if choices_string:
-            # sys.stderr.write("----choices string:::>"+ choices_string + "<:::\n")
-            self.server_manager.handle_choices(choices_string)
-            for k, v in self.server_manager.top_templates.items():
-                logger.debug(k + " :::>\n" + str(v) + "\n<:")
+        if not choices_string:
+            choices_string = '{"SERVICE.COMMAND.WM.XSIZE": "1434", "SERVICE.COMMAND.WM.YSIZE": "930", "SERVICE.COMMAND": "TurboVNC", "SCHEDULER": "SSH", "SERVICE": "VNC", "SERVICE.COMMAND.WM": "Fluxbox"}'
+        # sys.stderr.write("----choices string:::>"+ choices_string + "<:::\n")
+        self.server_manager.handle_choices(choices_string)
+        for k, v in self.server_manager.top_templates.items():
+            logger.debug(k + " :::>\n" + str(v) + "\n<:")
 
-            new_session = self.server_manager.create_session(sessionname=sessionname,
-                                                             subnet=subnet,
-                                                             vncpassword=vncpassword,
-                                                             vncpassword_crypted=vncpassword_crypted)
+        new_session = self.server_manager.create_session(sessionname=sessionname,
+                                                         subnet=subnet,
+                                                         vncpassword=vncpassword,
+                                                         vncpassword_crypted=vncpassword_crypted)
 
-            return_session = self.server_manager.map_session(new_session, subnet)
-            return_session.write()
-            return
+        return_session = self.server_manager.map_session(new_session, subnet)
+        return_session.write()
+        return
 
     def kill(self, session_id=''):
         self._server_init()
