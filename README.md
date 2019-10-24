@@ -9,8 +9,8 @@ HPC clusters Remote Visualization resources, developed by CINECA.
 
 Please refer to README files in client and server subfolder.
 
-* [Client](https://github.com/RemoteConnectionManager/RCM/tree/refactoring/rcm/client)
-* [Server](https://github.com/RemoteConnectionManager/RCM/tree/refactoring/rcm/server)
+* [Client](rcm/client)
+* [Server](rcm/server)
 
 ##  Documentation
 * To be added
