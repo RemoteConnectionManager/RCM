@@ -83,18 +83,18 @@ class Service(plugin.Plugin):
         for t in self.templates:
             self.logger.debug("Searching port, plugin template: "+ t+ "--->"+str(self.templates[t])+"<--")
         groupdict = self.search_logfile(logfile, timeout=timeout)
-        node = ''
-        port = 0
+        res_dict = dict()
         for k in groupdict:
             self.logger.debug("searching port, key: " + k + " ==> " + groupdict[k])
             if k == 'display' :
-                port =  5900 + int(groupdict[k])
+                res_dict[k] = int(groupdict[k])
+                res_dict['port'] =  5900 + int(groupdict[k])
             if k == 'node' :
-                node = groupdict[k]
+                res_dict[k] = groupdict[k]
             if k == 'port' :
-                port = int(groupdict[k])
+                res_dict[k] = int(groupdict[k])
 
-        return (node, port)
+        return res_dict
 
 
 
