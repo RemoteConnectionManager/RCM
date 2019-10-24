@@ -34,7 +34,7 @@ schema:
             then
             # Here is the VGLRUN setup from different scheduler and queues
             # is activate just when the selected service requires it
-            echo "Redefining vglrun" >&2
+            #echo "Redefining vglrun" >&2
             @{ACCOUNT.QUEUE.QOS.GRES.VGLRUN_SLURM_DISPLAY}
             fi
 
