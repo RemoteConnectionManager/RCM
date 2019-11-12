@@ -13,14 +13,6 @@ import cascade_yaml_config
 
 logging.debug("imported __file__:" + os.path.realpath(__file__))
 
-def force_symlink(file1, file2):
-    print("@@@@@@@@@ symlink: ", file1, file2)
-    try:
-        os.symlink(file1, file2)
-    except FileExistsError as e:
-        if e.errno == errno.EEXIST:
-            os.remove(file2)
-            os.symlink(file1, file2)
 
 
 class RcmServerDeploy(cascade_yaml_config.ArgparseSubcommandManager):
@@ -30,6 +22,14 @@ class RcmServerDeploy(cascade_yaml_config.ArgparseSubcommandManager):
         for par in kwargs:
             self.logger.debug("init par "+ par+" --> "+str(kwargs[par]))
 
+    def _force_symlink(self, file1, file2):
+        try:
+            os.symlink(file1, file2)
+        except FileExistsError as e:
+            if e.errno == errno.EEXIST:
+                self.logger.warning("removing file-->" + file2 + " linking to -->" + file1)
+                os.remove(file2)
+                os.symlink(file1, file2)
 
     def fromsource(self,
                    source_dir='src',
@@ -51,15 +51,15 @@ class RcmServerDeploy(cascade_yaml_config.ArgparseSubcommandManager):
             self.logger.info("creating install_dir-->" + out_install_dir + "<--")
             os.makedirs(out_install_dir)
 
-        print("@@@@@@@@@@ install and module dirs: ", out_install_dir, out_module_dir)
+        self.logger.info("install and module dirs: " + out_install_dir + out_module_dir)
 
-        force_symlink(source_dir, os.path.join(out_install_dir, 'src'))
+        self._force_symlink(source_dir, os.path.join(out_install_dir, 'src'))
         old_client_server_dir = os.path.join(out_install_dir, 'bin', 'server')
         if not os.path.exists(old_client_server_dir):
             os.makedirs(old_client_server_dir)
-        force_symlink(os.path.join(source_dir, 'rcm', 'server', 'bin', 'server'),
+        self._force_symlink(os.path.join(source_dir, 'rcm', 'server', 'bin', 'server'),
                    os.path.join(out_install_dir, 'bin', 'server', 'rcm_new_server.py'))
-        force_symlink(config_dir, os.path.join(out_install_dir, 'bin', 'config'))
+        self._force_symlink(config_dir, os.path.join(out_install_dir, 'bin', 'config'))
 
         module_template = self.top_config['defaults', 'rcm', 'module_template']
         #print("@@@@@ module template:", module_template)
@@ -71,4 +71,4 @@ class RcmServerDeploy(cascade_yaml_config.ArgparseSubcommandManager):
         with open(modulefile, 'w') as f:
             f.write(module_out)
 
-        print("@@@@@ writing module module file:", modulefile)
+        self.logger.info("writing module module file:" + modulefile)
