@@ -1,9 +1,11 @@
 defaults:
   rcm:
     source_dir: "{{DEPLOY_PARENT_ROOTPATH}}/RCM"
-    module_dir: "{{DEPLOY_PARENT_ROOTPATH}}/deploy/modules"
-    install_dir: "{{DEPLOY_PARENT_ROOTPATH}}/deploy/install/fromsource"
+    module_dir: "{{DEPLOY_WORKDIR}}/modules"
+    install_dir: "{{DEPLOY_WORKDIR}}/install/{{defaults.rcm.module_version}}"
     config_dir: "{{DEPLOY_HOST_CONFIGPATH}}"
+    module_name: "rcm"
+    module_version: "fromsource"
     module_template:  |
         module-whatis "remote connection manager"
         @{MODULE_SETUP}
@@ -49,6 +51,14 @@ argparse:
             action: 'store'
             default: "{{ defaults.rcm.install_dir }}"
             help: 'Folder where to install (RCM_HOME).'
+          module_name:
+            action: 'store'
+            default: "{{ defaults.rcm.module_name }}"
+            help: 'name of the module'
+          module_version:
+            action: 'store'
+            default: "{{ defaults.rcm.module_version }}"
+            help: 'version of the module'
           module_setup:
             action: 'store'
             help: ' Module setup code for proper functionng'
