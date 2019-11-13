@@ -3,10 +3,11 @@ defaults:
     source_dir: "{{DEPLOY_PARENT_ROOTPATH}}/RCM"
     module_dir: "{{DEPLOY_WORKDIR}}/modules"
     install_dir: "{{DEPLOY_WORKDIR}}/install/{{defaults.rcm.module_version}}"
-    config_dir: "{{DEPLOY_HOST_CONFIGPATH}}"
+    config_dir: "{{DEPLOY_HOST_CONFIGPATH}}/rcm"
     module_name: "rcm"
     module_version: "fromsource"
     module_template:  |
+        #%Module
         module-whatis "remote connection manager"
         @{MODULE_SETUP}
         setenv RCM_HOME "@{INSTALL_DIR}"
