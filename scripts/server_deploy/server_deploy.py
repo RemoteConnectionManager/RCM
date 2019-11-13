@@ -65,6 +65,7 @@ class RcmServerDeploy(cascade_yaml_config.ArgparseSubcommandManager):
         #print("@@@@@ module template:", module_template)
         module_out=utils.stringtemplate(module_template).safe_substitute({
              'INSTALL_DIR' : install_dir,
+             'CONFIG_DIR' : config_dir,
              'MODULE_SETUP' : module_setup})
 
         modulefile = os.path.join(out_module_dir, module_version)

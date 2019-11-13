@@ -11,6 +11,8 @@ defaults:
         module-whatis "remote connection manager"
         @{MODULE_SETUP}
         setenv RCM_HOME "@{INSTALL_DIR}"
+        # this define additional config folders
+        setenv RCM_CONFIG_PATHS "@{CONFIG_DIR}"
         prepend-path PATH "@{INSTALL_DIR}/bin"
 
         proc ModulesHelp {} {
