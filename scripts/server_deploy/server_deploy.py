@@ -25,7 +25,7 @@ class RcmServerDeploy(cascade_yaml_config.ArgparseSubcommandManager):
     def _force_symlink(self, file1, file2):
         try:
             os.symlink(file1, file2)
-        except FileExistsError as e:
+        except OSError as e:
             if e.errno == errno.EEXIST:
                 self.logger.warning("removing file-->" + file2 + " linking to -->" + file1)
                 os.remove(file2)
