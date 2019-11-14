@@ -3,6 +3,7 @@ import logging
 import re
 import os
 import time
+import copy
 
 import plugin
 import utils
@@ -15,19 +16,6 @@ class Service(plugin.Plugin):
     def __init__(self, *args, **kwargs):
         self.COMMANDS = {'bash': None}
         super(Service, self).__init__(*args, **kwargs)
-        if 'client_info' in kwargs:
-            self.client_info = kwargs['client_info']
-            if 'screen_width' in self.client_info and 'screen_height' in self.client_info:
-                self.PARAMS['WM'] = self.size_param
-
-    def size_param(self,default_params=None):
-        params = dict()
-        if default_params:
-            for par in default_params:
-                params[par] = {'XSIZE': {'max': self.client_info['screen_width']},
-                               'YSIZE': {'max': self.client_info['screen_height']}}
-        return params
-
 
     def run_preload(self, key='PRELOAD_LINE', substitutions=None):
         self.logger.debug("GENERIC run_preload for service: "+ self.NAME)
@@ -80,6 +68,41 @@ class Service(plugin.Plugin):
         raise Exception("Unable to search_logfile: %s with regex %s" % (logfile, str(regex_list)))
 
     def search_port(self, logfile='', timeout=0):
+        raise NotImplementedError()
+
+
+
+class ScreenService(Service):
+
+
+    def __init__(self, *args, **kwargs):
+        super(ScreenService, self).__init__(*args, **kwargs)
+
+        if 'client_info' in kwargs:
+            self.client_info = kwargs['client_info']
+            if 'screen_width' in self.client_info and 'screen_height' in self.client_info:
+                self.PARAMS['WM'] = self.size_param
+
+    def size_param(self,default_params=None):
+        params = dict()
+        if default_params:
+            for par in default_params:
+                params[par] = {'XSIZE': {'max': self.client_info['screen_width']},
+                               'YSIZE': {'max': self.client_info['screen_height']}}
+        return params
+
+
+
+class VncService(ScreenService):
+
+
+    def __init__(self, *args, **kwargs):
+        self.COMMANDS = {'bash': None,
+                         'vncpasswd': None,
+                         'vncserver': None}
+        super(VncService, self).__init__(*args, **kwargs)
+
+    def search_port(self, logfile='', timeout=0):
         for t in self.templates:
             self.logger.debug("Searching port, plugin template: "+ t+ "--->"+str(self.templates[t])+"<--")
         groupdict = self.search_logfile(logfile, timeout=timeout)
@@ -97,13 +120,17 @@ class Service(plugin.Plugin):
         return res_dict
 
 
-
-
-
-class TurboVNCServer(Service):
+class TurboVNCServer(VncService):
     def __init__(self, *args, **kwargs):
         self.NAME = "TurboVNC"
         super(TurboVNCServer, self).__init__(*args, **kwargs)
+
+
+
+class TurboVNCServerCustom(VncService):
+    def __init__(self, *args, **kwargs):
+        self.NAME = "TurboVNC_custom"
+        super(TurboVNCServerCustom, self).__init__(*args, **kwargs)
 
 
 
