@@ -4,7 +4,11 @@ defaults:
       VNC :
         description : "Start service of type VNC "
         substitutions :
-          HEADER: "RCM_SERVICES_SETUP=\"VGLRUN\""
+          HEADER: |
+            @{SETUP}
+            RCM_SERVICES_SETUP=\"VGLRUN\"
+
+
         COMMAND :
           TurboVNC :
             description : "Select TurboVNC as VNC server "
