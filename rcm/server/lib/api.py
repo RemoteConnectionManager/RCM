@@ -65,8 +65,12 @@ class ServerAPIs:
         jobscript_json_menu = self.server_manager.get_jobscript_json_menu()
         if jobscript_json_menu:
             conf.config['jobscript_json_menu'] = jobscript_json_menu
-        conf.add_queue('ssh')
-        conf.add_vnc('fluxbox_turbovnc_vnc','use turbovnc with fluxbox')
+
+        queues = self.server_manager.configuration['old_client', 'queue_entries']
+        for q in queues:
+            conf.add_queue(q)
+        for vnc in self.server_manager.configuration['old_client', 'vnc_entries']:
+            conf.add_vnc(vnc, vnc + ' Description')
         conf.serialize()
 
     def version(self):
@@ -97,7 +101,17 @@ class ServerAPIs:
         self._server_init()
         logger.debug("calling api new")
         if not choices_string:
-            choices_string = '{"SERVICE.COMMAND.WM.XSIZE": "1434", "SERVICE.COMMAND.WM.YSIZE": "930", "SERVICE.COMMAND": "TurboVNC", "SCHEDULER": "SSH", "SERVICE": "VNC", "SERVICE.COMMAND.WM": "Fluxbox"}'
+            choices_array = {"SERVICE.COMMAND.WM": "Fluxbox_with_virtualgl", "SERVICE": "VNC_default", "SCHEDULER": "SSH", "SERVICE.COMMAND.WM.YSIZE": "825", "SERVICE.COMMAND.WM.XSIZE": "1266", "SERVICE.COMMAND": "TurboVNC"}
+            try:
+                choices_array["SERVICE.COMMAND.WM.XSIZE"], choices_array["SERVICE.COMMAND.WM.YSIZE"] = geometry.split('x')
+            except Exception as e:
+                logger.warning("Exception: " + str(e) + " in handling geometry: " + geometry )
+
+            for par,par_key in [(queue, 'queue_entries'), (vnc_id, 'vnc_entries')]:
+                setup_dict = self.server_manager.configuration['old_client', par_key, par]
+                choices_array.update(setup_dict)
+            choices_string = json.dumps(choices_array)
+            
         # sys.stderr.write("----choices string:::>"+ choices_string + "<:::\n")
         self.server_manager.handle_choices(choices_string)
         for k, v in self.server_manager.top_templates.items():
