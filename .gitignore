@@ -100,7 +100,7 @@ ENV/
 .mypy_cache/
 
 # pycharm
-.idea/
+#.idea/
 
 # subversion folder
 .svn
