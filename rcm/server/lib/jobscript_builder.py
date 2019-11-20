@@ -138,7 +138,7 @@ class ChoiceNode(CompositeNode):
         excluded_keys = ['children', 'substitutions']
         for keyword in self.schema:
             if keyword not in excluded_keys:
-                composer_options[keyword] = self.schema[keyword]
+                composer_options[keyword] = self.defaults.get(keyword, self.schema[keyword])
         composer_choice = OrderedDict()
         if self.children:
             for child in self.children:
@@ -301,6 +301,8 @@ class AutoManagerChoiceNode(ManagerChoiceNode):
         super(AutoManagerChoiceNode, self).__init__(*args, **kwargs)
         if 'children' in self.schema and hasattr(self.defaults, 'get'):
             for class_name in self.defaults:
+                if class_name in ['description', 'children', 'substitutions']:
+                    continue
                 constructor_logger.debug(self.__class__.__name__ + self.NAME + " handling child  : " + class_name)
                 child_schema = copy.deepcopy(self.schema)
                 child_defaults = copy.deepcopy(self.defaults.get(class_name, OrderedDict()))
