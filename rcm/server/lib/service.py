@@ -7,6 +7,7 @@ import copy
 
 import plugin
 import utils
+from collections import OrderedDict
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
 
@@ -84,11 +85,16 @@ class ScreenService(Service):
                 self.PARAMS['WM'] = self.size_param
 
     def size_param(self,default_params=None):
-        params = dict()
+        params = OrderedDict()
         if default_params:
             for par in default_params:
-                params[par] = {'XSIZE': {'max': self.client_info['screen_width']},
-                               'YSIZE': {'max': self.client_info['screen_height']}}
+                # assign self.client_info['screen_height'] tp params[par]['XSIZE']['max] while getting everythin else
+                # from default_params
+                params[par] = copy.deepcopy(default_params.get(par, default_params.get('ALL', OrderedDict())))
+                for yaml_par_name, info_par_name in [('XSIZE', 'screen_width'), ('YSIZE', 'screen_height')]:
+                    tmp = params[par].get(yaml_par_name, OrderedDict())
+                    tmp['max'] = self.client_info[info_par_name]
+                    params[par][yaml_par_name] = tmp
         return params
 
 
