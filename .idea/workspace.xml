@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9a58afbd-fee7-4456-aaad-b910dba90bf4" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py" beforeDir="false" afterPath="$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_service_type.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_service_type.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_wm.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_wm.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rcm/server/lib/service.py" beforeDir="false" afterPath="$PROJECT_DIR$/rcm/server/lib/service.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -15,20 +14,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="plugins.yaml" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/rcm/server/etc/defaults/plugins.yaml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
-              <caret line="9" selection-end-line="9" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="manager.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/rcm/server/lib/manager.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="461">
-              <caret line="58" selection-start-line="58" selection-end-line="58" />
+            <state relative-caret-position="149">
+              <caret line="98" selection-start-line="98" selection-end-line="98" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
               </folding>
@@ -39,8 +29,8 @@
       <file leaf-file-name="jobscript_builder.py" pinned="false" current-in-tab="false">
         <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/jobscript_builder.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="163">
-              <caret line="303" column="89" selection-start-line="303" selection-start-column="81" selection-end-line="303" selection-end-column="89" />
+            <state relative-caret-position="149">
+              <caret line="162" selection-start-line="162" selection-end-line="162" />
             </state>
           </provider>
         </entry>
@@ -48,26 +38,32 @@
       <file leaf-file-name="plugin.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/rcm/server/lib/plugin.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="155">
-              <caret line="28" selection-start-line="28" selection-end-line="28" />
+            <state relative-caret-position="180">
+              <caret line="34" column="18" lean-forward="true" selection-start-line="34" selection-start-column="8" selection-end-line="34" selection-end-column="18" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="other_wm.yaml" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_wm.yaml">
+      <file leaf-file-name="scheduler.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rcm/server/lib/scheduler.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="8" column="25" selection-start-line="8" selection-start-column="25" selection-end-line="8" selection-end-column="25" />
+            <state relative-caret-position="405">
+              <caret line="354" column="51" lean-forward="true" selection-start-line="354" selection-start-column="37" selection-end-line="354" selection-end-column="51" />
+              <folding>
+                <element signature="e#14#28#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="service.py" pinned="false" current-in-tab="false">
-        <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/service.py">
+      <file leaf-file-name="service.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/rcm/server/lib/service.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="150">
-              <caret line="17" selection-start-line="17" selection-end-line="17" />
+            <state relative-caret-position="245">
+              <caret line="96" column="52" selection-start-line="96" selection-start-column="52" selection-end-line="96" selection-end-column="52" />
+              <folding>
+                <element signature="e#2#16#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -75,7 +71,7 @@
       <file leaf-file-name="schema_02_service.yaml" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/rcm/server/etc/defaults/schema_02_service.yaml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="360">
+            <state relative-caret-position="419">
               <caret line="36" column="23" selection-start-line="36" selection-start-column="18" selection-end-line="36" selection-end-column="23" />
             </state>
           </provider>
@@ -84,8 +80,8 @@
       <file leaf-file-name="jobscript_builder.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="250">
-              <caret line="304" column="28" selection-start-line="304" selection-start-column="28" selection-end-line="304" selection-end-column="28" />
+            <state relative-caret-position="73">
+              <caret line="37" selection-start-line="37" selection-end-line="37" />
               <folding>
                 <element signature="e#13#27#0" expanded="true" />
               </folding>
@@ -102,11 +98,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="other_service_type.yaml" pinned="false" current-in-tab="true">
+      <file leaf-file-name="other_service_type.yaml" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_service_type.yaml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="60">
-              <caret line="4" column="33" selection-start-line="4" selection-start-column="33" selection-end-line="4" selection-end-column="33" />
+            <state relative-caret-position="210">
+              <caret line="14" column="8" selection-start-line="14" selection-start-column="8" selection-end-line="14" selection-end-column="8" />
             </state>
           </provider>
         </entry>
@@ -115,11 +111,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>set</find>
-      <find>get_job</find>
-      <find>create_hor_composite_widget</find>
-      <find>widget_factory</find>
-      <find>value</find>
       <find>get_server</find>
       <find>build_platform</find>
       <find>merge_list</find>
@@ -140,11 +131,16 @@
       <find>Qos</find>
       <find>QoS</find>
       <find>copy</find>
-      <find>get_gui_options</find>
       <find>description</find>
       <find>substitutions</find>
       <find>handling</find>
       <find>add_child</find>
+      <find>Openbox</find>
+      <find>preload viz modules</find>
+      <find>'description</find>
+      <find>service</find>
+      <find>client_info</find>
+      <find>get_gui_options</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -170,7 +166,6 @@
         <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/network/notebook.yaml" />
         <option value="$PROJECT_DIR$/rcm/client/gui/worker.py" />
         <option value="$PROJECT_DIR$/rcm/client/gui/ssh_session_widget.py" />
-        <option value="$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py" />
         <option value="$PROJECT_DIR$/rcm/server/lib/config.py" />
         <option value="$PROJECT_DIR$/rcm/server/lib/db.py" />
         <option value="$PROJECT_DIR$/rcm/server/lib/parser.py" />
@@ -196,7 +191,6 @@
         <option value="$PROJECT_DIR$/rcm/client/logic/rcm_utils.py" />
         <option value="$PROJECT_DIR$/rcm/server/lib/api.py" />
         <option value="$PROJECT_DIR$/rcm/server/lib/plugin.py" />
-        <option value="$PROJECT_DIR$/rcm/server/lib/service.py" />
         <option value="$PROJECT_DIR$/rcm/client/gui/new_display_dialog.py" />
         <option value="$PROJECT_DIR$/rcm/client/miscellaneous/config_parser.py" />
         <option value="$PROJECT_DIR$/rcm/utils/misc.py" />
@@ -210,22 +204,25 @@
         <option value="$PROJECT_DIR$/rcm/server/lib/scheduler.py" />
         <option value="$PROJECT_DIR$/rcm/server/lib/manager.py" />
         <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_wm.yaml" />
-        <option value="$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py" />
         <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_service_type.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py" />
+        <option value="$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py" />
+        <option value="$PROJECT_DIR$/rcm/server/lib/service.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="156" />
-    <option name="y" value="1261" />
-    <option name="width" value="1272" />
-    <option name="height" value="1000" />
+    <option name="x" value="187" />
+    <option name="y" value="225" />
+    <option name="width" value="1419" />
+    <option name="height" value="927" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -249,7 +246,7 @@
               <item name="RCM" type="462c0819:PsiDirectoryNode" />
               <item name="rcm" type="462c0819:PsiDirectoryNode" />
               <item name="client" type="462c0819:PsiDirectoryNode" />
-              <item name="logic" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
@@ -328,7 +325,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -360,7 +356,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.new_display_dialog full debug">
+  <component name="RunManager" selected="Python.new_display_dialog full debug galileo (1)">
     <configuration name="new_display_dialog base debug constructor" type="PythonConfigurationType" factoryName="Python">
       <module name="RCM" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -374,6 +370,48 @@
       <option name="SDK_HOME" value="$PROJECT_DIR$/../../test_deploy_dev/py3env/bin/python" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/client/test" />
       <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="false" />
+      <option name="ADD_SOURCE_ROOTS" value="false" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="new_display_dialog full debug galileo (1)" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="" />
+        <env name="RCM_CONFIG_PATHS" value="$PROJECT_DIR$/../hosts/galileo/config/rcm" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/client/gui" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="false" />
+      <option name="ADD_SOURCE_ROOTS" value="false" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="new_display_dialog full debug galileo" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="test/etc/test_hierarchical" />
+        <env name="RCM_CONFIG_PATHS" value="$PROJECT_DIR$/../hosts/galileo/config/rcm:logging/debug/jobscript_base.yaml:logging/debug/jobscript_constructor.yaml" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/client/gui" />
+      <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="false" />
       <option name="ADD_SOURCE_ROOTS" value="false" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py" />
@@ -440,6 +478,27 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/client/rcm_client_qt.py" />
       <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="server_side config galileo" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:/usr/bin:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="test/etc/test_hierarchical" />
+        <env name="RCM_CONFIG_PATHS" value="$PROJECT_DIR$/../hosts/galileo/config/rcm:logging/debug/jobscript_base.yaml:logging/debug/jobscript_constructor.yaml" />
+      </envs>
+      <option name="SDK_HOME" value="/usr/bin/python2.7" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/server/bin" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/server/bin/server" />
+      <option name="PARAMETERS" value="--command=config --build_platform=&quot;{\&quot;checksum\&quot;: \&quot;\&quot;, \&quot;version\&quot;: \&quot;\&quot;, \&quot;platform\&quot;: \&quot;\&quot;, \&quot;client_info\&quot;: {\&quot;screen_height\&quot;: 1200, \&quot;screen_width\&quot;: 1920}}&quot;" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -573,10 +632,13 @@
     <list>
       <item itemvalue="Python.new_display_dialog full" />
       <item itemvalue="Python.new_display_dialog full debug" />
+      <item itemvalue="Python.new_display_dialog full debug galileo" />
+      <item itemvalue="Python.new_display_dialog full debug galileo (1)" />
       <item itemvalue="Python.new_display_dialog base debug constructor" />
       <item itemvalue="Python.server_side loginlist" />
       <item itemvalue="Python.server_side list" />
       <item itemvalue="Python.server_side config" />
+      <item itemvalue="Python.server_side config galileo" />
       <item itemvalue="Python.server_side new full debug python3" />
       <item itemvalue="Python.server_side new " />
       <item itemvalue="Python.server_side new full debug  python2" />
@@ -597,18 +659,18 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="156" y="1261" width="1272" height="1000" extended-state="0" />
+    <frame x="187" y="225" width="1419" height="927" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2905512" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26040933" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.36677814" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.36529127" />
       <window_info anchor="bottom" id="Version Control" order="9" />
       <window_info anchor="bottom" id="Python Console" order="7" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="8" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.393534" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.39320388" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
@@ -644,67 +706,85 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rcm/client/gui/edit_settings_dialog.py</url>
           <line>40</line>
           <option name="timeStamp" value="38" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rcm/client/gui/ssh_session_widget.py</url>
           <line>376</line>
           <option name="timeStamp" value="41" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rcm/server/rcm.py</url>
           <line>180</line>
           <option name="timeStamp" value="49" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rcm/client/gui/worker.py</url>
           <line>66</line>
           <option name="timeStamp" value="59" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rcm/server/lib/api.py</url>
           <line>73</line>
           <option name="timeStamp" value="64" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rcm/server/lib/service.py</url>
-          <line>50</line>
+          <line>51</line>
           <option name="timeStamp" value="68" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rcm/server/lib/manager.py</url>
           <line>168</line>
           <option name="timeStamp" value="78" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rcm/server/lib/manager.py</url>
           <line>188</line>
           <option name="timeStamp" value="79" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py</url>
           <line>94</line>
           <option name="timeStamp" value="88" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py</url>
           <line>158</line>
           <option name="timeStamp" value="136" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py</url>
           <line>116</line>
           <option name="timeStamp" value="137" />
         </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py</url>
+          <line>46</line>
+          <option name="timeStamp" value="143" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py</url>
+          <line>37</line>
+          <option name="timeStamp" value="144" />
+        </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/jobscript_builder.py</url>
-          <line>117</line>
-          <option name="timeStamp" value="141" />
+          <url>file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/service.py</url>
+          <line>89</line>
+          <option name="timeStamp" value="158" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/service.py</url>
+          <line>89</line>
+          <option name="timeStamp" value="159" />
         </line-breakpoint>
       </breakpoints>
+      <breakpoints-dialog>
+        <breakpoints-dialog />
+      </breakpoints-dialog>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">
@@ -712,20 +792,10 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="142" />
+      <option name="time" value="160" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/rcm/server/lib/manager.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="765">
-          <caret line="60" column="54" lean-forward="true" selection-start-line="60" selection-start-column="39" selection-end-line="60" selection-end-column="54" />
-          <folding>
-            <element signature="e#0#14#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/rcm/utils/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="30">
@@ -772,13 +842,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="45">
           <caret line="3" column="18" lean-forward="true" selection-start-line="3" selection-start-column="18" selection-end-line="3" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-287">
-          <caret line="1" column="10" selection-start-line="1" selection-start-column="10" selection-end-line="1" selection-end-column="10" />
         </state>
       </provider>
     </entry>
@@ -927,26 +990,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rcm/server/lib/api.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="645">
-          <caret line="49" column="38" selection-start-line="49" selection-start-column="38" selection-end-line="49" selection-end-column="38" />
-          <folding>
-            <element signature="e#13#23#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/rcm/server/lib/service.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1110">
-          <caret line="81" column="18" selection-start-line="81" selection-start-column="8" selection-end-line="81" selection-end-column="18" />
-          <folding>
-            <element signature="e#2#16#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/rcm/server/etc/defaults/schema_01_scheduler.yaml">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1485">
@@ -968,16 +1011,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rcm/server/lib/scheduler.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="485">
-          <caret line="400" selection-start-line="400" selection-end-line="400" />
-          <folding>
-            <element signature="e#14#28#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/rcm/server/lib/config.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1575">
@@ -992,48 +1025,34 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/service.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="17" selection-start-line="17" selection-end-line="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/rcm/server/lib/plugin.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="155">
-          <caret line="28" selection-start-line="28" selection-end-line="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/rcm/server/etc/defaults/schema_02_service.yaml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="36" column="23" selection-start-line="36" selection-start-column="18" selection-end-line="36" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/rcm/server/lib/manager.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="461">
-          <caret line="58" selection-start-line="58" selection-end-line="58" />
-          <folding>
-            <element signature="e#0#14#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/jobscript_builder.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="163">
-          <caret line="303" column="89" selection-start-line="303" selection-start-column="81" selection-end-line="303" selection-end-column="89" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_wm.yaml">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="120">
           <caret line="8" column="25" selection-start-line="8" selection-start-column="25" selection-end-line="8" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/lib/python2.7/copy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="202">
+          <caret line="153" selection-start-line="153" selection-end-line="153" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/lib/api.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="148">
+          <caret line="56" column="37" selection-start-line="56" selection-start-column="26" selection-end-line="56" selection-end-column="37" />
+          <folding>
+            <element signature="e#13#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-70">
+          <caret line="52" column="75" selection-start-line="52" selection-start-column="75" selection-end-line="52" selection-end-column="75" />
         </state>
       </provider>
     </entry>
@@ -1044,20 +1063,81 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_service_type.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="8" selection-start-line="14" selection-start-column="8" selection-end-line="14" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="250">
-          <caret line="304" column="28" selection-start-line="304" selection-start-column="28" selection-end-line="304" selection-end-column="28" />
+        <state relative-caret-position="73">
+          <caret line="37" selection-start-line="37" selection-end-line="37" />
           <folding>
             <element signature="e#13#27#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_service_type.yaml">
+    <entry file="file://$PROJECT_DIR$/rcm/server/etc/defaults/schema_02_service.yaml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="4" column="33" selection-start-line="4" selection-start-column="33" selection-end-line="4" selection-end-column="33" />
+        <state relative-caret-position="419">
+          <caret line="36" column="23" selection-start-line="36" selection-start-column="18" selection-end-line="36" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/lib/plugin.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="34" column="18" lean-forward="true" selection-start-line="34" selection-start-column="8" selection-end-line="34" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/jobscript_builder.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="149">
+          <caret line="162" selection-start-line="162" selection-end-line="162" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/lib/manager.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="149">
+          <caret line="98" selection-start-line="98" selection-end-line="98" />
+          <folding>
+            <element signature="e#0#14#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/service.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="186">
+          <caret line="91" column="27" selection-start-line="91" selection-start-column="27" selection-end-line="91" selection-end-column="27" />
+          <folding>
+            <element signature="e#2#16#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/lib/scheduler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="405">
+          <caret line="354" column="51" lean-forward="true" selection-start-line="354" selection-start-column="37" selection-end-line="354" selection-end-column="51" />
+          <folding>
+            <element signature="e#14#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/lib/service.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="245">
+          <caret line="96" column="52" selection-start-line="96" selection-start-column="52" selection-end-line="96" selection-end-column="52" />
+          <folding>
+            <element signature="e#2#16#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
