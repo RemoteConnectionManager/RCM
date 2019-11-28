@@ -3,11 +3,23 @@
 
 # Version 1.1.7 
 # ---- config ---
-applications_dirs = ("/usr/share/applications", )
+import os
+applications_dirs = ["/usr/share/applications"]
+
+def add_app_path(path):
+  if os.path.exists(path):
+    if not path in applications_dirs:
+      applications_dirs.append(path)
+
+for xdgpath in os.environ.get('XDG_DATA_DIRS', '').split(':'):
+  add_app_path(os.path.join(xdgpath, 'applications'))
+for binpath in os.environ.get('PATH', '').split(':'):
+  add_app_path(os.path.join(os.path.dirname(binpath), 'share', 'applications'))
+    
 image_dir_base = "/usr/share" # without "pixmaps" -/usr/local/share in FreeBSD, /usr/share on linux
 icon_Theme = "Humanity"
 image_cat_prefix = "applications-"  # if empty will create no icon text only menu
-application_groups = ("Office",  "Development",  "Graphics", "Internet",  "Games", "System",  "Multimedia",  "Utilities",  "Settings")
+application_groups = ("SciViz", "Office",  "Development",  "Graphics", "Internet",  "Games", "System",  "Multimedia",  "Utilities")
 group_aliases = {"Audio":"Multimedia","AudioVideo":"Multimedia","Network":"Internet","Game":"Games", "Utility":"Utilities", "GTK":"",  "GNOME":""}
 ignoreList = ("evince-previewer", "Ted",  "wingide3.2", "python3.4", "feh","xfce4-power-manager-settings" )
 terminal_string = "evte -e"         # your favourites terminal exec string
