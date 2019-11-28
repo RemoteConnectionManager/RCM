@@ -101,7 +101,7 @@ class ServerAPIs:
         self._server_init()
         logger.debug("calling api new")
         if not choices_string:
-            choices_array = {"SERVICE.COMMAND.WM": "Fluxbox_with_virtualgl", "SERVICE": "VNC_default", "SCHEDULER": "SSH", "SERVICE.COMMAND.WM.YSIZE": "825", "SERVICE.COMMAND.WM.XSIZE": "1266", "SERVICE.COMMAND": "TurboVNC"}
+            choices_array = {}
             try:
                 choices_array["SERVICE.COMMAND.WM.XSIZE"], choices_array["SERVICE.COMMAND.WM.YSIZE"] = geometry.split('x')
             except Exception as e:
