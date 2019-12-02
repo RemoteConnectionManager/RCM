@@ -13,6 +13,7 @@ defaults:
             #SBATCH --output @{RCM_JOBLOG}
             #SBATCH -A @{ACCOUNT}
             #SBATCH --partition=@{ACCOUNT.QUEUE}
+            #SBATCH --qos=@{ACCOUNT.QUEUE.QOS}
             #
 
 
