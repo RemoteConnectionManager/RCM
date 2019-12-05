@@ -119,7 +119,12 @@ class VncService(ScreenService):
                 res_dict[k] = int(groupdict[k])
                 res_dict['port'] =  5900 + int(groupdict[k])
             if k == 'node' :
-                res_dict[k] = groupdict[k]
+                # apply nodename substitutions, if defined
+                key = 'HOSTNAME_TEMPLATE'
+                if key in self.templates:
+                    res_dict[k] = utils.StringTemplate(self.templates[key]).safe_substitute({'HOSTNAME': groupdict[k]})
+                else:
+                    res_dict[k] = groupdict[k]
             if k == 'port' :
                 res_dict[k] = int(groupdict[k])
 
