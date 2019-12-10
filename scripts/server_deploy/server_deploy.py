@@ -14,6 +14,14 @@ import cascade_yaml_config
 logging.debug("imported __file__:" + os.path.realpath(__file__))
 
 
+def extract_git_release():
+    script_folder = os.path.dirname(__file__)
+    dev_git = utils.git_repo(script_folder)
+    return(dev_git.release_tag())
+
+cascade_yaml_config.global_key_subst['DEPLOY_GIT_RELEASE'] = extract_git_release()
+
+
 
 class RcmServerDeploy(cascade_yaml_config.ArgparseSubcommandManager):
 
@@ -66,7 +74,9 @@ class RcmServerDeploy(cascade_yaml_config.ArgparseSubcommandManager):
         module_out=utils.stringtemplate(module_template).safe_substitute({
              'INSTALL_DIR' : install_dir,
              'CONFIG_DIR' : config_dir,
-             'MODULE_SETUP' : module_setup})
+             'MODULE_SETUP' : module_setup,
+             'MODULE_NAME' : module_name,
+             'MODULE_VERSION' : module_version})
 
         modulefile = os.path.join(out_module_dir, module_version)
         with open(modulefile, 'w') as f:

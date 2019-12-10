@@ -2,10 +2,10 @@ defaults:
   rcm:
     source_dir: "{{DEPLOY_PARENT_ROOTPATH}}/RCM"
     module_dir: "{{DEPLOY_WORKDIR}}/modules"
-    install_dir: "{{DEPLOY_WORKDIR}}/install/{{defaults.rcm.module_version}}"
+    install_dir: "{{DEPLOY_WORKDIR}}/install/{{DEPLOY_GIT_RELEASE}}"
     config_dir: "{{DEPLOY_HOST_CONFIGPATH}}/rcm"
     module_name: "rcm"
-    module_version: "fromsource"
+    module_version: "{{DEPLOY_GIT_RELEASE}}"
     module_template:  |
         #%Module
         module-whatis "remote connection manager"
@@ -18,7 +18,7 @@ defaults:
         proc ModulesHelp {} {
           puts stderr "modulefile \"[module-info name]\""
           puts stderr {
-        module name: rcm-meta
+        module name: @{MODULE_VERSION}
         creation/update date: 20170616 15:08:16
         comment:     None
         brief description: remote connection manager
