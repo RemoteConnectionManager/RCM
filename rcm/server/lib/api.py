@@ -117,10 +117,17 @@ class ServerAPIs:
         for k, v in self.server_manager.top_templates.items():
             logger.debug(k + " :::>\n" + str(v) + "\n<:")
 
-        new_session = self.server_manager.create_session(sessionname=sessionname,
-                                                         subnet=subnet,
-                                                         vncpassword=vncpassword,
-                                                         vncpassword_crypted=vncpassword_crypted)
+        try:
+            new_session = self.server_manager.create_session(
+                sessionname=sessionname,
+                subnet=subnet,
+                vncpassword=vncpassword,
+                vncpassword_crypted=vncpassword_crypted)
+        except Exception as e:
+            logger.warning("Exception: " + str(e) + " in job submission" )
+            sys.stderr.write("Job submission error: " + str(e) )
+            sys.stderr.flush()
+            sys.exit(1)
 
         return_session = self.server_manager.map_session(new_session, subnet)
         return_session.write()
