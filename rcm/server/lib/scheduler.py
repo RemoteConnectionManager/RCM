@@ -191,6 +191,38 @@ class SlurmScheduler(BatchScheduler):
         self.accounts = self.account_info()
         self.partitions = self.partitions_info(['AllowQos', 'AllowAccounts', 'DenyAccounts', 'MaxTime', 'DefaultTime', 'MaxCPUsPerNode', 'MaxMemPerNode', 'QoS'])
 
+    @property
+    def cluster(self):
+        try:
+            return self._cluster
+        except AttributeError:
+            self._cluster = self.get_cluster_name()
+            return self._cluster
+
+    @property
+    def accounts(self):
+        try:
+            return self._accounts
+        except AttributeError:
+            self._accounts = self.account_info()
+            return self._accounts
+
+    @property
+    def qos(self):
+        try:
+            return self._qos
+        except AttributeError:
+            self._qos = self.qos_info()
+            return self._qos
+
+    @property
+    def partitions(self):
+        try:
+            return self._partitions
+        except AttributeError:
+            self._partitions = self.partitions_info(['AllowQos', 'AllowAccounts', 'DenyAccounts', 'MaxTime', 'DefaultTime', 'MaxCPUsPerNode', 'MaxMemPerNode', 'QoS'])
+            return self._partitions
+
     def get_cluster_name(self):
         cluster_name = ''
         scontrol = self.COMMANDS.get('scontrol', None)
@@ -203,6 +235,7 @@ class SlurmScheduler(BatchScheduler):
                 cluster_name = cluster_match.group(1)
                 self.logger.debug("computed cluster name:::>" + cluster_name + "<:::")
         return cluster_name
+
 
     def account_info(self):
         accounts = OrderedDict()
