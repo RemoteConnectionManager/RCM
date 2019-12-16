@@ -186,18 +186,18 @@ class SlurmScheduler(BatchScheduler):
                          'sacctmgr': None,
                          'squeue': None}
         super(SlurmScheduler, self).__init__(*args, **kwargs)
-        self.cluster_name = self.get_cluster_name()
-        self.qos = self.qos_info()
-        self.accounts = self.account_info()
-        self.partitions = self.partitions_info(['AllowQos', 'AllowAccounts', 'DenyAccounts', 'MaxTime', 'DefaultTime', 'MaxCPUsPerNode', 'MaxMemPerNode', 'QoS'])
+        #self._cluster_name = self.get_cluster_name()
+        #self._qos = self.qos_info()
+        #self._accounts = self.account_info()
+        #self._partitions = self.partitions_info(['AllowQos', 'AllowAccounts', 'DenyAccounts', 'MaxTime', 'DefaultTime', 'MaxCPUsPerNode', 'MaxMemPerNode', 'QoS'])
 
     @property
-    def cluster(self):
+    def cluster_name(self):
         try:
-            return self._cluster
+            return self._cluster_name
         except AttributeError:
-            self._cluster = self.get_cluster_name()
-            return self._cluster
+            self._cluster_name = self.get_cluster_name()
+            return self._cluster_name
 
     @property
     def accounts(self):
