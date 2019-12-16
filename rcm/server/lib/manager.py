@@ -43,13 +43,22 @@ class ServerManager:
         self.schedulers = dict()
         self.services = dict()
         self.downloads = dict()
-        self.root_node = None
+        #self.root_node = None
         self.session_manager = db.DbSessionManager()
         self.login_fullname = ''
         self.network_map = dict()
         self.top_templates = dict()
         self.configuration = None
         self.info = dict()
+
+    @property
+    def root_node(self):
+        try:
+            return self._root_node
+        except AttributeError:
+            self._root_node = jobscript_builder.AutoChoiceNode(name='TOP')
+            return self._root_node
+
 
     def init(self, info=None):
         if not info is None:
@@ -96,7 +105,7 @@ class ServerManager:
                                          'COMMAND': self.services,
                                          }
 
-        self.root_node = jobscript_builder.AutoChoiceNode(name='TOP')
+        #self.root_node = jobscript_builder.AutoChoiceNode(name='TOP')
 
     def map_login_name(self, subnet, nodelogin):
         logger.debug("mapping login " + nodelogin + " on network " + subnet)
