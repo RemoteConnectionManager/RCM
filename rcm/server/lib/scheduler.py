@@ -6,11 +6,15 @@ import os
 import sys
 import stat
 import pwd
+import tempfile
 import copy
 from collections import OrderedDict
+import json
 
 # local import
 import plugin
+import utils
+
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
 
@@ -178,6 +182,7 @@ class SlurmScheduler(BatchScheduler):
 
     def __init__(self, *args, **kwargs):
         self.NAME = 'Slurm'
+        self.options = kwargs.get('options',dict())
         self.COMMANDS = {'sshare': None,
                          'sinfo': None,
                          'sbatch': None,
@@ -185,6 +190,23 @@ class SlurmScheduler(BatchScheduler):
                          'scontrol': None,
                          'sacctmgr': None,
                          'squeue': None}
+
+        lua_job_submit_options = self.options.get('lua_job_submit',dict())
+        script_path = lua_job_submit_options.get('file', '')
+        if script_path:
+            try:
+                with open( script_path, 'r') as script_file:
+                    script_string = script_file.read()
+                    script_replace_dict = lua_job_submit_options.get('replace', dict())
+                    for replace in script_replace_dict:
+                        self.lua_script_string = lua_job_submit_options.get('prepend', '') + '\n' +\
+                                            script_string.replace(replace, script_replace_dict[replace]) + '\n' +\
+                                            lua_job_submit_options.get('append', '')
+
+                    self.COMMANDS['lua'] = None
+            except Exception as e:
+                self.logger.warning("Exception: " + str(e) + " in Slurm plugin options ")
+
         super(SlurmScheduler, self).__init__(*args, **kwargs)
         #self._cluster_name = self.get_cluster_name()
         #self._qos = self.qos_info()
@@ -222,6 +244,14 @@ class SlurmScheduler(BatchScheduler):
         except AttributeError:
             self._partitions = self.partitions_info(['AllowQos', 'AllowAccounts', 'DenyAccounts', 'MaxTime', 'DefaultTime', 'MaxCPUsPerNode', 'MaxMemPerNode', 'QoS'])
             return self._partitions
+
+    @property
+    def check_table(self):
+        try:
+            return self._check_table
+        except AttributeError:
+            self._check_table = self.lua_check_table_info()
+            return self._check_table
 
     def get_cluster_name(self):
         cluster_name = ''
@@ -336,6 +366,27 @@ class SlurmScheduler(BatchScheduler):
 
         return partitions
 
+    def lua_check_table_info(self):
+        lua = self.COMMANDS.get('lua', None)
+        if lua:
+            lua_accounts=''
+            for account in self.accounts:
+                lua_accounts += '"{0}", '.format(account)
+            lua_partitions=''
+            for partition in self.partitions:
+                lua_partitions += '"{0}", '.format(partition)
+            lua_program_string = "in_accounts = { " + lua_accounts + " }\n"
+            lua_program_string += "in_partitions = { " + lua_partitions + " }\n"
+            lua_program_string += self.lua_script_string
+            with tempfile.NamedTemporaryFile(mode='w') as tmp:
+                #print("tmpfile-->" + tmp.name)
+                tmp.write(lua_program_string)
+                params = [tmp.name]
+                raw_output = lua(*params, output=str)
+                self.logger.debug("lua plugin output-->" + raw_output)
+                return json.loads(raw_output)
+        return dict()
+
 
     def allowed_accounts(self, partition):
 
@@ -426,19 +477,24 @@ class SlurmScheduler(BatchScheduler):
         out_schema = OrderedDict()
         default_params = kwargs.get('default_params', dict())
         for account in self.accounts:
-            partitions_default_params = default_params.get(account, default_params.get('ALL', OrderedDict())).get('QUEUE', OrderedDict())
-            partitions_schema = OrderedDict()
-            for partition in self.partitions:
-                part_default_params = partitions_default_params.get(partition, partitions_default_params.get('ALL', dict()))
-                if part_default_params:
-                    partition_schema = self.partition_schema(partition,account, default_params=copy.deepcopy(part_default_params))
-                else:
-                    partition_schema = self.partition_schema(partition,account)
-                if partition_schema:
-                    partitions_schema[partition] = partition_schema
-            if partitions_schema :
-                out_schema[account] = {'QUEUE' : partitions_schema}
-        return out_schema
+            if account in self.check_table:
+                partitions_default_params = default_params.get(account, default_params.get('ALL', OrderedDict())).get('QUEUE', OrderedDict())
+                partitions_schema = OrderedDict()
+                for partition in self.partitions:
+                    if partition in self.check_table[account].get('partitions', []):
+                        part_default_params = partitions_default_params.get(partition, partitions_default_params.get('ALL', dict()))
+                        if part_default_params:
+                            partition_schema = self.partition_schema(partition,account, default_params=copy.deepcopy(part_default_params))
+                        else:
+                            partition_schema = self.partition_schema(partition,account)
+                        if partition_schema:
+                            partitions_schema[partition] = partition_schema
+                if partitions_schema :
+                    out_schema[account] = {'QUEUE' : partitions_schema}
+                    if 'log' in self.check_table[account]:
+                        out_schema[account]['description'] = self.check_table[account]['log']
+        # return the accounts sorted by descending number of available partitions
+        return OrderedDict(sorted(out_schema.items(), key= lambda x: len(x[1].get('QUEUE', {})), reverse=True ))
 
 
 
