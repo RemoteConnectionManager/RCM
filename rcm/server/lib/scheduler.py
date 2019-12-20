@@ -193,6 +193,7 @@ class SlurmScheduler(BatchScheduler):
 
         lua_job_submit_options = self.options.get('lua_job_submit',dict())
         script_path = lua_job_submit_options.get('file', '')
+        self.lua_script_string = ''
         if script_path:
             try:
                 with open( script_path, 'r') as script_file:
@@ -205,6 +206,7 @@ class SlurmScheduler(BatchScheduler):
                                             lua_job_submit_options.get('append', '')
 
                     self.COMMANDS['lua'] = None
+                    self.delete_tempfile = lua_job_submit_options.get('delete_tempfile', True)
             except Exception as e:
                 self.logger.warning("Exception: " + str(e) + " in Slurm plugin options ")
 
@@ -369,7 +371,7 @@ class SlurmScheduler(BatchScheduler):
 
     def lua_check_table_info(self):
         lua = self.COMMANDS.get('lua', None)
-        if lua:
+        if lua and self.lua_script_string:
             try:
                 lua_accounts=''
                 for account in self.accounts:
@@ -380,9 +382,10 @@ class SlurmScheduler(BatchScheduler):
                 lua_program_string = "in_accounts = { " + lua_accounts + " }\n"
                 lua_program_string += "in_partitions = { " + lua_partitions + " }\n"
                 lua_program_string += self.lua_script_string
-                with tempfile.NamedTemporaryFile(mode='w') as tmp:
+                with tempfile.NamedTemporaryFile(mode='w', delete=self.delete_tempfile) as tmp:
                     #print("tmpfile-->" + tmp.name)
                     tmp.write(lua_program_string)
+                    tmp.flush()
                     params = [tmp.name]
                     raw_output = lua(*params, output=str)
                     self.logger.debug("lua plugin output-->" + raw_output)
