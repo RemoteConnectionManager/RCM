@@ -226,7 +226,6 @@ function slurm_job_submit(job_desc, part_list, submit_uid)
     if string.find(qos, "lowprio") then
         filename="/cinecalocal/scripts/accountattivi_" .. partnames[pname]
     else
---        filename="yesbatch.new_" .. partnames[pname]
         filename="/cinecalocal/scripts/yesbatch.new_" .. partnames[pname]
     end
     local f = assert(io.open(filename, "r"))
@@ -244,4 +243,4 @@ function slurm_job_modify(job_desc, job_rec, part_list, modify_uid)
 end
 
 slurm.log_info("initialized")
---return slurm.SUCCESS
+return slurm.SUCCESS
