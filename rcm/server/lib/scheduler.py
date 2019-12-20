@@ -196,7 +196,8 @@ class SlurmScheduler(BatchScheduler):
         if script_path:
             try:
                 with open( script_path, 'r') as script_file:
-                    script_string = script_file.read()
+                    #skip last lines
+                    script_string = '\n'.join(script_file.readlines()[:-lua_job_submit_options.get('striplines', 0)])
                     script_replace_dict = lua_job_submit_options.get('replace', dict())
                     for replace in script_replace_dict:
                         self.lua_script_string = lua_job_submit_options.get('prepend', '') + '\n' +\
@@ -369,22 +370,26 @@ class SlurmScheduler(BatchScheduler):
     def lua_check_table_info(self):
         lua = self.COMMANDS.get('lua', None)
         if lua:
-            lua_accounts=''
-            for account in self.accounts:
-                lua_accounts += '"{0}", '.format(account)
-            lua_partitions=''
-            for partition in self.partitions:
-                lua_partitions += '"{0}", '.format(partition)
-            lua_program_string = "in_accounts = { " + lua_accounts + " }\n"
-            lua_program_string += "in_partitions = { " + lua_partitions + " }\n"
-            lua_program_string += self.lua_script_string
-            with tempfile.NamedTemporaryFile(mode='w') as tmp:
-                #print("tmpfile-->" + tmp.name)
-                tmp.write(lua_program_string)
-                params = [tmp.name]
-                raw_output = lua(*params, output=str)
-                self.logger.debug("lua plugin output-->" + raw_output)
-                return json.loads(raw_output)
+            try:
+                lua_accounts=''
+                for account in self.accounts:
+                    lua_accounts += '"{0}", '.format(account)
+                lua_partitions=''
+                for partition in self.partitions:
+                    lua_partitions += '"{0}", '.format(partition)
+                lua_program_string = "in_accounts = { " + lua_accounts + " }\n"
+                lua_program_string += "in_partitions = { " + lua_partitions + " }\n"
+                lua_program_string += self.lua_script_string
+                with tempfile.NamedTemporaryFile(mode='w') as tmp:
+                    #print("tmpfile-->" + tmp.name)
+                    tmp.write(lua_program_string)
+                    params = [tmp.name]
+                    raw_output = lua(*params, output=str)
+                    self.logger.debug("lua plugin output-->" + raw_output)
+                    return json.loads(raw_output)
+            except Exception as e:
+                self.logger.warning("Exception: " + str(e) + " in lua processing")
+                return dict()
         return dict()
 
 
