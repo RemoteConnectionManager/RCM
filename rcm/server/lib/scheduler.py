@@ -208,7 +208,7 @@ class SlurmScheduler(BatchScheduler):
                     self.COMMANDS['lua'] = None
                     self.delete_tempfile = lua_job_submit_options.get('delete_tempfile', True)
             except Exception as e:
-                self.logger.warning("Exception: " + str(e) + " in Slurm plugin options ")
+                logger.warning("Exception: " + str(e) + " in Slurm plugin options ")
 
         super(SlurmScheduler, self).__init__(*args, **kwargs)
         #self._cluster_name = self.get_cluster_name()
