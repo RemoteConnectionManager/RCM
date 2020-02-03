@@ -181,7 +181,7 @@ class TurboVNCExecutable(Executable):
             if tunnel == 'y':
                 self.add_default_arg("127.0.0.1:" + str(local_portnumber))
             else:
-                self.add_default_arg(nodelogin + ":" + session.hash['display'])
+                self.add_default_arg(nodelogin + ":" + str(session.hash['display']))
 
         service_command_without_password = self.command
         if vncpassword_decrypted:
