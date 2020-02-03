@@ -152,45 +152,47 @@ class RCMMainWindow(QMainWindow):
             if filename:
                 # check if session needs tunneling
                 file = open(filename, 'r')
-                if 'rcm_tunnel' in file.read():
-                    if not current_session_widget.is_logged:
-                        logger.error("You are not logged in the current session. Please log in.")
-                        return
+                if not current_session_widget.is_logged:
+                    logger.error("You are not logged in the current session. Please log in.")
+                    return
 
-                    file.seek(0)
-                    lines = file.readlines()
-                    for line in lines:
-                        if 'rcm_tunnel' in line:
-                            node = line.split('=')[1].rstrip()
-                            subnet = node.split('.', 1)[1]
-                            current_subnet = current_session_widget.host.split('.', 1)[1].rstrip()
-                            user = current_session_widget.user
-                            if current_subnet != subnet:
-                                logger.warning("The subnet of the current session (" +
-                                               current_subnet +
-                                               ") is different from the subnet of the vnc file (" +
-                                               subnet + ")")
-                        if 'host' in line:
-                            hostname = line.split('=')[1].rstrip()
-                        if 'port' in line:
-                            port = line.split('=')[1].rstrip()
-                            display = int(port) - 5900
-                        if 'password' in line:
-                            password = line.split('=')[1].rstrip()
-
-                    session = rcm.rcm_session(node=hostname,
-                                              tunnel='y',
-                                              display=display,
-                                              nodelogin=node,
-                                              username=user,
-                                              vncpassword=password)
-                    current_session_widget.remote_connection_manager.submit(session=session)
-                    logger.info("Connected to remote display " +
-                                str(display) + " on " + node +
-                                " as " + str(user) + " with tunnel")
-                else:
-                    current_session_widget.create_remote_connection_manager()
-                    current_session_widget.remote_connection_manager.submit(configFile=filename)
+                file.seek(0)
+                lines = file.readlines()
+                use_tunnel='n'
+                for line in lines:
+                    print("$$$$$$$$$$$$$$ line-->"+line)
+                    if 'rcm_tunnel' in line:
+                        use_tunnel='y'
+                        node = line.split('=')[1].rstrip()
+                        subnet = node.split('.', 1)[1]
+                    if 'host' in line:
+                        hostname = line.split('=')[1].rstrip()
+                        if use_tunnel == 'n':
+                            subnet = hostname.split('.', 1)[1]
+                            node=hostname
+                    if 'port' in line:
+                        port = line.split('=')[1].rstrip()
+                        display = int(port) - 5900
+                    if 'password' in line:
+                        password = line.split('=')[1].rstrip()
+                current_subnet = current_session_widget.host.split('.', 1)[1].rstrip()
+                user = current_session_widget.user
+                if current_subnet != subnet:
+                    logger.warning("The subnet of the current session (" +
+                                   current_subnet +
+                                   ") is different from the subnet of the vnc file (" +
+                                   subnet + ")")
+                #print("$$$$$$$$$$$$$$$ open session ", use_tunnel,hostname,node,subnet,display)
+                session = rcm.rcm_session(node=hostname,
+                                          tunnel=use_tunnel,
+                                          display=display,
+                                          nodelogin=node,
+                                          username=user,
+                                          vncpassword=password)
+                current_session_widget.remote_connection_manager.submit(session=session)
+                logger.info("Connected to remote display " +
+                            str(display) + " on " + node +
+                            " as " + str(user) + " with tunnel")
         except Exception as e:
             logger.error(str(e) + " - " + str(traceback.format_exc()))
 
