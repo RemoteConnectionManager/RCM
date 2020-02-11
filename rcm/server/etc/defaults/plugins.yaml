@@ -6,5 +6,6 @@ plugins:
 
   services:
     - 'lib.service.TurboVNCServer'
+    - 'lib.service.SystemVNCServer'
     - 'lib.service.Fake'
   
