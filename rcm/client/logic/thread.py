@@ -20,6 +20,7 @@
 
 import threading
 import subprocess
+import traceback
 import shlex
 from sshtunnel import SSHTunnelForwarder
 import os
@@ -119,7 +120,9 @@ class SessionThread(threading.Thread):
 
         except Exception as e:
             self.terminate()
-            logic_logger.error(e)
+            logic_logger.error("Error running service command\n-->" +
+                               self.service_command +
+                               "<--\n Error:" + str(e) + " ---- " + str(traceback.format_exc()))
 
     def execute_service_command_with_internal_ssh_tunnel(self):
         default_ssh_pkey = os.path.join(os.path.abspath(os.path.expanduser("~")), '.ssh', 'id_rsa')
