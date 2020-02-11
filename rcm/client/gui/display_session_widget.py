@@ -204,6 +204,11 @@ class QDisplaySessionWidget(QWidget):
         :return:
         """
         current_status = self.status
+
+        if self.status is Status.FINISHED:
+            self.terminate.emit(self.display_id)
+            return
+
         try:
             logger.debug("Killing remote display " + str(self.display_name))
             self.status = Status.KILLING
