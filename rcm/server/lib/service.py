@@ -137,6 +137,11 @@ class TurboVNCServer(VncService):
         super(TurboVNCServer, self).__init__(*args, **kwargs)
 
 
+class SystemVNCServer(VncService):
+    def __init__(self, *args, **kwargs):
+        self.NAME = "SystemVNC"
+        super(SystemVNCServer, self).__init__(*args, **kwargs)
+
 
 class TurboVNCServerCustom(VncService):
     def __init__(self, *args, **kwargs):
