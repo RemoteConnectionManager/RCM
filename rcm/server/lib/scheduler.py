@@ -388,7 +388,7 @@ class SlurmScheduler(BatchScheduler):
                     tmp.flush()
                     params = [tmp.name]
                     raw_output = lua(*params, output=str)
-                    self.logger.debug("lua plugin output-->" + raw_output)
+                    self.logger.debug("\n#######################\nlua plugin output-->\n" + raw_output + "\n#########################")
                     return json.loads(raw_output)
             except Exception as e:
                 self.logger.warning("Exception: " + str(e) + " in lua processing")
@@ -435,10 +435,11 @@ class SlurmScheduler(BatchScheduler):
         :return: OrderedDict of default schema for the partition, if the dict is void, partiton can not be selected, option not shown
         """
         allowed_accounts = self.allowed_accounts(partition)
-        partition_qos = self.allowed_qos(partition)
-        partitition_schema = kwargs.get('default_params', OrderedDict())
-        qos_defaults = partitition_schema.get('QOS', OrderedDict())
+        partitition_schema =  OrderedDict()
         if account in allowed_accounts:
+            partition_qos = self.allowed_qos(partition)
+            partitition_schema = kwargs.get('default_params', OrderedDict())
+            qos_defaults = partitition_schema.get('QOS', OrderedDict())
             account_qos = self.accounts.get(account,[])
             valid_qos = OrderedDict()
             for qos in account_qos:
