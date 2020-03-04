@@ -532,7 +532,8 @@ class SlurmScheduler(BatchScheduler):
                     valid_qos[qos] = qos_parameters
             if valid_qos:
                 partition_schema['QOS'] =  valid_qos
-        return partition_schema
+                return partition_schema
+        return OrderedDict()
 
     def valid_accounts(self, **kwargs):
         out_schema = OrderedDict()
