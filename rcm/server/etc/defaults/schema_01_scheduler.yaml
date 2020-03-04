@@ -38,6 +38,7 @@ schema:
             fi
 
           ACCOUNT.QUEUE.TIMELIMIT : "~"
+          ACCOUNT.QUEUE.QUEUE_NAME: "@{QUEUE}"
 
         children :
           ACCOUNT :

@@ -1,3 +1,5 @@
+
+
 defaults:
   TOP:
     SCHEDULER :
@@ -12,8 +14,9 @@ defaults:
             #SBATCH --job-name=@{RCM_SESSIONID}
             #SBATCH --output @{RCM_JOBLOG}
             #SBATCH -A @{ACCOUNT}
-            #SBATCH --partition=@{ACCOUNT.QUEUE}
+            #SBATCH --partition=@{ACCOUNT.QUEUE.QUEUE_NAME}
             #SBATCH --qos=@{ACCOUNT.QUEUE.QOS}
+            @{ACCOUNT.QUEUE.RESERVATION_LINE}
             #
 
 
@@ -21,3 +24,6 @@ defaults:
           ACCOUNT.QUEUE.QOS.GRES.VGLRUN_SLURM_DISPLAY : |
             #This setup is default for no GPU (fixed)
             vglrun() { echo 'vglrun can not be used without gpu'; }; export -f  vglrun
+
+
+          ACCOUNT.QUEUE.RESERVATION_LINE: ""
