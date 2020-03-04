@@ -550,12 +550,19 @@ class SlurmScheduler(BatchScheduler):
                             partition_schema = self.partition_schema(partition,account)
                         if partition_schema:
                             partitions_schema[partition] = partition_schema
+
                 for reservation,reservation_partition in self.valid_reservations_partitions(account):
                     if reservation in partitions_schema:
                         self.logger.warning("Reservation named as partition: " + str(reservation) + " skipping" )
                     else:
                         #forcefully add a substitution entry 'QUEUE_NAME' equal to partition
-                        reservation_schema = copy.deepcopy(partitions_schema.get(reservation_partition,  OrderedDict()))
+                        #old#reservation_schema = copy.deepcopy(partitions_schema.get(reservation_partition,  OrderedDict()))
+                        reservation_partition_default_params = partitions_default_params.get(reservation_partition, partitions_default_params.get('ALL',OrderedDict() ))
+                        if reservation_partition_default_params:
+                            reservation_schema = self.partition_schema(reservation_partition,account, default_params=copy.deepcopy(reservation_partition_default_params))
+                        else:
+                            reservation_schema = self.partition_schema(reservation_partition,account)
+
                         reservation_schema['substitutions'] = copy.deepcopy(reservation_schema.get('substitutions', OrderedDict()))
                         reservation_schema['substitutions']['RESERVATION_LINE'] = "#SBATCH --reservation=" + reservation
                         reservation_schema['substitutions']['QUEUE_NAME'] = reservation_partition
