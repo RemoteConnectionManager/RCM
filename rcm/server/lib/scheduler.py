@@ -245,7 +245,7 @@ class SlurmScheduler(BatchScheduler):
         try:
             return self._partitions
         except AttributeError:
-            self._partitions = self.partitions_info(['AllowQos', 'AllowAccounts', 'DenyAccounts', 'MaxTime', 'DefaultTime', 'MaxCPUsPerNode', 'MaxMemPerNode', 'QoS'])
+            self._partitions = self.partitions_info(['AllowQos', 'DenyQos', 'AllowAccounts', 'DenyAccounts', 'MaxTime', 'DefaultTime', 'MaxCPUsPerNode', 'MaxMemPerNode', 'QoS'])
             return self._partitions
 
     @property
@@ -463,13 +463,18 @@ class SlurmScheduler(BatchScheduler):
 
         partition_info = self.partitions.get(partition, dict())
         allow_qos_string = partition_info.get('AllowQos', 'ALL')
+        deny_qos_string = partition_info.get('DenyQos', '')
         if allow_qos_string == 'ALL':
             allow_qos_list = list(self.qos.keys())
         else:
             allow_qos_list = allow_qos_string.split(',')
+        if deny_qos_string :
+            deny_qos_list = deny_qos_string.split(',')
+        else:
+            deny_qos_list = []
         ok_qos = []
         for q in self.qos.keys():
-            if q in allow_qos_list:
+            if q in allow_qos_list and not q in deny_qos_list:
                 ok_qos.append(q)
         return ok_qos
 
