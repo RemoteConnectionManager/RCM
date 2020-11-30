@@ -1,10 +1,11 @@
 plugins:
   schedulers:
-    - 'lib.scheduler.SlurmScheduler'
-    - 'lib.scheduler.PBSScheduler'
-    - 'lib.scheduler.OSScheduler'
+    lib.scheduler.SlurmScheduler:
+    lib.scheduler.PBSScheduler:
+    lib.scheduler.OSScheduler:
 
   services:
     - 'lib.service.TurboVNCServer'
+    - 'lib.service.SystemVNCServer'
     - 'lib.service.Fake'
   

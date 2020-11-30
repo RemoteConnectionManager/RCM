@@ -40,6 +40,7 @@ class ServerAPIs:
         platform_info = ''
         client_info = dict()
         if build_platform:
+            print("#### build_platform:" + str(build_platform))
             if '{' == build_platform[0]:
                 # interpreting build_platfrm as a json encodef pack_info field
                 try:
@@ -50,6 +51,8 @@ class ServerAPIs:
                 except Exception as e:
                     logger.info("error in handling json encoded pack_info, Exception: " +
                             str(e) + " - " + str(traceback.format_exc()))
+            else:
+                platform_info = build_platform 
 
         self._server_init(client_info)
         logger.debug("calling api config")
@@ -62,6 +65,12 @@ class ServerAPIs:
         jobscript_json_menu = self.server_manager.get_jobscript_json_menu()
         if jobscript_json_menu:
             conf.config['jobscript_json_menu'] = jobscript_json_menu
+
+        queues = self.server_manager.configuration['old_client', 'queue_entries']
+        for q in queues:
+            conf.add_queue(q)
+        for vnc in self.server_manager.configuration['old_client', 'vnc_entries']:
+            conf.add_vnc(vnc, vnc + ' Description')
         conf.serialize()
 
     def version(self):
@@ -91,20 +100,38 @@ class ServerAPIs:
             choices_string=''):
         self._server_init()
         logger.debug("calling api new")
-        if choices_string:
-            # sys.stderr.write("----choices string:::>"+ choices_string + "<:::\n")
-            self.server_manager.handle_choices(choices_string)
-            for k, v in self.server_manager.top_templates.items():
-                logger.debug(k + " :::>\n" + str(v) + "\n<:")
+        if not choices_string:
+            choices_array = {}
+            try:
+                choices_array["SERVICE.COMMAND.WM.XSIZE"], choices_array["SERVICE.COMMAND.WM.YSIZE"] = geometry.split('x')
+            except Exception as e:
+                logger.warning("Exception: " + str(e) + " in handling geometry: " + geometry )
 
-            new_session = self.server_manager.create_session(sessionname=sessionname,
-                                                             subnet=subnet,
-                                                             vncpassword=vncpassword,
-                                                             vncpassword_crypted=vncpassword_crypted)
+            for par,par_key in [(queue, 'queue_entries'), (vnc_id, 'vnc_entries')]:
+                setup_dict = self.server_manager.configuration['old_client', par_key, par]
+                choices_array.update(setup_dict)
+            choices_string = json.dumps(choices_array)
+            
+        # sys.stderr.write("----choices string:::>"+ choices_string + "<:::\n")
+        self.server_manager.handle_choices(choices_string)
+        for k, v in self.server_manager.top_templates.items():
+            logger.debug(k + " :::>\n" + str(v) + "\n<:")
 
-            return_session = self.server_manager.map_session(new_session, subnet)
-            return_session.write()
-            return
+        try:
+            new_session = self.server_manager.create_session(
+                sessionname=sessionname,
+                subnet=subnet,
+                vncpassword=vncpassword,
+                vncpassword_crypted=vncpassword_crypted)
+        except Exception as e:
+            logger.warning("Exception: " + str(e) + " in job submission" )
+            sys.stderr.write("Job submission error: " + str(e) )
+            sys.stderr.flush()
+            sys.exit(1)
+
+        return_session = self.server_manager.map_session(new_session, subnet)
+        return_session.write()
+        return
 
     def kill(self, session_id=''):
         self._server_init()

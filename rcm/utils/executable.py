@@ -25,8 +25,8 @@
 import os
 import re
 import subprocess
-from six import string_types
 import sys
+import six 
 
 import llnl.util.tty as tty
 
@@ -34,6 +34,7 @@ import utils.error as error
 
 __all__ = ['Executable', 'which', 'ProcessError']
 
+#print("OOOOOOOOOOOOOOOOOOOOOOOOOOO six version: ", six.__version__)
 
 class Executable(object):
     """Class representing a program that can be run on the command line."""
@@ -140,7 +141,7 @@ class Executable(object):
             raise ValueError('Cannot use `str` as input stream.')
 
         def streamify(arg, mode):
-            if isinstance(arg, string_types):
+            if isinstance(arg, six.string_types):
                 return open(arg, mode), True
             elif arg is str:
                 return subprocess.PIPE, False
@@ -257,7 +258,7 @@ def which(*args, **kwargs):
     path = kwargs.get('path', os.environ.get('PATH', ''))
     required = kwargs.get('required', False)
 
-    if isinstance(path, string_types):
+    if isinstance(path, six.string_types):
         path = path.split(os.pathsep)
 
     for name in args:

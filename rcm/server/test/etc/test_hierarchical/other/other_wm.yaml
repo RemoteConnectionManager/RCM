@@ -3,12 +3,17 @@ defaults:
     SERVICE :
       VNC :
         COMMAND :
+          description : "Implementazione VNC"
           TurboVNC :
             WM :
+              description : "Window manager per TurboVNC"
               KDE :
-                description : "Start KDE as Window manager for the VNC session (heavvier choice)"
+                description : "Avvia KDE as Window manager for the VNC session (heavvier choice)"
                 substitutions :
                   WM_COMMAND: "-xstartup ${RCM_HOME}/bin/config/xstartup.kde"
+                XSIZE:
+                  description: "prova override xsize"
+
               GnomeGL :
                 description : "Start Gnome as Window manager for the VNC session, needs OpenGL (VirtualGL support)"
                 substitutions :

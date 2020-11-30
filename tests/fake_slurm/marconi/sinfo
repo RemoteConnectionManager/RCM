@@ -1,0 +1,13 @@
+#!/bin/bash
+# got on marcony by sinfo -o "%R|%l|%m|%c"
+echo "PARTITION|TIMELIMIT|MEMORY|CPUS
+bdw_all_serial|4:00:00|127000|36
+knl_usr_dbg|2:00:00|96000|272
+knl_usr_prod|1-00:00:00|96000|272
+knl_fua_prod|2-00:00:00|96000|272
+knl_sys_test|infinite|96000|272
+skl_fua_dbg|2:00:00|192000|48
+skl_fua_prod|1-00:00:00|192000|48
+skl_usr_dbg|30:00|192000|48
+skl_usr_prod|1-00:00:00|192000|48
+skl_sys_test|infinite|192000|48"

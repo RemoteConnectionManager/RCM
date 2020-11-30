@@ -1,0 +1,7 @@
+plugins:
+  schedulers:
+    lib.scheduler.SlurmScheduler:
+      lua_job_submit:
+        file: "/kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/tests/fake_slurm/marconi/job_submit.lua"
+        replace:
+          "/cinecalocal/scripts/yesbatch.new_": "/kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/tests/fake_slurm/marconi/yesbatch.new_"

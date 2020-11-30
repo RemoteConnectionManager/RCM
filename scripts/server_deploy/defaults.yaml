@@ -1,0 +1,93 @@
+defaults:
+  rcm:
+    source_dir: "{{DEPLOY_PARENT_ROOTPATH}}/RCM"
+    module_dir: "{{DEPLOY_WORKDIR}}/modules"
+    install_dir: "{{DEPLOY_WORKDIR}}/install/{{DEPLOY_GIT_RELEASE}}"
+    config_dir: "{{DEPLOY_HOST_CONFIGPATH}}/rcm"
+    module_name: "rcm"
+    module_version: "{{DEPLOY_GIT_RELEASE}}"
+    module_template:  |
+        #%Module
+        module-whatis "remote connection manager"
+        @{MODULE_SETUP}
+        setenv RCM_HOME "@{INSTALL_DIR}"
+        # this define additional config folders
+        setenv RCM_CONFIG_PATHS "@{CONFIG_DIR}"
+        prepend-path PATH "@{INSTALL_DIR}/bin"
+
+        proc ModulesHelp {} {
+          puts stderr "modulefile \"[module-info name]\""
+          puts stderr {
+        module name: @{MODULE_VERSION}
+        creation/update date: 20170616 15:08:16
+        comment:     None
+        brief description: remote connection manager
+        --------------------------------------------------------------------------------
+        License type: gpl
+        Web site:     https://github.com/RemoteConnectionManager/RCM_spack_deploy.git
+        Download url: https://github.com/RemoteConnectionManager/RCM_spack_deploy.git
+        --------------------------------------------------------------------------------
+        metamodule for rcm spack deployment
+        }
+          return 0
+        }
+
+
+
+argparse:
+  subparser:
+    RcmServerDeploy:
+      command: 'rcmdeploy'
+      help: 'rcm deploy helper'
+      methods:
+        fromsource:
+          help: 'deploy rcm from git source, all external dependencies'
+          source_dir:
+            action: 'store'
+            default: "{{ defaults.rcm.source_dir }}"
+            help: 'RCM source folder'
+          module_base_dir:
+            action: 'store'
+            default: "{{ defaults.rcm.module_dir }}"
+            help: 'Base module dir (module use it)'
+          install_dir:
+            action: 'store'
+            default: "{{ defaults.rcm.install_dir }}"
+            help: 'Folder where to install (RCM_HOME).'
+          module_name:
+            action: 'store'
+            default: "{{ defaults.rcm.module_name }}"
+            help: 'name of the module'
+          module_version:
+            action: 'store'
+            default: "{{ defaults.rcm.module_version }}"
+            help: 'version of the module'
+          module_setup:
+            action: 'store'
+            help: ' Module setup code for proper functionng'
+            default : "{{ defaults.rcm.module_setup }}"
+          config_dir:
+            action: 'store'
+            help: ' list of folders to load for module definition with module use'
+            default : "{{ defaults.rcm.config_dir }}"
+
+
+logging_configs:
+  loggers:
+    plugin.RcmServerDeploy:
+      level: INFO
+      handlers: [console_bare]
+      propagate: False
+
+    plugin.RcmServerDeploy.run.input:
+      level: INFO
+      handlers: [console_colored_in]
+      propagate: False
+    plugin.RcmServerDeploy.run.output:
+      level: INFO
+      handlers: [console_colored_out]
+      propagate: False
+    plugin.RcmServerDeploy.run.error:
+      level: INFO
+      handlers: [console_colored_err]
+      propagate: False

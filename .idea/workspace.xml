@@ -1,0 +1,1291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="9a58afbd-fee7-4456-aaad-b910dba90bf4" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rcm/server/etc/defaults/plugins.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/rcm/server/etc/defaults/plugins.yaml" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="scheduler.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rcm/server/lib/scheduler.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="449">
+              <caret line="385" column="70" selection-start-line="385" selection-start-column="70" selection-end-line="385" selection-end-column="70" />
+              <folding>
+                <element signature="e#14#28#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="plugin.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rcm/server/lib/plugin.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="45">
+              <caret line="3" selection-start-line="3" selection-end-line="3" selection-end-column="12" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="sacctmgr" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/tests/fake_slurm/sacctmgr">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="990">
+              <caret line="66" column="56" selection-start-line="66" selection-start-column="56" selection-end-line="66" selection-end-column="56" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="executable.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rcm/utils/executable.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="3450">
+              <caret line="238" selection-start-line="238" selection-end-line="238" />
+              <folding>
+                <element signature="e#1235#1244#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="sinfo" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/tests/fake_slurm/sinfo">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="75">
+              <caret line="5" column="33" selection-start-line="5" selection-start-column="33" selection-end-line="5" selection-end-column="33" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="manager.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rcm/server/lib/manager.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="508">
+              <caret line="67" selection-start-line="67" selection-end-line="67" />
+              <folding>
+                <element signature="e#0#14#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="plugins.yaml" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/rcm/server/etc/defaults/plugins.yaml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="135">
+              <caret line="9" lean-forward="true" selection-start-line="9" selection-end-line="9" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="fake_lua_submit.yaml" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/tests/fake_slurm/marconi/fake_lua_submit.yaml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="90">
+              <caret line="6" column="128" selection-start-line="6" selection-start-column="128" selection-end-line="6" selection-end-column="128" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="jobscript_builder.py" pinned="false" current-in-tab="false">
+        <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/jobscript_builder.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="5175">
+              <caret line="351" column="131" selection-start-line="351" selection-start-column="131" selection-end-line="351" selection-end-column="131" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="server" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rcm/server/bin/server">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="480">
+              <caret line="37" selection-start-line="37" selection-end-line="37" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>update</find>
+      <find>saf</find>
+      <find>vncsess</find>
+      <find>vncs</find>
+      <find>version</find>
+      <find>except</find>
+      <find>queues</find>
+      <find>sacc</find>
+      <find>get_cluster</find>
+      <find>MaxTime</find>
+      <find>gll</find>
+      <find>Qos</find>
+      <find>QoS</find>
+      <find>copy</find>
+      <find>description</find>
+      <find>substitutions</find>
+      <find>handling</find>
+      <find>add_child</find>
+      <find>Openbox</find>
+      <find>preload viz modules</find>
+      <find>'description</find>
+      <find>service</find>
+      <find>client_info</find>
+      <find>get_gui_options</find>
+      <find>self.cluster_name</find>
+      <find>qos</find>
+      <find>username</find>
+      <find>sinfo</find>
+      <find>squeue</find>
+      <find>scontrol</find>
+    </findStrings>
+    <replaceStrings>
+      <replace />
+      <replace>ChoiceNode</replace>
+      <replace>children</replace>
+      <replace>'children'</replace>
+      <replace>'values'</replace>
+      <replace>StringTemplate</replace>
+      <replace>qos</replace>
+      <replace>partitions</replace>
+    </replaceStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/network/galileo.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/network/notebook.yaml" />
+        <option value="$PROJECT_DIR$/rcm/client/gui/worker.py" />
+        <option value="$PROJECT_DIR$/rcm/client/gui/ssh_session_widget.py" />
+        <option value="$PROJECT_DIR$/rcm/server/lib/config.py" />
+        <option value="$PROJECT_DIR$/rcm/server/lib/db.py" />
+        <option value="$PROJECT_DIR$/rcm/server/lib/parser.py" />
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/logging/debug/jobscript_base.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/logging/debug/api.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/logging/debug/slurm.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/logging/debug/plugin.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/logging/debug/ssh.yaml" />
+        <option value="$PROJECT_DIR$/rcm/utils/mytemplate.py" />
+        <option value="$PROJECT_DIR$/rcm/server/etc/defaults/logging.yaml" />
+        <option value="$PROJECT_DIR$/rcm/client/logic/rcm_protocol_client.py" />
+        <option value="$PROJECT_DIR$/rcm/utils/__init__.py" />
+        <option value="$PROJECT_DIR$/rcm/server/etc/defaults/download.yaml" />
+        <option value="$PROJECT_DIR$/rcm/client/logic/manager.py" />
+        <option value="$PROJECT_DIR$/rcm/client/rcm_client_qt.spec" />
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/base_scheduler/ssh.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/base_scheduler/slurm.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_vnc.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/etc/defaults/schema_00_top.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/etc/defaults/schema_02_service.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/base_service/turbovnc.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/etc/defaults/schema_01_scheduler.yaml" />
+        <option value="$PROJECT_DIR$/rcm/client/logic/rcm_utils.py" />
+        <option value="$PROJECT_DIR$/rcm/server/lib/api.py" />
+        <option value="$PROJECT_DIR$/rcm/server/lib/plugin.py" />
+        <option value="$PROJECT_DIR$/rcm/client/gui/new_display_dialog.py" />
+        <option value="$PROJECT_DIR$/rcm/client/miscellaneous/config_parser.py" />
+        <option value="$PROJECT_DIR$/rcm/utils/misc.py" />
+        <option value="$PROJECT_DIR$/rcm/client/gui/display_session_widget.py" />
+        <option value="$PROJECT_DIR$/rcm/client/gui/rcm_main_window.py" />
+        <option value="$PROJECT_DIR$/rcm/client/gui/thread.py" />
+        <option value="$PROJECT_DIR$/tests/fake_slurm/sinfo" />
+        <option value="$PROJECT_DIR$/tests/fake_slurm/scontrol" />
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/slurm_gres/slurm_gpu.yaml" />
+        <option value="$PROJECT_DIR$/tests/fake_slurm/sacctmgr" />
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_wm.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_service_type.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py" />
+        <option value="$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py" />
+        <option value="$PROJECT_DIR$/rcm/server/lib/service.py" />
+        <option value="$PROJECT_DIR$/scripts/server_deploy/server_deploy.py" />
+        <option value="$PROJECT_DIR$/rcm/server/lib/manager.py" />
+        <option value="$PROJECT_DIR$/rcm/utils/executable.py" />
+        <option value="/kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/scheduler.py" />
+        <option value="$PROJECT_DIR$/rcm/server/lib/scheduler.py" />
+        <option value="$PROJECT_DIR$/tests/fake_slurm/marconi/fake_lua_submit.yaml" />
+        <option value="$PROJECT_DIR$/rcm/server/etc/defaults/plugins.yaml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="x" value="13" />
+    <option name="width" value="1346" />
+    <option name="height" value="1030" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="rcm" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="rcm" type="462c0819:PsiDirectoryNode" />
+              <item name="client" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="rcm" type="462c0819:PsiDirectoryNode" />
+              <item name="client" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="rcm" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="rcm" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+              <item name="bin" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="rcm" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+              <item name="etc" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="rcm" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+              <item name="etc" type="462c0819:PsiDirectoryNode" />
+              <item name="defaults" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="rcm" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+              <item name="lib" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="rcm" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="rcm" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
+              <item name="etc" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="rcm" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
+              <item name="etc" type="462c0819:PsiDirectoryNode" />
+              <item name="test_hierarchical" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="rcm" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
+              <item name="etc" type="462c0819:PsiDirectoryNode" />
+              <item name="test_hierarchical" type="462c0819:PsiDirectoryNode" />
+              <item name="other" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="scripts" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="scripts" type="462c0819:PsiDirectoryNode" />
+              <item name="server_deploy" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="tests" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="tests" type="462c0819:PsiDirectoryNode" />
+              <item name="fake_slurm" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RCM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RCM" type="462c0819:PsiDirectoryNode" />
+              <item name="tests" type="462c0819:PsiDirectoryNode" />
+              <item name="fake_slurm" type="462c0819:PsiDirectoryNode" />
+              <item name="marconi" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tests/fake_slurm" />
+      <recent name="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/logging/debug" />
+      <recent name="$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other" />
+      <recent name="$PROJECT_DIR$/rcm/etc/defaults" />
+      <recent name="$PROJECT_DIR$/rcm/etc/test_splitted" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/rcm/server/test" />
+      <recent name="$PROJECT_DIR$/rcm/etc/test_hierarchical" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Python.new_display_dialog full debug marconi">
+    <configuration name="new_display_dialog base debug constructor" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="$PATH:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="test/etc/test_hierarchical" />
+        <env name="RCM_CONFIG_PATHS" value="base_scheduler:base_service:slurm_gres:network:other:logging/debug/jobscript_base.yaml::logging/debug/jobscript_constructor.yaml" />
+      </envs>
+      <option name="SDK_HOME" value="$PROJECT_DIR$/../../test_deploy_dev/py3env/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/client/test" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="false" />
+      <option name="ADD_SOURCE_ROOTS" value="false" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="new_display_dialog full debug galileo (1)" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="" />
+        <env name="RCM_CONFIG_PATHS" value="$PROJECT_DIR$/../hosts/galileo/config/rcm" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/client/gui" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="false" />
+      <option name="ADD_SOURCE_ROOTS" value="false" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="new_display_dialog full debug galileo" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="test/etc/test_hierarchical" />
+        <env name="RCM_CONFIG_PATHS" value="$PROJECT_DIR$/../hosts/galileo/config/rcm:logging/debug/jobscript_base.yaml:logging/debug/jobscript_constructor.yaml" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/client/gui" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="false" />
+      <option name="ADD_SOURCE_ROOTS" value="false" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="new_display_dialog full debug marconi python 2" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:$PROJECT_DIR$/tests/fake_slurm/marconi:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="" />
+        <env name="RCM_CONFIG_PATHS" value="$PROJECT_DIR$/../hosts/marconi/config/rcm" />
+      </envs>
+      <option name="SDK_HOME" value="/usr/bin/python2.7" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/client/gui" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="false" />
+      <option name="ADD_SOURCE_ROOTS" value="false" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="new_display_dialog full debug marconi" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:$PROJECT_DIR$/tests/fake_slurm/marconi:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="" />
+        <env name="RCM_CONFIG_PATHS" value="$PROJECT_DIR$/../hosts/marconi/config/rcm:$PROJECT_DIR$/tests/fake_slurm/marconi" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/client/gui" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="false" />
+      <option name="ADD_SOURCE_ROOTS" value="false" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="new_display_dialog full debug" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="test/etc/test_hierarchical" />
+        <env name="RCM_CONFIG_PATHS" value="base_scheduler:base_service:slurm_gres:network:other:logging/debug/jobscript_base.yaml:logging/debug/jobscript_constructor.yaml" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/client/gui" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="false" />
+      <option name="ADD_SOURCE_ROOTS" value="false" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="new_display_dialog full" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="$PATH:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="test/etc/test_hierarchical" />
+        <env name="RCM_CONFIG_PATHS" value="base_scheduler:base_service:slurm_gres:network:logging/debug/manager.yaml:other:" />
+      </envs>
+      <option name="SDK_HOME" value="$PROJECT_DIR$/../../test_deploy_dev/py3env/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/client/test" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="false" />
+      <option name="ADD_SOURCE_ROOTS" value="false" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="puthon3 rcm_client" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="JAVA_HOME" value="$PROJECT_DIR$/../../deploy_devel/RCM_client_CI/RCM/rcm/client/external/turbovnc" />
+        <env name="PATH" value="$PROJECT_DIR$/../../deploy_devel/RCM_client_CI/RCM/rcm/client/external/turbovnc/bin" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/client" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/client/rcm_client_qt.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="server_side config galileo" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:/usr/bin:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="test/etc/test_hierarchical" />
+        <env name="RCM_CONFIG_PATHS" value="$PROJECT_DIR$/../hosts/galileo/config/rcm:logging/debug/jobscript_base.yaml:logging/debug/jobscript_constructor.yaml" />
+      </envs>
+      <option name="SDK_HOME" value="/usr/bin/python2.7" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/server/bin" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/server/bin/server" />
+      <option name="PARAMETERS" value="--command=config --build_platform=&quot;{\&quot;checksum\&quot;: \&quot;\&quot;, \&quot;version\&quot;: \&quot;\&quot;, \&quot;platform\&quot;: \&quot;\&quot;, \&quot;client_info\&quot;: {\&quot;screen_height\&quot;: 1200, \&quot;screen_width\&quot;: 1920}}&quot;" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="server_side config marconi" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:$PROJECT_DIR$/tests/fake_slurm/marconi:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="" />
+        <env name="RCM_CONFIG_PATHS" value="$PROJECT_DIR$/../hosts/marconi/config/rcm" />
+      </envs>
+      <option name="SDK_HOME" value="/usr/bin/python2.7" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/server/bin" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/server/bin/server" />
+      <option name="PARAMETERS" value="--command=config --build_platform=&quot;{\&quot;checksum\&quot;: \&quot;\&quot;, \&quot;version\&quot;: \&quot;\&quot;, \&quot;platform\&quot;: \&quot;\&quot;, \&quot;client_info\&quot;: {\&quot;screen_height\&quot;: 1200, \&quot;screen_width\&quot;: 1920}}&quot;" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="server_side config" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:/usr/bin:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="test/etc/test_hierarchical" />
+        <env name="RCM_CONFIG_PATHS" value="base_scheduler:base_service:slurm_gres:network::logging/debug/manager.yaml" />
+      </envs>
+      <option name="SDK_HOME" value="/usr/bin/python2.7" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/server/bin" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/server/bin/server" />
+      <option name="PARAMETERS" value="--command=config --build_platform=&quot;{\&quot;checksum\&quot;: \&quot;\&quot;, \&quot;version\&quot;: \&quot;\&quot;, \&quot;platform\&quot;: \&quot;\&quot;, \&quot;client_info\&quot;: {\&quot;screen_height\&quot;: 1200, \&quot;screen_width\&quot;: 1920}}&quot;" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="server_side list" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:/usr/bin:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="test/etc/test_hierarchical" />
+        <env name="RCM_CONFIG_PATHS" value="base_scheduler:base_service:slurm_gres:network::logging/debug/api.yaml" />
+      </envs>
+      <option name="SDK_HOME" value="/usr/bin/python2.7" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/server/bin" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/server/bin/server" />
+      <option name="PARAMETERS" value="--command=list --subnet=130.186.17" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="server_side loginlist" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:/usr/bin:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="test/etc/test_hierarchical" />
+        <env name="RCM_CONFIG_PATHS" value="base_scheduler:base_service:slurm_gres:network::logging/debug/api.yaml" />
+      </envs>
+      <option name="SDK_HOME" value="/usr/bin/python2.7" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/server/bin" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/server/bin/server" />
+      <option name="PARAMETERS" value="--command=loginlist --subnet=130.186.17" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="server_side new " type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/usr/bin:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="test/etc/test_hierarchical" />
+        <env name="RCM_CONFIG_PATHS" value="base_scheduler:base_service:slurm_gres:network:other" />
+      </envs>
+      <option name="SDK_HOME" value="$PROJECT_DIR$/../../test_deploy_dev/py3env/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/server/bin" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/server/bin/server" />
+      <option name="PARAMETERS" value="--command=new --sessionname='Devel-6cf6ebbd-b72f-44bf-87be-88ea993380d7' --vnc_id='dummy_vnc' --vncpassword_crypted='59deb100ce4554f9' --geometry='dummy_size' --choices_string=&quot;{\&quot;SERVICE.COMMAND\&quot;: \&quot;FakeService\&quot;, \&quot;SERVICE\&quot;: \&quot;Other\&quot;, \&quot;SCHEDULER\&quot;: \&quot;SSH\&quot;}&quot; --vncpassword=A7YWRCZJ --subnet=130.186.17 --queue='dummy_queue'" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="server_side new full debug  python2" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/bin:/usr/bin:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="test/etc/test_hierarchical" />
+        <env name="RCM_CONFIG_PATHS" value="base_scheduler:base_service:slurm_gres:network:other:logging/debug/ssh.yaml" />
+      </envs>
+      <option name="SDK_HOME" value="/usr/bin/python2.7" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/server/bin" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/server/bin/server" />
+      <option name="PARAMETERS" value="--command=new --sessionname='Devel-6cf6ebbd-b72f-44bf-87be-88ea993380d7' --vnc_id='dummy_vnc' --vncpassword_crypted='59deb100ce4554f9' --geometry='dummy_size' --choices_string=&quot;{\&quot;SERVICE.COMMAND\&quot;: \&quot;FakeService\&quot;, \&quot;SERVICE\&quot;: \&quot;Other\&quot;, \&quot;SCHEDULER\&quot;: \&quot;SSH\&quot;}&quot; --vncpassword='A7YWRCZJ' --subnet='130.186.17' --queue='dummy_queue'" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="server_side new full debug python3" type="PythonConfigurationType" factoryName="Python">
+      <module name="RCM" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="/usr/bin:$PROJECT_DIR$/tests/fake_slurm" />
+        <env name="RCM_CONFIG_BASE_PATH" value="test/etc/test_hierarchical" />
+        <env name="RCM_CONFIG_PATHS" value="base_scheduler:base_service:slurm_gres:network:other:logging/debug/ssh.yaml" />
+      </envs>
+      <option name="SDK_HOME" value="$PROJECT_DIR$/../../test_deploy_dev/py3env/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/rcm/server/bin" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rcm/server/bin/server" />
+      <option name="PARAMETERS" value="--command=new --sessionname='Devel-6cf6ebbd-b72f-44bf-87be-88ea993380d7' --vnc_id='dummy_vnc' --vncpassword_crypted='59deb100ce4554f9' --geometry='dummy_size' --choices_string=&quot;{\&quot;SERVICE.COMMAND\&quot;: \&quot;FakeService\&quot;, \&quot;SERVICE\&quot;: \&quot;Other\&quot;, \&quot;SCHEDULER\&quot;: \&quot;SSH\&quot;}&quot; --vncpassword='A7YWRCZJ' --subnet='130.186.17' --queue='dummy_queue'" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.new_display_dialog full" />
+      <item itemvalue="Python.new_display_dialog full debug" />
+      <item itemvalue="Python.new_display_dialog full debug galileo" />
+      <item itemvalue="Python.new_display_dialog full debug galileo (1)" />
+      <item itemvalue="Python.new_display_dialog full debug marconi" />
+      <item itemvalue="Python.new_display_dialog full debug marconi python 2" />
+      <item itemvalue="Python.new_display_dialog base debug constructor" />
+      <item itemvalue="Python.server_side loginlist" />
+      <item itemvalue="Python.server_side list" />
+      <item itemvalue="Python.server_side config" />
+      <item itemvalue="Python.server_side config galileo" />
+      <item itemvalue="Python.server_side config marconi" />
+      <item itemvalue="Python.server_side new full debug python3" />
+      <item itemvalue="Python.server_side new " />
+      <item itemvalue="Python.server_side new full debug  python2" />
+      <item itemvalue="Python.puthon3 rcm_client" />
+    </list>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="9a58afbd-fee7-4456-aaad-b910dba90bf4" name="Default" comment="" />
+      <created>1523434902223</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1523434902223</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="13" y="0" width="1346" height="1030" extended-state="0" />
+    <editor active="true" />
+    <layout>
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.27455357" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.36245954" />
+      <window_info anchor="bottom" id="Version Control" order="9" />
+      <window_info anchor="bottom" id="Python Console" order="7" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="bottom" id="Terminal" order="8" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.34239677" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Commander" order="0" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.3295583" />
+    </layout>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/client/gui/edit_settings_dialog.py</url>
+          <line>40</line>
+          <option name="timeStamp" value="38" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/client/gui/ssh_session_widget.py</url>
+          <line>376</line>
+          <option name="timeStamp" value="41" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/rcm.py</url>
+          <line>180</line>
+          <option name="timeStamp" value="49" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/client/gui/worker.py</url>
+          <line>66</line>
+          <option name="timeStamp" value="59" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/api.py</url>
+          <line>73</line>
+          <option name="timeStamp" value="64" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/service.py</url>
+          <line>51</line>
+          <option name="timeStamp" value="68" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/manager.py</url>
+          <line>179</line>
+          <option name="timeStamp" value="78" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/manager.py</url>
+          <line>199</line>
+          <option name="timeStamp" value="79" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py</url>
+          <line>94</line>
+          <option name="timeStamp" value="88" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py</url>
+          <line>158</line>
+          <option name="timeStamp" value="136" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py</url>
+          <line>116</line>
+          <option name="timeStamp" value="137" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py</url>
+          <line>46</line>
+          <option name="timeStamp" value="143" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py</url>
+          <line>37</line>
+          <option name="timeStamp" value="144" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/service.py</url>
+          <line>89</line>
+          <option name="timeStamp" value="159" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/scripts/server_deploy/server_deploy.py</url>
+          <line>36</line>
+          <option name="timeStamp" value="160" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/scheduler.py</url>
+          <line>255</line>
+          <option name="timeStamp" value="163" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/scheduler.py</url>
+          <line>392</line>
+          <option name="timeStamp" value="165" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/scheduler.py</url>
+          <line>184</line>
+          <option name="timeStamp" value="167" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/scheduler.py</url>
+          <line>476</line>
+          <option name="timeStamp" value="168" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/scheduler.py</url>
+          <line>256</line>
+          <option name="timeStamp" value="170" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/scheduler.py</url>
+          <line>220</line>
+          <option name="timeStamp" value="173" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/scheduler.py</url>
+          <line>477</line>
+          <option name="timeStamp" value="174" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/manager.py</url>
+          <line>67</line>
+          <option name="timeStamp" value="175" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/scheduler.py</url>
+          <line>36</line>
+          <option name="timeStamp" value="176" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rcm/server/lib/scheduler.py</url>
+          <line>192</line>
+          <option name="timeStamp" value="177" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/scheduler.py</url>
+          <line>201</line>
+          <option name="timeStamp" value="180" />
+        </line-breakpoint>
+      </breakpoints>
+      <breakpoints-dialog>
+        <breakpoints-dialog />
+      </breakpoints-dialog>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+      <option name="time" value="181" />
+    </breakpoint-manager>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/base_service/turbovnc.yaml" />
+    <entry file="file:///usr/lib/python3.5/json/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="188">
+          <caret line="225" selection-start-line="225" selection-end-line="225" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/client/logic/rcm_protocol_client.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="540">
+          <caret line="39" lean-forward="true" selection-start-line="39" selection-end-line="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/client/logic/rcm_utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2715">
+          <caret line="187" column="21" selection-start-line="187" selection-start-column="9" selection-end-line="187" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/client/miscellaneous/config_parser.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="570">
+          <caret line="39" column="50" selection-start-line="39" selection-end-line="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/lib/python3.5/string.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="200">
+          <caret line="130" column="8" selection-start-line="130" selection-start-column="8" selection-end-line="130" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/utils/misc.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="585">
+          <caret line="44" column="19" selection-start-line="44" selection-start-column="8" selection-end-line="44" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/client/gui/display_session_widget.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2385">
+          <caret line="173" column="71" selection-start-line="173" selection-start-column="71" selection-end-line="173" selection-end-column="71" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/client/gui/ssh_session_widget.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4590">
+          <caret line="336" column="8" selection-start-line="336" selection-start-column="8" selection-end-line="336" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/client/gui/rcm_main_window.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2355">
+          <caret line="173" column="75" selection-start-line="173" selection-start-column="75" selection-end-line="173" selection-end-column="75" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/old/rcm_protocol_server.py" />
+    <entry file="file://$PROJECT_DIR$/rcm/client/logic/thread.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1695">
+          <caret line="121" selection-start-line="121" selection-end-line="121" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/client/gui/thread.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="19" column="12" selection-start-line="19" selection-start-column="12" selection-end-line="19" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tests/fake_slurm/scancel">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="13" lean-forward="true" selection-start-line="7" selection-start-column="13" selection-end-line="7" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/client/gui/new_display_dialog.py" />
+    <entry file="file://$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/slurm_gres/slurm_gpu.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="3" column="13" selection-start-line="3" selection-start-column="13" selection-end-line="3" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tests/fake_slurm/scontrol">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="11" column="115" selection-start-line="11" selection-start-column="112" selection-end-line="11" selection-end-column="115" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/rcm.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3105">
+          <caret line="212" column="17" selection-start-line="212" selection-start-column="8" selection-end-line="212" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/legacy/server_original/rcm_server_ssh.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1680">
+          <caret line="120" column="15" selection-start-line="120" selection-start-column="6" selection-end-line="120" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/client/logic/manager.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="690">
+          <caret line="50" selection-start-line="50" selection-end-line="50" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/etc/defaults/schema_01_scheduler.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1485">
+          <caret line="99" column="20" selection-start-line="99" selection-start-column="20" selection-end-line="99" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/etc/defaults/schema_00_top.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="600">
+          <caret line="40" column="56" selection-start-line="40" selection-start-column="8" selection-end-line="40" selection-end-column="56" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/etc/defaults/download.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="765">
+          <caret line="51" column="10" selection-start-line="51" selection-start-column="10" selection-end-line="51" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_wm.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="8" column="25" selection-start-line="8" selection-start-column="25" selection-end-line="8" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/lib/python2.7/copy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="202">
+          <caret line="153" selection-start-line="153" selection-end-line="153" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/lib/api.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="750">
+          <caret line="56" column="37" selection-start-line="56" selection-start-column="26" selection-end-line="56" selection-end-column="37" />
+          <folding>
+            <element signature="e#13#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/client/test/interactive_display_dialog.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-70">
+          <caret line="52" column="75" selection-start-line="52" selection-start-column="75" selection-end-line="52" selection-end-column="75" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_vnc.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="6" column="60" selection-start-line="6" selection-start-column="11" selection-end-line="6" selection-end-column="60" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/test/etc/test_hierarchical/other/other_service_type.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="8" selection-start-line="14" selection-start-column="8" selection-end-line="14" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/lib/jobscript_builder.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="73">
+          <caret line="37" selection-start-line="37" selection-end-line="37" />
+          <folding>
+            <element signature="e#13#27#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/etc/defaults/schema_02_service.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="540">
+          <caret line="36" column="23" selection-start-line="36" selection-start-column="18" selection-end-line="36" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/lib/service.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="240">
+          <caret line="24" column="49" selection-start-line="24" selection-start-column="30" selection-end-line="24" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/server_deploy/server_deploy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="15" selection-start-line="15" selection-end-line="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/service.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1182">
+          <caret line="89" selection-start-line="89" selection-end-line="89" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///kubuntu/home/lcalori/spack/test_deploy_dev/py3env/lib/python3.5/copy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="216" selection-start-line="216" selection-end-line="216" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/lib/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="705">
+          <caret line="70" selection-start-line="70" selection-end-line="70" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1140">
+          <caret line="81" selection-start-line="81" selection-end-line="81" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/api.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="27" selection-start-line="27" selection-end-line="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/parser.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1275">
+          <caret line="90" selection-start-line="90" selection-end-line="90" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/jobscript_builder.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="5175">
+          <caret line="351" column="131" selection-start-line="351" selection-start-column="131" selection-end-line="351" selection-end-column="131" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/manager.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="161">
+          <caret line="52" lean-forward="true" selection-start-line="52" selection-end-line="52" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/bin/server">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="480">
+          <caret line="37" selection-start-line="37" selection-end-line="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tests/fake_slurm/sacctmgr">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="990">
+          <caret line="66" column="56" selection-start-line="66" selection-start-column="56" selection-end-line="66" selection-end-column="56" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tests/fake_slurm/sinfo">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="5" column="33" selection-start-line="5" selection-start-column="33" selection-end-line="5" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/lib/plugin.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="3" selection-start-line="3" selection-end-line="3" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/utils/executable.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3450">
+          <caret line="238" selection-start-line="238" selection-end-line="238" />
+          <folding>
+            <element signature="e#1235#1244#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///kubuntu/home/lcalori/spack/CINECA_RCM_deployments/RCM/rcm/server/lib/scheduler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="422">
+          <caret line="497" selection-start-line="497" selection-end-line="497" />
+          <folding>
+            <element signature="e#14#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/lib/scheduler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="449">
+          <caret line="385" column="70" selection-start-line="385" selection-start-column="70" selection-end-line="385" selection-end-column="70" />
+          <folding>
+            <element signature="e#14#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tests/fake_slurm/marconi/fake_lua_submit.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="6" column="128" selection-start-line="6" selection-start-column="128" selection-end-line="6" selection-end-column="128" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/lib/manager.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="508">
+          <caret line="67" selection-start-line="67" selection-end-line="67" />
+          <folding>
+            <element signature="e#0#14#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rcm/server/etc/defaults/plugins.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="9" lean-forward="true" selection-start-line="9" selection-end-line="9" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

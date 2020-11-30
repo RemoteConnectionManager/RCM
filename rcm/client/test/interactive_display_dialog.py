@@ -50,7 +50,7 @@ print("sys.argv", sys.argv[1:])
 
 config.getConfig()
 manager = ServerManager()
-manager.init()
+manager.init({'client_info': {"screen_height": 1080, "screen_width": 1920}})
 
 display_dialog_ui = manager.root_node.get_gui_options()
 logger.debug("-----------------------------------")

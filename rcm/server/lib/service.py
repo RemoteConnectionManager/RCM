@@ -3,9 +3,11 @@ import logging
 import re
 import os
 import time
+import copy
 
 import plugin
 import utils
+from collections import OrderedDict
 
 logger = logging.getLogger('rcmServer' + '.' + __name__)
 
@@ -15,19 +17,6 @@ class Service(plugin.Plugin):
     def __init__(self, *args, **kwargs):
         self.COMMANDS = {'bash': None}
         super(Service, self).__init__(*args, **kwargs)
-        if 'client_info' in kwargs:
-            self.client_info = kwargs['client_info']
-            if 'screen_width' in self.client_info and 'screen_height' in self.client_info:
-                self.PARAMS['WM'] = self.size_param
-
-    def size_param(self,default_params=None):
-        params = dict()
-        if default_params:
-            for par in default_params:
-                params[par] = {'XSIZE': {'max': self.client_info['screen_width']},
-                               'YSIZE': {'max': self.client_info['screen_height']}}
-        return params
-
 
     def run_preload(self, key='PRELOAD_LINE', substitutions=None):
         self.logger.debug("GENERIC run_preload for service: "+ self.NAME)
@@ -80,30 +69,84 @@ class Service(plugin.Plugin):
         raise Exception("Unable to search_logfile: %s with regex %s" % (logfile, str(regex_list)))
 
     def search_port(self, logfile='', timeout=0):
+        raise NotImplementedError()
+
+
+
+class ScreenService(Service):
+
+
+    def __init__(self, *args, **kwargs):
+        super(ScreenService, self).__init__(*args, **kwargs)
+
+        if 'client_info' in kwargs:
+            self.client_info = kwargs['client_info']
+            if 'screen_width' in self.client_info and 'screen_height' in self.client_info:
+                self.PARAMS['WM'] = self.size_param
+
+    def size_param(self,default_params=None):
+        params = OrderedDict()
+        if default_params:
+            for par in default_params:
+                # assign self.client_info['screen_height'] tp params[par]['XSIZE']['max] while getting everythin else
+                # from default_params
+                params[par] = copy.deepcopy(default_params.get(par, default_params.get('ALL', OrderedDict())))
+                for yaml_par_name, info_par_name in [('XSIZE', 'screen_width'), ('YSIZE', 'screen_height')]:
+                    tmp = params[par].get(yaml_par_name, OrderedDict())
+                    tmp['max'] = self.client_info[info_par_name]
+                    params[par][yaml_par_name] = tmp
+        return params
+
+
+
+class VncService(ScreenService):
+
+
+    def __init__(self, *args, **kwargs):
+        self.COMMANDS = {'bash': None,
+                         'vncpasswd': None,
+                         'vncserver': None}
+        super(VncService, self).__init__(*args, **kwargs)
+
+    def search_port(self, logfile='', timeout=0):
         for t in self.templates:
             self.logger.debug("Searching port, plugin template: "+ t+ "--->"+str(self.templates[t])+"<--")
         groupdict = self.search_logfile(logfile, timeout=timeout)
-        node = ''
-        port = 0
+        res_dict = dict()
         for k in groupdict:
             self.logger.debug("searching port, key: " + k + " ==> " + groupdict[k])
             if k == 'display' :
-                port =  5900 + int(groupdict[k])
+                res_dict[k] = int(groupdict[k])
+                res_dict['port'] =  5900 + int(groupdict[k])
             if k == 'node' :
-                node = groupdict[k]
+                # apply nodename substitutions, if defined
+                key = 'HOSTNAME_TEMPLATE'
+                if key in self.templates:
+                    res_dict[k] = utils.StringTemplate(self.templates[key]).safe_substitute({'HOSTNAME': groupdict[k]})
+                else:
+                    res_dict[k] = groupdict[k]
             if k == 'port' :
-                port = int(groupdict[k])
+                res_dict[k] = int(groupdict[k])
 
-        return (node, port)
-
-
+        return res_dict
 
 
-
-class TurboVNCServer(Service):
+class TurboVNCServer(VncService):
     def __init__(self, *args, **kwargs):
         self.NAME = "TurboVNC"
         super(TurboVNCServer, self).__init__(*args, **kwargs)
+
+
+class SystemVNCServer(VncService):
+    def __init__(self, *args, **kwargs):
+        self.NAME = "SystemVNC"
+        super(SystemVNCServer, self).__init__(*args, **kwargs)
+
+
+class TurboVNCServerCustom(VncService):
+    def __init__(self, *args, **kwargs):
+        self.NAME = "TurboVNC_custom"
+        super(TurboVNCServerCustom, self).__init__(*args, **kwargs)
 
 
 

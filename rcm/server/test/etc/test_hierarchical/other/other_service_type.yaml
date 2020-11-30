@@ -1,6 +1,8 @@
 defaults:
   TOP:
     SERVICE :
+      VNC:
+        description: "descrizione VNC cambiata"
       Other :
         description : "Placeholder for other type of sarvice"
         COMMAND :

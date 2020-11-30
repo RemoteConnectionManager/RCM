@@ -43,13 +43,22 @@ class ServerManager:
         self.schedulers = dict()
         self.services = dict()
         self.downloads = dict()
-        self.root_node = None
+        #self.root_node = None
         self.session_manager = db.DbSessionManager()
         self.login_fullname = ''
         self.network_map = dict()
         self.top_templates = dict()
         self.configuration = None
         self.info = dict()
+
+    @property
+    def root_node(self):
+        try:
+            return self._root_node
+        except AttributeError:
+            self._root_node = jobscript_builder.AutoChoiceNode(name='TOP')
+            return self._root_node
+
 
     def init(self, info=None):
         if not info is None:
@@ -68,7 +77,9 @@ class ServerManager:
             try:
                 module_name, class_name = scheduler_str.rsplit(".", 1)
                 scheduler_class = getattr(importlib.import_module(module_name), class_name)
-                scheduler_obj = scheduler_class(node=self.login_fullname, username=self.session_manager.username)
+                scheduler_obj = scheduler_class(node=self.login_fullname,
+                                                username=self.session_manager.username,
+                                                options=self.configuration['plugins', 'schedulers', scheduler_str])
                 self.schedulers[scheduler_obj.NAME] = scheduler_obj
                 logger.info('loaded scheduler plugin ' +
                             scheduler_obj.__class__.__name__ +
@@ -96,7 +107,7 @@ class ServerManager:
                                          'COMMAND': self.services,
                                          }
 
-        self.root_node = jobscript_builder.AutoChoiceNode(name='TOP')
+        #self.root_node = jobscript_builder.AutoChoiceNode(name='TOP')
 
     def map_login_name(self, subnet, nodelogin):
         logger.debug("mapping login " + nodelogin + " on network " + subnet)
@@ -293,18 +304,18 @@ class ServerManager:
             scheduler_timeout = 100
 
         try:
-            node, port = self.active_service.search_port(service_logfile, timeout=scheduler_timeout)
+            session_dict = self.active_service.search_port(service_logfile, timeout=scheduler_timeout)
         except Exception as e:
             self.active_scheduler.kill_job(jobid)
             raise e
         new_session.hash['state'] = 'valid'
-        new_session.hash['port'] = port
-        new_session.hash['node'] = node
+        for k in session_dict :
+            new_session.hash[k] = session_dict[k]
         new_session.serialize(self.session_manager.session_file_path(session_id))
         logger.debug("serialized  session:\n---------------\n" +
                      new_session.get_string(format='json_indent') +
                      "\n-------------")
-        logger.info("return valid session job " + jobid + " on node " + node + " port " + str(port))
+        logger.info("return valid session job " + jobid + " session_dict: " + str(session_dict))
         return new_session
 
     def extract_running_sessions(self):

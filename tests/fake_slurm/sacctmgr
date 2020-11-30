@@ -5,6 +5,7 @@ then
 hbp_cdp21_it_1|gll_qos_dbg,normal,qos_rcm
 cin_rcmmgr|gll_qos_dbg,normal,qos_rcm
 cin_staff|gll_qos_dbg,gll_qos_gpudev,normal,qos_rcm
+dlr_dev|gll_qos_dbg,gll_qos_gpudev,normal,qos_rcm
 "
 else
 echo "Name|MaxWall|MaxTRES|Flags|MaxTRESPerNode

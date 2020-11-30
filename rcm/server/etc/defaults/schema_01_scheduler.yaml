@@ -21,7 +21,6 @@ schema:
               #echo "FOUND $screen_count  NUMBER OF SCREENS on DISPLAY :0"
               export VGLRUN_DISPLAY_FLAG="-d :0.$(shuf -i 0-$(($screen_count -1)) -n 1)"
               #echo "vglrun $VGLRUN_DISPLAY_FLAG"
-              module load virtualgl
               vglrun() { $(which vglrun) $VGLRUN_DISPLAY_FLAG $@; }
               export -f  vglrun
             else
@@ -34,11 +33,12 @@ schema:
             then
             # Here is the VGLRUN setup from different scheduler and queues
             # is activate just when the selected service requires it
-            echo "Redefining vglrun" >&2
+            #echo "Redefining vglrun" >&2
             @{ACCOUNT.QUEUE.QOS.GRES.VGLRUN_SLURM_DISPLAY}
             fi
 
           ACCOUNT.QUEUE.TIMELIMIT : "~"
+          ACCOUNT.QUEUE.QUEUE_NAME: "@{QUEUE}"
 
         children :
           ACCOUNT :
