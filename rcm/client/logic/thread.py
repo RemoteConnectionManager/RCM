@@ -92,7 +92,6 @@ class SessionThread(threading.Thread):
 
 
 
-#    def execute_service_command_with_internal_ssh_tunnel(self):
 
     def execute_service_command_with_ssh_tunnel(self,tunnel_forwarder_class=None):
         if tunnel_forwarder_class:
