@@ -90,6 +90,7 @@ class SessionThread(threading.Thread):
         if self.gui_cmd:
             self.gui_cmd(active=False)
 
+
     def run(self):
         try:
             logic_logger.debug('Thread ' + str(self.threadnum) + ' is started')
@@ -97,24 +98,12 @@ class SessionThread(threading.Thread):
             if self.gui_cmd:
                 self.gui_cmd(active=True)
 
-            if self.configFile:
-                commandlist = self.service_command.split()
-                commandlist.append(self.configFile)
-                self.service_process = subprocess.Popen(commandlist,
-                                                        bufsize=1,
-                                                        stdout=subprocess.PIPE,
-                                                        stderr=subprocess.PIPE,
-                                                        stdin=subprocess.PIPE,
-                                                        shell=False,
-                                                        universal_newlines=True)
-                self.service_process.wait()
+            if self.tunnelling_method == 'internal':
+                self.execute_service_command_with_internal_ssh_tunnel()
+            elif self.tunnelling_method == 'external':
+                self.execute_service_command_with_external_ssh_tunnel()
             else:
-                if self.tunnelling_method == 'internal':
-                    self.execute_service_command_with_internal_ssh_tunnel()
-                elif self.tunnelling_method == 'external':
-                    self.execute_service_command_with_external_ssh_tunnel()
-                else:
-                    logic_logger.error(str(self.tunnelling_method) + 'is not a valid option!')
+                logic_logger.error(str(self.tunnelling_method) + 'is not a valid option!')
 
             self.terminate()
 
@@ -152,7 +141,7 @@ class SessionThread(threading.Thread):
     def execute_service_command_with_external_ssh_tunnel(self):
 
         with NativeSSHTunnelForwarder(
-                login_node=self.login_node,
+                (self.host, 22),
                 ssh_username=self.username,
                 ssh_password=self.password,
                 remote_bind_address=(self.node, self.portnumber),

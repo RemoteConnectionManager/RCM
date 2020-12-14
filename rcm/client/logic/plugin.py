@@ -26,6 +26,7 @@ import pexpect
 if sys.platform == 'win32':
     from pexpect.popen_spawn import PopenSpawn
 import threading
+import sshtunnel
 
 # local includes
 import client.logic.rcm_utils as rcm_utils
@@ -262,14 +263,20 @@ class SSHExecutable(Executable):
 
 class NativeSSHTunnelForwarder(object):
     def __init__(self,
-                 login_node,
-                 ssh_username,
-                 ssh_password,
-                 remote_bind_address,
-                 local_bind_address):
+                 ssh_address_or_host=('',22),
+                 ssh_config_file=sshtunnel.SSH_CONFIG_FILE,
+                 ssh_host_key=None,
+                 ssh_password=None,
+                 ssh_pkey=None,
+                 ssh_private_key_password=None,
+                 ssh_proxy=None,
+                 ssh_proxy_enabled=True,
+                 ssh_username=None,
+                 remote_bind_address=None,
+                 local_bind_address=None):
 
         ssh_exe = SSHExecutable()
-        ssh_exe.build(login_node=login_node,
+        ssh_exe.build(login_node=ssh_address_or_host[0],
                       ssh_username=ssh_username,
                       ssh_password=ssh_password,
                       remote_bind_address=remote_bind_address,
