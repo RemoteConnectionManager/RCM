@@ -97,7 +97,6 @@ class SessionThread(threading.Thread):
     def execute_service_command_with_ssh_tunnel(self,tunnel_forwarder_class=None):
         if tunnel_forwarder_class:
             default_ssh_pkey = os.path.join(os.path.abspath(os.path.expanduser("~")), '.ssh', 'id_rsa')
-#            with SSHTunnelForwarder(
             with tunnel_forwarder_class(
                     (self.host, 22),
                     ssh_username=self.username,
@@ -123,30 +122,6 @@ class SessionThread(threading.Thread):
             logic_logger.error(str(self.tunnelling_method) + 'is not a valid option!')
 
 
-    def execute_service_command_with_external_ssh_tunnel(self):
-
-        with NativeSSHTunnelForwarder(
-                (self.host, 22),
-                ssh_username=self.username,
-                ssh_password=self.password,
-                remote_bind_address=(self.node, self.portnumber),
-                local_bind_address=('127.0.0.1', self.local_portnumber)
-        ) as self.ssh_server:
-
-            self.service_process = subprocess.Popen(shlex.split(self.service_command),
-                                                    bufsize=1,
-                                                    stdout=subprocess.PIPE,
-                                                    stderr=subprocess.PIPE,
-                                                    stdin=subprocess.PIPE,
-                                                    shell=False,
-                                                    universal_newlines=True)
-            self.service_process.stdin.close()
-            while self.service_process.poll() is None:
-                stdout = self.service_process.stdout.readline()
-                if stdout:
-                    logic_logger.debug("service process stdout: " + stdout.strip())
-
-
     def run(self):
         try:
             logic_logger.debug('Thread ' + str(self.threadnum) + ' is started')
@@ -154,12 +129,6 @@ class SessionThread(threading.Thread):
             if self.gui_cmd:
                 self.gui_cmd(active=True)
 
-#            if self.tunnelling_method == 'internal':
-#                self.execute_service_command_with_internal_ssh_tunnel()
-#            elif self.tunnelling_method == 'external':
-#                self.execute_service_command_with_external_ssh_tunnel()
-#            else:
-#                logic_logger.error(str(self.tunnelling_method) + 'is not a valid option!')
             tunnel_forwarder_selector={'internal': SSHTunnelForwarder, 'external': NativeSSHTunnelForwarder }
             self.execute_service_command_with_ssh_tunnel(tunnel_forwarder_class=tunnel_forwarder_selector.get(self.tunnelling_method, None))
             self.terminate()
