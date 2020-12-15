@@ -27,7 +27,7 @@ import os
 
 # local includes
 from client.miscellaneous.logger import logic_logger
-from client.logic.plugin import NativeSSHTunnelForwarder
+
 
 
 class SessionThread(threading.Thread):
@@ -49,10 +49,13 @@ class SessionThread(threading.Thread):
                  local_port_number=0,
                  compute_node='',
                  port_number=0,
-                 tunnelling_method='internal'
+                 tunnelling_class=None
                  ):
         self.ssh_server = None
-        self.tunnelling_method = tunnelling_method
+        if tunnelling_class:
+            self.tunnelling_class = tunnelling_class
+        else:
+            self.tunnelling_class =SSHTunnelForwarder
 
         self.service_command = service_cmd
         self.service_process = None
@@ -93,32 +96,29 @@ class SessionThread(threading.Thread):
 
 
 
-    def execute_service_command_with_ssh_tunnel(self,tunnel_forwarder_class=None):
-        if tunnel_forwarder_class:
-            default_ssh_pkey = os.path.join(os.path.abspath(os.path.expanduser("~")), '.ssh', 'id_rsa')
-            with tunnel_forwarder_class(
-                    (self.host, 22),
-                    ssh_username=self.username,
-                    ssh_password=self.password,
-                    ssh_pkey=default_ssh_pkey,
-                    remote_bind_address=(self.node, self.portnumber),
-                    local_bind_address=('127.0.0.1', self.local_portnumber)
-            ) as self.ssh_server:
+    def execute_service_command_with_ssh_tunnel(self):
+        default_ssh_pkey = os.path.join(os.path.abspath(os.path.expanduser("~")), '.ssh', 'id_rsa')
+        with self.tunnelling_class(
+                (self.host, 22),
+                ssh_username=self.username,
+                ssh_password=self.password,
+                ssh_pkey=default_ssh_pkey,
+                remote_bind_address=(self.node, self.portnumber),
+                local_bind_address=('127.0.0.1', self.local_portnumber)
+        ) as self.ssh_server:
 
-                self.service_process = subprocess.Popen(shlex.split(self.service_command),
-                                                        bufsize=1,
-                                                        stdout=subprocess.PIPE,
-                                                        stderr=subprocess.PIPE,
-                                                        stdin=subprocess.PIPE,
-                                                        shell=False,
-                                                        universal_newlines=True)
-                self.service_process.stdin.close()
-                while self.service_process.poll() is None:
-                    stdout = self.service_process.stdout.readline()
-                    if stdout:
-                        logic_logger.debug("service process stdout: " + stdout.strip())
-        else:
-            logic_logger.error(str(self.tunnelling_method) + 'is not a valid option!')
+            self.service_process = subprocess.Popen(shlex.split(self.service_command),
+                                                    bufsize=1,
+                                                    stdout=subprocess.PIPE,
+                                                    stderr=subprocess.PIPE,
+                                                    stdin=subprocess.PIPE,
+                                                    shell=False,
+                                                    universal_newlines=True)
+            self.service_process.stdin.close()
+            while self.service_process.poll() is None:
+                stdout = self.service_process.stdout.readline()
+                if stdout:
+                    logic_logger.debug("service process stdout: " + stdout.strip())
 
 
     def run(self):
@@ -128,8 +128,7 @@ class SessionThread(threading.Thread):
             if self.gui_cmd:
                 self.gui_cmd(active=True)
 
-            tunnel_forwarder_selector={'internal': SSHTunnelForwarder, 'external': NativeSSHTunnelForwarder }
-            self.execute_service_command_with_ssh_tunnel(tunnel_forwarder_class=tunnel_forwarder_selector.get(self.tunnelling_method, None))
+            self.execute_service_command_with_ssh_tunnel()
             self.terminate()
 
         except Exception as e:

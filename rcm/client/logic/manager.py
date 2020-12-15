@@ -25,7 +25,8 @@ import json
 import os
 import socket
 #import paramiko
-
+from sshtunnel import SSHTunnelForwarder
+from client.logic.plugin import NativeSSHTunnelForwarder
 
 # in order to parse the pickle message coming from the server, we need to import rcm as below
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -51,7 +52,17 @@ class RemoteConnectionManager:
     """
 
     def __init__(self):
-        self.ssh_command_executor = plugin.ParamikoSSHCommandExecutor()
+        ssh_method_selector={'internal': (SSHTunnelForwarder,plugin.ParamikoSSHCommandExecutor),
+                             'external': (NativeSSHTunnelForwarder,plugin.ParamikoSSHCommandExecutor) }
+        try:
+            (self.tunnel_forwarder_class, command_executor_class) = ssh_method_selector[json.loads(parser.get('Settings', 'ssh_client'))]
+        except Exception:
+            (self.tunnel_forwarder_class, command_executor_class) = ssh_method_selector["internal"]
+            logic_logger.warning("invalid ssh_client setting, resort to internal" )
+        logic_logger.info("Using tunnel forwarder: " +  str(self.tunnel_forwarder_class.__module__) + '.' + str(self.tunnel_forwarder_class.__name__) +
+                          " command_executor: " + str(command_executor_class.__module__) + '.' + str(command_executor_class.__name__))
+
+        self.ssh_command_executor = command_executor_class()
         self.user = ''
         self.password = ''
         self.auth_method = ''
@@ -238,11 +249,6 @@ class RemoteConnectionManager:
         login_node = session.hash['nodelogin']
         local_port_number = rcm_utils.get_unused_portnumber()
 
-        try:
-            tunnelling_method = json.loads(parser.get('Settings', 'ssh_client'))
-        except Exception:
-            tunnelling_method = "internal"
-        logic_logger.info("Using " + str(tunnelling_method) + " ssh tunnelling")
 
         plugin_exe = plugin.TurboVNCExecutable()
         plugin_exe.build(session=session, local_portnumber=local_port_number)
@@ -257,7 +263,7 @@ class RemoteConnectionManager:
                                   local_port_number,
                                   compute_node,
                                   port_number,
-                                  tunnelling_method)
+                                  self.tunnel_forwarder_class)
 
         self.session_threads.append(st)
         st.start()
