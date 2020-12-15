@@ -342,10 +342,10 @@ class NativeSSHTunnelForwarder(object):
             self.tunnel_process = None
 
 
-class ParamikoSSHCommandExecutor(object):
+class ParamikoCommandExecutor(object):
     def __init__(self):
         self.ssh_connections={}
-        super(ParamikoSSHCommandExecutor, self).__init__()
+        super(ParamikoCommandExecutor, self).__init__()
 
     def _get_connection(self,host='', username='', password=''):
         ssh =  self.ssh_connections.get((host, username), None)
