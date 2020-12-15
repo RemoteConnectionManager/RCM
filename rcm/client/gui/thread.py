@@ -19,6 +19,7 @@
 #
 
 from PyQt5.QtCore import QThread, Qt
+import traceback
 
 # local includes
 from client.miscellaneous.logger import logger
@@ -47,7 +48,7 @@ class LoginThread(QThread):
         except Exception as e:
             self.session_widget.is_logged = False
             logger.error("Failed to login")
-            logger.error(e)
+            logger.error(e + " - " + str(traceback.format_exc()))
 
 
 class KillThread(QThread):
