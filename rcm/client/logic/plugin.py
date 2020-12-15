@@ -27,6 +27,7 @@ if sys.platform == 'win32':
     from pexpect.popen_spawn import PopenSpawn
 import threading
 import sshtunnel
+import paramiko
 
 # local includes
 import client.logic.rcm_utils as rcm_utils
@@ -339,3 +340,44 @@ class NativeSSHTunnelForwarder(object):
             logic_logger.debug("Stopping ssh tunnelling")
             self.tunnel_process.close(force=True)
             self.tunnel_process = None
+
+
+class ParamikoSSHCommandExecutor(object):
+    def __init__(self):
+        self.ssh_connections={}
+        super(ParamikoSSHCommandExecutor, self).__init__()
+
+    def _get_connection(self,host='', username='', password=''):
+        ssh =  self.ssh_connections.get((host, username), None)
+        if ssh :
+            if ssh.get_transport() is not None:
+                if ssh.get_transport().is_active():
+                    return ssh
+        else:
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            try:
+                ssh.connect(host, username=username, password=password, timeout=10)
+                self.ssh_connections[(host, username)] = ssh
+                return ssh
+            except Exception as e:
+                ssh.close()
+                self.ssh_connections[(host, username)] = None
+                raise RuntimeError(e)
+            ssh.close()
+            self.ssh_connections[(host, username)] = None
+            return None
+
+    def run_command(self,host='', username='', password='',command=''):
+        ssh = self._get_connection(host=host, username=username, password=password)
+        if ssh:
+            stdin, stdout, stderr = ssh.exec_command(command)
+            out = ''.join(stdout)
+            err = stderr.readlines()
+            if err:
+                logic_logger.warning(err)
+            return out
+        else:
+            logic_logger.warning("Unable to get connection to " + username + '@' + host)
+
+
