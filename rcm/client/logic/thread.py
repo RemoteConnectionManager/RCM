@@ -133,6 +133,6 @@ class SessionThread(threading.Thread):
 
         except Exception as e:
             self.terminate()
-            logic_logger.error("Error running service command\n-->" +
+            logic_logger.error("Error on service command\n" +
                                self.service_command +
-                               "<--\n Error:" + str(e) + " ---- " + str(traceback.format_exc()))
+                               "\n Error:" + str(e) + " ---------------\n " + str(traceback.format_exc()) + '\n-------------')
