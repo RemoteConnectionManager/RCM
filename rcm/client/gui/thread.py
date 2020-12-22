@@ -48,7 +48,7 @@ class LoginThread(QThread):
         except Exception as e:
             self.session_widget.is_logged = False
             logger.error("Failed to login")
-            logger.error(e + " - " + str(traceback.format_exc()))
+            logger.error(str(e) + " - " + str(traceback.format_exc()))
 
 
 class KillThread(QThread):
