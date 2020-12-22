@@ -23,6 +23,7 @@ import platform
 import os
 import json
 import pexpect
+import subprocess
 if sys.platform == 'win32':
     from pexpect.popen_spawn import PopenSpawn
 import threading
@@ -230,6 +231,9 @@ class SSHExecutable(Executable):
     def set_env(self):
         return
 
+class SSHTunnelExecutable(SSHExecutable):
+
+
     def build(self,
               login_node,
               ssh_username,
@@ -276,7 +280,7 @@ class NativeSSHTunnelForwarder(object):
                  remote_bind_address=None,
                  local_bind_address=None):
 
-        ssh_exe = SSHExecutable()
+        ssh_exe = SSHTunnelExecutable()
         ssh_exe.build(login_node=ssh_address_or_host[0],
                       ssh_username=ssh_username,
                       ssh_password=ssh_password,
@@ -380,4 +384,61 @@ class ParamikoCommandExecutor(object):
         else:
             logic_logger.warning("Unable to get connection to " + username + '@' + host)
 
+
+
+class SSHCommandExecutor(object):
+    def __init__(self, command_prompt='\[[^\]]*\]\$ ', ):
+        self.ssh_connections={}
+        self.ssh_exe = SSHExecutable()
+        self.command_prompt = command_prompt
+        self.separator_string = 'very_unlikely_string_that_should_not_appear_anyway_anytime_in_any_output_by_any_chance_ever'
+        self.separator_string = r'veryunlikelystring'
+        super(SSHCommandExecutor, self).__init__()
+
+    def _get_connection(self,host='', username='', password=''):
+        ssh_process =  self.ssh_connections.get((host, username), None)
+        if ssh_process :
+            if ssh_process.isalive():
+                return ssh_process
+        else:
+            ssh_process = pexpect.spawn(self.ssh_exe.command +" " + username + '@' + host, dimensions=(100, 10000))
+#            ssh_process = subprocess.Popen(program, stdout=devNull,
+#                           stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+            expectations = [self.command_prompt ,pexpect.TIMEOUT,pexpect.EOF]
+            i = ssh_process.expect(expectations,timeout=2)
+            if i == 0:
+                logic_logger.info("Host header:" + str(ssh_process.before))
+            ssh_process.sendline('#test ' + self.separator_string)
+            expectations = [self.separator_string + '(.*?)' + self.command_prompt ,pexpect.TIMEOUT,pexpect.EOF]
+            i = ssh_process.expect(expectations,timeout=10)
+            if i == 0:
+                logic_logger.info("Test ssh execution:" + str(ssh_process.before))
+                self.ssh_connections[(host, username)] = ssh_process
+                return ssh_process
+            else :
+                logic_logger.warning("Unable to get connection to " + username + '@' + host + ' pexpect got: ' + str(expectations[i]))
+                raise RuntimeError()
+            ssh_process.terminate()
+            self.ssh_connections[(host, username)] = None
+            return None
+
+    def run_command(self,host='', username='', password='',command=''):
+        ssh_process = self._get_connection(host=host, username=username, password=password)
+        if ssh_process:
+            ssh_process.sendline(command)
+#            ssh_process.sendline('#' + self.separator_string)
+#            expectations = [self.separator_string + '(.*?)' + self.command_prompt,pexpect.TIMEOUT,pexpect.EOF]
+            expectations = [self.command_prompt,pexpect.TIMEOUT,pexpect.EOF]
+            i = ssh_process.expect(expectations,timeout=10)
+            if i == 0:
+                cleaned_out=''
+                for line in ssh_process.before.splitlines():
+                    cleaned_out = cleaned_out + (line + str.encode('\n')).decode()
+#                out = ssh_process.before
+                return cleaned_out
+            else:
+                logic_logger.warning("Uneexpected result: " + str(expectations[i].__name__) + "<- before ->" + str(ssh_process.before))
+
+        else:
+            logic_logger.warning("Unable to get connection to " + username + '@' + host)
 

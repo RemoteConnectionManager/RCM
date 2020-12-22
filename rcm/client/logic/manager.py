@@ -53,7 +53,7 @@ class RemoteConnectionManager:
 
     def __init__(self):
         ssh_method_selector={'internal': (SSHTunnelForwarder,plugin.ParamikoCommandExecutor),
-                             'external': (NativeSSHTunnelForwarder,plugin.ParamikoCommandExecutor) }
+                             'external': (NativeSSHTunnelForwarder,plugin.SSHCommandExecutor) }
         try:
             (self.tunnel_forwarder_class, command_executor_class) = ssh_method_selector[json.loads(parser.get('Settings', 'ssh_client'))]
         except Exception:
