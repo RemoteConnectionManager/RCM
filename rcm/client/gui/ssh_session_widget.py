@@ -34,7 +34,7 @@ from PyQt5.QtCore import QSize, pyqtSignal, Qt
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
     QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, \
-    QStyle, QProgressBar, QMessageBox
+    QStyle, QProgressBar, QMessageBox, QInputDialog
 
 # local includes
 from client.gui.display_dialog import QDisplayDialog
@@ -48,6 +48,7 @@ from client.gui.thread import LoginThread, ReloadThread
 from client.gui.worker import Worker
 from client.utils.rcm_enum import Status
 import client.logic.rcm_utils as rcm_utils
+import client.logic.plugin as plugin
 import client.utils.pyinstaller_utils as pyinstaller_utils
 
 
@@ -345,9 +346,9 @@ class QSSHSessionWidget(QWidget):
         except ValueError:
             pass
 
-    def create_remote_connection_manager(self):
-        if not self.remote_connection_manager:
-            self.remote_connection_manager = manager.RemoteConnectionManager()
+#unused    def create_remote_connection_manager(self):
+#unused        if not self.remote_connection_manager:
+#unused            self.remote_connection_manager = manager.RemoteConnectionManager()
 
     def login(self):
         if self.user != str(self.user_line.text()):
@@ -388,12 +389,25 @@ class QSSHSessionWidget(QWidget):
         self.containerSessionWidget.hide()
         self.containerWaitingWidget.show()
 
-        self.remote_connection_manager = manager.RemoteConnectionManager()
+        self.plugin_registry = plugin.PluginRegistry()
+        ssh_command_prompt_handlers=[('First Factor:',self.login_popup_dialog), ('Second Factor:',self.login_popup_dialog)]
+        self.plugin_registry.register_plugins_params('CommandExecutor',{'prompt_handlers': ssh_command_prompt_handlers})
+        self.remote_connection_manager = manager.RemoteConnectionManager(plugin_registry=self.plugin_registry)
         self.remote_connection_manager.debug = False
 
         self.login_thread = LoginThread(self, self.host, self.user, password, preload=self.preload)
         self.login_thread.finished.connect(self.on_logged)
         self.login_thread.start()
+
+    def login_popup_dialog(self,title_text='',ok_text='Ok'):
+        print("prompt is -->" + title_text)
+        #text, ok = QInputDialog.getText(self, title_text, ok_text)
+        line = input()
+        print("received -->" + line+"<--")
+        text=line.strip()
+        ok=True
+        return (text, ok)
+
 
     def on_logged(self):
         if self.is_logged:

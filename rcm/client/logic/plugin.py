@@ -345,9 +345,13 @@ class NativeSSHTunnelForwarder(object):
             self.tunnel_process.close(force=True)
             self.tunnel_process = None
 
+class WrappedNativeSSHTunnelForwarder():
+    def __init__(self, *args, **kwargs):
+        pass
+
 
 class ParamikoCommandExecutor(object):
-    def __init__(self):
+    def __init__(self,*args, **kwargs):
         self.ssh_connections={}
         super(ParamikoCommandExecutor, self).__init__()
 
@@ -387,11 +391,11 @@ class ParamikoCommandExecutor(object):
 
 
 class SSHCommandExecutor(object):
-    def __init__(self, command_prompt='\[[^\]]*\]\$ ', ):
+    def __init__(self, command_prompt='\[[^\]]*\]\$ ', prompt_handlers=[]):
         self.ssh_connections={}
         self.ssh_exe = SSHExecutable()
         self.command_prompt = command_prompt
-        self.separator_string = 'very_unlikely_string_that_should_not_appear_anyway_anytime_in_any_output_by_any_chance_ever'
+        self.prompt_handlers=prompt_handlers
         self.separator_string = r'veryunlikelystring'
         super(SSHCommandExecutor, self).__init__()
 
@@ -404,8 +408,19 @@ class SSHCommandExecutor(object):
             ssh_process = pexpect.spawn(self.ssh_exe.command +" " + username + '@' + host, dimensions=(100, 10000))
 #            ssh_process = subprocess.Popen(program, stdout=devNull,
 #                           stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-            expectations = [self.command_prompt ,pexpect.TIMEOUT,pexpect.EOF]
-            i = ssh_process.expect(expectations,timeout=2)
+            expectations=[]
+            for (prompt,handler) in self.prompt_handlers:
+                expectations.append(prompt)
+
+            expectations = expectations + [self.command_prompt,pexpect.TIMEOUT,pexpect.EOF]
+            i = ssh_process.expect(expectations,timeout=4)
+            while i < len(self.prompt_handlers):
+                (prompt,handler) = self.prompt_handlers[i]
+                (password, ok) = handler(prompt)
+                print("---------received-->"+password+"<@@@@@")
+                ssh_process.sendline(password)
+                i = ssh_process.expect(expectations, timeout=20)
+                print("got i: " + str(i))
             if i == 0:
                 logic_logger.info("Host header:" + str(ssh_process.before))
             ssh_process.sendline('#test ' + self.separator_string)
@@ -429,7 +444,7 @@ class SSHCommandExecutor(object):
 #            ssh_process.sendline('#' + self.separator_string)
 #            expectations = [self.separator_string + '(.*?)' + self.command_prompt,pexpect.TIMEOUT,pexpect.EOF]
             expectations = [self.command_prompt,pexpect.TIMEOUT,pexpect.EOF]
-            i = ssh_process.expect(expectations,timeout=10)
+            i = ssh_process.expect(expectations,timeout=200)
             if i == 0:
                 cleaned_out=''
                 for line in ssh_process.before.splitlines():
@@ -441,4 +456,48 @@ class SSHCommandExecutor(object):
 
         else:
             logic_logger.warning("Unable to get connection to " + username + '@' + host)
+
+
+
+class PluginRegistry():
+    def __init__(self):
+        self.plugins={}
+
+        ssh_method_selector={'internal': (sshtunnel.SSHTunnelForwarder,ParamikoCommandExecutor),
+                             'external': (NativeSSHTunnelForwarder,SSHCommandExecutor) }
+        try:
+            (tunnel_forwarder_class, command_executor_class) = ssh_method_selector[json.loads(parser.get('Settings', 'ssh_client'))]
+        except Exception:
+            (tunnel_forwarder_class, command_executor_class) = ssh_method_selector["internal"]
+            logic_logger.warning("invalid ssh_client setting, resort to internal" )
+
+        self.plugins['TunnelForwarder'] = [tunnel_forwarder_class, {}, None]
+        self.plugins['CommandExecutor'] = [command_executor_class, {}, None]
+        message=''
+        for plug_type in self.plugins:
+            message += plug_type + ": " + str(self.plugins[plug_type][0].__module__) + '.' + str(self.plugins[plug_type][0].__name__)
+        logic_logger.info(message)
+
+    def CommandExecutor(self):
+        if not 'CommandExecutor' in self.plugin_dict:
+            self.plugin_dict['CommandExecutor'] = ParamikoCommandExecutor()
+        return self.plugin_dict['CommandExecutor']
+
+    def register_plugins_params(self,name,params={}):
+        if name in self.plugins:
+            self.plugins[name][1] = params
+        else:
+            logic_logger.warning("Invalid plugin name: >" + name + "< registering params")
+
+    def get_instance(self, name):
+        if name in self.plugins:
+            if None == self.plugins[name][2]:
+                logic_logger.debug("Istanciating plugin : >" + name + "< class: " +
+                                   str(self.plugins[name][0].__module__) + '.' + str(self.plugins[name][0].__name__) +
+                                   "params: >" + str(self.plugins[name][1]) + "<:::::")
+                self.plugins[name][2] = self.plugins[name][0](**self.plugins[name][1])
+            return self.plugins[name][2]
+        else:
+            logic_logger.error("Invalid plugin name: >" + name + "< asking plugin instance")
+
 

@@ -24,6 +24,8 @@ import sys
 import json
 import os
 import socket
+import traceback
+
 #import paramiko
 from sshtunnel import SSHTunnelForwarder
 from client.logic.plugin import NativeSSHTunnelForwarder
@@ -51,18 +53,13 @@ class RemoteConnectionManager:
     create/start/kill/list display remote sessions.
     """
 
-    def __init__(self):
-        ssh_method_selector={'internal': (SSHTunnelForwarder,plugin.ParamikoCommandExecutor),
-                             'external': (NativeSSHTunnelForwarder,plugin.SSHCommandExecutor) }
+    def __init__(self, plugin_registry=None):
         try:
-            (self.tunnel_forwarder_class, command_executor_class) = ssh_method_selector[json.loads(parser.get('Settings', 'ssh_client'))]
-        except Exception:
-            (self.tunnel_forwarder_class, command_executor_class) = ssh_method_selector["internal"]
-            logic_logger.warning("invalid ssh_client setting, resort to internal" )
-        logic_logger.info("Using tunnel forwarder: " +  str(self.tunnel_forwarder_class.__module__) + '.' + str(self.tunnel_forwarder_class.__name__) +
-                          " command_executor: " + str(command_executor_class.__module__) + '.' + str(command_executor_class.__name__))
+            self.ssh_command_executor = plugin_registry.get_instance('CommandExecutor')
+            self.tunnel_forwarder_class = plugin_registry.plugins['TunnelForwarder'][0]
+        except Exception as e:
+            logic_logger.error(str(e) + " - " + str(traceback.format_exc()))
 
-        self.ssh_command_executor = command_executor_class()
         self.user = ''
         self.password = ''
         self.auth_method = ''
@@ -145,16 +142,17 @@ class RemoteConnectionManager:
         #     logic_logger.warning(err)
 
         out = self.ssh_command_executor.run_command(host=host, username=self.user, password=self.password, command=fullcommand)
+        if out :
+            # find where the real server output starts
+            index = out.find(rcm.serverOutputString)
+            if index != -1:
+                index += len(rcm.serverOutputString)
+                out = out[index:]
+                return out
+            else:
+                logic_logger.error("Missing serverOutputString: {0} in server output".format(rcm.serverOutputString))
 
-        # find where the real server output starts
-        index = out.find(rcm.serverOutputString)
-        if index != -1:
-            index += len(rcm.serverOutputString)
-            out = out[index:]
-        else:
-            logic_logger.error("Missing serverOutputString: {0} in server output".format(rcm.serverOutputString))
 
-        return out
 
     def list(self):
         # Get the list of sessions for each login node of the cluster
