@@ -18,7 +18,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from PyQt5.QtCore import QThread, Qt
+from PyQt5.QtCore import QThread, Qt,pyqtSignal
 import traceback
 
 # local includes
@@ -27,6 +27,9 @@ from client.utils.rcm_enum import Status
 
 
 class LoginThread(QThread):
+
+    prompt=pyqtSignal(str)
+
     def __init__(self, session_widget, host, user, password, preload=''):
         QThread.__init__(self)
 
@@ -35,6 +38,7 @@ class LoginThread(QThread):
         self.user = user
         self.password = password
         self.preload=preload
+
 
     def run(self):
         try:

@@ -60,6 +60,7 @@ class QSSHSessionWidget(QWidget):
 
     # define a signal when the user successful log in
     logged_in = pyqtSignal(str, str)
+    prompt_response_signal=pyqtSignal(str)
 
     sessions_changed = pyqtSignal(collections.deque, collections.deque)
 
@@ -101,6 +102,12 @@ class QSSHSessionWidget(QWidget):
         self.init_ui()
 
         self.uuid = uuid.uuid4().hex
+
+        self.prompt_response=None
+        self.prompt_response_signal.connect(self.set_prompt_response)
+
+    def set_prompt_response(self,text):
+        self.prompt_response = text
 
     def init_ui(self):
         """
@@ -397,16 +404,26 @@ class QSSHSessionWidget(QWidget):
 
         self.login_thread = LoginThread(self, self.host, self.user, password, preload=self.preload)
         self.login_thread.finished.connect(self.on_logged)
+        self.login_thread.prompt.connect(self.real_popup_dialog)
+
         self.login_thread.start()
+
+    def real_popup_dialog(self,title_text):
+        text, ok = QInputDialog.getText(self, title_text, 'Ok')
+        self.prompt_response_signal.emit(text)
 
     def login_popup_dialog(self,title_text='',ok_text='Ok'):
         print("prompt is -->" + title_text)
+        self.prompt_response=None
+        self.login_thread.prompt.emit(title_text)
         #text, ok = QInputDialog.getText(self, title_text, ok_text)
-        line = input()
-        print("received -->" + line+"<--")
-        text=line.strip()
+        #line = input()
+        while None == self.prompt_response:
+            time.sleep(1)
+        print("received -->" + self.prompt_response + "<--")
+        #text=line.strip()
         ok=True
-        return (text, ok)
+        return ( self.prompt_response, ok)
 
 
     def on_logged(self):
