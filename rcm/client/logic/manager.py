@@ -151,6 +151,7 @@ class RemoteConnectionManager:
                 return out
             else:
                 logic_logger.error("Missing serverOutputString: {0} in server output".format(rcm.serverOutputString))
+                logic_logger.error(out)
 
 
 
