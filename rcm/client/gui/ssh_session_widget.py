@@ -397,7 +397,7 @@ class QSSHSessionWidget(QWidget):
         self.containerWaitingWidget.show()
 
         self.plugin_registry = plugin.PluginRegistry()
-        ssh_command_prompt_handlers=[('First Factor:',self.login_popup_dialog), ('Second Factor:',self.login_popup_dialog)]
+        ssh_command_prompt_handlers=[('First Factor:',self.login_popup_dialog), ('Second Factor:',self.login_popup_dialog), ('password:',self.login_popup_dialog)]
         self.plugin_registry.register_plugins_params('CommandExecutor',{'prompt_handlers': ssh_command_prompt_handlers})
         self.remote_connection_manager = manager.RemoteConnectionManager(plugin_registry=self.plugin_registry)
         self.remote_connection_manager.debug = False
