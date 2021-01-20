@@ -106,8 +106,13 @@ class SessionThread(threading.Thread):
                 remote_bind_address=(self.node, self.portnumber),
                 local_bind_address=('127.0.0.1', self.local_portnumber)
         ) as self.ssh_server:
-
-            self.service_process = subprocess.Popen(shlex.split(self.service_command),
+            arguments = shlex.split(self.service_command)
+            if '"\\' == self.service_command[0:2]:
+                arguments=['\\'+arguments[0]]+arguments[1:]
+            logic_logger.debug("running service command: " + self.service_command)
+            logic_logger.debug("shlex: " + str(shlex.split(self.service_command)))
+            print("shlex-->"+shlex.split(self.service_command)[0]+"<--")
+            self.service_process = subprocess.Popen(arguments,
                                                     bufsize=1,
                                                     stdout=subprocess.PIPE,
                                                     stderr=subprocess.PIPE,
