@@ -26,6 +26,7 @@ import pexpect
 import subprocess
 if sys.platform == 'win32':
     from pexpect.popen_spawn import PopenSpawn
+    import signal
 import threading
 import sshtunnel
 import paramiko
@@ -95,6 +96,17 @@ class Executable(object):
         """
         return self.exe[0]
 
+    @property
+    def bundle_path(self):
+        if not hasattr(self, 'bundle_prefix'):
+            RCM_CI_base_folder = os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
+            self.bundle_prefix = os.path.join(RCM_CI_base_folder,
+                                              'external',
+                                              'turbovnc_bundle',
+                                              platform_match_table.get(sys.platform, sys.platform),
+                                              platform.architecture()[0])
+        return self.bundle_prefix
 
 class TurboVNCExecutable(Executable):
     def __init__(self):
@@ -106,16 +118,10 @@ class TurboVNCExecutable(Executable):
         else:
             exe = rcm_utils.which('vncviewer')
             if not exe:
-                RCM_CI_base_folder =   os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
-                CI_external_prefix = os.path.join(RCM_CI_base_folder,
-                                                  'external',
-                                                  'turbovnc_bundle',
-                                                  platform_match_table.get(sys.platform, sys.platform),
-                                                  platform.architecture()[0])
-                logic_logger.warning("vncviewer not found in PATH environment variable: " + str(os.environ.get('PATH','')) + " searching local external: " + CI_external_prefix)
-                exe = rcm_utils.which('vncviewer',path=[os.path.join(CI_external_prefix, 'bin')])
+                logic_logger.warning("vncviewer not found in PATH environment variable: " + str(os.environ.get('PATH','')) + " searching local external: " +self.bundle_path )
+                exe = rcm_utils.which('vncviewer',path=[os.path.join(self.bundle_path, 'bin')])
                 if exe:
-                    os.environ['JAVA_HOME'] = CI_external_prefix
+                    os.environ['JAVA_HOME'] = self.bundle_path
                     self.set_env()
                 else:
                     logic_logger.error("vncviewer not found! " )
@@ -214,6 +220,10 @@ class SSHExecutable(Executable):
         # ssh executable
         if sys.platform == 'win32':
             exe = rcm_utils.which('PLINK')
+            if not exe:
+                logic_logger.warning("PLINK not found in PATH environment variable: " + str(os.environ.get('PATH','')) + " searching local external: " +self.bundle_path )
+                exe = rcm_utils.which('PLINK',path=[os.path.join(self.bundle_path, 'bin')])
+            print("#############"+exe)
         else:
             exe = rcm_utils.which('ssh')
         if not exe:
@@ -342,7 +352,10 @@ class NativeSSHTunnelForwarder(object):
     def stop(self):
         if self.tunnel_process:
             logic_logger.debug("Stopping ssh tunnelling")
-            self.tunnel_process.close(force=True)
+            if sys.platform == 'win32':
+                self.tunnel_process.kill(signal.SIGINT)
+            else:
+                self.tunnel_process.close(force=True)
             self.tunnel_process = None
 
 class WrappedNativeSSHTunnelForwarder():
@@ -402,10 +415,19 @@ class SSHCommandExecutor(object):
     def _get_connection(self,host='', username='', password=''):
         ssh_process =  self.ssh_connections.get((host, username), None)
         if ssh_process :
-            if ssh_process.isalive():
+            if sys.platform != 'win32':
+                if ssh_process.isalive():
+                    return ssh_process
+            else:
                 return ssh_process
         else:
-            ssh_process = pexpect.spawn(self.ssh_exe.command +" " + username + '@' + host, dimensions=(100, 10000))
+            if sys.platform == 'win32':
+                print("spawning-->"+self.ssh_exe.command +" " + username + '@' + host+"<---")
+                ssh_process = pexpect.popen_spawn.PopenSpawn(self.ssh_exe.command +" " + username + '@' + host,maxread=10000)
+                print("@@@@@@@@@@@@@@@spawnwd")
+            else:
+                ssh_process = pexpect.spawn(self.ssh_exe.command +" " + username + '@' + host, dimensions=(100, 10000))
+
 #            ssh_process = subprocess.Popen(program, stdout=devNull,
 #                           stdin=subprocess.PIPE, stderr=subprocess.PIPE)
             expectations=[]
@@ -414,6 +436,7 @@ class SSHCommandExecutor(object):
 
             expectations = expectations + [self.command_prompt,pexpect.TIMEOUT,pexpect.EOF]
             i = ssh_process.expect(expectations,timeout=4)
+            print("SONO qui... tornato: " + str(i))
             while i < len(self.prompt_handlers):
                 (prompt,handler) = self.prompt_handlers[i]
                 (password, ok) = handler(prompt)
@@ -440,14 +463,35 @@ class SSHCommandExecutor(object):
     def run_command(self,host='', username='', password='',command=''):
         ssh_process = self._get_connection(host=host, username=username, password=password)
         if ssh_process:
-            ssh_process.sendline(command)
+            expectations = [self.command_prompt,pexpect.TIMEOUT,pexpect.EOF]
+            if sys.platform == 'win32':
+#                (rows, cols) = ssh_process.getwinsize()
+#                logic_logger.debug("ssh_process win size: " + str((rows, cols)))
+                ssh_process.sendline("\r\n")
+                i=ssh_process.expect(expectations,timeout=1)
+                while i == 0:
+                    logic_logger.info("SKIPPING: " + str(expectations[i]) + "<- before ->" + str(ssh_process.before))
+                    i=ssh_process.expect(expectations,timeout=1)
+                ssh_process.sendline(command+"\r\n")
+            
+#                i = ssh_process.expect(expectations,timeout=50)
+#                if i != 0 :
+#                    logic_logger.error("Uneexpected result: " + str(expectations[i]) + "<- before ->" + str(ssh_process.before))
+#                    return ''
+#                else:
+#                    logic_logger.info(
+#                        "Ready for command before ##>" + str(ssh_process.before)+"<##")
+            else:
+                ssh_process.sendline(command)
+            logic_logger.debug("@@@sent line##>"+command+"<##")
 #            ssh_process.sendline('#' + self.separator_string)
 #            expectations = [self.separator_string + '(.*?)' + self.command_prompt,pexpect.TIMEOUT,pexpect.EOF]
-            expectations = [self.command_prompt,pexpect.TIMEOUT,pexpect.EOF]
-            i = ssh_process.expect(expectations,timeout=200)
+            i = ssh_process.expect(expectations,timeout=50)
             if i == 0:
+                logic_logger.debug("uuuuuuuuuuuu@@@received line##>"+str(ssh_process.before)+"<##")
                 cleaned_out=''
                 for line in ssh_process.before.splitlines():
+                    logic_logger.debug("@@@received line##@"+str(line)+"@##")
                     cleaned_out = cleaned_out + (line + str.encode('\n')).decode()
 #                out = ssh_process.before
                 return cleaned_out
