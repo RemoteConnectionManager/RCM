@@ -409,7 +409,7 @@ class QSSHSessionWidget(QWidget):
         self.login_thread.start()
 
     def real_popup_dialog(self,title_text):
-        text, ok = QInputDialog.getText(self, title_text, 'Ok')
+        text, ok = QInputDialog.getText(self, title_text, 'Ok',QLineEdit.Password)
         self.prompt_response_signal.emit(text)
 
     def login_popup_dialog(self,title_text='',ok_text='Ok'):
