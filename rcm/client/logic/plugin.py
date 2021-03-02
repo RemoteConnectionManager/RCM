@@ -288,7 +288,8 @@ class NativeSSHTunnelForwarder(object):
                  ssh_proxy_enabled=True,
                  ssh_username=None,
                  remote_bind_address=None,
-                 local_bind_address=None):
+                 local_bind_address=None,
+                 prompt_handlers=[]):
 
         ssh_exe = SSHTunnelExecutable()
         ssh_exe.build(login_node=ssh_address_or_host[0],
@@ -412,6 +413,8 @@ class SSHCommandExecutor(object):
         self.separator_string = r'veryunlikelystring'
         super(SSHCommandExecutor, self).__init__()
 
+
+
     def _get_connection(self,host='', username='', password=''):
         ssh_process =  self.ssh_connections.get((host, username), None)
         if ssh_process :
@@ -448,7 +451,7 @@ class SSHCommandExecutor(object):
                 logic_logger.info("Host header:" + str(ssh_process.before))
             ssh_process.sendline('#test ' + self.separator_string)
             expectations = [self.separator_string + '(.*?)' + self.command_prompt ,pexpect.TIMEOUT,pexpect.EOF]
-            i = ssh_process.expect(expectations,timeout=10)
+            i = ssh_process.expect(expectations,timeout=20)
             if i == 0:
                 logic_logger.info("Test ssh execution:" + str(ssh_process.before))
                 self.ssh_connections[(host, username)] = ssh_process
