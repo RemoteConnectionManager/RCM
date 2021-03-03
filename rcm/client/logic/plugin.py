@@ -19,6 +19,7 @@
 #
 
 import sys
+import platform
 import os
 import json
 import pexpect
@@ -33,6 +34,7 @@ from client.utils.pyinstaller_utils import resource_path
 import client.logic.cipher as cipher
 from client.miscellaneous.config_parser import parser, defaults
 
+platform_match_table = {'linux2': 'linux'}
 
 class Executable(object):
     """Class representing a program that can be run on the command line."""
@@ -101,7 +103,19 @@ class TurboVNCExecutable(Executable):
         else:
             exe = rcm_utils.which('vncviewer')
             if not exe:
-                logic_logger.error("vncviewer not found! Check the PATH environment variable.")
+                RCM_CI_base_folder =   os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
+                CI_external_prefix = os.path.join(RCM_CI_base_folder,
+                                                  'external',
+                                                  'turbovnc_bundle',
+                                                  platform_match_table.get(sys.platform, sys.platform),
+                                                  platform.architecture()[0])
+                logic_logger.warning("vncviewer not found in PATH environment variable: " + str(os.environ.get('PATH','')) + " searching local external: " + CI_external_prefix)
+                exe = rcm_utils.which('vncviewer',path=[os.path.join(CI_external_prefix, 'bin')])
+                if exe:
+                    os.environ['JAVA_HOME'] = CI_external_prefix
+                    self.set_env()
+                else:
+                    logic_logger.error("vncviewer not found! " )
             if sys.platform == 'win32':
                 # if the executable path contains spaces, it has to be put inside apexes
                 exe = "\"" + exe + "\""
@@ -130,7 +144,7 @@ class TurboVNCExecutable(Executable):
                     dest_dir = os.path.join(rcm_unprotected_path, 'turbovnc')
                     rcm_utils.copytree(resource_path('turbovnc'), dest_dir)
                     os.environ['JAVA_HOME'] = dest_dir
-
+        if os.environ.get('JAVA_HOME',''):
             os.environ['JDK_HOME'] = os.environ['JAVA_HOME']
             os.environ['JRE_HOME'] = os.path.join(os.environ['JAVA_HOME'], 'jre')
             os.environ['CLASSPATH'] = os.path.join(os.environ['JAVA_HOME'], 'lib') + \
