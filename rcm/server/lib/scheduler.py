@@ -390,13 +390,16 @@ class SlurmScheduler(BatchScheduler):
                     reservation_name = reservation_name_match.group(1)
                     part_keys = OrderedDict()
                     for field in l.split(' '):
-                        key,val = field.split('=',1)
-                        if key in keywords:
-                            if ',' in val:
-                                part_keys[key] = val.split(',')
-                            else:
-                                if val != '(null)':
-                                    part_keys[key] = val
+                        #key,val = field.split('=',1)
+                        keyval=field.split('=',1)
+                        if 2==len(keyval):
+                            key,val = keyval
+                            if key in keywords:
+                                if ',' in val:
+                                    part_keys[key] = val.split(',')
+                                else:
+                                    if val != '(null)':
+                                        part_keys[key] = val
                     reservations[reservation_name] = part_keys
 
         return reservations

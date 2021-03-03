@@ -19,7 +19,7 @@ Please refer to README files in client and server subfolder.
 Please use the issue page in this repository to report bugs.
 
 ## Contacts
-* To be added 
+* Luigi Calori : Same lowercase name on gmail or first name letter dot   lowercase last name at cineca dot it
 
 ##  Literature on RCM
 * To be added
