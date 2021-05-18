@@ -427,7 +427,7 @@ class SSHCommandExecutor(object):
             if sys.platform == 'win32':
                 print("spawning-->"+self.ssh_exe.command +" " + username + '@' + host+"<---")
                 ssh_process = pexpect.popen_spawn.PopenSpawn(self.ssh_exe.command +" " + username + '@' + host,maxread=10000)
-                print("@@@@@@@@@@@@@@@spawnwd")
+                print("@@@@@@@@@@@@@@@spawnwd " + self.ssh_exe.command +" " + username + '@' + host)
             else:
                 ssh_process = pexpect.spawn(self.ssh_exe.command +" " + username + '@' + host, dimensions=(100, 10000))
 
@@ -439,10 +439,10 @@ class SSHCommandExecutor(object):
 
             expectations = expectations + [self.command_prompt,pexpect.TIMEOUT,pexpect.EOF]
             i = ssh_process.expect(expectations,timeout=4)
-            print("SONO qui... tornato: " + str(i))
+            print("SONO qui... tornato: " + str(i) + str(expectations))
             while i < len(self.prompt_handlers):
                 (prompt,handler) = self.prompt_handlers[i]
-                (password, ok) = handler(prompt)
+                (password, ok) = handler(   ssh_process.match.group(0).decode("utf-8") )   #prompt)
                 print("---------received-->"+password+"<@@@@@")
                 ssh_process.sendline(password)
                 i = ssh_process.expect(expectations, timeout=20)

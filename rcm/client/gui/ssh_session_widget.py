@@ -357,6 +357,26 @@ class QSSHSessionWidget(QWidget):
 #unused        if not self.remote_connection_manager:
 #unused            self.remote_connection_manager = manager.RemoteConnectionManager()
 
+    def send_password(self,received_prompt=''):
+        print("sending password prompt is -->" + received_prompt )
+        return ( self.password, True)
+
+
+    def login_popup_dialog(self,title_text='',ok_text='Ok'):
+        print("prompt is -->" + title_text)
+        self.prompt_response=None
+        self.login_thread.prompt.emit(title_text)
+        #text, ok = QInputDialog.getText(self, title_text, ok_text)
+        #line = input()
+        while None == self.prompt_response:
+            time.sleep(1)
+        print("received -->" + self.prompt_response + "<--")
+        #text=line.strip()
+        ok=True
+        return ( self.prompt_response, ok)
+
+
+
     def login(self):
         if self.user != str(self.user_line.text()):
             self.user = str(self.user_line.text())
@@ -367,7 +387,7 @@ class QSSHSessionWidget(QWidget):
         if self.preload != str(self.preload_line.text()):
             self.preload = str(self.preload_line.text())
             self.session_name = ''
-        password = str(self.pssw_line.text())
+        self.password = str(self.pssw_line.text())
 
         if not self.host:
             logger.warning("Host field is empty")
@@ -397,33 +417,30 @@ class QSSHSessionWidget(QWidget):
         self.containerWaitingWidget.show()
 
         self.plugin_registry = plugin.PluginRegistry()
-        ssh_command_prompt_handlers=[('First Factor:',self.login_popup_dialog), ('Second Factor:',self.login_popup_dialog), ('password:',self.login_popup_dialog)]
+        if self.password:
+            password_handler = self.send_password
+        else:
+            password_handler = self.login_popup_dialog
+
+        ssh_command_prompt_handlers=[('Second Factor:',self.login_popup_dialog),
+                                     ('First Factor:',password_handler),
+        #                             (':', self.login_popup_dialog),
+                                     ('[^S]*Second Factor \(optional\):',self.login_popup_dialog),
+                                     ('[^U]*Update cached key?[^\)]*\)',self.login_popup_dialog),
+                                     ('password:',password_handler)]
         self.plugin_registry.register_plugins_params('CommandExecutor',{'prompt_handlers': ssh_command_prompt_handlers})
         self.remote_connection_manager = manager.RemoteConnectionManager(plugin_registry=self.plugin_registry)
         self.remote_connection_manager.debug = False
 
-        self.login_thread = LoginThread(self, self.host, self.user, password, preload=self.preload)
+        self.login_thread = LoginThread(self, self.host, self.user, self.password, preload=self.preload)
         self.login_thread.finished.connect(self.on_logged)
         self.login_thread.prompt.connect(self.real_popup_dialog)
 
         self.login_thread.start()
 
     def real_popup_dialog(self,title_text):
-        text, ok = QInputDialog.getText(self, title_text, 'Ok',QLineEdit.Password)
+        text, ok = QInputDialog.getText(self, 'Prompt',title_text,QLineEdit.Password)
         self.prompt_response_signal.emit(text)
-
-    def login_popup_dialog(self,title_text='',ok_text='Ok'):
-        print("prompt is -->" + title_text)
-        self.prompt_response=None
-        self.login_thread.prompt.emit(title_text)
-        #text, ok = QInputDialog.getText(self, title_text, ok_text)
-        #line = input()
-        while None == self.prompt_response:
-            time.sleep(1)
-        print("received -->" + self.prompt_response + "<--")
-        #text=line.strip()
-        ok=True
-        return ( self.prompt_response, ok)
 
 
     def on_logged(self):
