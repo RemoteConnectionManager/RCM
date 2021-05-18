@@ -148,6 +148,8 @@ class RemoteConnectionManager:
             if index != -1:
                 index += len(rcm.serverOutputString)
                 out = out[index:]
+                trimindex= out.rindex(']0;') -1
+                out = out[:trimindex]
                 return out
             else:
                 logic_logger.error("Missing serverOutputString: {0} in server output".format(rcm.serverOutputString))
