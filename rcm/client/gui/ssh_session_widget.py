@@ -61,6 +61,7 @@ class QSSHSessionWidget(QWidget):
     # define a signal when the user successful log in
     logged_in = pyqtSignal(str, str)
     prompt_response_signal=pyqtSignal(str)
+    password_response_signal=pyqtSignal(str)
 
     sessions_changed = pyqtSignal(collections.deque, collections.deque)
 
@@ -105,9 +106,14 @@ class QSSHSessionWidget(QWidget):
 
         self.prompt_response=None
         self.prompt_response_signal.connect(self.set_prompt_response)
+        self.password_response=None
+        self.password_response_signal.connect(self.set_password_response)
 
     def set_prompt_response(self,text):
         self.prompt_response = text
+
+    def set_password_response(self,text):
+        self.password_response = text
 
     def init_ui(self):
         """
@@ -362,10 +368,18 @@ class QSSHSessionWidget(QWidget):
         return ( self.password, True)
 
 
+    def login_popup_password(self,title_text=''):
+        self.prompt_response=None
+        self.login_thread.password_signal.emit(title_text)
+        while None == self.prompt_response:
+            time.sleep(1)
+        ok=True
+        return ( self.prompt_response, ok)
+
     def login_popup_dialog(self,title_text='',ok_text='Ok'):
         print("prompt is -->" + title_text)
         self.prompt_response=None
-        self.login_thread.prompt.emit(title_text)
+        self.login_thread.prompt_signal.emit(title_text)
         #text, ok = QInputDialog.getText(self, title_text, ok_text)
         #line = input()
         while None == self.prompt_response:
@@ -374,7 +388,6 @@ class QSSHSessionWidget(QWidget):
         #text=line.strip()
         ok=True
         return ( self.prompt_response, ok)
-
 
 
     def login(self):
@@ -420,26 +433,35 @@ class QSSHSessionWidget(QWidget):
         if self.password:
             password_handler = self.send_password
         else:
-            password_handler = self.login_popup_dialog
+            password_handler = self.login_popup_password
 
         ssh_command_prompt_handlers=[('Second Factor:',self.login_popup_dialog),
                                      ('First Factor:',password_handler),
         #                             (':', self.login_popup_dialog),
                                      ('[^S]*Second Factor \(optional\):',self.login_popup_dialog),
                                      ('[^U]*Update cached key?[^\)]*\)',self.login_popup_dialog),
+                                     ('The authenticity of host.*',self.login_popup_dialog),
+                                     ('Warning: the ECDSA host key.*',self.login_popup_dialog),
+                                     ('WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED.*',self.login_popup_dialog),
                                      ('password:',password_handler)]
         self.plugin_registry.register_plugins_params('CommandExecutor',{'prompt_handlers': ssh_command_prompt_handlers})
+        self.plugin_registry.register_plugins_params('TunnelForwarder',{'prompt_handlers': ssh_command_prompt_handlers})
         self.remote_connection_manager = manager.RemoteConnectionManager(plugin_registry=self.plugin_registry)
         self.remote_connection_manager.debug = False
 
         self.login_thread = LoginThread(self, self.host, self.user, self.password, preload=self.preload)
         self.login_thread.finished.connect(self.on_logged)
-        self.login_thread.prompt.connect(self.real_popup_dialog)
+        self.login_thread.prompt_signal.connect(self.real_popup_dialog)
+        self.login_thread.password_signal.connect(self.real_popup_password)
 
         self.login_thread.start()
 
     def real_popup_dialog(self,title_text):
-        text, ok = QInputDialog.getText(self, 'Prompt',title_text,QLineEdit.Password)
+        text, ok = QInputDialog.getText(self, 'Prompt',title_text)
+        self.prompt_response_signal.emit(text)
+
+    def real_popup_password(self,title_text):
+        text, ok = QInputDialog.getText(self, 'Password',title_text,QLineEdit.Password)
         self.prompt_response_signal.emit(text)
 
 

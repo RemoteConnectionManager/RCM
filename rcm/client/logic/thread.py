@@ -27,7 +27,7 @@ import os
 
 # local includes
 from client.miscellaneous.logger import logic_logger
-
+import client.logic.plugin as plugin
 
 
 class SessionThread(threading.Thread):
@@ -49,13 +49,9 @@ class SessionThread(threading.Thread):
                  local_port_number=0,
                  compute_node='',
                  port_number=0,
-                 tunnelling_class=None
+                 tunnelling_plugin=None
                  ):
         self.ssh_server = None
-        if tunnelling_class:
-            self.tunnelling_class = tunnelling_class
-        else:
-            self.tunnelling_class =SSHTunnelForwarder
 
         self.service_command = service_cmd
         self.service_process = None
@@ -70,6 +66,7 @@ class SessionThread(threading.Thread):
 
         self.gui_cmd = gui_cmd
         self.configFile = configFile
+        self.tunnelling_plugin = tunnelling_plugin
 
         threading.Thread.__init__(self)
         self.threadnum = SessionThread.threadscount
@@ -98,14 +95,22 @@ class SessionThread(threading.Thread):
 
     def execute_service_command_with_ssh_tunnel(self):
         default_ssh_pkey = os.path.join(os.path.abspath(os.path.expanduser("~")), '.ssh', 'id_rsa')
-        with self.tunnelling_class(
-                (self.host, 22),
-                ssh_username=self.username,
-                ssh_password=self.password,
-                ssh_pkey=default_ssh_pkey,
-                remote_bind_address=(self.node, self.portnumber),
-                local_bind_address=('127.0.0.1', self.local_portnumber)
-        ) as self.ssh_server:
+        additional_params = {'ssh_address_or_host':(self.host, 22),
+                             'ssh_username' : self.username,
+                             'ssh_password' : self.password,
+                             'ssh_pkey' : default_ssh_pkey,
+                             'remote_bind_address' : (self.node, self.portnumber),
+                             'local_bind_address' : ('127.0.0.1', self.local_portnumber)
+                             }
+        with plugin.get_plugin_instance(self.tunnelling_plugin, additional_params=additional_params, reuse_instance=False) as self.ssh_server:
+        # with self.tunnelling_class(
+        #         (self.host, 22),
+        #         ssh_username=self.username,
+        #         ssh_password=self.password,
+        #         ssh_pkey=default_ssh_pkey,
+        #         remote_bind_address=(self.node, self.portnumber),
+        #         local_bind_address=('127.0.0.1', self.local_portnumber)
+        # ) as self.ssh_server:
             arguments = shlex.split(self.service_command)
             if '"\\' == self.service_command[0:2]:
                 arguments=['\\'+arguments[0]]+arguments[1:]

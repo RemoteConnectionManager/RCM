@@ -291,6 +291,7 @@ class NativeSSHTunnelForwarder(object):
                  local_bind_address=None,
                  prompt_handlers=[]):
 
+        self.prompt_handlers = prompt_handlers
         ssh_exe = SSHTunnelExecutable()
         ssh_exe.build(login_node=ssh_address_or_host[0],
                       ssh_username=ssh_username,
@@ -305,7 +306,42 @@ class NativeSSHTunnelForwarder(object):
 
         super(NativeSSHTunnelForwarder, self).__init__()
 
+
     def __enter__(self):
+        if sys.platform == 'win32':
+            print("spawning-->"+self.tunnel_command+"<---")
+            self.tunnel_process = pexpect.popen_spawn.PopenSpawn(self.tunnel_command ,maxread=10000)
+            print("@@@@@@@@@@@@@@@spawnwd " + self.tunnel_command)
+        else:
+            self.tunnel_process = pexpect.spawn(self.tunnel_command, dimensions=(100, 10000))
+        expectations=[]
+        for (prompt,handler) in self.prompt_handlers:
+            expectations.append(prompt)
+
+        expectations = expectations + [pexpect.TIMEOUT,pexpect.EOF]
+        i = self.tunnel_process.expect(expectations,timeout=4)
+        print("SONO qui... tornato: " + str(i) + str(expectations))
+        while i < len(self.prompt_handlers):
+            (prompt,handler) = self.prompt_handlers[i]
+            (password, ok) = handler(   self.tunnel_process.match.group(0).decode("utf-8") )   #prompt)
+            print("---------received-->"+password+"<@@@@@")
+            self.tunnel_process.sendline(password)
+            i = self.tunnel_process.expect(expectations, timeout=20)
+            print("got i: " + str(i))
+
+        if sys.platform == 'win32':
+            print("--------- tunnel activated on win32 @@@@@")
+        else:
+            print("--------- waiting thread activated on linux @@@@@")
+            def wait():
+                self.tunnel_process.expect(pexpect.EOF)
+
+            self.thread_tunnel = threading.Thread(target=wait)
+            self.thread_tunnel.start()
+
+            return self
+
+    def __old__enter__(self):
         if sys.platform == 'win32':
             self.tunnel_process = pexpect.popen_spawn.PopenSpawn(self.tunnel_command)
 
@@ -536,15 +572,32 @@ class PluginRegistry():
         else:
             logic_logger.warning("Invalid plugin name: >" + name + "< registering params")
 
-    def get_instance(self, name):
+    def get_plugin(self, name):
         if name in self.plugins:
-            if None == self.plugins[name][2]:
-                logic_logger.debug("Istanciating plugin : >" + name + "< class: " +
-                                   str(self.plugins[name][0].__module__) + '.' + str(self.plugins[name][0].__name__) +
-                                   "params: >" + str(self.plugins[name][1]) + "<:::::")
-                self.plugins[name][2] = self.plugins[name][0](**self.plugins[name][1])
-            return self.plugins[name][2]
+            return self.plugins[name]
         else:
             logic_logger.error("Invalid plugin name: >" + name + "< asking plugin instance")
+            return None
+
+def get_plugin_instance(plugin, additional_params={}, reuse_instance=True):
+    if plugin:
+        #normally reuse unstance stored in the third field of passed plugin
+        if reuse_instance:
+            new_instance = plugin[2]
+        else:
+            new_instance = None
+        if None ==  new_instance:
+            logic_logger.debug("Istanciating plugin class: " +
+                               str(plugin[0].__module__) + '.' + str(plugin[0].__name__) +
+                               "params: >" + str(plugin[1]) + "<:::::")
+            all_params = dict()
+            all_params.update(plugin[1])
+            all_params.update(additional_params)
+            new_instance = plugin[0](**all_params)
+            if reuse_instance:
+                plugin[2] = new_instance
+        return new_instance
+    else:
+        logic_logger.error("None plugin passed")
 
 

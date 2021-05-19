@@ -28,7 +28,8 @@ from client.utils.rcm_enum import Status
 
 class LoginThread(QThread):
 
-    prompt=pyqtSignal(str)
+    prompt_signal=pyqtSignal(str)
+    password_signal=pyqtSignal(str)
 
     def __init__(self, session_widget, host, user, password, preload=''):
         QThread.__init__(self)

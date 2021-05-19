@@ -55,8 +55,8 @@ class RemoteConnectionManager:
 
     def __init__(self, plugin_registry=None):
         try:
-            self.ssh_command_executor = plugin_registry.get_instance('CommandExecutor')
-            self.tunnel_forwarder_class = plugin_registry.plugins['TunnelForwarder'][0]
+            self.ssh_command_executor = plugin.get_plugin_instance(plugin_registry.get_plugin('CommandExecutor'))
+            self.tunnel_forwarder_entry = plugin_registry.plugins['TunnelForwarder']
         except Exception as e:
             logic_logger.error(str(e) + " - " + str(traceback.format_exc()))
 
@@ -264,7 +264,7 @@ class RemoteConnectionManager:
                                   local_port_number,
                                   compute_node,
                                   port_number,
-                                  self.tunnel_forwarder_class)
+                                  self.tunnel_forwarder_entry)
 
         self.session_threads.append(st)
         st.start()
