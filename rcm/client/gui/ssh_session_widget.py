@@ -443,6 +443,7 @@ class QSSHSessionWidget(QWidget):
                                      ('The authenticity of host.*',self.login_popup_dialog),
                                      ('Warning: the ECDSA host key.*',self.login_popup_dialog),
                                      ('WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED.*',self.login_popup_dialog),
+                                     ('The server\'s host key is not cached in the registry.*',self.login_popup_dialog),
                                      ('password:',password_handler)]
         self.plugin_registry.register_plugins_params('CommandExecutor',{'prompt_handlers': ssh_command_prompt_handlers})
         self.plugin_registry.register_plugins_params('TunnelForwarder',{'prompt_handlers': ssh_command_prompt_handlers})
