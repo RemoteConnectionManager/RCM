@@ -326,7 +326,7 @@ class NativeSSHTunnelForwarder(object):
             (password, ok) = handler(   self.tunnel_process.match.group(0).decode("utf-8") )   #prompt)
             print("---------received-->"+password+"<@@@@@")
             self.tunnel_process.sendline(password)
-            i = self.tunnel_process.expect(expectations, timeout=20)
+            i = self.tunnel_process.expect(expectations, timeout=5)
             print("got i: " + str(i))
 
         if sys.platform == 'win32':
@@ -334,7 +334,7 @@ class NativeSSHTunnelForwarder(object):
         else:
             print("--------- waiting thread activated on linux @@@@@")
             def wait():
-                self.tunnel_process.expect(pexpect.EOF)
+                self.tunnel_process.expect(pexpect.EOF, timeout=1000000)
 
             self.thread_tunnel = threading.Thread(target=wait)
             self.thread_tunnel.start()
