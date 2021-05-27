@@ -75,26 +75,27 @@ def store_secret(hostname='', username='', secret='', type='otp'):
 
 def test_keyring():
     active_keyring = keyring.get_keyring()
-    print("keyring: " + active_keyring.name + " Viable: " + str(active_keyring.viable) + " appid: " + str(active_keyring.appid))
+#    print("keyring: " + active_keyring.name + " Viable: " + str(active_keyring.viable) + " appid: " + str(active_keyring.appid))
     print(dir(active_keyring))
-    pref_coll = active_keyring.get_preferred_collection()
-    print(dir(pref_coll))
-    print("Preferred collection: " +
-          " Path: " + pref_coll.collection_path +
-          " Label: " +  pref_coll.get_label() +
-          " Locked: " + str(pref_coll.is_locked()) +
-          " session: " + str(pref_coll.session) +
-          " connection: " + str(pref_coll.connection)
-          )
-
+#linux    pref_coll = active_keyring.get_preferred_collection()
+#linux    print(dir(pref_coll))
+#linux    print("Preferred collection: " +
+#linux          " Path: " + pref_coll.collection_path +
+#linux          " Label: " +  pref_coll.get_label() +
+#linux          " Locked: " + str(pref_coll.is_locked()) +
+#linux          " session: " + str(pref_coll.session) +
+#linux          " connection: " + str(pref_coll.connection)
+#linux          )
+#linux
 #    for i in pref_coll.search_items({'application': 'Python keyring library'}):
 #        print("Deleting Item label: " + i.get_label() + " Attrib: " + str(i.get_attributes()))
 #        i.delete()
 
-    pref_coll.create_item('mylabel',{'application': 'Python keyring library', 'service': 'system', 'username': 'username','type':'otp'},'pluto')
-    store_secret('cineca.it','lcalori0','paperopoli__otp')
-    store_secret('m100.cineca.it','lcalori0','quackstreet__otp')
-    store_secret('m100.cineca.it','lcalori0','quackstreet__pass',type='password')
+#linux    pref_coll.create_item('mylabel',{'application': 'Python keyring library', 'service': 'system', 'username': 'username','type':'otp'},'pluto')
+#    store_secret('cineca.it','lcalori0','paperopoli__otp')
+#    store_secret('m100.cineca.it','lcalori0','QUACKSTREET101')
+#    store_secret('m100.cineca.it','lcalori0','quackstreet__pass',type='password')
+
 
     for host in ['rcm.galileo.cineca.it','rcm.m100.cineca.it','login03-ext.galileo.cineca.it']:
         for user in ['lcalori0', 'dummy'] :
@@ -102,21 +103,21 @@ def test_keyring():
                 secret = search_secret(host,user,type)
                 if secret : print('secret for ' + type + ':' + user + '@' + host + " -->" + secret + "<--")
     #pref_coll.lock()
-    print("Preferred collection: " +
-          " Path: " + pref_coll.collection_path +
-          " Label: " +  pref_coll.get_label() +
-          " Locked: " + str(pref_coll.is_locked()) +
-          " session: " + str(pref_coll.session) +
-          " connection: " + str(pref_coll.connection)
-          )
-    for i in pref_coll.search_items({'application': 'Python keyring library'}):
-        print("Item label: " + i.get_label() + " Attrib: " + str(i.get_attributes()))
+#linux    print("Preferred collection: " +
+#linux          " Path: " + pref_coll.collection_path +
+#linux          " Label: " +  pref_coll.get_label() +
+#linux          " Locked: " + str(pref_coll.is_locked()) +
+#linux          " session: " + str(pref_coll.session) +
+#linux          " connection: " + str(pref_coll.connection)
+#linux          )
+#linux    for i in pref_coll.search_items({'application': 'Python keyring library'}):
+#linux        print("Item label: " + i.get_label() + " Attrib: " + str(i.get_attributes()))
 
     print ("==========================================================")
     opt_function = SingleOtpGeneratorFactory().get_generator_function('login3-ext.m100.cineca.it','lcalori0')
     if opt_function:
         for x in range(10):
-            print("OPT: " + opt_function())
+            print("OPT: " + opt_function()[0])
             time.sleep(1)
 
 if __name__ == "__main__":
