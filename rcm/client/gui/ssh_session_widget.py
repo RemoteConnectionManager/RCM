@@ -50,7 +50,7 @@ from client.utils.rcm_enum import Status
 import client.logic.rcm_utils as rcm_utils
 import client.logic.plugin as plugin
 import client.utils.pyinstaller_utils as pyinstaller_utils
-
+import   client.gui.totp_password as totp_password
 
 class QSSHSessionWidget(QWidget):
     """
@@ -368,6 +368,7 @@ class QSSHSessionWidget(QWidget):
         return ( self.password, True)
 
 
+
     def login_popup_password(self,title_text=''):
         self.prompt_response=None
         self.login_thread.password_signal.emit(title_text)
@@ -430,15 +431,23 @@ class QSSHSessionWidget(QWidget):
         self.containerWaitingWidget.show()
 
         self.plugin_registry = plugin.PluginRegistry()
+
         if self.password:
             password_handler = self.send_password
         else:
             password_handler = self.login_popup_password
-
-        ssh_command_prompt_handlers=[('Second Factor:',self.login_popup_dialog),
+        print("@@@@@@@ username: " + self.user)
+        print("@@@@@@@ hostname: " + self.host)
+        totp_handler = totp_password.SingleOtpGeneratorFactory().get_generator_function(self.host, self.user)
+        if totp_handler == None:
+            totp_handler = self.login_popup_dialog
+        ssh_command_prompt_handlers=[
+                                     #('Second Factor:',self.login_popup_dialog),
+                                     ('Second Factor:',totp_handler),
                                      ('First Factor:',password_handler),
         #                             (':', self.login_popup_dialog),
-                                     ('[^S]*Second Factor \(optional\):',self.login_popup_dialog),
+                                     #('[^S]*Second Factor \(optional\):',self.login_popup_dialog),
+                                     ('[^S]*Second Factor \(optional\):',totp_handler),
                                      ('[^U]*Update cached key?[^\)]*\)',self.login_popup_dialog),
                                      ('The authenticity of host.*',self.login_popup_dialog),
                                      ('Warning: the ECDSA host key.*',self.login_popup_dialog),

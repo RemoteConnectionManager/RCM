@@ -334,6 +334,7 @@ class NativeSSHTunnelForwarder(object):
         else:
             print("--------- waiting thread activated on linux @@@@@")
             def wait():
+                #TODO fond way to make it infinite
                 self.tunnel_process.expect(pexpect.EOF, timeout=1000000)
 
             self.thread_tunnel = threading.Thread(target=wait)
