@@ -74,8 +74,15 @@ def store_secret(hostname='', username='', secret='', type='otp'):
 
 
 def test_keyring():
+    ### under windows it seems to use the credential manager:  seach for credential manager in
+    ### Control Panel --> User Accounts --> Credential Manager
+    ### Under Mint:
+    ### Menu --> Accessories--> Passwords and Keys
+    
     active_keyring = keyring.get_keyring()
-#    print("keyring: " + active_keyring.name + " Viable: " + str(active_keyring.viable) + " appid: " + str(active_keyring.appid))
+#linux    print("keyring: " + active_keyring.name + " Viable: " + str(active_keyring.viable) + " appid: " + str(active_keyring.appid))
+    print("keyring: " + active_keyring.name + " Viable: " + str(active_keyring.viable) )
+
     print(dir(active_keyring))
 #linux    pref_coll = active_keyring.get_preferred_collection()
 #linux    print(dir(pref_coll))
