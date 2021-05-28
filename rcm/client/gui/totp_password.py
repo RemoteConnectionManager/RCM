@@ -4,16 +4,25 @@ import keyring
 import binascii
 
 class OtpGenerator:
-    def __init__(self, base32secret=''):
+    def __init__(self, base32secret_or_uri=''):
         self.generator = None
-        if base32secret:
+        if base32secret_or_uri:
             try:
-                self.generator = pyotp.TOTP(base32secret)
+                self.generator = pyotp.TOTP(base32secret_or_uri)
                 print("Instantiated TOTP")
                 self.old_otp = self.generator.now()
             except binascii.Error:
-                self.generator = None
-                print("Invalid TOTP secret-->" + base32secret + "<--")
+                print("Try o interpret input as URI -->" + base32secret_or_uri)
+                try:
+                    self.generator = pyotp.parse_uri(base32secret_or_uri)
+                    if self.generator:
+                        print("Successfully parsed TOTP Uri, issuer: " +self.generator.issuer, " name: " + self.generator.name )
+                    else:
+                        print("Invalid TOTP secret-->" + base32secret_or_uri + "<--")
+                except ValueError as e:
+                    print( "ERROR: " + str(e) + "  Invalid TOTP secret-->" + base32secret_or_uri + "<--")
+                    self.generator = None
+
 
 
     def get_generator_function(self):
@@ -29,6 +38,15 @@ class OtpGenerator:
             return new_otp
         else:
             return None
+
+    def store_on_keyring(self):
+        if self.generator:
+            (username,domain) = self.generator.issuer.split('@')
+            domain = '.'.join(domain.split('.')[-2:]).lower()
+            print("storing otp secret on ",username,domain)
+            store_secret(domain,username,self.generator.secret)
+
+
 
 class SingleOtpGeneratorFactory:
     _singleton = None
@@ -73,7 +91,7 @@ def store_secret(hostname='', username='', secret='', type='otp'):
 
 
 
-def test_keyring():
+def test_keyring_read():
     ### under windows it seems to use the credential manager:  seach for credential manager in
     ### Control Panel --> User Accounts --> Credential Manager
     ### Under Mint:
@@ -83,7 +101,7 @@ def test_keyring():
 #linux    print("keyring: " + active_keyring.name + " Viable: " + str(active_keyring.viable) + " appid: " + str(active_keyring.appid))
     print("keyring: " + active_keyring.name + " Viable: " + str(active_keyring.viable) )
 
-    print(dir(active_keyring))
+    #print(dir(active_keyring))
 #linux    pref_coll = active_keyring.get_preferred_collection()
 #linux    print(dir(pref_coll))
 #linux    print("Preferred collection: " +
@@ -120,6 +138,16 @@ def test_keyring():
 #linux    for i in pref_coll.search_items({'application': 'Python keyring library'}):
 #linux        print("Item label: " + i.get_label() + " Attrib: " + str(i.get_attributes()))
 
+
+
+def test_otp_uri_input():
+    otp_uri = input("Enter OTP URI : ")
+    otp_object = OtpGenerator(otp_uri)
+    otp_object.store_on_keyring()
+
+
+
+def test_otp_get():
     print ("==========================================================")
     opt_function = SingleOtpGeneratorFactory().get_generator_function('login3-ext.m100.cineca.it','lcalori0')
     if opt_function:
@@ -129,4 +157,6 @@ def test_keyring():
 
 if __name__ == "__main__":
 
-  test_keyring()
+  test_keyring_read()
+  test_otp_uri_input()
+  test_otp_get()
