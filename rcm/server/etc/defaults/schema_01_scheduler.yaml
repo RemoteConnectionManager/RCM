@@ -21,7 +21,7 @@ schema:
               #echo "FOUND $screen_count  NUMBER OF SCREENS on DISPLAY :0"
               export VGLRUN_DISPLAY_FLAG="-d :0.$(shuf -i 0-$(($screen_count -1)) -n 1)"
               #echo "vglrun $VGLRUN_DISPLAY_FLAG"
-              vglrun() { $(which vglrun) $VGLRUN_DISPLAY_FLAG $@; }
+              vglrun() { $(/usr/bin/which vglrun) $VGLRUN_DISPLAY_FLAG $@; }
               export -f  vglrun
             else
               vglrun() { echo 'vglrun can not be used without gpu'; }
