@@ -19,10 +19,18 @@ import utils
 logger = logging.getLogger('rcmServer' + '.' + __name__)
 
 def convert_memory_to_megabytes(mem_string):
-    #try:
-        return {'G' : 1024, 'M' : 1}.get(mem_string[-1:], 0) * int(mem_string[:-1])
-    #except:
+    try:
+        mem_match=re.compile("(\d*)([^\d]*)")
+        m = mem_match.match(mem_string)
+        unity = m.group(2)
+        value = m.group(1)
+        megabytes = {'G' : 1024, 'M' : 1}.get(unity,1) * int(value)
+#        return {'G' : 1024, 'M' : 1}.get(mem_string[-1:], 0) * int(mem_string[:-1])
+    except:
+        megabytes = 2048
+        logger.info("error in matching-->"+mem_string+"<-->"+str(unity)+"<>"+str(value)+"<--")
         #return 0
+    return megabytes
 
 def non_zero_min(a,b):
     # intended to return non zero min between two positive numbers
@@ -192,7 +200,7 @@ class SlurmScheduler(BatchScheduler):
                          'squeue': None}
 
         lua_job_submit_options = self.options.get('lua_job_submit',dict())
-        script_path = lua_job_submit_options.get('file', '')
+        script_path = os.path.expandvars(lua_job_submit_options.get('file', ''))
         self.lua_script_string = ''
         if script_path:
             try:
@@ -515,7 +523,8 @@ class SlurmScheduler(BatchScheduler):
                     max_cpu = non_zero_min(non_zero_min(max_node_cpu_for_partition, max_cpu_per_node_for_partition_qos), max_cpu_for_partition_qos)
 
 
-                    if self.qos.get(qos,dict()).get('OverPartQOS', False):
+#                    if self.qos.get(qos,dict()).get('OverPartQOS', True):
+                    if True:
                         stringtime = self.qos.get(qos,dict()).get('max_wall', '')
                         max_memory_for_qos = convert_memory_to_megabytes(self.qos.get(qos,dict()).get('max_mem','0M'))
                         max_memory = non_zero_min(max_memory, max_memory_for_qos)
