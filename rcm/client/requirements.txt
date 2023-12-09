@@ -1,5 +1,5 @@
 pyqt5==5.9.2
 paramiko==2.4.2
 pexpect==4.4.0
-pyinstaller==3.6.0
+pyinstaller==5.13.1
 sshtunnel==0.1.3
