@@ -1,0 +1,141 @@
+# This is a basic workflow to help you get started with Actions
+
+name: RCM_CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  TURBOVNC_DOWNLOAD: https://github.com/TurboVNC/turbovnc/releases/download
+  TURBOVNC_EXTERNAL: "RCM/rcm/client/external/turbovnc"
+  # TURBOVNC_EXTERNAL_WIN: "RCM\rcm\client\external\turbovnc"
+  
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    strategy:
+      matrix:
+        os:
+        - ubuntu-latest	
+        - ubuntu-20.04
+        - windows-latest
+        - macos-latest
+        python-version:
+        - '3.7'
+        turbovnc-version:
+        - '3.1'
+        - '2.2.7'
+        exclude:
+        - os: macos-latest
+          turbovnc-version: '3.1'
+
+    # The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+    
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Uname
+        if: ${{ matrix.os != 'windows-latest' }}
+        run: |
+         uname -a
+    
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout RCM
+        uses: actions/checkout@v3
+        with:
+          repository: RemoteConnectionManager/RCM
+          path: RCM
+          ref: 'dev_update_2FA'
+
+      - name: Check repo
+        run: |
+         ls
+         git --git-dir=RCM/.git/ branch
+
+      # Runs a single command using the runners shell
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          
+          # https://github.com/paramiko/paramiko/pull/1985
+          #inserted in requirements pip install six
+          
+          # https://github.com/paramiko/paramiko/issues/1007
+          # https://stackoverflow.com/questions/32518458/importerror-no-module-named-cryptography-hazmat-bindings-openssl
+          #inserted in requirements pip install cryptography==2.9
+
+          pip install -r RCM/rcm/client/requirements.txt
+
+      - name: Test python
+        run: |
+          python --version
+          python -c "import paramiko"
+          pip list
+
+      - name: Install externals MACOS
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: |
+         #!!! TODO: generalize download url (newer version has arch) !!!
+         #!!! TODO: install dmg !!!
+
+         # Download dmg
+         # wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/TurboVNC-${{ matrix.turbovnc-version }}.dmg -O turbovnc.dmg
+
+      - name: Install externals WINDOWS
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+         #!!! TODO: mv only necessary file !!!
+
+         # Install wget and innoextract
+         choco install wget innoextract
+         
+         # Download exe
+         wget $env:TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/TurboVNC-${{ matrix.turbovnc-version }}-x64.exe -O turbovnc.exe
+         
+         # Extract file from exe
+         innoextract turbovnc.exe
+         
+         # Create `external\turbovnc\bin` and copy all files there
+         mkdir $env:TURBOVNC_EXTERNAL
+         mv app $env:TURBOVNC_EXTERNAL/bin
+
+      - name: Install externals LINUX
+        if: ${{ contains(matrix.os, 'ubuntu')  }}
+        run: |
+         #!!! TODO: mv only necessary file !!!
+          
+         # Download deb
+         wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/turbovnc_${{ matrix.turbovnc-version }}_amd64.deb -O turbovnc.deb
+         
+         # Extract file from deb
+         dpkg-deb -x turbovnc.deb tmp
+
+         # Copy extracted file to `$TURBOVNC_EXTERNAL` 
+         mv tmp/opt/TurboVNC $TURBOVNC_EXTERNAL
+         mv tmp/usr/share $TURBOVNC_EXTERNAL
+         mv tmp/etc $TURBOVNC_EXTERNAL
+
+      - name: Build pyinstaller
+        run: |
+         pyinstaller RCM/rcm/client/rcm_client_qt.spec
+         
+      - name: Upload exe
+        uses: actions/upload-artifact@v3
+        with:
+          name: RCM_client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}
+          path: |
+            dist
