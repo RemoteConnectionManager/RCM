@@ -55,9 +55,7 @@ jobs:
       - name: Checkout RCM
         uses: actions/checkout@v3
         with:
-          repository: RemoteConnectionManager/RCM
           path: RCM
-          ref: 'dev_update_2FA'
 
       - name: Check repo
         run: |
