@@ -16,7 +16,6 @@ on:
 env:
   TURBOVNC_DOWNLOAD: https://github.com/TurboVNC/turbovnc/releases/download
   TURBOVNC_EXTERNAL: "RCM/rcm/client/external/turbovnc"
-  # TURBOVNC_EXTERNAL_WIN: "RCM\rcm\client\external\turbovnc"
   
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -70,14 +69,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          
-          # https://github.com/paramiko/paramiko/pull/1985
-          #inserted in requirements pip install six
-          
-          # https://github.com/paramiko/paramiko/issues/1007
-          # https://stackoverflow.com/questions/32518458/importerror-no-module-named-cryptography-hazmat-bindings-openssl
-          #inserted in requirements pip install cryptography==2.9
-
           pip install -r RCM/rcm/client/requirements.txt
 
       - name: Test python
@@ -101,7 +92,7 @@ jobs:
          #!!! TODO: mv only necessary file !!!
 
          # Install wget and innoextract
-         choco install wget innoextract
+         choco install --no-progress wget innoextract
          
          # Download exe
          wget $env:TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/TurboVNC-${{ matrix.turbovnc-version }}-x64.exe -O turbovnc.exe
