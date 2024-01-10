@@ -31,11 +31,15 @@ jobs:
         python-version:
         - '3.7'
         turbovnc-version:
+        - 'none'
         - '3.1'
         - '2.2.7'
         exclude:
         - os: macos-latest
-          turbovnc-version: '3.1'
+          turbovnc-version: ['3.1', '2.2.7']
+        - turbovnc-version: 'none'
+          os: [ubuntu-latest, ubuntu-20.04, windows-latest]
+          
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
