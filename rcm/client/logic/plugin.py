@@ -101,7 +101,7 @@ class TurboVNCExecutable(Executable):
         else:
             exe = rcm_utils.which('vncviewer')
             if not exe:
-                logic_logger.error("vncviewer not found! Check the PATH environment variable.")
+                logic_logger.error("##vncviewer not found! Check the PATH environment variable.")
             if sys.platform == 'win32':
                 # if the executable path contains spaces, it has to be put inside apexes
                 exe = "\"" + exe + "\""
@@ -164,11 +164,11 @@ class TurboVNCExecutable(Executable):
 
         # Win64
         elif sys.platform == 'win32':
-            self.add_default_arg("/nounixlogin")
-            self.add_default_arg("/noreconnect")
-            self.add_default_arg("/nonewconn")
-            self.add_arg_value("/loglevel", "0")
-            self.add_arg_value("/password", vncpassword_decrypted)
+            self.add_default_arg("-nounixlogin")
+            self.add_default_arg("-noreconnect")
+            self.add_default_arg("-nonewconn")
+            #self.add_arg_value("/loglevel", "0")
+            self.add_arg_value("-password", vncpassword_decrypted)
 
         # Linux
         else:

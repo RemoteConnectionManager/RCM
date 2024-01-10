@@ -87,13 +87,18 @@ def which(*args, **kwargs):
         for directory in path:
             exe = os.path.join(directory, name)
             if sys.platform == 'win32':
-                exe = exe + '.exe'
-                if os.path.isfile(exe):
-                    return exe
+                rexe = exe + '.exe'
+                if os.path.isfile(rexe):
+                    return rexe
+                else:
+                    rbat = exe + '.bat'
+                    if os.path.isfile(rbat):
+                        return rbat
+
             else:
                 if os.path.isfile(exe) and os.access(exe, os.X_OK):
                     return exe
-
+    print("File: " + name + " NOT FOUND in " + str(path))
     return None
 
 
