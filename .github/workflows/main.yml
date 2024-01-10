@@ -36,9 +36,15 @@ jobs:
         - '2.2.7'
         exclude:
         - os: macos-latest
-          turbovnc-version: ['3.1', '2.2.7']
-        - turbovnc-version: 'none'
-          os: [ubuntu-latest, ubuntu-20.04, windows-latest]
+          turbovnc-version: '3.1'
+        - os: macos-latest
+          turbovnc-version: '2.2.7'
+        - os: ubuntu-latest
+          turbovnc-version: 'none'
+        - os: ubuntu-20.04
+          turbovnc-version: 'none'
+        - os: windows-latest
+          turbovnc-version: 'none'
           
 
     # The type of runner that the job will run on
@@ -80,7 +86,7 @@ jobs:
           pip list
 
       - name: Install externals MACOS
-        if: ${{ matrix.os == 'macos-latest' }}
+        if: ${{ matrix.os == 'macos-latest' && matrix.turbovnc-version != 'none' }}
         run: |
          #!!! TODO: generalize download url (newer version has arch) !!!
          #!!! TODO: install dmg !!!
@@ -89,7 +95,7 @@ jobs:
          # wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/TurboVNC-${{ matrix.turbovnc-version }}.dmg -O turbovnc.dmg
 
       - name: Install externals WINDOWS
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: ${{ matrix.os == 'windows-latest' && matrix.turbovnc-version != 'none' }}
         run: |
          #!!! TODO: mv only necessary file !!!
 
@@ -107,7 +113,7 @@ jobs:
          mv app $env:TURBOVNC_EXTERNAL/bin
 
       - name: Install externals LINUX
-        if: ${{ contains(matrix.os, 'ubuntu')  }}
+        if: ${{ contains(matrix.os, 'ubuntu') && matrix.turbovnc-version != 'none' }}
         run: |
          #!!! TODO: mv only necessary file !!!
           
