@@ -237,12 +237,7 @@ jobs:
       - name: Move preartifacts
         run: |
           mv dist/*/*/RCM.* .
-          dir .
-          Expand-Archive -LiteralPath RCM.zip -DestinationPath RCM-dir
-          dir .
-          dir RCM-dir
-          
-
+          # Expand-Archive -LiteralPath RCM.zip -DestinationPath RCM-dir
 
       - name: Upload exe
         uses: actions/upload-artifact@v3
@@ -256,4 +251,4 @@ jobs:
         with:
           name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.TURBOVNC_VERSION }}-dir
           path: |
-            RCM-dir
+            RCM.zip
