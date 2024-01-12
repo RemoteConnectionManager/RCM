@@ -94,10 +94,6 @@ jobs:
         with:
           path: RCM
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
-
       - name: Cache venv
         uses: actions/cache@v3.3.3
         id: cache-venv
@@ -105,6 +101,11 @@ jobs:
           path: venv
           key: venv-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
 
+      - uses: actions/download-artifact@v4
+        if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
+        with:
+          name: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
+  
       - name: Install venv
         if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
         run: |
@@ -254,13 +255,13 @@ jobs:
       - name: Upload exe
         uses: actions/upload-artifact@v3
         with:
-          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
+          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.TURBOVNC_VERSION }}
           path: |
             dist/**/RCM.exe
-      
+
       - name: Upload dir
         uses: actions/upload-artifact@v3
         with:
-          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
+          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.TURBOVNC_VERSION }}-zip
           path: |
-            dist/**/RCM/
+            dist/**/RCM.zip
