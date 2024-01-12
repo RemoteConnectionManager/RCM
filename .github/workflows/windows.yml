@@ -31,17 +31,12 @@ env:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  python-env:
+  python:
     # The type of runner that the job will run on
     runs-on: windows-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-        with:
-          path: RCM
-
       - name: Cache python
         uses: actions/cache@v3.3.3
         id: cache-python
@@ -57,22 +52,6 @@ jobs:
           mv .pyenv\pyenv-win\versions\${{ env.PYTHON_VERSION }} python
           ls python
           python\python.exe --version
-
-      - name: Cache venv
-        uses: actions/cache@v3.3.3
-        id: cache-venv
-        with:
-          path: venv
-          key: venv-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
-
-      - name: Install venv
-        if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
-        run: |
-          python\python.exe -m venv venv_tmp
-          venv_tmp\Scripts\Activate.ps1
-          pip install -r RCM/rcm/client/requirements.txt
-          deactivate
-          Copy-Item -Path venv_tmp -Destination venv -Recurse -Force
 
       - name: Create script to port python and venv into another machine
         run : |
@@ -97,11 +76,50 @@ jobs:
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.0.0
         with:
-          name: python-dev-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
+          name: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
           path: |
             python
-            venv
             adapt-python-build-env.ps1
+            !**/__pycache__/**
+
+  venv:
+    # The type of runner that the job will run on
+    needs: python
+    runs-on: windows-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+        with:
+          path: RCM
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
+
+      - name: Cache venv
+        uses: actions/cache@v3.3.3
+        id: cache-venv
+        with:
+          path: venv
+          key: venv-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
+
+      - name: Install venv
+        if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
+        run: |
+          python\python.exe -m venv venv
+          venv\Scripts\Activate.ps1
+          pip install -r RCM/rcm/client/requirements.txt
+          # deactivate
+          # Copy-Item -Path venv_tmp -Destination venv -Recurse -Force
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: venv-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
+          path: |
+            venv
             !**/__pycache__/**
 
   turbovnc:     
@@ -198,9 +216,9 @@ jobs:
             .step
             git
 
-          
+       
   pyinstaller:     
-    needs: [python-env, turbovnc]
+    needs: [venv, turbovnc]
     runs-on: windows-latest
     strategy:
       matrix:
@@ -215,7 +233,11 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: python-dev-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
+          name: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: venv-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
 
       - uses: actions/download-artifact@v4
         with:
