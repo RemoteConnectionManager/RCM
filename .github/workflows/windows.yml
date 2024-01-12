@@ -53,13 +53,13 @@ jobs:
           ls python
           python\python.exe --version
 
-      # - name: Upload a Build Artifact
-      #   uses: actions/upload-artifact@v4.0.0
-      #   with:
-      #     name: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
-      #     path: |
-      #       python
-      #       !**/__pycache__/**
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
+          path: |
+            python
+            !**/__pycache__/**
 
       # VENV
       - uses: actions/checkout@v3
@@ -83,10 +83,9 @@ jobs:
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.0.0
         with:
-          name: py-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
+          name: venv-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
           path: |
             venv
-            python
             !**/__pycache__/**
 
   turbovnc:     
@@ -215,14 +214,14 @@ jobs:
         with:
           path: RCM
 
-      # - uses: actions/download-artifact@v4
-      #   with:
-      #     name: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
-      #     path: python/
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
+          path: python/
 
       - uses: actions/download-artifact@v4
         with:
-          name: py-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
+          name: venv-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
           path: venv/
 
       - uses: actions/download-artifact@v4
@@ -251,6 +250,6 @@ jobs:
       - name: Upload dir
         uses: actions/upload-artifact@v3
         with:
-          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.TURBOVNC_VERSION }}-dir
+          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.TURBOVNC_VERSION }}-zip
           path: |
             RCM-dir
