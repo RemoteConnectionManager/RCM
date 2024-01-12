@@ -135,7 +135,7 @@ jobs:
         uses: actions/cache@v3.3.3
         id: cache-turbovnc
         with:
-          path: turbovnc
+          path: RCM
           key: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
 
       - name: Extract turbovnc
@@ -159,7 +159,7 @@ jobs:
         with:
           name: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
           path: |
-            turbovnc
+            RCM
             .dummy-turbovnc
 
   cineca-extra:
