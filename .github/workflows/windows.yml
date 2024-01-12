@@ -111,14 +111,14 @@ jobs:
           python\python.exe -m venv venv
           venv\Scripts\Activate.ps1
           pip install -r RCM/rcm/client/requirements.txt
-          # deactivate
-          # Copy-Item -Path venv_tmp -Destination venv -Recurse -Force
+          Write-Output 'dummy' | Out-File -FilePath .dummy-venv
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.0.0
         with:
           name: venv-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
           path: |
+            .dummy-venv
             venv
             !**/__pycache__/**
 
@@ -135,7 +135,7 @@ jobs:
         uses: actions/cache@v3.3.3
         id: cache-turbovnc
         with:
-          path: dummy
+          path: turbovnc
           key: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
 
       - name: Extract turbovnc
@@ -149,15 +149,18 @@ jobs:
           innoextract turbovnc.exe
 
           # Create `external\turbovnc\bin` and copy all files there
-          mkdir dummy/$env:TURBOVNC_EXTERNAL
-          mv app dummy/$env:TURBOVNC_EXTERNAL/bin
+          mkdir $env:TURBOVNC_EXTERNAL
+          mv app $env:TURBOVNC_EXTERNAL/bin
+
+          Write-Output 'dummy' | Out-File -FilePath .dummy-turbovnc
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.0.0
         with:
           name: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
           path: |
-            dummy/
+            turbovnc
+            .dummy-turbovnc
 
   cineca-extra:
     runs-on: windows-latest
