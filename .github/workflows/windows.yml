@@ -39,6 +39,8 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
+        with:
+          path: RCM
 
       - name: Cache python
         uses: actions/cache@v3.3.3
@@ -206,6 +208,8 @@ jobs:
     
     steps:
       - uses: actions/checkout@v3
+        with:
+          path: RCM
 
       - uses: actions/download-artifact@v4
         with:
@@ -217,6 +221,7 @@ jobs:
       
       - name: Build pyinstaller
         run: |
+          venv\Scripts\Activate.ps1
           pyinstaller RCM/rcm/client/rcm_client_qt.spec
           
       - name: Upload exe
