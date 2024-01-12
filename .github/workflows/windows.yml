@@ -72,7 +72,7 @@ jobs:
           venv_tmp\Scripts\Activate.ps1
           pip install -r RCM/rcm/client/requirements.txt
           deactivate
-          mv venv_tmp venv
+          Copy-Item -Path venv_tmp -Destination venv -Recurse -Force
 
       - name: Create script to port python and venv into another machine
         run : |
