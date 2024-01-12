@@ -53,33 +53,12 @@ jobs:
           ls python
           python\python.exe --version
 
-      - name: Create script to port python and venv into another machine
-        run : |
-          Write-Output @'
-          $ci_path = [regex]::Escape("D:\a\RemoteConnectionManager\RCM")
-          
-          # Script name and directory
-          $script_name = $MyInvocation.MyCommand.Name
-          $script_dir = Split-Path ($MyInvocation.MyCommand.Path)
-          
-          # Replace ci_path in all exe shebangs and in venv/pyvenv.cfg
-          Get-ChildItem -Path $script_dir -Exclude $script_name -Recurse `
-          | Select-String -pattern $ci_path -List `
-          | Select-Object Path `
-          | Foreach-Object {
-              Write-Output "Replacing '$($ci_path)' with '$($script_dir)' in '$($_.Path)' ..."
-              ((Get-Content -path $_.Path -Raw) -replace $ci_path, $script_dir ) `
-              | Set-Content -Path $_.Path
-          }
-          '@ | Out-File -FilePath adapt-python-build-env.ps1
-
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.0.0
         with:
           name: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
           path: |
             python
-            adapt-python-build-env.ps1
             !**/__pycache__/**
 
       # VENV
@@ -100,14 +79,12 @@ jobs:
           python\python.exe -m venv venv
           venv\Scripts\Activate.ps1
           pip install -r RCM/rcm/client/requirements.txt
-          Write-Output 'dummy' | Out-File -FilePath .dummy-venv
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.0.0
         with:
           name: venv-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
           path: |
-            .dummy-venv
             venv
             !**/__pycache__/**
 
@@ -124,7 +101,7 @@ jobs:
         uses: actions/cache@v3.3.3
         id: cache-turbovnc
         with:
-          path: RCM
+          path: turbovnc
           key: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
 
       - name: Extract turbovnc
@@ -136,20 +113,13 @@ jobs:
           # Extract file from exe
           choco install --no-progress innoextract
           innoextract turbovnc.exe
-
-          # Create `external\turbovnc\bin` and copy all files there
-          mkdir $env:TURBOVNC_EXTERNAL
-          mv app $env:TURBOVNC_EXTERNAL/bin
-
-          Write-Output 'dummy' | Out-File -FilePath .dummy-turbovnc
+          mv app turbovnc
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.0.0
         with:
           name: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
-          path: |
-            RCM
-            .dummy-turbovnc
+          path: turbovnc
 
   cineca-extra:
     runs-on: windows-latest
@@ -199,6 +169,26 @@ jobs:
           Invoke-WebRequest -URI $URL -OutFile git.7zip
           7z.exe x -ogit git.7zip
 
+      - name: Create script to port python and venv into another machine
+        run : |
+          Write-Output @'
+          $ci_path = [regex]::Escape("D:\a\RCM\RCM")
+          
+          # Script name and directory
+          $script_name = $MyInvocation.MyCommand.Name
+          $script_dir = Split-Path ($MyInvocation.MyCommand.Path)
+          
+          # Replace ci_path in all exe shebangs and in venv/pyvenv.cfg
+          Get-ChildItem -Path $script_dir -Exclude $script_name -Recurse `
+          | Select-String -pattern $ci_path -List `
+          | Select-Object Path `
+          | Foreach-Object {
+              Write-Output "Replacing '$($ci_path)' with '$($script_dir)' in '$($_.Path)' ..."
+              ((Get-Content -path $_.Path -Raw) -replace $ci_path, $script_dir ) `
+              | Set-Content -Path $_.Path
+          }
+          '@ | Out-File -FilePath adapt-python-build-env.ps1
+
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.0.0
         with:
@@ -207,6 +197,7 @@ jobs:
             step
             .step
             git
+            adapt-python-build-env.ps1
 
        
   pyinstaller:     
@@ -226,30 +217,36 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
+          path: python/
 
       - uses: actions/download-artifact@v4
         with:
           name: venv-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
+          path: venv/
 
       - uses: actions/download-artifact@v4
         with:
           name: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
+          path: ${{ env.TURBOVNC_EXTERNAL }}/bin/
       
       - name: Build pyinstaller
         run: |
           venv\Scripts\Activate.ps1
           pyinstaller RCM/rcm/client/rcm_client_qt.spec
-          
+
+      - name: Move preartifacts
+        run: mv dist/*/*/RCM.* .
+
       - name: Upload exe
         uses: actions/upload-artifact@v3
         with:
           name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.TURBOVNC_VERSION }}
           path: |
-            dist/**/RCM.exe
+            RCM.exe
 
       - name: Upload dir
         uses: actions/upload-artifact@v3
         with:
           name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.TURBOVNC_VERSION }}-zip
           path: |
-            dist/**/RCM.zip
+            RCM.zip
