@@ -68,10 +68,11 @@ jobs:
       - name: Install venv
         if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
         run: |
-          python\python.exe -m venv venv
-          venv\Scripts\Activate.ps1
+          python\python.exe -m venv venv_tmp
+          venv_tmp\Scripts\Activate.ps1
           pip install -r RCM/rcm/client/requirements.txt
           deactivate
+          mv venv_tmp venv
 
       - name: Create script to port python and venv into another machine
         run : |
