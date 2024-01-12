@@ -1,0 +1,234 @@
+# This is a basic workflow to help you get started with Actions
+
+name: RCM_CI_win
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.10.11"
+
+  TURBOVNC_VERSION: "3.1"
+  TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
+  TURBOVNC_EXTERNAL: "RCM/rcm/client/external/turbovnc"
+
+  # https://github.com/smallstep/scoop-bucket/blob/main/step.json
+  SMALLSTEP_VERSION: "0.24.4"
+  SMALLSTEP_DOWNLOAD: "http://github.com/smallstep/cli/releases/download"
+  CINECA_STEP_FINGERPRINT: "2ae1543202304d3f434bdc1a2c92eff2cd2b02110206ef06317e70c1c1735ecd"
+
+  GIT_VERSION: "2.43.0"
+  GIT_DOWNLOAD: "https://github.com/git-for-windows/git/releases/download"
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  python-env:
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+
+      - name: Cache python
+        uses: actions/cache@v3.3.3
+        id: cache-python
+        with:
+          path: python
+          key: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
+
+      - name: Install python locally
+        if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
+        run: |
+          git clone https://github.com/pyenv-win/pyenv-win.git .pyenv
+          .\.pyenv\pyenv-win\bin\pyenv.bat install ${{ env.PYTHON_VERSION }}
+          mv .pyenv\pyenv-win\versions\${{ env.PYTHON_VERSION }} python
+          ls python
+          python\python.exe --version
+
+      - name: Cache venv
+        uses: actions/cache@v3.3.3
+        id: cache-venv
+        with:
+          path: venv
+          key: venv-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
+
+      - name: Install venv
+        if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
+        run: |
+          python\python.exe -m venv venv
+          venv\Scripts\Activate.ps1
+          pip install -r RCM/rcm/client/requirements.txt
+
+      - name: Create script to port python and venv into another machine
+        run : |
+          Write-Output @'
+          $ci_path = [regex]::Escape("D:\a\RemoteConnectionManager\RCM")
+          
+          # Script name and directory
+          $script_name = $MyInvocation.MyCommand.Name
+          $script_dir = Split-Path ($MyInvocation.MyCommand.Path)
+          
+          # Replace ci_path in all exe shebangs and in venv/pyvenv.cfg
+          Get-ChildItem -Path $script_dir -Exclude $script_name -Recurse `
+          | Select-String -pattern $ci_path -List `
+          | Select-Object Path `
+          | Foreach-Object {
+              Write-Output "Replacing '$($ci_path)' with '$($script_dir)' in '$($_.Path)' ..."
+              ((Get-Content -path $_.Path -Raw) -replace $ci_path, $script_dir ) `
+              | Set-Content -Path $_.Path
+          }
+          '@ | Out-File -FilePath adapt-python-build-env.ps1
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: python-dev-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
+          path: |
+            python
+            venv
+            adapt-python-build-env.ps1
+            !**/__pycache__/**
+
+  turbovnc:     
+    strategy:
+      matrix:
+        TURBOVNC_VERSION:
+        - '3.1'
+        - '2.2.7'
+        
+    runs-on: windows-latest
+    steps:
+      - name: Cache turbovnc
+        uses: actions/cache@v3.3.3
+        id: cache-turbovnc
+        with:
+          path: dummy
+          key: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
+
+      - name: Extract turbovnc
+        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' }}
+        run: |        
+          # Download exe
+          Invoke-WebRequest -URI $env:TURBOVNC_DOWNLOAD/${{ matrix.TURBOVNC_VERSION }}/TurboVNC-${{ matrix.TURBOVNC_VERSION }}-x64.exe -OutFile turbovnc.exe 
+
+          # Extract file from exe
+          choco install --no-progress innoextract
+          innoextract turbovnc.exe
+
+          # Create `external\turbovnc\bin` and copy all files there
+          mkdir dummy/$env:TURBOVNC_EXTERNAL
+          mv app dummy/$env:TURBOVNC_EXTERNAL/bin
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
+          path: |
+            dummy/
+
+  cineca-extra:
+    runs-on: windows-latest
+    steps:
+      - name: Cache step
+        uses: actions/cache@v3.3.3
+        id: cache-step
+        with:
+          path: step
+          key: step-${{ env.SMALLSTEP_VERSION }}-${{ runner.os }}
+
+      - name: Install step
+        if: ${{ steps.cache-step.outputs.cache-hit != 'true' }}
+        run: |
+          $URL = "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_windows_${{ env.SMALLSTEP_VERSION }}_amd64.zip"
+          Write-Output $URL
+          Invoke-WebRequest -URI $URL -OutFile step.zip
+          Expand-Archive -LiteralPath .\step.zip -DestinationPath .
+          mv step* step
+
+      - name: Cache .step
+        uses: actions/cache@v3.3.3
+        id: cache-dot-step
+        with:
+          path: .step
+          key: dot-step-${{ env.CINECA_STEP_FINGERPRINT }}-${{ runner.os }}
+
+      - name: Install step
+        if: ${{ steps.cache-dot-step.outputs.cache-hit != 'true' }}
+        run: |
+          step\bin\step.exe ca bootstrap --ca-url=https://sshproxy.hpc.cineca.it --fingerprint $env:CINECA_STEP_FINGERPRINT
+          Copy-Item -Path $env:USERPROFILE\.step -Destination .\.step -Recurse -Force
+
+      - name: Cache git
+        uses: actions/cache@v3.3.3
+        id: cache-git
+        with:
+          path: git
+          key: git-${{ env.GIT_VERSION }}-${{ runner.os }}
+
+      - name: Install git
+        if: ${{ steps.cache-git.outputs.cache-hit != 'true' }}
+        run: |
+          choco install --no-progress 7zip
+          $URL = "${{ env.GIT_DOWNLOAD }}/v${{ env.GIT_VERSION }}.windows.1/PortableGit-${{ env.GIT_VERSION }}-64-bit.7z.exe"
+          Write-Output $URL
+          Invoke-WebRequest -URI $URL -OutFile git.7zip
+          7z.exe x -ogit git.7zip
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: CINECA-extra-step-${{ env.SMALLSTEP_VERSION }}-git-${{ env.GIT_VERSION }}-${{ runner.os }}
+          path: |
+            step
+            .step
+            git
+
+          
+  pyinstaller:     
+    needs: [python-env, turbovnc]
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        TURBOVNC_VERSION:
+        - '3.1'
+        - '2.2.7'
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-dev-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
+      
+      - name: Build pyinstaller
+        run: |
+          pyinstaller RCM/rcm/client/rcm_client_qt.spec
+          
+      - name: Upload exe
+        uses: actions/upload-artifact@v3
+        with:
+          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
+          path: |
+            dist/**/RCM.exe
+      
+      - name: Upload dir
+        uses: actions/upload-artifact@v3
+        with:
+          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
+          path: |
+            dist/**/RCM/
