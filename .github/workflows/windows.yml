@@ -71,6 +71,7 @@ jobs:
           python\python.exe -m venv venv
           venv\Scripts\Activate.ps1
           pip install -r RCM/rcm/client/requirements.txt
+          deactivate
 
       - name: Create script to port python and venv into another machine
         run : |
