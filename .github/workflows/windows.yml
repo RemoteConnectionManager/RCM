@@ -37,6 +37,12 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      # CHECKOUT
+      - uses: actions/checkout@v3
+        with:
+          path: RCM
+      
+      # PYTHON
       - name: Cache python
         uses: actions/cache@v3.3.3
         id: cache-python
@@ -57,10 +63,6 @@ jobs:
             !**/__pycache__/**
 
       # VENV
-      - uses: actions/checkout@v3
-        with:
-          path: RCM
-
       - name: Cache venv
         uses: actions/cache@v3.3.3
         id: cache-venv
