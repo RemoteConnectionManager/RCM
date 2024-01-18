@@ -46,12 +46,7 @@ jobs:
 
       - name: Install python locally
         if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
-        run: |
-          git clone https://github.com/pyenv-win/pyenv-win.git .pyenv
-          .\.pyenv\pyenv-win\bin\pyenv.bat install ${{ env.PYTHON_VERSION }}
-          mv .pyenv\pyenv-win\versions\${{ env.PYTHON_VERSION }} python
-          ls python
-          python\python.exe --version
+        run: .\script\install_local_python.ps1
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.0.0
