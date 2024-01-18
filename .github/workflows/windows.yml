@@ -46,7 +46,7 @@ jobs:
 
       - name: Install python locally
         if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
-        run: powershell.exe -File scripts/install_local_python.ps1
+        run: powershell.exe -File RCM/scripts/install_local_python.ps1
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.0.0
