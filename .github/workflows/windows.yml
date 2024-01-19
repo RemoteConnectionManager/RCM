@@ -110,7 +110,9 @@ jobs:
 
       - name: Extract turbovnc
         if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' }}
-        run: . RCM/scripts/ci/extract_turbovnc.ps1
+        run: |
+        $env:TURBOVNC_VERSION = ${{ matrix.TURBOVNC_VERSION }}
+        . RCM/scripts/ci/extract_turbovnc.ps1
 
       - name: (GHO) Upload a turbovnc artifact
         uses: actions/upload-artifact@v4.0.0
