@@ -121,6 +121,13 @@ jobs:
   cineca-extra:
     runs-on: windows-latest
     steps:
+      # CHECKOUT
+      - name: (GHO) Checkout RCM in RCM folder
+        if: ${{ steps.cache-step.outputs.cache-hit != 'true' }} && ${{ steps.cache-dot-step.outputs.cache-hit != 'true' }} && ${{ steps.cache-git.outputs.cache-hit != 'true' }}
+        uses: actions/checkout@v3
+        with:
+          path: RCM
+
       - name: (GHO) Cache step
         uses: actions/cache@v3.3.3
         id: cache-step
