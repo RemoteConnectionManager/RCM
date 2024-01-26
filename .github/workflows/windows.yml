@@ -1,14 +1,12 @@
 # This is a basic workflow to help you get started with Actions
 
-name: RCM_CI_win
+name: RCM_CI_win_multijobs
 
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "dev", "feature/ci-split-artifact" ]
-  pull_request:
-    branches: [ "dev" ]
+    branches: [ "feature/ci-split-artifact" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
