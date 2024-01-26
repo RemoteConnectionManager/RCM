@@ -78,14 +78,8 @@ jobs:
           TURBOVNC_VERSION: ${{ matrix.TURBOVNC_VERSION }}
         run: . RCM/scripts/ci/extract_turbovnc.ps1
 
-      - name: Extract turbovnc
-        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' }}
-        env:
-          TURBOVNC_VERSION: ${{ matrix.TURBOVNC_VERSION }}
-        run: . RCM/scripts/ci/extract_turbovnc.ps1
-
       - name: Move turbovnc to external
-        run: mv turbonvc ${{ env.TURBOVNC_EXTERNAL }}/bin
+        run: mv turbovnc ${{ env.TURBOVNC_EXTERNAL }}/bin
 
       # PYINSTALLER
       - name: Build pyinstaller
