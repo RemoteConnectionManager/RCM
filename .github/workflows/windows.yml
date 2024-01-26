@@ -37,6 +37,12 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      # CHECKOUT
+      - name: (GHO) Checkout RCM in RCM folder
+        uses: actions/checkout@v3
+        with:
+          path: RCM
+
       # CACHE
       - name: (GHO) Cache python
         uses: actions/cache@v3.3.3
@@ -52,13 +58,6 @@ jobs:
           path: venv
           key: venv-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
 
-      # CHECKOUT
-      - name: (GHO) Checkout RCM in RCM folder
-        if: ${{ steps.cache-python.outputs.cache-hit != 'true' }} && ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
-        uses: actions/checkout@v3
-        with:
-          path: RCM
-      
       # PYTHON
       - name: Install python locally
         if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
