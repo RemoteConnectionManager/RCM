@@ -80,10 +80,9 @@ jobs:
 
       - name: Move turbovnc to external
         run: |
-         dir
-         dir turbovnc
-         dir ${{ env.TURBOVNC_EXTERNAL }}/bin
+         mkdir ${{ env.TURBOVNC_EXTERNAL }}
          mv turbovnc ${{ env.TURBOVNC_EXTERNAL }}/bin
+
 
       # PYINSTALLER
       - name: Build pyinstaller
