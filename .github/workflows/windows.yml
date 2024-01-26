@@ -16,7 +16,6 @@ on:
 env:
   PYTHON_VERSION: "3.10.11"
 
-  # TURBOVNC_VERSION: "3.1"
   TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
   TURBOVNC_EXTERNAL: "RCM/rcm/client/external/turbovnc"
 
@@ -39,20 +38,20 @@ jobs:
     steps:
       # CHECKOUT
       - name: (GHO) Checkout RCM in RCM folder
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
         with:
           path: RCM
 
       # CACHE
       - name: (GHO) Cache python
-        uses: actions/cache@v3.3.3
+        uses: actions/cache@v4.0.0
         id: cache-python
         with:
           path: python
           key: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
 
       - name: (GHO) Cache venv
-        uses: actions/cache@v3.3.3
+        uses: actions/cache@v4.0.0
         id: cache-venv
         with:
           path: venv
@@ -94,7 +93,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: (GHO) Cache turbovnc
-        uses: actions/cache@v3.3.3
+        uses: actions/cache@v4.0.0
         id: cache-turbovnc
         with:
           path: turbovnc
@@ -102,8 +101,8 @@ jobs:
 
       # CHECKOUT
       - name: (GHO) Checkout RCM in RCM folder
-        if: ${{ steps.cache-python.outputs.cache-hit != 'true' }} && ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
-        uses: actions/checkout@v3
+        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' }}
+        uses: actions/checkout@v4.1.1
         with:
           path: RCM
 
@@ -122,41 +121,42 @@ jobs:
   cineca-extra:
     runs-on: windows-latest
     steps:
-      # CHECKOUT
-      - name: (GHO) Checkout RCM in RCM folder
-        if: ${{ steps.cache-step.outputs.cache-hit != 'true' }} && ${{ steps.cache-dot-step.outputs.cache-hit != 'true' }} && ${{ steps.cache-git.outputs.cache-hit != 'true' }}
-        uses: actions/checkout@v3
-        with:
-          path: RCM
-
+      # CACHE
       - name: (GHO) Cache step
-        uses: actions/cache@v3.3.3
+        uses: actions/cache@v4.0.0
         id: cache-step
         with:
           path: step
           key: step-${{ env.SMALLSTEP_VERSION }}-${{ runner.os }}
 
-      - name: Install step
-        if: ${{ steps.cache-step.outputs.cache-hit != 'true' }}
-        run: . RCM/scripts/ci/install_local_step.ps1
-
       - name: (GHO) Cache .step
-        uses: actions/cache@v3.3.3
+        uses: actions/cache@v4.0.0
         id: cache-dot-step
         with:
           path: .step
           key: dot-step-${{ env.CINECA_STEP_FINGERPRINT }}-${{ runner.os }}
 
-      - name: Configure step for CINECA 
-        if: ${{ steps.cache-dot-step.outputs.cache-hit != 'true' }}
-        run: . RCM/scripts/ci/configure_step_CINECA.ps1
-
       - name: (GHO) Cache git
-        uses: actions/cache@v3.3.3
+        uses: actions/cache@v4.0.0
         id: cache-git
         with:
           path: git
           key: git-${{ env.GIT_VERSION }}-${{ runner.os }}
+
+      # CHECKOUT
+      - name: (GHO) Checkout RCM in RCM folder
+        if: ${{ steps.cache-step.outputs.cache-hit != 'true' }} && ${{ steps.cache-dot-step.outputs.cache-hit != 'true' }} && ${{ steps.cache-git.outputs.cache-hit != 'true' }}
+        uses: actions/checkout@v4.1.1
+        with:
+          path: RCM
+
+      - name: Install step
+        if: ${{ steps.cache-step.outputs.cache-hit != 'true' }}
+        run: . RCM/scripts/ci/install_local_step.ps1
+
+      - name: Configure step for CINECA 
+        if: ${{ steps.cache-dot-step.outputs.cache-hit != 'true' }}
+        run: . RCM/scripts/ci/configure_step_CINECA.ps1
 
       - name: Install git
         if: ${{ steps.cache-git.outputs.cache-hit != 'true' }}
@@ -191,8 +191,7 @@ jobs:
             .step
             git
             adapt-python-build-env.ps1
-
-       
+    
   pyinstaller:     
     needs: [python, turbovnc]
     runs-on: windows-latest
@@ -204,7 +203,7 @@ jobs:
     
     steps:
       - name: (GHO) Clone RCM in RCM folder
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
         with:
           path: RCM
 
@@ -237,14 +236,14 @@ jobs:
           Expand-Archive -Path dist/*/*/RCM.zip -DestinationPath ./RCM-dir
 
       - name: (GHO) Upload exe
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.TURBOVNC_VERSION }}
           path: |
             RCM.exe
 
       - name: (GHO) Upload dir
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.TURBOVNC_VERSION }}-dir
           path: |
