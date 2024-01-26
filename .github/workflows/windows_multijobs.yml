@@ -79,7 +79,11 @@ jobs:
         run: . RCM/scripts/ci/extract_turbovnc.ps1
 
       - name: Move turbovnc to external
-        run: mv turbovnc ${{ env.TURBOVNC_EXTERNAL }}/bin
+        run: |
+         dir
+         dir turbovnc
+         dir ${{ env.TURBOVNC_EXTERNAL }}/bin
+         mv turbovnc ${{ env.TURBOVNC_EXTERNAL }}/bin
 
       # PYINSTALLER
       - name: Build pyinstaller
