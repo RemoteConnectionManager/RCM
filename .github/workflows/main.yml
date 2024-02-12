@@ -57,11 +57,11 @@ jobs:
         run: |
          uname -a
 
-      - name: Uname
+      - name: Install Qt packages
         if: ${{ contains(matrix.os, 'ubuntu')  }}
         run: |
           sudo apt update
-          sudo apt install -y qtbase5-dev qt5-qmake # cmake qtcreator
+          sudo apt install -y qtbase5-dev qt5-qmake qtwayland5 # cmake qtcreator
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout RCM
