@@ -79,7 +79,7 @@ jobs:
       - name: Install pyenv locally
         if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
         run: |
-          git clone -b "v${PYENV_VERSION} "https://github.com/pyenv/pyenv.git "${PYENV_ROOT:?}"
+          git clone -b "v${PYENV_VERSION}" "https://github.com/pyenv/pyenv.git" "${PYENV_ROOT:?}"
           pyenv install "${PYTHON_VERSION}"
 
       # VENV
