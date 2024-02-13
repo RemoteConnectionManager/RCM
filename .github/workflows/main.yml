@@ -72,12 +72,9 @@ jobs:
         if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
         run: |
           git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-          sed -i '1s|^|export PYENV_ROOT="~/.pyenv"\nexport PATH="$PYENV_ROOT/bin:$PATH"\neval "$(pyenv init -)"\n\n|' ~/.bashrc
-
-      - name: Install python locally
-        if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
-        run: |
-          echo "$PATH"
+          export PYENV_ROOT="~/.pyenv"
+          export PATH="$PYENV_ROOT/bin:$PATH"
+          eval "$(pyenv init -)"
           pyenv install ${PYTHON_VERSION}
           pyenv global ${PYTHON_VERSION}
 
@@ -85,6 +82,9 @@ jobs:
       - name: Install venv
         if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
         run: |
+          export PYENV_ROOT="~/.pyenv"
+          export PATH="$PYENV_ROOT/bin:$PATH"
+          eval "$(pyenv init -)"
           python -m venv venv
           venv/bin/activate
           pip install -r RCM/rcm/client/requirements.txt
