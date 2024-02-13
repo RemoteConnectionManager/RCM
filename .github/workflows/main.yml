@@ -33,9 +33,9 @@ jobs:
         turbovnc-version:
         - '3.1'
         - '2.2.7'
-        # include:
-        #   - os: macos-latest
-        #     turbovnc-version: 'none'
+        include:
+          - os: macos-latest
+            turbovnc-version: 'none'
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
