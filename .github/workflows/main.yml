@@ -52,8 +52,6 @@ jobs:
       
       - run: ls RCM
 
-      - run: exit 
-      
       # CACHE
       - name: (GHO) Cache python
         uses: actions/cache@v4.0.0
@@ -101,15 +99,13 @@ jobs:
       # TURBOVNC
       - name: Extract turbovnc
         if: ${{ matrix.os != 'macos-latest' && steps.cache-turbovnc.outputs.cache-hit != 'true' }}
-        env:
-          turbovnc-version: ${{ matrix.turbovnc-version }}
-        run: |
-          
+        run: |          
           wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/turbovnc_${{ matrix.turbovnc-version }}_amd64.deb -O turbovnc.deb
-         
-          # Extract file from deb
           dpkg-deb -x turbovnc.deb turbovnc
 
+      - name: Move turbovnc
+        if: ${{ matrix.os != 'macos-latest' }}
+        run: |
           # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"` 
           mv turbovnc/opt/TurboVNC "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
           mv turbovnc/usr/share "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
