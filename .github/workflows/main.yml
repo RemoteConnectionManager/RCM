@@ -73,7 +73,8 @@ jobs:
           export PYENV_ROOT=~/.pyenv
           echo "PYENV_ROOT=${PYENV_ROOT}" >> "${GITHUB_ENV}"
           echo "${PYENV_ROOT}/bin" >> "${GITHUB_PATH}"
-
+          echo "${PYENV_ROOT}/versions/${PYTHON_VERSION}/bin" >> "${GITHUB_PATH}"
+          
       - name: Install pyenv locally
         if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
         run: |
@@ -84,6 +85,7 @@ jobs:
       - name: Install venv
         if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
         run: |
+          which python
           python -m venv venv
           venv/bin/activate
           pip install -r RCM/rcm/client/requirements.txt
