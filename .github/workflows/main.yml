@@ -90,7 +90,7 @@ jobs:
 
       # TURBOVNC
       - name: Extract turbovnc
-        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' && runner.os != 'macos-latest' }}
+        if: ${{ runner.os != 'macos-latest' || steps.cache-turbovnc.outputs.cache-hit != 'true' }}
         env:
           turbovnc-version: ${{ matrix.turbovnc-version }}
         run: |
