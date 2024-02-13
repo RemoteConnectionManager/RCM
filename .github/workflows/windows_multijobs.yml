@@ -222,7 +222,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
-          path: ${{ env.TURBOVNC_EXTERNAL }}/bin/
+          path: "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}/bin/"
       
       - name: Build pyinstaller
         run: |

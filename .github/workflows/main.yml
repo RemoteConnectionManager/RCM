@@ -28,18 +28,14 @@ jobs:
     strategy:
       matrix:
         os:
-         - macos-latest
+        - ubuntu-latest	
+        # - ubuntu-20.04
         turbovnc-version:
-         - 'none'
-        # os:
-        # - ubuntu-latest	
-        # # - ubuntu-20.04
-        # turbovnc-version:
-        # - '3.1'
+        - '3.1'
         # - '2.2.7'
-        # include:
-        #   - os: macos-latest
-        #     turbovnc-version: 'none'
+        include:
+          - os: macos-latest
+            turbovnc-version: 'none'
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
@@ -52,10 +48,12 @@ jobs:
         with:
           path: "${{ env.RCM_CHECKOUT }}"
 
-      - run: |
-          ls .
-          ls RCM
+      - run: ls .
+      
+      - run: ls RCM
 
+      - run: exit 
+      
       # CACHE
       - name: (GHO) Cache python
         uses: actions/cache@v4.0.0
