@@ -28,14 +28,18 @@ jobs:
     strategy:
       matrix:
         os:
-        - ubuntu-latest	
-        # - ubuntu-20.04
+         - macos-latest
         turbovnc-version:
-        - '3.1'
-        - '2.2.7'
-        include:
-          - os: macos-latest
-            turbovnc-version: 'none'
+         - 'none'
+        # os:
+        # - ubuntu-latest	
+        # # - ubuntu-20.04
+        # turbovnc-version:
+        # - '3.1'
+        # - '2.2.7'
+        # include:
+        #   - os: macos-latest
+        #     turbovnc-version: 'none'
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
@@ -46,7 +50,11 @@ jobs:
       - name: Checkout RCM
         uses: actions/checkout@v4.1.1
         with:
-          path: ${{ env.RCM_CHECKOUT }}
+          path: "${{ env.RCM_CHECKOUT }}"
+
+      - run: |
+          ls .
+          ls RCM
 
       # CACHE
       - name: (GHO) Cache python

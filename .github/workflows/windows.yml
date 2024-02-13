@@ -87,7 +87,7 @@ jobs:
       - name: Build pyinstaller
         run: |
           venv\Scripts\Activate.ps1
-          pyinstaller rcm\client\rcm_client_qt.spec
+          pyinstaller "${{ env.RCM_CHECKOUT }}\rcm\client\rcm_client_qt.spec"
 
       # ARTIFACT
       - name: (GHO) Move preartifacts
