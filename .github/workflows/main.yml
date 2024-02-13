@@ -33,9 +33,9 @@ jobs:
         turbovnc-version:
         - '3.1'
         # - '2.2.7'
-        include:
-          - os: macos-latest
-            turbovnc-version: 'none'
+        # include:
+        #   - os: macos-latest
+        #     turbovnc-version: 'none'
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
@@ -119,7 +119,7 @@ jobs:
         if: ${{ matrix.os != 'macos-latest' }}
         run: |
           # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
-          mkdir -p "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
+          find turbovnc/
           mv turbovnc/opt/TurboVNC "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
           mv turbovnc/usr/share "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
           mv turbovnc/etc "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
