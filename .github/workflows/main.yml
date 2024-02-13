@@ -79,6 +79,8 @@ jobs:
       - name: Install python locally
         if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
         run: |
+          echo $PATH
+          tail ~/.bashrc
           pyenv install ${PYTHON_VERSION}
           pyenv global ${PYTHON_VERSION}
 
