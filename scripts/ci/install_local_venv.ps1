@@ -6,4 +6,4 @@ if (Test-Path -Path .\venv ) {
 
 python\python.exe -m venv venv
 venv\Scripts\Activate.ps1
-pip install -r RCM\rcm\client\requirements.txt
+pip install -r rcm\client\requirements.txt
