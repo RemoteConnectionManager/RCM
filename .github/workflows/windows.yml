@@ -1,29 +1,22 @@
 # This is a basic workflow to help you get started with Actions
 
-name: RCM_CI_win_multijobs
+name: RCM_CI_win
 
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "feature/ci-split-artifact" ]
+    branches: [ "dev", "feature/ci-split-artifact" ]
+  pull_request:
+    branches: [ "dev" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 env:
   PYTHON_VERSION: "3.10.11"
-
   TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
   TURBOVNC_EXTERNAL: "RCM/rcm/client/external/turbovnc"
-
-  # https://github.com/smallstep/scoop-bucket/blob/main/step.json
-  SMALLSTEP_VERSION: "0.24.4"
-  SMALLSTEP_DOWNLOAD: "http://github.com/smallstep/cli/releases/download"
-  CINECA_STEP_FINGERPRINT: "2ae1543202304d3f434bdc1a2c92eff2cd2b02110206ef06317e70c1c1735ecd"
-
-  GIT_VERSION: "2.43.0"
-  GIT_DOWNLOAD: "https://github.com/git-for-windows/git/releases/download"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -31,7 +24,12 @@ jobs:
   python:
     # The type of runner that the job will run on
     runs-on: windows-latest
-
+    strategy:
+      matrix:
+        TURBOVNC_VERSION:
+        - '3.1'
+        - '2.2.7'
+        
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # CHECKOUT
@@ -55,193 +53,56 @@ jobs:
           path: venv
           key: venv-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
 
-      # PYTHON
-      - name: Install python locally
-        if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
-        run: . RCM/scripts/ci/install_local_python.ps1
-
-      - name: (GHO) Upload a python artifact
-        uses: actions/upload-artifact@v4.0.0
-        with:
-          name: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
-          path: |
-            python
-            !**/__pycache__/**
-
-      # VENV
-      - name: Install venv
-        if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
-        run: . RCM/scripts/ci/install_local_venv.ps1
-
-      - name: (GHO) Upload a venv artifact
-        uses: actions/upload-artifact@v4.0.0
-        with:
-          name: venv-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
-          path: |
-            venv
-            !**/__pycache__/**
-
-  turbovnc:     
-    strategy:
-      matrix:
-        TURBOVNC_VERSION:
-        - '3.1'
-        - '2.2.7'
-        
-    runs-on: windows-latest
-    steps:
       - name: (GHO) Cache turbovnc
         uses: actions/cache@v4.0.0
         id: cache-turbovnc
         with:
           path: turbovnc
           key: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
+  
+      # PYTHON
+      - name: Install python locally
+        if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
+        run: . RCM/scripts/ci/install_local_python.ps1
 
-      # CHECKOUT
-      - name: (GHO) Checkout RCM in RCM folder
-        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' }}
-        uses: actions/checkout@v4.1.1
-        with:
-          path: RCM
+      # VENV
+      - name: Install venv
+        if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
+        run: . RCM/scripts/ci/install_local_venv.ps1
 
+      # TURBOVNC
       - name: Extract turbovnc
         if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' }}
         env:
           TURBOVNC_VERSION: ${{ matrix.TURBOVNC_VERSION }}
         run: . RCM/scripts/ci/extract_turbovnc.ps1
 
-      - name: (GHO) Upload a turbovnc artifact
-        uses: actions/upload-artifact@v4.0.0
-        with:
-          name: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
-          path: turbovnc
+      - name: Move turbovnc to external
+        run: |
+         mkdir ${{ env.TURBOVNC_EXTERNAL }}
+         mv turbovnc ${{ env.TURBOVNC_EXTERNAL }}/bin
 
-  cineca-extra:
-    runs-on: windows-latest
-    steps:
-      # CACHE
-      - name: (GHO) Cache step
-        uses: actions/cache@v4.0.0
-        id: cache-step
-        with:
-          path: step
-          key: step-${{ env.SMALLSTEP_VERSION }}-${{ runner.os }}
-
-      - name: (GHO) Cache .step
-        uses: actions/cache@v4.0.0
-        id: cache-dot-step
-        with:
-          path: .step
-          key: dot-step-${{ env.CINECA_STEP_FINGERPRINT }}-${{ runner.os }}
-
-      - name: (GHO) Cache git
-        uses: actions/cache@v4.0.0
-        id: cache-git
-        with:
-          path: git
-          key: git-${{ env.GIT_VERSION }}-${{ runner.os }}
-
-      # CHECKOUT
-      - name: (GHO) Checkout RCM in RCM folder
-        if: ${{ steps.cache-step.outputs.cache-hit != 'true' }} && ${{ steps.cache-dot-step.outputs.cache-hit != 'true' }} && ${{ steps.cache-git.outputs.cache-hit != 'true' }}
-        uses: actions/checkout@v4.1.1
-        with:
-          path: RCM
-
-      - name: Install step
-        if: ${{ steps.cache-step.outputs.cache-hit != 'true' }}
-        run: . RCM/scripts/ci/install_local_step.ps1
-
-      - name: Configure step for CINECA 
-        if: ${{ steps.cache-dot-step.outputs.cache-hit != 'true' }}
-        run: . RCM/scripts/ci/configure_step_CINECA.ps1
-
-      - name: Install git
-        if: ${{ steps.cache-git.outputs.cache-hit != 'true' }}
-        run: . RCM/scripts/ci/install_local_git.ps1
-
-      - name: Create script to port python and venv into another machine
-        run : |
-          Write-Output @'
-          $ci_path = [regex]::Escape("D:\a\RCM\RCM")
-          
-          # Script name and directory
-          $script_name = $MyInvocation.MyCommand.Name
-          $script_dir = Split-Path ($MyInvocation.MyCommand.Path)
-          
-          # Replace ci_path in all exe shebangs and in venv/pyvenv.cfg
-          Get-ChildItem -Path $script_dir -Exclude $script_name -Recurse `
-          | Select-String -pattern $ci_path -List `
-          | Select-Object Path `
-          | Foreach-Object {
-              Write-Output "Replacing '$($ci_path)' with '$($script_dir)' in '$($_.Path)' ..."
-              ((Get-Content -path $_.Path -Raw) -replace $ci_path, $script_dir ) `
-              | Set-Content -Path $_.Path
-          }
-          '@ | Out-File -FilePath adapt-python-build-env.ps1
-
-      - name: (GHO) Upload CINECA extras
-        uses: actions/upload-artifact@v4.0.0
-        with:
-          name: CINECA-extra-step-${{ env.SMALLSTEP_VERSION }}-git-${{ env.GIT_VERSION }}-${{ runner.os }}
-          path: |
-            step
-            .step
-            git
-            adapt-python-build-env.ps1
-    
-  pyinstaller:     
-    needs: [python, turbovnc]
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        TURBOVNC_VERSION:
-        - '3.1'
-        - '2.2.7'
-    
-    steps:
-      - name: (GHO) Clone RCM in RCM folder
-        uses: actions/checkout@v4.1.1
-        with:
-          path: RCM
-
-      - name: (GHO) Download python artificat
-        uses: actions/download-artifact@v4
-        with:
-          name: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
-          path: python/
-
-      - name: (GHO) Download venv artificat
-        uses: actions/download-artifact@v4
-        with:
-          name: venv-${{ env.PYTHON_VERSION }}-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
-          path: venv/
-
-      - name: (GHO) Download turbovnc artificat
-        uses: actions/download-artifact@v4
-        with:
-          name: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
-          path: ${{ env.TURBOVNC_EXTERNAL }}/bin/
-      
+      # PYINSTALLER
       - name: Build pyinstaller
         run: |
           venv\Scripts\Activate.ps1
           pyinstaller RCM\rcm\client\rcm_client_qt.spec
 
+      # ARTIFACT
       - name: (GHO) Move preartifacts
         run: |
           mv dist/*/*/RCM.exe .
           Expand-Archive -Path dist/*/*/RCM.zip -DestinationPath ./RCM-dir
 
       - name: (GHO) Upload exe
-        uses: actions/upload-artifact@v4.3.0
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.TURBOVNC_VERSION }}
           path: |
             RCM.exe
 
       - name: (GHO) Upload dir
-        uses: actions/upload-artifact@v4.3.0
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.TURBOVNC_VERSION }}-dir
           path: |
