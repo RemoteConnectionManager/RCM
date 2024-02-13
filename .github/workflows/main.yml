@@ -72,7 +72,6 @@ jobs:
         if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
         run: |
           git clone https://github.com/pyenv/pyenv.git .pyenv
-          tree .pyenv
           .pyenv/bin/pyenv install ${PYTHON_VERSION}
           mv .pyenv/versions/${PYTHON_VERSION} python
           python/python --version
