@@ -14,10 +14,12 @@ on:
   workflow_dispatch:
 
 env:
+  RCM_CHECKOUT: "RCM"
   PYTHON_VERSION: "3.10.11"
   PYENV_VERSION: "2.3.35"
   TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
   TURBOVNC_EXTERNAL: "rcm/client/external/turbovnc"
+
   
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -43,6 +45,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout RCM
         uses: actions/checkout@v4.1.1
+        with:
+          path: ${{ env.RCM_CHECKOUT }}
 
       # CACHE
       - name: (GHO) Cache python
@@ -57,7 +61,7 @@ jobs:
         id: cache-venv
         with:
           path: venv
-          key: venv-${{ hashFiles('rcm/client/requirements.txt') }}-${{ runner.os }}
+          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-${{ runner.os }}
 
       - name: (GHO) Cache turbovnc
         uses: actions/cache@v4.0.0
@@ -86,7 +90,7 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
-          pip install -r rcm/client/requirements.txt
+          pip install -r "${RCM_CHECKOUT}/rcm/client/requirements.txt"
 
       # TURBOVNC
       - name: Extract turbovnc
@@ -100,21 +104,21 @@ jobs:
           # Extract file from deb
           dpkg-deb -x turbovnc.deb turbovnc
 
-          # Copy extracted file to `$TURBOVNC_EXTERNAL` 
-          mv turbovnc/opt/TurboVNC $TURBOVNC_EXTERNAL
-          mv turbovnc/usr/share $TURBOVNC_EXTERNAL
-          mv turbovnc/etc $TURBOVNC_EXTERNAL
+          # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"` 
+          mv turbovnc/opt/TurboVNC "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
+          mv turbovnc/usr/share "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
+          mv turbovnc/etc "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
 
       # PYINSTALLER
       - name: Build pyinstaller
         run: |
           source venv/bin/activate
-          pyinstaller rcm/client/rcm_client_qt.spec
+          pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
 
       # ARTIFACT
       - name: (GHO) Move preartifacts
         run: |
-          mv dist/*/*/RCM .
+          mv dist/*/*/RCM rcm
           unzip dist/*/*/RCM.zip -d ./RCM-dir
 
       - name: (GHO) Upload exe
@@ -122,7 +126,7 @@ jobs:
         with:
           name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.turbovnc-version }}
           path: |
-            RCM 
+            rcm
 
       - name: (GHO) Upload dir
         uses: actions/upload-artifact@v4.3.1
