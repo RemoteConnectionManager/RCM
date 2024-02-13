@@ -71,14 +71,9 @@ jobs:
       - name: Install python locally
         if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
         run: |
-          git clone https://github.com/pyenv/pyenv.git .pyenv
-          .pyenv/bin/pyenv install --help
-          .pyenv/bin/pyenv install ${PYTHON_VERSION}
-          ls .pyenv
-          ls .pyenv/versions
-          ls .pyenv/versions/3.10.11
-          ls ".pyenv/versions/${PYTHON_VERSION}"
-          mv .pyenv/versions/${PYTHON_VERSION} python
+          git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+          ~/.pyenv/bin/pyenv install ${PYTHON_VERSION}
+          mv ~/.pyenv/versions/${PYTHON_VERSION} python
           python/python --version
 
       # VENV
