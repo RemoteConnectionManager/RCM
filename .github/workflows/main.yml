@@ -49,8 +49,6 @@ jobs:
           path: "${{ env.RCM_CHECKOUT }}"
 
       - run: ls .
-      
-      - run: ls RCM
 
       # CACHE
       - name: (GHO) Cache python
@@ -60,6 +58,8 @@ jobs:
           path: ~/.pyenv
           key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}
 
+      - run: ls .
+          
       - name: (GHO) Cache venv
         uses: actions/cache@v4.0.0
         id: cache-venv
@@ -67,12 +67,16 @@ jobs:
           path: venv
           key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-${{ matrix.os }}
 
+      - run: ls .
+
       - name: (GHO) Cache turbovnc
         uses: actions/cache@v4.0.0
         id: cache-turbovnc
         with:
           path: turbovnc
           key: turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}
+
+      - run: ls .
   
       # PYTHON
       - name: Setup pyenv
@@ -82,11 +86,15 @@ jobs:
           echo "${PYENV_ROOT}/bin" >> "${GITHUB_PATH}"
           echo "${PYENV_ROOT}/versions/${PYTHON_VERSION}/bin" >> "${GITHUB_PATH}"
 
+      - run: ls .
+  
       - name: Install pyenv locally
         if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
         run: |
           git clone -b "v${PYENV_VERSION}" "https://github.com/pyenv/pyenv.git" "${PYENV_ROOT:?}"
           pyenv install "${PYTHON_VERSION}"
+
+      - run: ls .
 
       # VENV
       - name: Install venv
@@ -96,6 +104,8 @@ jobs:
           source venv/bin/activate
           pip install -r "${RCM_CHECKOUT}/rcm/client/requirements.txt"
 
+      - run: ls .
+
       # TURBOVNC
       - name: Extract turbovnc
         if: ${{ matrix.os != 'macos-latest' && steps.cache-turbovnc.outputs.cache-hit != 'true' }}
@@ -103,21 +113,26 @@ jobs:
           wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/turbovnc_${{ matrix.turbovnc-version }}_amd64.deb -O turbovnc.deb
           dpkg-deb -x turbovnc.deb turbovnc
 
+      - run: ls .
+
       - name: Move turbovnc
         if: ${{ matrix.os != 'macos-latest' }}
         run: |
           # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
-          ls turbovnc
-          ls "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
+          mkdir -p "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
           mv turbovnc/opt/TurboVNC "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
           mv turbovnc/usr/share "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
           mv turbovnc/etc "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
+
+      - run: ls .
 
       # PYINSTALLER
       - name: Build pyinstaller
         run: |
           source venv/bin/activate
           pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
+
+      - run: ls .
 
       # ARTIFACT
       - name: (GHO) Move preartifacts
@@ -126,6 +141,8 @@ jobs:
           if [ -d rcm ]; then ls rcm ; fi
           mv dist/*/*/RCM rcm
           unzip dist/*/*/RCM.zip -d ./RCM-dir
+
+      - run: ls .
 
       - name: (GHO) Upload exe
         uses: actions/upload-artifact@v4.3.1
