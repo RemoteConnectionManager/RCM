@@ -36,6 +36,8 @@ jobs:
       # CHECKOUT
       - name: Checkout RCM
         uses: actions/checkout@v4.1.1
+        with:
+          path: ${{ env.RCM_CHECKOUT }}
 
       # CACHE
       - name: (GHO) Cache python

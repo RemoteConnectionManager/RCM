@@ -54,21 +54,21 @@ jobs:
         id: cache-python
         with:
           path: ~/.pyenv
-          key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
+          key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}
 
       - name: (GHO) Cache venv
         uses: actions/cache@v4.0.0
         id: cache-venv
         with:
           path: venv
-          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-${{ runner.os }}
+          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-${{ matrix.os }}
 
       - name: (GHO) Cache turbovnc
         uses: actions/cache@v4.0.0
         id: cache-turbovnc
         with:
           path: turbovnc
-          key: turbovnc-${{ matrix.turbovnc-version }}-${{ runner.os }}
+          key: turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}
   
       # PYTHON
       - name: Setup pyenv
@@ -118,19 +118,21 @@ jobs:
       # ARTIFACT
       - name: (GHO) Move preartifacts
         run: |
+          ls
+          if [ -d rcm ]; then ls rcm ; fi
           mv dist/*/*/RCM rcm
           unzip dist/*/*/RCM.zip -d ./RCM-dir
 
       - name: (GHO) Upload exe
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.turbovnc-version }}
+          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
           path: |
             rcm
 
       - name: (GHO) Upload dir
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
+          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
           path: |
             RCM-dir
