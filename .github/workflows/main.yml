@@ -74,7 +74,8 @@ jobs:
           git clone https://github.com/pyenv/pyenv.git ~/.pyenv
           ~/.pyenv/bin/pyenv install ${PYTHON_VERSION}
           mv ~/.pyenv/versions/${PYTHON_VERSION} python
-          python/python --version
+          ls python
+          python/bin/python --version
 
       # VENV
       - name: Install venv
