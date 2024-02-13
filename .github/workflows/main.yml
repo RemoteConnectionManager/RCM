@@ -28,14 +28,16 @@ jobs:
     strategy:
       matrix:
         os:
-        - ubuntu-latest	
-        - ubuntu-20.04
+         - macos-latest	
+        # - ubuntu-latest	
+        # - ubuntu-20.04
         turbovnc-version:
-        - '3.1'
-        - '2.2.7'
-        include:
-          - os: macos-latest
-            turbovnc-version: 'none'
+          - 'none'
+        # - '3.1'
+        # - '2.2.7'
+        # include:
+        #   - os: macos-latest
+        #     turbovnc-version: 'none'
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
@@ -137,7 +139,10 @@ jobs:
       - name: (GHO) Move preartifacts
         run: |
           ls
-          if [ -d rcm ]; then ls rcm ; fi
+          echo "----"
+          ls dist
+          find dist
+          echo "---"
           mv dist/*/*/RCM rcm
           unzip dist/*/*/RCM.zip -d ./RCM-dir
 
