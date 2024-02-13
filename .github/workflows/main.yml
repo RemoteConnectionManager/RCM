@@ -28,16 +28,14 @@ jobs:
     strategy:
       matrix:
         os:
-         - macos-latest	
-        # - ubuntu-latest	
-        # - ubuntu-20.04
+        - ubuntu-latest	
+        - ubuntu-20.04
         turbovnc-version:
-          - 'none'
-        # - '3.1'
-        # - '2.2.7'
-        # include:
-        #   - os: macos-latest
-        #     turbovnc-version: 'none'
+        - '3.1'
+        - '2.2.7'
+        include:
+          - os: macos-latest
+            turbovnc-version: 'none'
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
@@ -50,8 +48,6 @@ jobs:
         with:
           path: "${{ env.RCM_CHECKOUT }}"
 
-      - run: ls .
-
       # CACHE
       - name: (GHO) Cache python
         uses: actions/cache@v4.0.0
@@ -59,8 +55,6 @@ jobs:
         with:
           path: ~/.pyenv
           key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}
-
-      - run: ls .
           
       - name: (GHO) Cache venv
         uses: actions/cache@v4.0.0
@@ -69,16 +63,12 @@ jobs:
           path: venv
           key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-${{ matrix.os }}
 
-      - run: ls .
-
       - name: (GHO) Cache turbovnc
         uses: actions/cache@v4.0.0
         id: cache-turbovnc
         with:
           path: turbovnc
           key: turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}
-
-      - run: ls .
   
       # PYTHON
       - name: Setup pyenv
@@ -87,16 +77,12 @@ jobs:
           echo "PYENV_ROOT=${PYENV_ROOT}" >> "${GITHUB_ENV}"
           echo "${PYENV_ROOT}/bin" >> "${GITHUB_PATH}"
           echo "${PYENV_ROOT}/versions/${PYTHON_VERSION}/bin" >> "${GITHUB_PATH}"
-
-      - run: ls .
   
       - name: Install pyenv locally
         if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
         run: |
           git clone -b "v${PYENV_VERSION}" "https://github.com/pyenv/pyenv.git" "${PYENV_ROOT:?}"
           pyenv install "${PYTHON_VERSION}"
-
-      - run: ls .
 
       # VENV
       - name: Install venv
@@ -106,16 +92,12 @@ jobs:
           source venv/bin/activate
           pip install -r "${RCM_CHECKOUT}/rcm/client/requirements.txt"
 
-      - run: ls .
-
       # TURBOVNC
       - name: Extract turbovnc
         if: ${{ matrix.os != 'macos-latest' && steps.cache-turbovnc.outputs.cache-hit != 'true' }}
         run: |          
           wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/turbovnc_${{ matrix.turbovnc-version }}_amd64.deb -O turbovnc.deb
           dpkg-deb -x turbovnc.deb turbovnc
-
-      - run: ls .
 
       - name: Move turbovnc
         if: ${{ matrix.os != 'macos-latest' }}
@@ -124,8 +106,6 @@ jobs:
           cp -r turbovnc/opt/TurboVNC "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
           cp -r turbovnc/usr/share "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
           cp -r turbovnc/etc "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
-
-      - run: ls .
 
       # PYINSTALLER
       - name: Build pyinstaller
@@ -138,13 +118,8 @@ jobs:
       # ARTIFACT
       - name: (GHO) Move preartifacts
         run: |
-          ls
-          echo "----"
-          ls dist
-          find dist
-          echo "---"
-          mv dist/*/*/RCM rcm
-          unzip dist/*/*/RCM.zip -d ./RCM-dir
+          find . -name "RCM" -type f -exec mv '{}' rcm \;
+          find . -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;
 
       - run: ls .
 
