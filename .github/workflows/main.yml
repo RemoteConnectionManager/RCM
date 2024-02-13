@@ -81,7 +81,7 @@ jobs:
       - name: Install venv
         if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
         run: |
-          python/python -m venv venv
+          python/bin/python -m venv venv
           venv/bin/activate
           pip install -r RCM/rcm/client/requirements.txt
 
