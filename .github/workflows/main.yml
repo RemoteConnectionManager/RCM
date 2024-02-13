@@ -72,6 +72,7 @@ jobs:
         if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
         run: |
           git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+          find ~/.pyenv -name pyenv
           export PYENV_ROOT=~/.pyenv
           echo "PYENV_ROOT=${PYENV_ROOT}" >> GITHUB_ENV
           echo "${PYENV_ROOT}/bin" >> GITHUB_PATH
