@@ -106,7 +106,9 @@ jobs:
       - name: Move turbovnc
         if: ${{ matrix.os != 'macos-latest' }}
         run: |
-          # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"` 
+          # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
+          ls turbovnc
+          ls "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
           mv turbovnc/opt/TurboVNC "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
           mv turbovnc/usr/share "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
           mv turbovnc/etc "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
