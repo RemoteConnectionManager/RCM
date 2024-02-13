@@ -26,14 +26,14 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        TURBOVNC_VERSION:
+        turbovnc-version:
         - '3.1'
         - '2.2.7'
         
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # CHECKOUT
-      - name: (GHO) Checkout RCM in RCM folder
+      - name: Checkout RCM in RCM folder
         uses: actions/checkout@v4.1.1
         with:
           path: RCM
@@ -58,7 +58,7 @@ jobs:
         id: cache-turbovnc
         with:
           path: turbovnc
-          key: turbovnc-${{ matrix.TURBOVNC_VERSION }}-${{ runner.os }}
+          key: turbovnc-${{ matrix.turbovnc-version }}-${{ runner.os }}
   
       # PYTHON
       - name: Install python locally
@@ -74,7 +74,7 @@ jobs:
       - name: Extract turbovnc
         if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' }}
         env:
-          TURBOVNC_VERSION: ${{ matrix.TURBOVNC_VERSION }}
+          turbovnc-version: ${{ matrix.turbovnc-version }}
         run: . RCM/scripts/ci/extract_turbovnc.ps1
 
       - name: Move turbovnc to external
@@ -97,13 +97,13 @@ jobs:
       - name: (GHO) Upload exe
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.TURBOVNC_VERSION }}
+          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.turbovnc-version }}
           path: |
             RCM.exe
 
       - name: (GHO) Upload dir
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.TURBOVNC_VERSION }}-dir
+          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
           path: |
             RCM-dir

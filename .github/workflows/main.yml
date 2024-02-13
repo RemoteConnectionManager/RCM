@@ -6,7 +6,7 @@ name: RCM_CI
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "dev" ]
+    branches: [ "dev", "feature/ci-split-artifact" ]
   pull_request:
     branches: [ "dev" ]
 
@@ -14,6 +14,7 @@ on:
   workflow_dispatch:
 
 env:
+  PYTHON_VERSION: "3.10.11"
   TURBOVNC_DOWNLOAD: https://github.com/TurboVNC/turbovnc/releases/download
   TURBOVNC_EXTERNAL: "RCM/rcm/client/external/turbovnc"
   
@@ -26,22 +27,12 @@ jobs:
         os:
         - ubuntu-latest	
         - ubuntu-20.04
-        - macos-latest
-        python-version:
-        - '3.10.11'
         turbovnc-version:
-        - 'none'
         - '3.1'
         - '2.2.7'
-        exclude:
-        - os: macos-latest
-          turbovnc-version: '3.1'
-        - os: macos-latest
-          turbovnc-version: '2.2.7'
-        - os: ubuntu-latest
-          turbovnc-version: 'none'
-        - os: ubuntu-20.04
-          turbovnc-version: 'none'
+        include:
+          - os: macos-latest
+            turbovnc-version: 'none'
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
@@ -49,65 +40,88 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:   
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout RCM
+      - name: Checkout RCM in RCM folder
         uses: actions/checkout@v4.1.1
         with:
           path: RCM
 
-      - name: Check repo
-        run: |
-         ls
-         git --git-dir=RCM/.git/ branch
-
-      # Runs a single command using the runners shell
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      # CACHE
+      - name: (GHO) Cache python
+        uses: actions/cache@v4.0.0
+        id: cache-python
         with:
-          python-version: ${{ matrix.python-version }}
+          path: python
+          key: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
 
-      - name: Install dependencies
+      - name: (GHO) Cache venv
+        uses: actions/cache@v4.0.0
+        id: cache-venv
+        with:
+          path: venv
+          key: venv-${{ hashFiles('RCM/rcm/client/requirements.txt') }}-${{ runner.os }}
+
+      - name: (GHO) Cache turbovnc
+        uses: actions/cache@v4.0.0
+        id: cache-turbovnc
+        with:
+          path: turbovnc
+          key: turbovnc-${{ matrix.turbovnc-version }}-${{ runner.os }}
+  
+      # PYTHON
+      - name: Install python locally
+        if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
         run: |
-          python -m pip install --upgrade pip
+          git clone https://github.com/pyenv/pyenv.git .pyenv
+          .pyenv/pyenv/bin/pyenv install ${PYTHON_VERSION}
+          mv .pyenv/pyenv/versions/${PYTHON_VERSION} python
+          python/python --version
+
+      # VENV
+      - name: Install venv
+        if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
+        run: |
+          python/python -m venv venv
+          venv/bin/activate
           pip install -r RCM/rcm/client/requirements.txt
 
-      - name: Test python
+      # TURBOVNC
+      - name: Extract turbovnc
+        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' && runner.os != 'macos-latest' }}
+        env:
+          turbovnc-version: ${{ matrix.turbovnc-version }}
         run: |
-          python --version
-          python -c "import paramiko"
-          pip list
-
-      - name: Install externals MACOS
-        if: ${{ matrix.os == 'macos-latest' && matrix.turbovnc-version != 'none' }}
-        run: |
-         #!!! TODO: generalize download url (newer version has arch) !!!
-         #!!! TODO: install dmg !!!
-
-         # Download dmg
-         # wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/TurboVNC-${{ matrix.turbovnc-version }}.dmg -O turbovnc.dmg
-
-      - name: Install externals LINUX
-        if: ${{ contains(matrix.os, 'ubuntu') && matrix.turbovnc-version != 'none' }}
-        run: |
-         #!!! TODO: mv only necessary file !!!
-          
-         # Download deb
-         wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/turbovnc_${{ matrix.turbovnc-version }}_amd64.deb -O turbovnc.deb
+          wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/turbovnc_${{ matrix.turbovnc-version }}_amd64.deb -O turbovnc.deb
          
-         # Extract file from deb
-         dpkg-deb -x turbovnc.deb tmp
+          # Extract file from deb
+          dpkg-deb -x turbovnc.deb turbovnc
 
-         # Copy extracted file to `$TURBOVNC_EXTERNAL` 
-         mv tmp/opt/TurboVNC $TURBOVNC_EXTERNAL
-         mv tmp/usr/share $TURBOVNC_EXTERNAL
-         mv tmp/etc $TURBOVNC_EXTERNAL
+          # Copy extracted file to `$TURBOVNC_EXTERNAL` 
+          mv turbovnc/opt/TurboVNC $TURBOVNC_EXTERNAL
+          mv turbovnc/usr/share $TURBOVNC_EXTERNAL
+          mv turbovnc/etc $TURBOVNC_EXTERNAL
 
+      # PYINSTALLER
       - name: Build pyinstaller
         run: |
-         pyinstaller RCM/rcm/client/rcm_client_qt.spec
-         
-      - name: Upload exe
+          source venv/bin/activate
+          pyinstaller RCM/rcm/client/rcm_client_qt.spec
+
+      # ARTIFACT
+      - name: (GHO) Move preartifacts
+        run: |
+          mv dist/*/*/RCM.exe .
+          unzip dist/*/*/RCM.zip -d ./RCM-dir
+
+      - name: (GHO) Upload exe
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: RCM_client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}
+          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.turbovnc-version }}
           path: |
-            dist
+            RCM.exe
+
+      - name: (GHO) Upload dir
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
+          path: |
+            RCM-dir
