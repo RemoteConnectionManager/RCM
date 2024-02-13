@@ -68,22 +68,22 @@ jobs:
           key: turbovnc-${{ matrix.turbovnc-version }}-${{ runner.os }}
   
       # PYTHON
-      - name: Install pyenv locally
-        if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
+      - name: Setup pyenv
         run: |
-          git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-          find ~/.pyenv -name pyenv
           export PYENV_ROOT=~/.pyenv
           echo "PYENV_ROOT=${PYENV_ROOT}" >> GITHUB_ENV
           echo "${PYENV_ROOT}/bin" >> GITHUB_PATH
+
+      - name: Install pyenv locally
+        if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
+        run: |
+          git clone https://github.com/pyenv/pyenv.git ${PYENV_ROOT:?}
           pyenv install ${PYTHON_VERSION}
 
       # VENV
       - name: Install venv
         if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
         run: |
-          echo "${PATH}"
-          echo ${PYENV_ROOT}
           python -m venv venv
           venv/bin/activate
           pip install -r RCM/rcm/client/requirements.txt
