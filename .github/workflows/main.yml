@@ -116,7 +116,8 @@ jobs:
       # ARTIFACT
       - name: (GHO) Move preartifacts
         run: |
-          find . -name "RCM" -type f -exec mv '{}' rcm \;
+          mv RCM RCM-git
+          find . -name "RCM" -type f -exec mv '{}' RCM \;
           find . -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;
 
       - name: (GHO) Upload exe
@@ -124,7 +125,7 @@ jobs:
         with:
           name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
           path: |
-            rcm
+            RCM
 
       - name: (GHO) Upload dir
         uses: actions/upload-artifact@v4.3.1
