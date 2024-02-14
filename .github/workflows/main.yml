@@ -41,7 +41,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     
     # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:   
+    steps:
+      - name: Install missing Qt libraries ubuntu
+        if: ${{ contains(matrix.os, 'ubuntu')  }}
+        run: |
+          sudo apt update
+          sudo apt install -y qtbase5-dev qt5-qmake
+          # skipping cmake qtcreator qtwayland5
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout RCM
         uses: actions/checkout@v4.1.1
