@@ -1,0 +1,110 @@
+# This is a basic workflow to help you get started with Actions
+
+name: RCM_CI_win
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  RCM_CHECKOUT: "RCM"
+  PYTHON_VERSION: "3.10.11"
+  TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
+  TURBOVNC_EXTERNAL: "rcm/client/external/turbovnc"
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  python:
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        turbovnc-version:
+        - '3.1'
+        - '2.2.7'
+        
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # CHECKOUT
+      - name: Checkout RCM
+        uses: actions/checkout@v4.1.1
+        with:
+          path: ${{ env.RCM_CHECKOUT }}
+
+      # CACHE
+      - name: (GHO) Cache python
+        uses: actions/cache@v4.0.0
+        id: cache-python
+        with:
+          path: python
+          key: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}
+
+      - name: (GHO) Cache venv
+        uses: actions/cache@v4.0.0
+        id: cache-venv
+        with:
+          path: venv
+          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-${{ runner.os }}
+
+      - name: (GHO) Cache turbovnc
+        uses: actions/cache@v4.0.0
+        id: cache-turbovnc
+        with:
+          path: turbovnc
+          key: turbovnc-${{ matrix.turbovnc-version }}-${{ runner.os }}
+  
+      # PYTHON
+      - name: Install python locally
+        if: ${{ steps.cache-python.outputs.cache-hit != 'true' }}
+        run: . "${{ env.RCM_CHECKOUT }}/scripts/ci/install_local_python.ps1"
+
+      # VENV
+      - name: Install venv
+        if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
+        run: . "${{ env.RCM_CHECKOUT }}/scripts/ci/install_local_venv.ps1"
+
+      # TURBOVNC
+      - name: Extract turbovnc
+        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' }}
+        env:
+          TURBOVNC_VERSION: ${{ matrix.turbovnc-version }}
+        run: . "${{ env.RCM_CHECKOUT }}/scripts/ci/extract_turbovnc.ps1"
+
+      - name: Move turbovnc to external
+        run: |
+         mkdir "${{ env.RCM_CHECKOUT }}\${{ env.TURBOVNC_EXTERNAL }}"
+         mv turbovnc "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}/bin"
+
+      # PYINSTALLER
+      - name: Build pyinstaller
+        run: |
+          venv\Scripts\Activate.ps1
+          pyinstaller "${{ env.RCM_CHECKOUT }}\rcm\client\rcm_client_qt.spec"
+
+      # ARTIFACT
+      - name: (GHO) Move preartifacts
+        run: |
+          mv dist/*/*/RCM.exe .
+          Expand-Archive -Path dist/*/*/RCM.zip -DestinationPath ./RCM-dir
+
+      - name: (GHO) Upload exe
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.turbovnc-version }}
+          path: |
+            RCM.exe
+
+      - name: (GHO) Upload dir
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
+          path: |
+            RCM-dir
