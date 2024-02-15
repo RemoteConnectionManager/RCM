@@ -106,7 +106,7 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          FILE2SIGN: "RCM"
+          FILE2SIGN: "RCM.exe"
 
       - name: (GHO) Upload exe
         uses: actions/upload-artifact@v4.3.1
