@@ -120,17 +120,30 @@ jobs:
           find . -name "RCM" -type f -exec mv '{}' RCM \;
           find . -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;
 
+      - uses: sigstore/cosign-installer@v3.3.0
+
+      - name: Sign image with a key
+        run: |
+          FILE2SIGN="RCM"
+          cosign sign-blob --yes \
+            --key env://COSIGN_PRIVATE_KEY "${FILE2SIGN}" \
+            --output-signature "${FILE2SIGN}.sig"
+          cosign verify-blob \
+            --key env://COSIGN_PUBLIC_KEY \
+            --signature "${FILE2SIGN}.sig" \
+            "${FILE2SIGN}"
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+
       - name: (GHO) Upload exe
         uses: actions/upload-artifact@v4.3.1
         with:
           name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
           path: |
             RCM
-
-      - name: (GHO) Restore git
-        run: |
-          mv RCM RCM.exe
-          mv RCM.bck RCM
+            RCM.sig
 
       - name: (GHO) Upload dir
         uses: actions/upload-artifact@v4.3.1
@@ -138,3 +151,8 @@ jobs:
           name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
           path: |
             RCM-dir
+
+      - name: (GHO) Restore git
+        run: |
+          mv RCM RCM.exe
+          mv RCM.bck RCM
