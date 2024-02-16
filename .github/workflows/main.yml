@@ -129,8 +129,8 @@ jobs:
       - name: (GHO) Move preartifacts
         run: |
           mv RCM RCM.bck
-          find . -name "RCM" -type f -exec mv '{}' RCM \;
-          find . -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;
+          find dist -name "RCM" -type f -exec cp '{}' RCM \;
+          find dist -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;
 
       - uses: sigstore/cosign-installer@v3.3.0
 
@@ -165,3 +165,11 @@ jobs:
         run: |
           mv RCM RCM.exe
           mv RCM.bck RCM
+
+    
+      - name: (GHO) Upload dir
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-test
+          path: |
+            dist/**/RCM*
