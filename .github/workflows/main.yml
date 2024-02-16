@@ -60,19 +60,10 @@ jobs:
       # CACHE
       - name: (GHO) Cache pyenv
         uses: actions/cache@v4.0.0
-        if: ${{ matrix.os != 'windows-latest' }}
         id: cache-pyenv
         with:
           path: ~/.pyenv
           key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}
-
-      - name: (GHO) Cache pyenv-win
-        uses: actions/cache@v4.0.0
-        if: ${{ matrix.os == 'windows-latest' }}
-        id: cache-pyenvwin
-        with:
-          path: ~/.pyenv-win
-          key: pyenv-master-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}
 
       - name: (GHO) Cache venv
         uses: actions/cache@v4.0.0
@@ -89,107 +80,119 @@ jobs:
           key: turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}
 
       # PYTHON
-      - name: Setup pyenv
-        if: ${{ matrix.os != 'windows-latest' }}
-        run: |
-          export PYENV_ROOT=~/.pyenv
-          echo "PYENV_ROOT=${PYENV_ROOT}" >> "${GITHUB_ENV}"
-          echo "${PYENV_ROOT}/bin" >> "${GITHUB_PATH}"
-          echo "${PYENV_ROOT}/versions/${PYTHON_VERSION}/bin" >> "${GITHUB_PATH}"
-
-      - name: Setup pyenv-win
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          $env:PYENV_ROOT = "~/.pyenv/pyenv-win"
-          echo "PYENV=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
-          echo "PYENV_ROOT=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
-          echo "PYENV_HOME=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
-          echo "${env:PYENV_ROOT}/bin" >> "${env:GITHUB_PATH}"
-          echo "${env:PYENV_ROOT}/shims" >> "${env:GITHUB_PATH}"
-          echo "${env:PYENV_ROOT}/versions/${env:PYTHON_VERSION}/bin" >> "${env:GITHUB_PATH}"
-          echo "C:\Program Files\Git\usr\bin" >> "${env:GITHUB_PATH}"
+      - name: Setup pyenv environment
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        with:
+          macos: |
+            export PYENV_ROOT=~/.pyenv
+            echo "PYENV_ROOT=${PYENV_ROOT}" >> "${GITHUB_ENV}"
+            echo "${PYENV_ROOT}/bin" >> "${GITHUB_PATH}"
+            echo "${PYENV_ROOT}/versions/${PYTHON_VERSION}/bin" >> "${GITHUB_PATH}"
+          linux: |
+            export PYENV_ROOT=~/.pyenv
+            echo "PYENV_ROOT=${PYENV_ROOT}" >> "${GITHUB_ENV}"
+            echo "${PYENV_ROOT}/bin" >> "${GITHUB_PATH}"
+            echo "${PYENV_ROOT}/versions/${PYTHON_VERSION}/bin" >> "${GITHUB_PATH}"
+          windows: |
+            $env:PYENV_ROOT = "~/.pyenv/pyenv-win"
+            echo "PYENV=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
+            echo "PYENV_ROOT=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
+            echo "PYENV_HOME=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
+            echo "${env:PYENV_ROOT}/bin" >> "${env:GITHUB_PATH}"
+            echo "${env:PYENV_ROOT}/shims" >> "${env:GITHUB_PATH}"
+            echo "${env:PYENV_ROOT}/versions/${env:PYTHON_VERSION}/bin" >> "${env:GITHUB_PATH}"
+            echo "C:\Program Files\Git\usr\bin" >> "${env:GITHUB_PATH}"
 
       - name: Install pyenv locally
-        if: ${{ matrix.os != 'windows-latest' && steps.cache-pyenv.outputs.cache-hit != 'true' }}
-        run: |
-          git clone -b "v${PYENV_VERSION}" "https://github.com/pyenv/pyenv.git" "${PYENV_ROOT:?}"
-          pyenv install "${PYTHON_VERSION}"
-
-      - name: Install pyenv-win locally
-        if: ${{ matrix.os == 'windows-latest' && steps.cache-pyenvwin.outputs.cache-hit != 'true' }}
-        run: |
-          git clone "https://github.com/pyenv-win/pyenv-win.git" ~/.pyenv
-          pyenv.bat install "${env:PYTHON_VERSION}"
+        if: ${{steps.cache-pyenv.outputs.cache-hit != 'true' }}
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        with:
+          macos: |
+            git clone -b "v${PYENV_VERSION}" "https://github.com/pyenv/pyenv.git" "${PYENV_ROOT:?}"
+            pyenv install "${PYTHON_VERSION}"
+          linux: |
+            git clone -b "v${PYENV_VERSION}" "https://github.com/pyenv/pyenv.git" "${PYENV_ROOT:?}"
+            pyenv install "${PYTHON_VERSION}"
+          windows: |
+            git clone "https://github.com/pyenv-win/pyenv-win.git" ~/.pyenv
+            pyenv.bat install "${env:PYTHON_VERSION}"
 
       # VENV
       - name: Install venv
-        if: ${{ matrix.os != 'windows-latest' &&  steps.cache-venv.outputs.cache-hit != 'true' }}
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install -r "${RCM_CHECKOUT}/rcm/client/requirements.txt"
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
+        with:
+          macos: |
+            python -m venv venv
+            source venv/bin/activate
+            pip install -r "${RCM_CHECKOUT}/rcm/client/requirements.txt"
 
-          wget "https://github.com/paramiko/paramiko/pull/${PARAMIKO_PULL}/commits/${PARAMIKO_COMMIT}.patch" -O paramiko.patch
-          PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
-          patch -N $PARAMIKO_FILE -i paramiko.patch
+            wget "https://github.com/paramiko/paramiko/pull/${PARAMIKO_PULL}/commits/${PARAMIKO_COMMIT}.patch" -O paramiko.patch
+            PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
+            patch -N $PARAMIKO_FILE -i paramiko.patch
+          linux: |
+            python -m venv venv
+            source venv/bin/activate
+            pip install -r "${RCM_CHECKOUT}/rcm/client/requirements.txt"
 
-      - name: Install venv-win
-        if: ${{ matrix.os == 'windows-latest' && steps.cache-venv.outputs.cache-hit != 'true' }}
-        run: |
-          python.exe -m venv venv
-          venv\Scripts\Activate.ps1
-          pip install -r "${env:RCM_CHECKOUT}\rcm\client\requirements.txt"
+            wget "https://github.com/paramiko/paramiko/pull/${PARAMIKO_PULL}/commits/${PARAMIKO_COMMIT}.patch" -O paramiko.patch
+            PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
+            patch -N $PARAMIKO_FILE -i paramiko.patch
+          windows: |
+            python.exe -m venv venv
+            venv\Scripts\Activate.ps1
+            pip install -r "${env:RCM_CHECKOUT}\rcm\client\requirements.txt"
 
-          Invoke-WebRequest -URI https://github.com/paramiko/paramiko/pull/2258/commits/1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3.patch -OutFile paramiko.patch
-          $env:PARAMIKO_FILE = python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))"
-          patch -N $env:PARAMIKO_FILE -i paramiko.patch
+            Invoke-WebRequest -URI https://github.com/paramiko/paramiko/pull/2258/commits/1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3.patch -OutFile paramiko.patch
+            $env:PARAMIKO_FILE = python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))"
+            patch -N $env:PARAMIKO_FILE -i paramiko.patch
 
       # TURBOVNC
       - name: Extract turbovnc
-        if: ${{ contains(matrix.os, 'ubuntu') && steps.cache-turbovnc.outputs.cache-hit != 'true' }}
-        run: |          
-          wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/turbovnc_${{ matrix.turbovnc-version }}_amd64.deb -O turbovnc.deb
-          dpkg-deb -x turbovnc.deb turbovnc
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true'  }}
+        with:
+          macos: echo "Skip"
+          linux: |
+            wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/turbovnc_${{ matrix.turbovnc-version }}_amd64.deb -O turbovnc.deb
+            dpkg-deb -x turbovnc.deb turbovnc
 
-          # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
-          cp -r turbovnc/opt/TurboVNC "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
-          cp -r turbovnc/usr/share "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
-          cp -r turbovnc/etc "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
-  
-      - name: Extract turbovnc win
-        if: ${{ matrix.os == 'windows-latest' && steps.cache-turbovnc.outputs.cache-hit != 'true' }}
-        env:
-          TURBOVNC_VERSION: ${{ matrix.turbovnc-version }}
-        run: |
-          . "${{ env.RCM_CHECKOUT }}/scripts/ci/extract_turbovnc.ps1"
-          mkdir "${{ env.RCM_CHECKOUT }}\${{ env.TURBOVNC_EXTERNAL }}"
-          mv turbovnc "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}/bin"
+            # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
+            cp -r turbovnc/opt/TurboVNC "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
+            cp -r turbovnc/usr/share "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
+            cp -r turbovnc/etc "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
+          windows: |
+            . "${{ env.RCM_CHECKOUT }}/scripts/ci/extract_turbovnc.ps1"
+            mkdir "${{ env.RCM_CHECKOUT }}\${{ env.TURBOVNC_EXTERNAL }}"
+            mv turbovnc "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}/bin"
 
       # PYINSTALLER
       - name: Build pyinstaller
-        if: ${{ matrix.os != 'windows-latest' }}
-        run: |
-          source venv/bin/activate
-          pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
-
-      - name: Build pyinstaller win
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          venv\Scripts\Activate.ps1
-          pyinstaller "${{ env.RCM_CHECKOUT }}\rcm\client\rcm_client_qt.spec"
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        with:
+          macos: |
+            source venv/bin/activate
+            pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
+          linux: |
+            source venv/bin/activate
+            pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
+          windows: |
+            venv\Scripts\Activate.ps1
+            pyinstaller "${{ env.RCM_CHECKOUT }}\rcm\client\rcm_client_qt.spec"
   
       # ARTIFACT
       - name: (GHO) Move preartifacts
-        if: ${{ matrix.os != 'windows-latest' }}
-        run: |
-          find dist -name "RCM" -type f -exec cp '{}' RCM.exe \;
-          find dist -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;
-
-      - name: (GHO) Move preartifacts win
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          cp dist/*/*/RCM.exe .
-          Expand-Archive -Path dist/*/*/RCM.zip -DestinationPath ./RCM-dir
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        with:
+          macos: |
+            find dist -name "RCM" -type f -exec cp '{}' RCM.exe \;
+            find dist -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;        
+          linux: |
+            find dist -name "RCM" -type f -exec cp '{}' RCM.exe \;
+            find dist -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;
+          windows: |
+            cp dist/*/*/RCM.exe .
+            Expand-Archive -Path dist/*/*/RCM.zip -DestinationPath ./RCM-dir
 
       - uses: sigstore/cosign-installer@v3.3.0
 
