@@ -18,6 +18,8 @@ env:
   PYTHON_VERSION: "3.10.11"
   TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
   TURBOVNC_EXTERNAL: "rcm/client/external/turbovnc"
+  PARAMIKO_PULL: "2258"
+  PARAMIKO_COMMIT: "1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -52,7 +54,7 @@ jobs:
         id: cache-venv
         with:
           path: venv
-          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-${{ runner.os }}
+          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ runner.os }}
 
       - name: (GHO) Cache turbovnc
         uses: actions/cache@v4.0.0
@@ -67,18 +69,17 @@ jobs:
         run: . "${{ env.RCM_CHECKOUT }}/scripts/ci/install_local_python.ps1"
 
       # VENV
-      - name: Install venv
-        if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
-        run: . "${{ env.RCM_CHECKOUT }}/scripts/ci/install_local_venv.ps1"
-
-      # PATCH PARAMIKO
       - name: Set up PATH on Windows
         if: runner.os == 'Windows'
         run: echo "C:\Program Files\Git\usr\bin" >> $env:GITHUB_PATH
 
-      - name: Patch paramiko
+      - name: Install venv
+        if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
         run: |
+          python\python.exe -m venv venv
           venv\Scripts\Activate.ps1
+          pip install -r "${env:RCM_CHECKOUT}\rcm\client\requirements.txt"
+
           Invoke-WebRequest -URI https://github.com/paramiko/paramiko/pull/2258/commits/1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3.patch -OutFile paramiko.patch
           $env:PARAMIKO_FILE = python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))"
           patch $env:PARAMIKO_FILE -i paramiko.patch

@@ -19,7 +19,8 @@ env:
   PYENV_VERSION: "2.3.35"
   TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
   TURBOVNC_EXTERNAL: "rcm/client/external/turbovnc"
-
+  PARAMIKO_PULL: "2258"
+  PARAMIKO_COMMIT: "1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3"
   
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -68,7 +69,7 @@ jobs:
         id: cache-venv
         with:
           path: venv
-          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-${{ matrix.os }}
+          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}
 
       - name: (GHO) Cache turbovnc
         uses: actions/cache@v4.0.0
@@ -99,11 +100,7 @@ jobs:
           source venv/bin/activate
           pip install -r "${RCM_CHECKOUT}/rcm/client/requirements.txt"
 
-      # PATCH PARAMIKO
-      - name: Patch paramiko
-        run: |
-          source venv/bin/activate
-          wget https://github.com/paramiko/paramiko/pull/2258/commits/1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3.patch -O paramiko.patch
+          wget "https://github.com/paramiko/paramiko/pull/${PARAMIKO_PULL}/commits/${PARAMIKO_COMMIT}.patch" -O paramiko.patch
           PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
           patch $PARAMIKO_FILE < paramiko.patch
     
