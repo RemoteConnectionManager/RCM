@@ -151,6 +151,8 @@ jobs:
       - name: Extract turbovnc
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true'  }}
+        env:
+          TURBOVNC_VERSION: ${{ matrix.turbovnc-version }}
         with:
           macos: echo "Skip"
           linux: |
