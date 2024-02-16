@@ -81,7 +81,7 @@ jobs:
           venv\Scripts\Activate.ps1
           Invoke-WebRequest -URI https://github.com/paramiko/paramiko/pull/2258/commits/1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3.patch -OutFile paramiko.patch
           $env:PARAMIKO_FILE = python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))"
-          patch -N $env:PARAMIKO_FILE < paramiko.patch
+          patch $env:PARAMIKO_FILE -i paramiko.patch
 
       # TURBOVNC
       - name: Extract turbovnc

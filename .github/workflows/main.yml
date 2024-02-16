@@ -105,7 +105,7 @@ jobs:
           source venv/bin/activate
           wget https://github.com/paramiko/paramiko/pull/2258/commits/1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3.patch -O paramiko.patch
           PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
-          patch -N $PARAMIKO_FILE < paramiko.patch
+          patch $PARAMIKO_FILE < paramiko.patch
     
       # TURBOVNC
       - name: Extract turbovnc
