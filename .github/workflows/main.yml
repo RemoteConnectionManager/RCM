@@ -99,6 +99,12 @@ jobs:
           source venv/bin/activate
           pip install -r "${RCM_CHECKOUT}/rcm/client/requirements.txt"
 
+      # PATCH PARAMIKO
+      - name: Patch paramiko
+        run: |
+          PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
+          sed -i'.bak' -e 's/if key.public_blob:/if hasattr(key, "public_blob") and key.public_blob:/' $PARAMIKO_FILE
+
       # TURBOVNC
       - name: Extract turbovnc
         if: ${{ matrix.os != 'macos-latest' && steps.cache-turbovnc.outputs.cache-hit != 'true' }}

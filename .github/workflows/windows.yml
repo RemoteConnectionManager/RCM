@@ -71,6 +71,12 @@ jobs:
         if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
         run: . "${{ env.RCM_CHECKOUT }}/scripts/ci/install_local_venv.ps1"
 
+      # PATCH PARAMIKO
+      - name: Patch paramiko
+        run: |
+          $env:PARAMIKO_FILE = python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))"
+          (Get-Content -Path $env:PARAMIKO_FILE).Replace('if key.public_blob:', 'if hasattr(key, "public_blob") and key.public_blob:') | Set-Content $env:PARAMIKO_FILE
+
       # TURBOVNC
       - name: Extract turbovnc
         if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' }}
