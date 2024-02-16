@@ -102,7 +102,7 @@ jobs:
 
           wget "https://github.com/paramiko/paramiko/pull/${PARAMIKO_PULL}/commits/${PARAMIKO_COMMIT}.patch" -O paramiko.patch
           PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
-          patch $PARAMIKO_FILE < paramiko.patch
+          patch -N $PARAMIKO_FILE -i paramiko.patch
     
       # TURBOVNC
       - name: Extract turbovnc
