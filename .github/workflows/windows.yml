@@ -72,11 +72,16 @@ jobs:
         run: . "${{ env.RCM_CHECKOUT }}/scripts/ci/install_local_venv.ps1"
 
       # PATCH PARAMIKO
+      - name: Set up PATH on Windows
+        if: runner.os == 'Windows'
+        run: echo "C:\Program Files\Git\usr\bin" >> $env:GITHUB_PATH
+
       - name: Patch paramiko
         run: |
           venv\Scripts\Activate.ps1
+          Invoke-WebRequest -URI https://github.com/paramiko/paramiko/pull/2258/commits/1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3.patch -OutFile paramiko.patch
           $env:PARAMIKO_FILE = python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))"
-          (Get-Content -Path $env:PARAMIKO_FILE).Replace('if key.public_blob:', 'if hasattr(key, "public_blob") and key.public_blob:') | Set-Content $env:PARAMIKO_FILE
+          patch -N $env:PARAMIKO_FILE < paramiko.patch
 
       # TURBOVNC
       - name: Extract turbovnc

@@ -103,9 +103,10 @@ jobs:
       - name: Patch paramiko
         run: |
           source venv/bin/activate
+          wget https://github.com/paramiko/paramiko/pull/2258/commits/1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3.patch -O paramiko.patch
           PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
-          sed -i'.bak' -e 's/if key.public_blob:/if hasattr(key, "public_blob") and key.public_blob:/' $PARAMIKO_FILE
-
+          patch -N $PARAMIKO_FILE < paramiko.patch
+    
       # TURBOVNC
       - name: Extract turbovnc
         if: ${{ matrix.os != 'macos-latest' && steps.cache-turbovnc.outputs.cache-hit != 'true' }}
