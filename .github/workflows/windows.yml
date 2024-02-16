@@ -74,6 +74,7 @@ jobs:
       # PATCH PARAMIKO
       - name: Patch paramiko
         run: |
+          venv\Scripts\Activate.ps1
           $env:PARAMIKO_FILE = python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))"
           (Get-Content -Path $env:PARAMIKO_FILE).Replace('if key.public_blob:', 'if hasattr(key, "public_blob") and key.public_blob:') | Set-Content $env:PARAMIKO_FILE
 

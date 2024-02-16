@@ -102,6 +102,7 @@ jobs:
       # PATCH PARAMIKO
       - name: Patch paramiko
         run: |
+          source venv/bin/activate
           PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
           sed -i'.bak' -e 's/if key.public_blob:/if hasattr(key, "public_blob") and key.public_blob:/' $PARAMIKO_FILE
 
