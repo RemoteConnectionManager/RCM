@@ -136,10 +136,3 @@ jobs:
           name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
           path: |
             RCM-dir
-
-      - name: (GHO) Upload dir
-        uses: actions/upload-artifact@v4.3.1
-        with:
-          name: RCM-client-${{ runner.os }}-turbovnc-${{ matrix.turbovnc-version }}-test
-          path: |
-            dist/**/RCM*
