@@ -19,7 +19,8 @@ env:
   PYENV_VERSION: "2.3.35"
   TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
   TURBOVNC_EXTERNAL: "rcm/client/external/turbovnc"
-
+  PARAMIKO_PULL: "2258"
+  PARAMIKO_COMMIT: "1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3"
   
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -68,7 +69,7 @@ jobs:
         id: cache-venv
         with:
           path: venv
-          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-${{ matrix.os }}
+          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}
 
       - name: (GHO) Cache turbovnc
         uses: actions/cache@v4.0.0
@@ -99,6 +100,10 @@ jobs:
           source venv/bin/activate
           pip install -r "${RCM_CHECKOUT}/rcm/client/requirements.txt"
 
+          wget "https://github.com/paramiko/paramiko/pull/${PARAMIKO_PULL}/commits/${PARAMIKO_COMMIT}.patch" -O paramiko.patch
+          PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
+          patch -N $PARAMIKO_FILE -i paramiko.patch
+    
       # TURBOVNC
       - name: Extract turbovnc
         if: ${{ matrix.os != 'macos-latest' && steps.cache-turbovnc.outputs.cache-hit != 'true' }}
@@ -123,16 +128,15 @@ jobs:
       # ARTIFACT
       - name: (GHO) Move preartifacts
         run: |
-          mv RCM RCM.bck
-          find . -name "RCM" -type f -exec mv '{}' RCM \;
-          find . -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;
+          find dist -name "RCM" -type f -exec cp '{}' RCM.exe \;
+          find dist -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;
 
       - uses: sigstore/cosign-installer@v3.3.0
 
       - name: Sign image with a key
         run: |
-          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "${{ env.FILE2SIGN }}.sig" "${{ env.FILE2SIGN }}"
-          cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "${{ env.FILE2SIGN }}.sig" "${{ env.FILE2SIGN }}"
+          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "${{ env.FILE2SIGN }}.sig" "${{ env.FILE2SIGN }}.exe"
+          cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "${{ env.FILE2SIGN }}.sig" "${{ env.FILE2SIGN }}.exe"
           echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
@@ -145,7 +149,7 @@ jobs:
         with:
           name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
           path: |
-            RCM
+            RCM.exe
             RCM.sig
             RCM.pub
 
@@ -155,8 +159,3 @@ jobs:
           name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
           path: |
             RCM-dir
-
-      - name: (GHO) Restore git
-        run: |
-          mv RCM RCM.exe
-          mv RCM.bck RCM
