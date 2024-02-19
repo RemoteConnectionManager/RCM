@@ -79,13 +79,6 @@ jobs:
           path: ${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}
           key: turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}
 
-      - name: (GHO) Cache cosign
-        uses: actions/cache@v4.0.0
-        id: cache-cosign
-        with:
-          path: ~/.cosign
-          key: cosign-${{ matrix.os }}
-
       # PYTHON
       - name: Setup pyenv environment
         uses: carlkidcrypto/os-specific-runner@v2.0.0
