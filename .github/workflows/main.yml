@@ -198,24 +198,28 @@ jobs:
         with:
           macos: echo "Skip"
           linux: |
-            # Download and extract step
+            # Download step
             wget "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_linux_${{ env.SMALLSTEP_VERSION }}_amd64.tar.gz" -O step.tgz
-            tar -xzvf step.tgz -C tmp_step
-
-            # Make external directory and copy executable
+            
+            # Make tmp and external directories
             mkdir -p "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
-            cp tmp_step/bin/step "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
+
+            # Extract and copy executable
+            tar -xzvf step.tgz
+            cp step*/bin/step "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
 
             # Check
             ls "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
           windows: |
-            # Download and extract step
+            # Download step
             Invoke-WebRequest -URI "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_windows_${{ env.SMALLSTEP_VERSION }}_amd64.zip" -OutFile step.zip
-            Expand-Archive -LiteralPath .\step.zip -DestinationPath .\tmp_step
 
-            # Make external directory and copy executable
+            # Make external directories
             New-Item -ItemType Directory -Path "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}" -Force
-            Copy-Item .tmp_step\bin\step.exe -Destination "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
+            
+            # Extract and copy executable
+            Expand-Archive -LiteralPath .\step.zip -DestinationPath .
+            Copy-Item step*\bin\step.exe -Destination "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
 
             # Check
             Get-ChildItem "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
