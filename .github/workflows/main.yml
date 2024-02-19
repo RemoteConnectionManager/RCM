@@ -17,10 +17,13 @@ env:
   RCM_CHECKOUT: "RCM"
   PYTHON_VERSION: "3.10.11"
   PYENV_VERSION: "2.3.35"
-  TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
-  TURBOVNC_EXTERNAL: "rcm/client/external/turbovnc"
   PARAMIKO_PULL: "2258"
   PARAMIKO_COMMIT: "1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3"
+  TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
+  TURBOVNC_EXTERNAL: "rcm/client/external/turbovnc"
+  SMALLSTEP_DOWNLOAD: "https://github.com/smallstep/cli/releases/download"
+  SMALLSTEP_VERSION: "0.25.2"
+  SMALLSTEP_EXTERNAL: "rcm/client/external/step"
   
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -78,6 +81,13 @@ jobs:
         with:
           path: ${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}
           key: turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}
+
+      - name: (GHO) Cache step
+        uses: actions/cache@v4.0.0
+        id: cache-step
+        with:
+          path: ${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}
+          key: step-${{ matrix.os }}
 
       # PYTHON
       - name: Setup pyenv environment
@@ -180,6 +190,21 @@ jobs:
             # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
             mkdir "${{ env.RCM_CHECKOUT }}\${{ env.TURBOVNC_EXTERNAL }}"
             mv app "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}/bin"
+
+      # EXTERNAL STEP
+      - name: External step
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        if: ${{ steps.cache-step.outputs.cache-hit != 'true'  }}
+        with:
+          macos: echo "Skip"
+          linux: |
+            URL="${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_linux_${{ env.SMALLSTEP_VERSION }}_amd64.tar.gz"
+            wget "$URL" -O step.tgz
+            tar -xzvf step.tgz -C "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
+          windows: |
+            $URL = "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_windows_${{ env.SMALLSTEP_VERSION }}_amd64.zip"
+            Invoke-WebRequest -URI "$URL" -OutFile step.zip
+            Expand-Archive -LiteralPath .\step.zip -DestinationPath "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
 
       # PYINSTALLER
       - name: Build pyinstaller
