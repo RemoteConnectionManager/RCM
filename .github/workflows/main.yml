@@ -156,7 +156,10 @@ jobs:
         with:
           macos: echo "Skip"
           linux: |
+            # Download 
             wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/turbovnc_${{ matrix.turbovnc-version }}_amd64.deb -O turbovnc.deb
+
+            # Extract
             dpkg-deb -x turbovnc.deb turbovnc
 
             # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
@@ -164,9 +167,19 @@ jobs:
             cp -r turbovnc/usr/share "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
             cp -r turbovnc/etc "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
           windows: |
-            . "${{ env.RCM_CHECKOUT }}/scripts/ci/extract_turbovnc.ps1"
+            # Install innoextract locally
+            Invoke-WebRequest -URI "https://github.com/dscharrer/innoextract/releases/download/1.9/innoextract-1.9-windows.zip" -OutFile innoextract.zip 
+            Expand-Archive -LiteralPath .\innoextract.zip -DestinationPath .\innoextract
+
+            # Download 
+            Invoke-WebRequest -URI "${{ env.TURBOVNC_DOWNLOAD }}/${{ env.TURBOVNC_VERSION }}/TurboVNC-${{ env.TURBOVNC_VERSION}}-x64.exe" -OutFile turbovnc.exe 
+  
+            # Extract
+            .\innoextract\innoextract turbovnc.exe
+          
+            # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
             mkdir "${{ env.RCM_CHECKOUT }}\${{ env.TURBOVNC_EXTERNAL }}"
-            mv turbovnc "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}/bin"
+            mv app "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}/bin"
 
       # PYINSTALLER
       - name: Build pyinstaller
