@@ -198,13 +198,15 @@ jobs:
         with:
           macos: echo "Skip"
           linux: |
-            URL="${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_linux_${{ env.SMALLSTEP_VERSION }}_amd64.tar.gz"
-            wget "$URL" -O step.tgz
+            wget "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_linux_${{ env.SMALLSTEP_VERSION }}_amd64.tar.gz" -O step.tgz
+            mkdir -p "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
             tar -xzvf step.tgz -C "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
+            ls "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
           windows: |
-            $URL = "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_windows_${{ env.SMALLSTEP_VERSION }}_amd64.zip"
-            Invoke-WebRequest -URI "$URL" -OutFile step.zip
+            Invoke-WebRequest -URI "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_windows_${{ env.SMALLSTEP_VERSION }}_amd64.zip" -OutFile step.zip
+            New-Item -ItemType Directory -Path "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}" -Force
             Expand-Archive -LiteralPath .\step.zip -DestinationPath "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
+            dir "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
 
       # PYINSTALLER
       - name: Build pyinstaller
