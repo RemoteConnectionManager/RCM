@@ -39,6 +39,7 @@ datas = [(os.path.join(basepath, 'rcm/client/gui/icons/*.png'), 'gui/icons/'),
  
 if sys.platform != "darwin":
     datas.append((os.path.join(basepath, 'rcm/client/external/turbovnc'), 'turbovnc'))
+    datas.append((os.path.join(basepath, 'rcm/client/external/step'), 'step'))
 a = Analysis(['rcm_client_qt.py'],
              pathex=[(os.path.join(basepath, 'rcm/server'))],
              binaries=[],
