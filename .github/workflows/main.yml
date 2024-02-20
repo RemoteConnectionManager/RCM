@@ -158,11 +158,9 @@ jobs:
             patch -N $env:PARAMIKO_FILE -i paramiko.patch
 
       # TURBOVNC
-      - name: Extract turbovnc
+      - name: Extract TurboVNC
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true'  }}
-        env:
-          TURBOVNC_VERSION: ${{ matrix.turbovnc-version }}
         with:
           macos: echo "Skip"
           linux: |
@@ -182,7 +180,7 @@ jobs:
             Expand-Archive -LiteralPath .\innoextract.zip -DestinationPath .\innoextract
 
             # Download 
-            Invoke-WebRequest -URI "${{ env.TURBOVNC_DOWNLOAD }}/${{ env.TURBOVNC_VERSION }}/TurboVNC-${{ env.TURBOVNC_VERSION}}-x64.exe" -OutFile turbovnc.exe 
+            Invoke-WebRequest -URI "${{ env.TURBOVNC_DOWNLOAD }}/${{ matrix.turbovnc-version }}/TurboVNC-${{ matrix.turbovnc-version }}-x64.exe" -OutFile turbovnc.exe 
   
             # Extract
             .\innoextract\innoextract turbovnc.exe
@@ -190,6 +188,19 @@ jobs:
             # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
             mkdir "${{ env.RCM_CHECKOUT }}\${{ env.TURBOVNC_EXTERNAL }}"
             mv app "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}/bin"
+
+      - name: Patch TurboVNC 3.x
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' && startsWith(matrix.turbovnc-version, '3') }}
+        env:
+          ORIG_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
+          NEW_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,'
+          JAVA_SECURITY : "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}/java/jre/conf/security/java.security"
+        with:
+          linux: |
+            sed -i "s/${{ env.ORIG_LINE }}/${{ env.NEW_LINE }}/" "${{ env.JAVA_SECURITY }}"
+          windows: |
+            (Get-Content ${{ env.JAVA_SECURITY }}).replace("${{ env.ORIG_LINE }}", "${{ env.NEW_LINE }}") | Set-Content ${{ env.JAVA_SECURITY }}
 
       # EXTERNAL STEP
       - name: External step
