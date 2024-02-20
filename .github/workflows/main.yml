@@ -239,20 +239,21 @@ jobs:
             pyinstaller "${{ env.RCM_CHECKOUT }}\rcm\client\rcm_client_qt.spec"
   
       # ARTIFACT
-      - name: (GHO) Move preartifacts and RCM-repo (unix only)
-        uses: carlkidcrypto/os-specific-runner@v2.0.0
-        with:
-          macos: |
-            mv RCM RCM-repo
-            find dist -name "RCM" -type f -exec cp '{}' . \;
-            find dist -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;        
-          linux: |
-            mv RCM RCM-repo
-            find dist -name "RCM" -type f -exec cp '{}' . \;
-            find dist -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;
-          windows: |
-            cp dist/*/*/RCM.exe .
-            Expand-Archive -Path dist/*/*/RCM.zip -DestinationPath ./RCM-dir
+      - name: (GHO) Move RCM-repo (to avoid conflict with RCM executable) and define EXT
+        run: |
+          mv RCM RCM-repo
+
+          if [ ${{ matrix.os }} == 'windows-latest' ]; then
+            echo "EXT='.exe'" >> "${GITHUB_ENV}"
+          else
+            echo "EXT=''" >> "${GITHUB_ENV}"
+          fi
+
+      - name: (GHO) Move preartifacts
+        shell: bash
+        run: |
+          find dist -name "RCM${EXT}" -type f -exec cp '{}' . \;
+          find dist -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;
 
       - name: (GHO) Install cosign
         uses: sigstore/cosign-installer@v3.3.0
@@ -260,7 +261,6 @@ jobs:
       - name: (GHO) Sign image with a key
         shell: bash
         run: |
-          [ ${{ matrix.os }} == 'windows-latest' ] && EXT='.exe' || EXT=''
           cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "${{ env.FILE2SIGN }}.sig" "${{ env.FILE2SIGN }}${EXT}"
           cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "${{ env.FILE2SIGN }}.sig" "${{ env.FILE2SIGN }}${EXT}"
           echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
@@ -287,12 +287,8 @@ jobs:
           path: |
             RCM-dir
 
-      - name: (GHO) Restore RCM-repo (unix only)
-        uses: carlkidcrypto/os-specific-runner@v2.0.0
-        with:
-          macos: |
-            rm RCM
-            mv RCM-repo RCM
-          linux: |
-            rm RCM
-            mv RCM-repo RCM
+      - name: (GHO) Restore RCM-repo
+        shell: bash
+        run: |
+          rm -rf RCM RCM.exe RCM-dir
+          mv RCM-repo RCM
