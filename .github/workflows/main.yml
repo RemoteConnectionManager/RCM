@@ -225,7 +225,7 @@ jobs:
             Get-ChildItem "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
 
       # PYINSTALLER
-      - name: Build pyinstaller
+      - name: BuiEld pyinstaller
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: |
@@ -240,6 +240,7 @@ jobs:
   
       # ARTIFACT
       - name: (GHO) Move RCM-repo (to avoid conflict with RCM executable) and define EXT
+        shell: bash
         run: |
           mv RCM RCM-repo
 
