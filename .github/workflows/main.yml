@@ -94,17 +94,17 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: |
-            export PYENV_ROOT=~/.pyenv
+            export PYENV_ROOT=$HOME/.pyenv
             echo "PYENV_ROOT=${PYENV_ROOT}" >> "${GITHUB_ENV}"
             echo "${PYENV_ROOT}/bin" >> "${GITHUB_PATH}"
             echo "${PYENV_ROOT}/versions/${PYTHON_VERSION}/bin" >> "${GITHUB_PATH}"
           linux: |
-            export PYENV_ROOT=~/.pyenv
+            export PYENV_ROOT=$HOME/.pyenv
             echo "PYENV_ROOT=${PYENV_ROOT}" >> "${GITHUB_ENV}"
             echo "${PYENV_ROOT}/bin" >> "${GITHUB_PATH}"
             echo "${PYENV_ROOT}/versions/${PYTHON_VERSION}/bin" >> "${GITHUB_PATH}"
           windows: |
-            $env:PYENV_ROOT = "~/.pyenv/pyenv-win"
+            $env:PYENV_ROOT = "$HOME/.pyenv/pyenv-win"
             echo "PYENV=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
             echo "PYENV_ROOT=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
             echo "PYENV_HOME=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
@@ -124,7 +124,7 @@ jobs:
             git clone -b "v${PYENV_VERSION}" "https://github.com/pyenv/pyenv.git" "${PYENV_ROOT:?}"
             pyenv install "${PYTHON_VERSION}"
           windows: |
-            git clone "https://github.com/pyenv-win/pyenv-win.git" ~/.pyenv
+            git clone "https://github.com/pyenv-win/pyenv-win.git" $HOME/.pyenv
             pyenv.bat install "${env:PYTHON_VERSION}"
 
       # VENV
@@ -225,7 +225,7 @@ jobs:
             Get-ChildItem "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
 
       # PYINSTALLER
-      - name: BuiEld pyinstaller
+      - name: Build pyinstaller
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: |
