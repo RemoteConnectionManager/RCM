@@ -244,9 +244,9 @@ jobs:
           mv RCM RCM-repo
 
           if [ ${{ matrix.os }} == 'windows-latest' ]; then
-            echo "EXT='.exe'" >> "${GITHUB_ENV}"
+            echo "EXT=.exe" >> "${GITHUB_ENV}"
           else
-            echo "EXT=''" >> "${GITHUB_ENV}"
+            echo "EXT=" >> "${GITHUB_ENV}"
           fi
 
       - name: (GHO) Move preartifacts
