@@ -265,7 +265,9 @@ jobs:
         shell: bash
         run: |
           # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
-          find dist -regextype egrep -regex ".*/RCM(\.exe|\.zip)?" -type f -exec cp '{}' . \;
+          find dist -type f -name "RCM${EXT}" -exec cp '{}' . \;
+          find dist -type f -name "RCM.zip" -exec cp '{}' . \;
+          # find dist '(' -name "RCM.exe" -o -name "RCM" ')' -type f -exec bash -c 'cp $0 .' {} \;
 
       - name: (GHO) Install cosign
         uses: sigstore/cosign-installer@v3.3.0
