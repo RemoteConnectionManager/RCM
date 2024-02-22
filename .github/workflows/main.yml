@@ -195,12 +195,15 @@ jobs:
         env:
           ORIG_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
           NEW_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,'
-          JAVA_SECURITY : "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}/java/jre/conf/security/java.security"
         with:
           linux: |
-            sed -i "s/${{ env.ORIG_LINE }}/${{ env.NEW_LINE }}/" "${{ env.JAVA_SECURITY }}"
+            JAVA_SECURITY=$(find "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}" -name java.security)
+            echo "${JAVA_SECURITY}"
+            sed -i "s/${{ env.ORIG_LINE }}/${{ env.NEW_LINE }}/" "${JAVA_SECURITY}"
           windows: |
-            (Get-Content ${{ env.JAVA_SECURITY }}).replace("${{ env.ORIG_LINE }}", "${{ env.NEW_LINE }}") | Set-Content ${{ env.JAVA_SECURITY }}
+            $JAVA_SECURITY = dir -Path "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}" -Filter java.security -Recurse | %{$_.FullName}
+            echo "${JAVA_SECURITY}"
+            (Get-Content "${JAVA_SECURITY}").replace("${{ env.ORIG_LINE }}", "${{ env.NEW_LINE }}") | Set-Content "${JAVA_SECURITY}"
 
       # EXTERNAL STEP
       - name: External step
