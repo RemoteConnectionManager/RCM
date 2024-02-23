@@ -158,11 +158,9 @@ jobs:
             patch -N $env:PARAMIKO_FILE -i paramiko.patch
 
       # TURBOVNC
-      - name: Extract turbovnc
+      - name: Extract TurboVNC
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true'  }}
-        env:
-          TURBOVNC_VERSION: ${{ matrix.turbovnc-version }}
         with:
           macos: echo "Skip"
           linux: |
@@ -182,7 +180,7 @@ jobs:
             Expand-Archive -LiteralPath .\innoextract.zip -DestinationPath .\innoextract
 
             # Download 
-            Invoke-WebRequest -URI "${{ env.TURBOVNC_DOWNLOAD }}/${{ env.TURBOVNC_VERSION }}/TurboVNC-${{ env.TURBOVNC_VERSION}}-x64.exe" -OutFile turbovnc.exe 
+            Invoke-WebRequest -URI "${{ env.TURBOVNC_DOWNLOAD }}/${{ matrix.turbovnc-version }}/TurboVNC-${{ matrix.turbovnc-version }}-x64.exe" -OutFile turbovnc.exe 
   
             # Extract
             .\innoextract\innoextract turbovnc.exe
@@ -190,6 +188,22 @@ jobs:
             # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
             mkdir "${{ env.RCM_CHECKOUT }}\${{ env.TURBOVNC_EXTERNAL }}"
             mv app "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}/bin"
+
+      - name: Patch TurboVNC 3.x
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' && startsWith(matrix.turbovnc-version, '3') }}
+        env:
+          ORIG_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
+          NEW_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,'
+        with:
+          linux: |
+            JAVA_SECURITY=$(find "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}" -name java.security)
+            echo "${JAVA_SECURITY}"
+            sed -i "s/${{ env.ORIG_LINE }}/${{ env.NEW_LINE }}/" "${JAVA_SECURITY}"
+          windows: |
+            $JAVA_SECURITY = dir -Path "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}" -Filter java.security -Recurse | %{$_.FullName}
+            echo "${JAVA_SECURITY}"
+            (Get-Content "${JAVA_SECURITY}").replace("${{ env.ORIG_LINE }}", "${{ env.NEW_LINE }}") | Set-Content "${JAVA_SECURITY}"
 
       # EXTERNAL STEP
       - name: External step
@@ -253,8 +267,10 @@ jobs:
       - name: (GHO) Move preartifacts
         shell: bash
         run: |
-          find dist -name "RCM${EXT}" -type f -exec cp '{}' . \;
-          find dist -name "RCM.zip" -type f -exec unzip '{}' -d ./RCM-dir \;
+          # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
+          find dist -type f -name "RCM${EXT}" -exec cp '{}' . \;
+          find dist -type f -name "RCM.zip" -exec cp '{}' . \;
+          # find dist '(' -name "RCM.exe" -o -name "RCM" ')' -type f -exec bash -c 'cp $0 .' {} \;
 
       - name: (GHO) Install cosign
         uses: sigstore/cosign-installer@v3.3.0
@@ -262,14 +278,15 @@ jobs:
       - name: (GHO) Sign image with a key
         shell: bash
         run: |
-          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "${{ env.FILE2SIGN }}.sig" "${{ env.FILE2SIGN }}${EXT}"
-          cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "${{ env.FILE2SIGN }}.sig" "${{ env.FILE2SIGN }}${EXT}"
+          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "RCM.sig" "RCM${EXT}"
+          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "RCM-zip.sig" "RCM.zip"
+          cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "RCM.sig" "RCM${EXT}"
+          cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "RCM-zip.sig" "RCM.zip"
           echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          FILE2SIGN: "RCM"
 
       - name: (GHO) Upload exe
         uses: actions/upload-artifact@v4.3.1
@@ -286,7 +303,9 @@ jobs:
         with:
           name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
           path: |
-            RCM-dir
+            RCM.zip
+            RCM-zip.sig
+            RCM.pub
 
       - name: (GHO) Restore RCM-repo
         shell: bash
