@@ -135,12 +135,12 @@ class SessionThread(threading.Thread):
                 local_bind_address=('127.0.0.1', self.local_portnumber)
         ) as self.ssh_server:
 
-            self.service_process = subprocess.Popen(shlex.split(self.service_command),
+            self.service_process = subprocess.Popen(self.service_command,
                                                     bufsize=1,
                                                     stdout=subprocess.PIPE,
                                                     stderr=subprocess.PIPE,
                                                     stdin=subprocess.PIPE,
-                                                    shell=False,
+                                                    shell=True,
                                                     universal_newlines=True)
             self.service_process.stdin.close()
             while self.service_process.poll() is None:
