@@ -35,7 +35,8 @@ with open(build_platform_filename, "w") as f:
     f.write(platform + '\n')
     f.write(version)
 datas = [(os.path.join(basepath, 'rcm/client/gui/icons/*.png'), 'gui/icons/'),
-                    (os.path.join(basepath, 'build_platform.txt'), '.')]
+         (os.path.join(basepath, 'rcm/client/gui/logo/*.ico'), 'gui/logo/'),
+         (os.path.join(basepath, 'build_platform.txt'), '.')]
  
 if sys.platform != "darwin":
     datas.append((os.path.join(basepath, 'rcm/client/external/turbovnc'), 'turbovnc'))
@@ -84,6 +85,7 @@ exe_se = EXE(pyz,
              strip=False,
              upx=True,
              runtime_tmpdir=None,
+             icon=os.path.join(basepath, 'rcm/client/gui/logo/logo.ico'),
              console=False)
 
 ##################################################################
