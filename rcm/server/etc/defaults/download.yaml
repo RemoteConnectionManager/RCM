@@ -29,7 +29,7 @@ download:
       baseurl : 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/'
       versions :
         old_778:
-          hash: '9d7d36422681a64011b6aeebc9575b7e'
+          hash: '2e3524ecba25fa35c2d794581c880d78'
           path: 'RCM_win32_64bit.exe?p=778'
     win32_32bit :
       baseurl : 'https://hpc-forge.cineca.it/svn/RemoteGraph/branch/multivnc/build/dist/Releases/'
