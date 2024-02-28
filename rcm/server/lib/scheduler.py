@@ -536,7 +536,11 @@ class SlurmScheduler(BatchScheduler):
                     if len(stringtime.split('-')) == 1:
                         max_time=stringtime
                     else:
-                        max_time='23:59:59'
+                        days=int(stringtime.split('-')[0])
+                        hours=24*days -1
+                        max_time= str(hours) + ':59:59'
+
+#                        max_time='23:59:59'
 
                     if max_time : qos_parameters['TIME'] = {'max' : max_time}
                     if max_memory : qos_parameters['MEMORY'] = {'max' : int(max_memory / 1024)}
