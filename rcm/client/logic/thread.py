@@ -24,6 +24,7 @@ import traceback
 import shlex
 from sshtunnel import SSHTunnelForwarder
 import os
+import sys
 
 # local includes
 from client.miscellaneous.logger import logic_logger
@@ -72,6 +73,12 @@ class SessionThread(threading.Thread):
         self.threadnum = SessionThread.threadscount
         SessionThread.threadscount += 1
 
+        self.startupinfo = None
+        if sys.platform == "win32":
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            self.startupinfo = startupinfo
+
         logic_logger.debug('Thread ' + str(self.threadnum) + ' is initialized')
 
     def terminate(self):
@@ -106,7 +113,9 @@ class SessionThread(threading.Thread):
                                                         stderr=subprocess.PIPE,
                                                         stdin=subprocess.PIPE,
                                                         shell=False,
-                                                        universal_newlines=True)
+                                                        universal_newlines=True,
+                                                        startupinfo=self.startupinfo,
+                                                        )
                 self.service_process.wait()
             else:
                 if self.tunnelling_method == 'internal':
@@ -134,14 +143,15 @@ class SessionThread(threading.Thread):
                 remote_bind_address=(self.node, self.portnumber),
                 local_bind_address=('127.0.0.1', self.local_portnumber)
         ) as self.ssh_server:
-
             self.service_process = subprocess.Popen(shlex.split(self.service_command),
                                                     bufsize=1,
                                                     stdout=subprocess.PIPE,
                                                     stderr=subprocess.PIPE,
                                                     stdin=subprocess.PIPE,
                                                     shell=False,
-                                                    universal_newlines=True)
+                                                    universal_newlines=True,
+                                                    startupinfo=self.startupinfo,
+                                                    )
             self.service_process.stdin.close()
             while self.service_process.poll() is None:
                 stdout = self.service_process.stdout.readline()
@@ -165,7 +175,9 @@ class SessionThread(threading.Thread):
                                                     stderr=subprocess.PIPE,
                                                     stdin=subprocess.PIPE,
                                                     shell=False,
-                                                    universal_newlines=True)
+                                                    universal_newlines=True,
+                                                    startupinfo=self.startupinfo,
+                                                    )
             self.service_process.stdin.close()
             while self.service_process.poll() is None:
                 stdout = self.service_process.stdout.readline()
