@@ -312,3 +312,12 @@ jobs:
         run: |
           rm -rf RCM RCM.exe RCM-dir
           mv RCM-repo RCM
+
+  nightly-link:
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Generate Annotation
+        run: |
+          url="https://nightly.link/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "::notice title=Download the artificats from nightly.link (without logging in) by visiting the URL below::$url"
