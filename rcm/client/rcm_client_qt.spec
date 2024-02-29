@@ -35,11 +35,17 @@ with open(build_platform_filename, "w") as f:
     f.write(platform + '\n')
     f.write(version)
 datas = [(os.path.join(basepath, 'rcm/client/gui/icons/*.png'), 'gui/icons/'),
-                    (os.path.join(basepath, 'build_platform.txt'), '.')]
- 
+         (os.path.join(basepath, 'rcm/client/gui/logo/logo.ico'), 'gui/logo/'),
+         (os.path.join(basepath, 'build_platform.txt'), '.')]
+
 if sys.platform != "darwin":
+    icon = os.path.join(basepath, 'rcm/client/gui/logo/logo.ico')
     datas.append((os.path.join(basepath, 'rcm/client/external/turbovnc'), 'turbovnc'))
     datas.append((os.path.join(basepath, 'rcm/client/external/step'), 'step'))
+else:
+    icon = os.path.join(basepath, 'rcm/client/gui/logo/logo.icns')
+    datas.append((os.path.join(basepath, 'rcm/client/gui/logo/logo.icns'), 'gui/logo/'))
+
 a = Analysis(['rcm_client_qt.py'],
              pathex=[(os.path.join(basepath, 'rcm/server'))],
              binaries=[],
@@ -61,7 +67,7 @@ exe_sd = EXE(pyz,
              debug=False,
              strip=False,
              upx=True,
-             icon=os.path.join(basepath, 'rcm/client/gui/logo/logo.ico'),
+             icon=icon,
              console=False)
 coll = COLLECT(exe_sd,
                a.binaries,
@@ -84,6 +90,7 @@ exe_se = EXE(pyz,
              strip=False,
              upx=True,
              runtime_tmpdir=None,
+             icon=icon,
              console=False)
 
 ##################################################################

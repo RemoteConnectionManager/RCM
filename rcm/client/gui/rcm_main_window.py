@@ -46,6 +46,7 @@ class RCMMainWindow(QMainWindow):
 
         title = "RCM Client " + pack_info.rcmVersion
         self.setWindowTitle(title)
+        self.setWindowIcon(QIcon(resource_path('gui/logo/logo.ico')))
 
         screen_width = QGuiApplication.primaryScreen().size().width()
         screen_height = QGuiApplication.primaryScreen().size().height()
