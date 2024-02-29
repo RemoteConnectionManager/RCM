@@ -1,0 +1,321 @@
+# This is a basic workflow to help you get started with Actions
+
+name: RCM_CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  RCM_CHECKOUT: "RCM"
+  PYTHON_VERSION: "3.10.11"
+  PYENV_VERSION: "2.3.35"
+  PARAMIKO_PULL: "2258"
+  PARAMIKO_COMMIT: "1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3"
+  TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
+  TURBOVNC_EXTERNAL: "rcm/client/external/turbovnc"
+  SMALLSTEP_DOWNLOAD: "https://github.com/smallstep/cli/releases/download"
+  SMALLSTEP_VERSION: "0.25.2"
+  SMALLSTEP_EXTERNAL: "rcm/client/external/step"
+  
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    strategy:
+      matrix:
+        os:
+        - windows-latest
+        - ubuntu-latest	
+        turbovnc-version:
+        - '3.1'
+        include:
+          - os: macos-latest
+            turbovnc-version: 'none'
+
+    # The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+    
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Install Qt6 missing libraries (linux only)
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        if: ${{ contains(matrix.os, 'ubuntu')  }}
+        with:
+          packages: qt6-base-dev qmake6 qt6-wayland
+          version: 1.0-${{ matrix.os }}-qt6
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout RCM
+        uses: actions/checkout@v4.1.1
+        with:
+          path: "${{ env.RCM_CHECKOUT }}"
+
+      # CACHE
+      - name: (GHO) Cache pyenv
+        uses: actions/cache@v4.0.0
+        id: cache-pyenv
+        with:
+          path: ~/.pyenv
+          key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}
+
+      - name: (GHO) Cache venv
+        uses: actions/cache@v4.0.0
+        id: cache-venv
+        with:
+          path: venv
+          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}
+
+      - name: (GHO) Cache turbovnc
+        uses: actions/cache@v4.0.0
+        id: cache-turbovnc
+        with:
+          path: ${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}
+          key: turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}
+
+      - name: (GHO) Cache step
+        uses: actions/cache@v4.0.0
+        id: cache-step
+        with:
+          path: ${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}
+          key: step-${{ matrix.os }}
+
+      # PYTHON
+      - name: Setup pyenv environment
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        with:
+          macos: |
+            export PYENV_ROOT=$HOME/.pyenv
+            echo "PYENV_ROOT=${PYENV_ROOT}" >> "${GITHUB_ENV}"
+            echo "${PYENV_ROOT}/bin" >> "${GITHUB_PATH}"
+            echo "${PYENV_ROOT}/versions/${PYTHON_VERSION}/bin" >> "${GITHUB_PATH}"
+          linux: |
+            export PYENV_ROOT=$HOME/.pyenv
+            echo "PYENV_ROOT=${PYENV_ROOT}" >> "${GITHUB_ENV}"
+            echo "${PYENV_ROOT}/bin" >> "${GITHUB_PATH}"
+            echo "${PYENV_ROOT}/versions/${PYTHON_VERSION}/bin" >> "${GITHUB_PATH}"
+          windows: |
+            $env:PYENV_ROOT = "$HOME/.pyenv/pyenv-win"
+            echo "PYENV=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
+            echo "PYENV_ROOT=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
+            echo "PYENV_HOME=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
+            echo "${env:PYENV_ROOT}/bin" >> "${env:GITHUB_PATH}"
+            echo "${env:PYENV_ROOT}/shims" >> "${env:GITHUB_PATH}"
+            echo "${env:PYENV_ROOT}/versions/${env:PYTHON_VERSION}/bin" >> "${env:GITHUB_PATH}"
+            echo "C:\Program Files\Git\usr\bin" >> "${env:GITHUB_PATH}"
+
+      - name: Install pyenv locally
+        if: ${{steps.cache-pyenv.outputs.cache-hit != 'true' }}
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        with:
+          macos: |
+            git clone -b "v${PYENV_VERSION}" "https://github.com/pyenv/pyenv.git" "${PYENV_ROOT:?}"
+            pyenv install "${PYTHON_VERSION}"
+          linux: |
+            git clone -b "v${PYENV_VERSION}" "https://github.com/pyenv/pyenv.git" "${PYENV_ROOT:?}"
+            pyenv install "${PYTHON_VERSION}"
+          windows: |
+            git clone "https://github.com/pyenv-win/pyenv-win.git" $HOME/.pyenv
+            pyenv.bat install "${env:PYTHON_VERSION}"
+
+      # VENV
+      - name: Install venv
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
+        with:
+          macos: |
+            python -m venv venv
+            source venv/bin/activate
+            pip install -r "${RCM_CHECKOUT}/rcm/client/requirements.txt"
+
+            wget "https://github.com/paramiko/paramiko/pull/${PARAMIKO_PULL}/commits/${PARAMIKO_COMMIT}.patch" -O paramiko.patch
+            PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
+            patch -N $PARAMIKO_FILE -i paramiko.patch
+          linux: |
+            python -m venv venv
+            source venv/bin/activate
+            pip install -r "${RCM_CHECKOUT}/rcm/client/requirements.txt"
+
+            wget "https://github.com/paramiko/paramiko/pull/${PARAMIKO_PULL}/commits/${PARAMIKO_COMMIT}.patch" -O paramiko.patch
+            PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
+            patch -N $PARAMIKO_FILE -i paramiko.patch
+          windows: |
+            python.exe -m venv venv
+            venv\Scripts\Activate.ps1
+            pip install -r "${env:RCM_CHECKOUT}\rcm\client\requirements.txt"
+
+            Invoke-WebRequest -URI https://github.com/paramiko/paramiko/pull/2258/commits/1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3.patch -OutFile paramiko.patch
+            $env:PARAMIKO_FILE = python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))"
+            patch -N $env:PARAMIKO_FILE -i paramiko.patch
+
+      # TURBOVNC
+      - name: Extract TurboVNC
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true'  }}
+        with:
+          macos: echo "Skip"
+          linux: |
+            # Download 
+            wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/turbovnc_${{ matrix.turbovnc-version }}_amd64.deb -O turbovnc.deb
+
+            # Extract
+            dpkg-deb -x turbovnc.deb turbovnc
+
+            # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
+            cp -r turbovnc/opt/TurboVNC "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
+            cp -r turbovnc/usr/share "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
+            cp -r turbovnc/etc "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
+          windows: |
+            # Install innoextract locally
+            Invoke-WebRequest -URI "https://github.com/dscharrer/innoextract/releases/download/1.9/innoextract-1.9-windows.zip" -OutFile innoextract.zip 
+            Expand-Archive -LiteralPath .\innoextract.zip -DestinationPath .\innoextract
+
+            # Download 
+            Invoke-WebRequest -URI "${{ env.TURBOVNC_DOWNLOAD }}/${{ matrix.turbovnc-version }}/TurboVNC-${{ matrix.turbovnc-version }}-x64.exe" -OutFile turbovnc.exe 
+  
+            # Extract
+            .\innoextract\innoextract turbovnc.exe
+          
+            # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
+            mkdir "${{ env.RCM_CHECKOUT }}\${{ env.TURBOVNC_EXTERNAL }}"
+            mv app "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}/bin"
+
+      - name: Patch TurboVNC 3.x
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' && startsWith(matrix.turbovnc-version, '3') }}
+        env:
+          ORIG_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
+          NEW_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,'
+        with:
+          linux: |
+            JAVA_SECURITY=$(find "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}" -name java.security)
+            echo "${JAVA_SECURITY}"
+            sed -i "s/${{ env.ORIG_LINE }}/${{ env.NEW_LINE }}/" "${JAVA_SECURITY}"
+          windows: |
+            $JAVA_SECURITY = dir -Path "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}" -Filter java.security -Recurse | %{$_.FullName}
+            echo "${JAVA_SECURITY}"
+            (Get-Content "${JAVA_SECURITY}").replace("${{ env.ORIG_LINE }}", "${{ env.NEW_LINE }}") | Set-Content "${JAVA_SECURITY}"
+
+      # EXTERNAL STEP
+      - name: External step
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        if: ${{ steps.cache-step.outputs.cache-hit != 'true'  }}
+        with:
+          macos: echo "Skip"
+          linux: |
+            # Download step
+            wget "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_linux_${{ env.SMALLSTEP_VERSION }}_amd64.tar.gz" -O step.tgz
+            
+            # Make tmp and external directories
+            mkdir -p "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
+
+            # Extract and copy executable
+            tar -xzvf step.tgz
+            cp step*/bin/step "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
+
+            # Check
+            ls "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
+          windows: |
+            # Download step
+            Invoke-WebRequest -URI "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_windows_${{ env.SMALLSTEP_VERSION }}_amd64.zip" -OutFile step.zip
+
+            # Make external directories
+            New-Item -ItemType Directory -Path "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}" -Force
+            
+            # Extract and copy executable
+            Expand-Archive -LiteralPath .\step.zip -DestinationPath .
+            Copy-Item step*\bin\step.exe -Destination "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
+
+            # Check
+            Get-ChildItem "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
+
+      # PYINSTALLER
+      - name: Build pyinstaller
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        with:
+          macos: |
+            source venv/bin/activate
+            pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
+          linux: |
+            source venv/bin/activate
+            pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
+          windows: |
+            venv\Scripts\Activate.ps1
+            pyinstaller "${{ env.RCM_CHECKOUT }}\rcm\client\rcm_client_qt.spec"
+  
+      # ARTIFACT
+      - name: (GHO) Move RCM-repo (to avoid conflict with RCM executable) and define EXT
+        shell: bash
+        run: |
+          mv RCM RCM-repo
+
+          if [ ${{ matrix.os }} == 'windows-latest' ]; then
+            echo "EXT=.exe" >> "${GITHUB_ENV}"
+          else
+            echo "EXT=" >> "${GITHUB_ENV}"
+          fi
+
+      - name: (GHO) Move preartifacts
+        shell: bash
+        run: |
+          # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
+          find dist -type f -name "RCM${EXT}" -exec cp '{}' . \;
+          find dist -type f -name "RCM.zip" -exec cp '{}' . \;
+          # find dist '(' -name "RCM.exe" -o -name "RCM" ')' -type f -exec bash -c 'cp $0 .' {} \;
+
+      - name: (GHO) Install cosign
+        uses: sigstore/cosign-installer@v3.3.0
+
+      - name: (GHO) Sign image with a key
+        shell: bash
+        run: |
+          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "RCM.sig" "RCM${EXT}"
+          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "RCM-zip.sig" "RCM.zip"
+          cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "RCM.sig" "RCM${EXT}"
+          cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "RCM-zip.sig" "RCM.zip"
+          echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+
+      - name: (GHO) Upload exe
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
+          path: |
+            RCM
+            RCM.exe
+            RCM.sig
+            RCM.pub
+
+      - name: (GHO) Upload dir
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
+          path: |
+            RCM.zip
+            RCM-zip.sig
+            RCM.pub
+
+      - name: (GHO) Restore RCM-repo
+        shell: bash
+        run: |
+          rm -rf RCM RCM.exe RCM-dir
+          mv RCM-repo RCM
+
+  nightly-link:
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Generate Annotation
+        run: |
+          url="https://nightly.link/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "::notice title=Download the artificats from nightly.link (without logging in) by visiting the URL below::$url"
