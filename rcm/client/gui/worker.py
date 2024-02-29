@@ -20,8 +20,14 @@
 
 import traceback
 
-# pyqt5
-from PyQt5.QtCore import QRunnable, pyqtSlot, pyqtSignal, QObject
+# pyqt
+try:
+    from PyQt6.QtCore import QRunnable, pyqtSlot, pyqtSignal, QObject
+    PyQt = 6
+except ImportError:
+    from PyQt5.QtCore import QRunnable, pyqtSlot, pyqtSignal, QObject
+    PyQt = 5
+
 
 # local includes
 from client.utils.rcm_enum import Status

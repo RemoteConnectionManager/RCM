@@ -21,9 +21,16 @@
 import os
 import json
 
-# pyqt5
-from PyQt5.QtWidgets import QLabel, QDialog, QRadioButton, \
-    QHBoxLayout, QVBoxLayout, QGroupBox, QPushButton, QCheckBox, QLineEdit
+# pyqt
+try:
+    from PyQt6.QtWidgets import QLabel, QDialog, QRadioButton, \
+        QHBoxLayout, QVBoxLayout, QGroupBox, QPushButton, QCheckBox, QLineEdit
+    PyQt = 6
+except ImportError:
+    from PyQt5.QtWidgets import QLabel, QDialog, QRadioButton, \
+        QHBoxLayout, QVBoxLayout, QGroupBox, QPushButton, QCheckBox, QLineEdit
+    PyQt = 5
+
 
 # local includes
 from client.miscellaneous.logger import logger, configure_logger

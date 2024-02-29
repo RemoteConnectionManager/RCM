@@ -29,12 +29,37 @@ import subprocess
 import hashlib
 
 
-# pyqt5
-from PyQt5.QtCore import QSize, pyqtSignal, Qt
-from PyQt5.QtGui import QIcon, QFont
-from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
-    QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, \
-    QStyle, QProgressBar, QMessageBox
+# pyqt
+try:
+    from PyQt6.QtCore import QSize, pyqtSignal, Qt
+    from PyQt6.QtGui import QIcon, QFont
+    from PyQt6.QtWidgets import QWidget, QLabel, QComboBox, \
+        QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, \
+        QStyle, QProgressBar, QMessageBox
+    # enum
+    echomode_password = QLineEdit.EchoMode.Password
+    align_center = Qt.AlignmentFlag.AlignCenter
+    key_plus = Qt.Key.Key_Plus
+    reload_btn_icon = QStyle.StandardPixmap.SP_BrowserReload
+    std_yes = QMessageBox.StandardButton.Yes
+    std_no = QMessageBox.StandardButton.No
+    # vers
+    PyQt = 6
+except ImportError:
+    from PyQt5.QtCore import QSize, pyqtSignal, Qt
+    from PyQt5.QtGui import QIcon, QFont
+    from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
+        QGridLayout, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, \
+        QStyle, QProgressBar, QMessageBox
+    echomode_password = QLineEdit.Password
+    align_center = Qt.AlignCenter
+    key_plus = Qt.Key_Plus
+    reload_btn_icon = QStyle.SP_BrowserReload
+    std_yes = QMessageBox.Yes
+    std_no = QMessageBox.No
+    # vers
+    PyQt = 5
+
 
 # local includes
 from client.gui.display_dialog import QDisplayDialog
@@ -142,7 +167,7 @@ class QSSHSessionWidget(QWidget):
 
         pssw_label = QLabel(self)
         pssw_label.setText('Password:')
-        self.pssw_line.setEchoMode(QLineEdit.Password)
+        self.pssw_line.setEchoMode(echomode_password)
         grid_login_layout.addWidget(pssw_label, 3, 0)
         grid_login_layout.addWidget(self.pssw_line, 3, 1)
 
@@ -192,7 +217,7 @@ class QSSHSessionWidget(QWidget):
         prog_bar = QProgressBar(self)
         prog_bar.setMinimum(0)
         prog_bar.setMaximum(0)
-        prog_bar.setAlignment(Qt.AlignCenter)
+        prog_bar.setAlignment(align_center)
 
         second_hor_waiting_layout.addStretch(0)
         second_hor_waiting_layout.addWidget(prog_bar)
@@ -234,7 +259,7 @@ class QSSHSessionWidget(QWidget):
         reload_prog_bar = QProgressBar(self)
         reload_prog_bar.setMinimum(0)
         reload_prog_bar.setMaximum(0)
-        reload_prog_bar.setAlignment(Qt.AlignCenter)
+        reload_prog_bar.setAlignment(align_center)
 
         second_hor_reload_layout.addStretch(0)
         second_hor_reload_layout.addWidget(reload_prog_bar)
@@ -307,10 +332,10 @@ class QSSHSessionWidget(QWidget):
         self.new_display_btn.setIcon(self.new_display_ico)
         self.new_display_btn.setToolTip('Create a new display session')
         self.new_display_btn.clicked.connect(self.add_new_display)
-        self.new_display_btn.setShortcut(Qt.Key_Plus)
+        self.new_display_btn.setShortcut(key_plus)
 
         reload_btn = QPushButton()
-        reload_btn.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
+        reload_btn.setIcon(self.style().standardIcon(reload_btn_icon))
         reload_btn.setToolTip('Reload the page')
         reload_btn.clicked.connect(self.reload)
         reload_btn.setShortcut("F5")
@@ -457,8 +482,8 @@ class QSSHSessionWidget(QWidget):
                             "Do you want to install it now?"
 
             buttonReply = QMessageBox.question(self, question_title, question_text,
-                                               QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
-            if buttonReply == QMessageBox.No:
+                                               std_yes | std_no, std_yes)
+            if buttonReply == std_no:
                 return
 
             logger.info('Downloading the new client version...')

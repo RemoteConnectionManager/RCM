@@ -21,12 +21,36 @@
 import collections
 import traceback
 
-# pyqt5
-from PyQt5.QtCore import pyqtSlot, QThreadPool, Qt
-from PyQt5.QtGui import QIcon, QTextCursor, QGuiApplication
-from PyQt5.QtWidgets import QMainWindow, QWidget, \
-    QTabWidget, QVBoxLayout, QPushButton, QAction, QFileDialog, \
-    QTabBar, QStyle, QPlainTextEdit, QMessageBox, QSplitter
+# pyqt
+try:
+    from PyQt6.QtCore import pyqtSlot, QThreadPool, Qt
+    from PyQt6.QtGui import QIcon, QTextCursor, QGuiApplication
+    from PyQt6.QtWidgets import QMainWindow, QWidget, \
+        QTabWidget, QVBoxLayout, QPushButton, QFileDialog, \
+        QTabBar, QStyle, QPlainTextEdit, QMessageBox, QSplitter
+    from PyQt6.QtGui import QAction
+    # enum
+    button_position_right = QTabBar.ButtonPosition.RightSide
+    kill_btn_icon = QStyle.StandardPixmap.SP_DialogCloseButton
+    orientation_vertical = Qt.Orientation.Vertical
+    moveop_eol = QTextCursor.MoveOperation.EndOfLine
+    # vers
+    PyQt = 6
+
+except ImportError:
+    from PyQt5.QtCore import pyqtSlot, QThreadPool, Qt
+    from PyQt5.QtGui import QIcon, QTextCursor, QGuiApplication
+    from PyQt5.QtWidgets import QMainWindow, QWidget, \
+        QTabWidget, QVBoxLayout, QPushButton, QFileDialog, \
+        QTabBar, QStyle, QPlainTextEdit, QMessageBox, QSplitter
+    from PyQt5.QtWidgets import QAction
+    # enum
+    button_position_right = QTabBar.RightSide
+    kill_btn_icon = QStyle.SP_DialogCloseButton
+    orientation_vertical = Qt.Vertical
+    moveop_eol = QTextCursor.EndOfLine
+    # vers
+    PyQt = 5
 
 # local includes
 from client.gui.ssh_session_widget import QSSHSessionWidget
@@ -127,26 +151,33 @@ class RCMMainWindow(QMainWindow):
         last_tab_uuid = self.main_widget.tabs.widget(last_tab_id).uuid
 
         kill_btn = QPushButton()
-        kill_btn.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
+        kill_btn.setIcon(self.style().standardIcon(kill_btn_icon))
         kill_btn.clicked.connect(lambda: self.on_close(last_tab_uuid))
         kill_btn.setToolTip('Close session')
 
         self.main_widget.tabs.setTabText(last_tab_id, "Login...")
         self.main_widget.tabs.tabBar().setTabButton(last_tab_id,
-                                                    QTabBar.RightSide,
+                                                    button_position_right,
                                                     kill_btn)
         self.main_widget.add_new_tab("", False)
 
     def open_vnc_session(self):
         try:
             # use native dialogs only for portability issues
-            options = QFileDialog.Options()
-            # options |= QFileDialog.DontUseNativeDialog
-            filename, _ = QFileDialog.getOpenFileName(self,
-                                                      "Open VNC session file",
-                                                      "",
-                                                      "VNC Files (*.vnc);;All Files (*)",
-                                                      options=options)
+            if PyQt == 6:
+                filename, _ = QFileDialog.getOpenFileName(self,
+                                                          "Open VNC session file",
+                                                          "",
+                                                          "VNC Files (*.vnc);;All Files (*)")
+            if PyQt == 5:
+                options = QFileDialog.Options()
+                # options |= QFileDialog.DontUseNativeDialog
+                filename, _ = QFileDialog.getOpenFileName(self,
+                                                          "Open VNC session file",
+                                                          "",
+                                                          "VNC Files (*.vnc);;All Files (*)",
+                                                          options=options)
+
 
             current_session_widget = self.main_widget.tabs.currentWidget()
 
@@ -264,7 +295,7 @@ class MainWidget(QWidget):
 
         # layout the tab and textedit widgets inside the splitter
         splitter = QSplitter(self)
-        splitter.setOrientation(Qt.Vertical)
+        splitter.setOrientation(orientation_vertical)
 
         # Add tabs
         self.add_new_tab("Login...")
@@ -287,7 +318,7 @@ class MainWidget(QWidget):
 
     @pyqtSlot(str)
     def on_log(self, html_msg):
-        self.text_log_frame.moveCursor(QTextCursor.EndOfLine)
+        self.text_log_frame.moveCursor(moveop_eol)
         self.text_log_frame.appendHtml(html_msg)
 
     @pyqtSlot()
@@ -303,11 +334,11 @@ class MainWidget(QWidget):
             uuid = self.tabs.currentWidget().uuid
 
             kill_btn = QPushButton()
-            kill_btn.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
+            kill_btn.setIcon(self.style().standardIcon(kill_btn_icon))
             kill_btn.setToolTip('Close session')
             kill_btn.clicked.connect(lambda: self.on_close(uuid))
             self.tabs.tabBar().setTabButton(self.tabs.currentIndex(),
-                                            QTabBar.RightSide,
+                                            button_position_right,
                                             kill_btn)
             self.add_new_tab("", False)
 
@@ -322,12 +353,12 @@ class MainWidget(QWidget):
         self.tabs.setTabText(last_tab, "Login...")
 
         kill_btn = QPushButton()
-        kill_btn.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
+        kill_btn.setIcon(self.style().standardIcon(kill_btn_icon))
         kill_btn.setToolTip('Close session')
         uuid = self.tabs.widget(last_tab).uuid
         kill_btn.clicked.connect(lambda: self.on_close(uuid))
         self.tabs.tabBar().setTabButton(last_tab,
-                                        QTabBar.RightSide,
+                                        button_position_right,
                                         kill_btn)
         self.add_new_tab("", False)
         self.tabs.setCurrentIndex(last_tab)
@@ -345,11 +376,11 @@ class MainWidget(QWidget):
 
         if show_close_btn:
             kill_btn = QPushButton()
-            kill_btn.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
+            kill_btn.setIcon(self.style().standardIcon(kill_btn_icon))
             kill_btn.clicked.connect(lambda: self.on_close(uuid))
             kill_btn.setToolTip('Close session')
             self.tabs.tabBar().setTabButton(self.tabs.count() - 1,
-                                            QTabBar.RightSide,
+                                            button_position_right,
                                             kill_btn)
         else:
             kill_btn = QPushButton()
@@ -359,7 +390,7 @@ class MainWidget(QWidget):
             kill_btn.clicked.connect(self.on_new)
             kill_btn.setToolTip('New session')
             self.tabs.tabBar().setTabButton(self.tabs.count() - 1,
-                                            QTabBar.RightSide,
+                                            button_position_right,
                                             kill_btn)
 
         new_tab.logged_in.connect(self.on_login)

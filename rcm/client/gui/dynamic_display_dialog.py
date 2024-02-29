@@ -24,12 +24,37 @@ import re
 import time
 import traceback
 
-# pyqt5
-from PyQt5.QtCore import Qt, pyqtSlot, QRegExp
-from PyQt5.QtGui import QRegExpValidator
-from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
-    QHBoxLayout, QVBoxLayout, QPushButton, \
-    QApplication, QTabWidget, QWidget, QSlider, QSizePolicy, QFrame
+# pyqt
+try:
+    from PyQt6.QtCore import Qt, pyqtSlot
+    from PyQt6.QtCore import QRegularExpression
+    from PyQt6.QtGui import QRegularExpressionValidator
+    from PyQt6.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
+        QHBoxLayout, QVBoxLayout, QPushButton, \
+        QApplication, QTabWidget, QWidget, QSlider, QSizePolicy, QFrame
+    # enum
+    sizepolicy_min = QSizePolicy.Policy.Minimum
+    orientation_horizontal = Qt.Orientation.Horizontal
+    role = Qt.ItemDataRole.ToolTipRole
+    frame_shape_hline = QFrame.Shape.HLine
+    frame_shadow_sunken = QFrame.Shadow.Sunken
+    # vers
+    PyQt = 6
+except ImportError:
+    from PyQt5.QtCore import Qt, pyqtSlot
+    from PyQt5.QtCore import QRegExp as QRegularExpression
+    from PyQt5.QtGui import QRegExpValidator as QRegularExpressionValidator
+    from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
+        QHBoxLayout, QVBoxLayout, QPushButton, \
+        QApplication, QTabWidget, QWidget, QSlider, QSizePolicy, QFrame
+    # enum
+    sizepolicy_min = QSizePolicy.Minimum
+    orientation_horizontal = Qt.Horizontal
+    role = Qt.ToolTipRole
+    frame_shape_hline = QFrame.HLine
+    frame_shadow_sunken = QFrame.Sunken
+    # vers
+    PyQt = 5
 
 
 class QDynamicDisplayDialog(QDialog):
@@ -52,7 +77,7 @@ class QDynamicDisplayDialog(QDialog):
         self.display_name = ''
 
         self.setWindowTitle("New display")
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.setSizePolicy(sizepolicy_min, sizepolicy_min)
 
         self.init_ui()
 
@@ -135,7 +160,7 @@ class QJobWidget(QContainerWidget):
         self.init_ui()
 
     def init_ui(self):
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.setSizePolicy(sizepolicy_min, sizepolicy_min)
 
         self.main_layout = QVBoxLayout()
 
@@ -304,7 +329,7 @@ def widget_factory(widget_type):
             for v in values:
                 choice_description = values[v].get('description','')
                 if choice_description:
-                    self.setItemData(count, choice_description, Qt.ToolTipRole)
+                    self.setItemData(count, choice_description, role)
                 count += 1
             self.setCurrentIndex(0)
             if description:
@@ -339,10 +364,10 @@ def widget_factory(widget_type):
     class Divider(QFrame):
         def __init__(self, values=None, path='', var='', parent_widget=None, description=None):
             QFrame.__init__(self)
-            self.setFrameShape(QFrame.HLine)
+            self.setFrameShape(frame_shape_hline)
             self.setMaximumHeight(3)
             self.setContentsMargins(0, 0, 0, 0)
-            self.setFrameShadow(QFrame.Sunken)
+            self.setFrameShadow(frame_shadow_sunken)
             self.var = var
             self.path = path
 
@@ -381,7 +406,7 @@ def widget_factory(widget_type):
 
             self.slider_edit.setText(str(slider_default))
 
-            self.slider = QSlider(Qt.Horizontal)
+            self.slider = QSlider(orientation_horizontal)
             self.slider.setFixedWidth(100)
             self.slider.setMinimum(slider_min)
             self.slider.setMaximum(slider_max)
@@ -453,8 +478,8 @@ def widget_factory(widget_type):
                             var=var,
                             parent_widget=parent_widget, description=description)
 
-            qregex = QRegExp("^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$")
-            validator = QRegExpValidator(qregex)
+            qregex = QRegularExpression("^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$")
+            validator = QRegularExpressionValidator(qregex)
             self.slider_edit.setValidator(validator)
 
         @pyqtSlot()

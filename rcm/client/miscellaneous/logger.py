@@ -22,8 +22,14 @@ import sys
 import logging
 import logging.handlers
 
-# pyqt5
-from PyQt5.QtCore import pyqtSignal, QObject
+# pyqt
+try:
+    from PyQt6.QtCore import pyqtSignal, QObject
+    PyQt = 6
+except ImportError:
+    from PyQt5.QtCore import pyqtSignal, QObject
+    PyQt = 5
+
 
 # local import
 import server.rcm

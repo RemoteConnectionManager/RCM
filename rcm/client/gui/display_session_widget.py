@@ -22,11 +22,29 @@ from datetime import timedelta, datetime
 import time
 import traceback
 
-# pyqt5
-from PyQt5.QtCore import pyqtSignal, QTimer, pyqtSlot
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QFrame, QLabel, \
-    QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog
+# pyqt
+try:
+    from PyQt6.QtCore import pyqtSignal, QTimer, pyqtSlot
+    from PyQt6.QtGui import QIcon
+    from PyQt6.QtWidgets import QWidget, QFrame, QLabel, \
+        QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog
+    # enum
+    frame_shape_hline = QFrame.Shape.HLine
+    frame_shadow_sunken = QFrame.Shadow.Sunken
+    qfiledialog_notnative = QFileDialog.Option.DontUseNativeDialog
+    # vers
+    PyQt = 6
+except ImportError:
+    from PyQt5.QtCore import pyqtSignal, QTimer, pyqtSlot
+    from PyQt5.QtGui import QIcon
+    from PyQt5.QtWidgets import QWidget, QFrame, QLabel, \
+        QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog
+    # enum
+    frame_shape_hline = QFrame.HLine
+    frame_shadow_sunken = QFrame.Sunken
+    qfiledialog_notnative = QFileDialog.DontUseNativeDialog
+    # vers
+    PyQt = 5
 
 # local includes
 from client.utils.pyinstaller_utils import resource_path
@@ -150,8 +168,8 @@ class QDisplaySessionWidget(QWidget):
         display_hor_layout.addWidget(self.kill_btn)
 
         separator = QFrame(self)
-        separator.setFrameShape(QFrame.HLine)
-        separator.setFrameShadow(QFrame.Sunken)
+        separator.setFrameShape(frame_shape_hline)
+        separator.setFrameShadow(frame_shadow_sunken)
         display_ver_layout.addWidget(separator)
 
         self.update_gui()
@@ -169,13 +187,20 @@ class QDisplaySessionWidget(QWidget):
             logger.info("Sharing display " + str(self.display_name))
 
             filename_suggested = self.session.hash['session name'].replace(' ', '_') + '.vnc'
-            options = QFileDialog.Options()
-            options |= QFileDialog.DontUseNativeDialog
-            filename, _ = QFileDialog.getSaveFileName(self,
-                                                      "Share display " + str(self.display_name),
-                                                      filename_suggested,
-                                                      " Vnc Files (*.vnc);;All Files (*)",
-                                                      options=options)
+            if PyQt == 6:
+                filename, _ = QFileDialog.getSaveFileName(self,
+                                                          "Share display " + str(self.display_name),
+                                                          filename_suggested,
+                                                          " Vnc Files (*.vnc);;All Files (*)",
+                                                          options = qfiledialog_notnative)
+            if PyQt == 5:
+                options = QFileDialog.Options()
+                options |= qfiledialog_notnative
+                filename, _ = QFileDialog.getSaveFileName(self,
+                                                        "Share display " + str(self.display_name),
+                                                        filename_suggested,
+                                                        " Vnc Files (*.vnc);;All Files (*)",
+                                                        options=options)
 
             if filename:
                 with open(filename, 'w') as out_file:

@@ -18,7 +18,14 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from PyQt5.QtCore import QThread, Qt
+# pyqt
+try:
+    from PyQt6.QtCore import QThread, Qt
+    PyQt = 6
+except ImportError:
+    from PyQt5.QtCore import QThread, Qt
+    PyQt = 5
+
 
 # local includes
 from client.miscellaneous.logger import logger

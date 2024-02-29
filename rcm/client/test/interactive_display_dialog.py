@@ -19,8 +19,13 @@
 #
 
 import sys
-# pyqt5
-from PyQt5.QtWidgets import QApplication
+# pyqt
+try:
+    from PyQt6.QtWidgets import QApplication
+    PyQt = 6
+except ImportError:
+    from PyQt5.QtWidgets import QApplication
+    PyQt = 5
 
 app = QApplication(sys.argv)
 
@@ -79,4 +84,7 @@ def print_result(choices):
 
 display_dialog = QDynamicDisplayDialog(display_dialog_ui, callback=print_result)
 display_dialog.show()
-sys.exit(app.exec_())
+if PyQt == 6:
+    sys.exit(app.exec())
+if PyQt == 5:
+    sys.exit(app.exec_())

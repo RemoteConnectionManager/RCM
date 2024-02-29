@@ -26,10 +26,17 @@ import re
 import getpass
 from datetime import datetime, timedelta
 
-# pyqt5
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt
-from PyQt5.QtTest import QTest
+# pyqt
+try:
+    from PyQt6.QtWidgets import QApplication
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtTest import QTest
+    PyQt = 6
+except ImportError:
+    from PyQt5.QtWidgets import QApplication
+    from PyQt5.QtCore import Qt
+    from PyQt5.QtTest import QTest
+    PyQt = 5
 
 # add python path
 rcm_root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

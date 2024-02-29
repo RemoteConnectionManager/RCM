@@ -23,10 +23,18 @@ import json
 import os
 import re
 
-# pyqt5
-from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
-    QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, QPushButton, \
-    QDesktopWidget
+# pyqt
+try:
+    from PyQt6.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
+        QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, QPushButton
+    from PyQt6.QtGui import QGuiApplication
+    PyQt = 6
+except ImportError:
+    from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
+        QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, QPushButton
+    from PyQt5.QtWidgets import QDesktopWidget
+    PyQt = 5
+
 
 # local includes
 from client.miscellaneous.logger import logger
@@ -196,8 +204,12 @@ class QDisplayDialog(QDialog):
 
         # convert full screen in the format width x height
         if self.display_size == "full_screen":
-            screen_width = QDesktopWidget().width()
-            screen_height = QDesktopWidget().height()
+            if PyQt == 6:
+                screen_width = QGuiApplication.primaryScreen().availableGeometry().width()
+                screen_height = QGuiApplication.primaryScreen().availableGeometry().height()
+            if PyQt == 5:
+                screen_width = QDesktopWidget().width()
+                screen_height = QDesktopWidget().height()
             self.display_size = str(screen_width) + "x" + str(screen_height)
 
         logger.info("session queue: " + self.session_queue + "; " +

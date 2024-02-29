@@ -24,10 +24,15 @@ import os
 import json
 from collections import OrderedDict
 
-# pyqt5
-from PyQt5.QtWidgets import QApplication
-# from PyQt5.QtCore import Qt
-# from PyQt5.QtTest import QTest
+# pyqt
+try:
+    from PyQt6.QtWidgets import QApplication
+    PyQt = 6
+except ImportError:
+    from PyQt5.QtWidgets import QApplication
+    # from PyQt5.QtCore import Qt
+    # from PyQt5.QtTest import QTest
+    PyQt = 5
 
 # add python path
 rcm_root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -46,7 +51,10 @@ class TestQDisaplyDialog(unittest.TestCase):
         display_dialog_ui = json.load(open("scheduler.json"), object_pairs_hook=OrderedDict)
         display_dialog = QDynamicDisplayDialog(display_dialog_ui)
         display_dialog.show()
-        self.assertEqual(app.exec_(), 0)
+        if PyQt == 6:
+            self.assertEqual(app.exec(), 0)
+        if PyQt == 5:
+            self.assertEqual(app.exec_(), 0)
 
 
 if __name__ == '__main__':

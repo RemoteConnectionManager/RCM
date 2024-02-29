@@ -24,8 +24,13 @@ import sys
 import os
 import json
 
-# pyqt5
-from PyQt5.QtWidgets import QApplication
+# pyqt
+try:
+    from PyQt6.QtWidgets import QApplication
+    PyQt = 6
+except ImportError:
+    from PyQt5.QtWidgets import QApplication
+    PyQt = 5
 
 # add python path
 source_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -48,4 +53,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     rcm_win = RCMMainWindow()
     rcm_win.show()
-    sys.exit(app.exec_())
+    if PyQt == 5:
+        sys.exit(app.exec_())
+    if PyQt == 6:
+        sys.exit(app.exec())
