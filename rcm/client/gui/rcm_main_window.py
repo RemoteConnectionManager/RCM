@@ -46,6 +46,7 @@ class RCMMainWindow(QMainWindow):
 
         title = "RCM Client " + pack_info.rcmVersion
         self.setWindowTitle(title)
+        self.setWindowIcon(QIcon(resource_path('gui/logo/logo.ico')))
 
         screen_width = QGuiApplication.primaryScreen().size().width()
         screen_height = QGuiApplication.primaryScreen().size().height()
@@ -57,12 +58,12 @@ class RCMMainWindow(QMainWindow):
         logger.debug("screen_width: " + str(screen_width))
         logger.debug("screen_height: " + str(screen_height))
 
-        self.setGeometry((screen_width / 2) - (app_width / 2),
-                         (screen_height / 2) - (app_height / 2),
-                         app_width, app_height)
+        self.setGeometry(int((screen_width / 2) - (app_width / 2)),
+                         int((screen_height / 2) - (app_height / 2)),
+                         int(app_width), int(app_height))
 
-        self.setMinimumHeight(app_height)
-        self.setMinimumWidth(app_width)
+        self.setMinimumHeight(int(app_height))
+        self.setMinimumWidth(int(app_width))
 
         self.build_menu()
 

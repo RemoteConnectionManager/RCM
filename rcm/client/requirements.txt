@@ -1,8 +1,9 @@
+#pyqt5==5.9.2
 pyqt5
 #paramiko==2.4.2
-paramiko
-#cryptography==2.4.2
+paramiko==3.4.0
 cryptography
+six
 #pexpect==4.4.0
 pexpect
 #pyinstaller==3.6.0
