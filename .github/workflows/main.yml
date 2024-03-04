@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 env:
-  RCM_CHECKOUT: "RCM"
+  RCM_CHECKOUT: "."
   PYTHON_VERSION: "3.10.11"
   PYENV_VERSION: "2.3.35"
   PARAMIKO_PULL: "2258"
@@ -32,12 +32,12 @@ jobs:
     strategy:
       matrix:
         os:
-        - windows-latest
+        # - windows-latest
         - ubuntu-latest	
-        - ubuntu-20.04
+        # - ubuntu-20.04
         turbovnc-version:
         - '3.1'
-        - '2.2.7'
+        # - '2.2.7'
         include:
           - os: macos-latest
             turbovnc-version: 'none'
@@ -57,22 +57,20 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout RCM
         uses: actions/checkout@v4.1.1
-        with:
-          path: "${{ env.RCM_CHECKOUT }}"
 
       # CACHE
       - name: (GHO) Cache pyenv
         uses: actions/cache@v4.0.0
         id: cache-pyenv
         with:
-          path: ~/.pyenv
+          path: .pyenv
           key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}
 
       - name: (GHO) Cache venv
         uses: actions/cache@v4.0.0
         id: cache-venv
         with:
-          path: venv
+          path: .venv
           key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}
 
       - name: (GHO) Cache turbovnc
@@ -93,16 +91,8 @@ jobs:
       - name: Setup pyenv environment
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
-          macos: |
-            export PYENV_ROOT=$HOME/.pyenv
-            echo "PYENV_ROOT=${PYENV_ROOT}" >> "${GITHUB_ENV}"
-            echo "${PYENV_ROOT}/bin" >> "${GITHUB_PATH}"
-            echo "${PYENV_ROOT}/versions/${PYTHON_VERSION}/bin" >> "${GITHUB_PATH}"
-          linux: |
-            export PYENV_ROOT=$HOME/.pyenv
-            echo "PYENV_ROOT=${PYENV_ROOT}" >> "${GITHUB_ENV}"
-            echo "${PYENV_ROOT}/bin" >> "${GITHUB_PATH}"
-            echo "${PYENV_ROOT}/versions/${PYTHON_VERSION}/bin" >> "${GITHUB_PATH}"
+          macos: . "${RCM_CHECKOUT}/scripts/ci/01-setup-pyenv.sh"
+          linux: . "${RCM_CHECKOUT}/scripts/ci/01-setup-pyenv.sh"
           windows: |
             $env:PYENV_ROOT = "$HOME/.pyenv/pyenv-win"
             echo "PYENV=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
@@ -117,12 +107,8 @@ jobs:
         if: ${{steps.cache-pyenv.outputs.cache-hit != 'true' }}
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
-          macos: |
-            git clone -b "v${PYENV_VERSION}" "https://github.com/pyenv/pyenv.git" "${PYENV_ROOT:?}"
-            pyenv install "${PYTHON_VERSION}"
-          linux: |
-            git clone -b "v${PYENV_VERSION}" "https://github.com/pyenv/pyenv.git" "${PYENV_ROOT:?}"
-            pyenv install "${PYTHON_VERSION}"
+          macos: . "${RCM_CHECKOUT}/scripts/ci/02-install-python.sh"
+          linux: . "${RCM_CHECKOUT}/scripts/ci/02-install-python.sh"
           windows: |
             git clone "https://github.com/pyenv-win/pyenv-win.git" $HOME/.pyenv
             pyenv.bat install "${env:PYTHON_VERSION}"
@@ -132,22 +118,8 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
         with:
-          macos: |
-            python -m venv venv
-            source venv/bin/activate
-            pip install -r "${RCM_CHECKOUT}/rcm/client/requirements.txt"
-
-            wget "https://github.com/paramiko/paramiko/pull/${PARAMIKO_PULL}/commits/${PARAMIKO_COMMIT}.patch" -O paramiko.patch
-            PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
-            patch -N $PARAMIKO_FILE -i paramiko.patch
-          linux: |
-            python -m venv venv
-            source venv/bin/activate
-            pip install -r "${RCM_CHECKOUT}/rcm/client/requirements.txt"
-
-            wget "https://github.com/paramiko/paramiko/pull/${PARAMIKO_PULL}/commits/${PARAMIKO_COMMIT}.patch" -O paramiko.patch
-            PARAMIKO_FILE=$(python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))")
-            patch -N $PARAMIKO_FILE -i paramiko.patch
+          macos: . "${RCM_CHECKOUT}/scripts/ci/03-install-venv.sh"
+          linux: . "${RCM_CHECKOUT}/scripts/ci/03-install-venv.sh"
           windows: |
             python.exe -m venv venv
             venv\Scripts\Activate.ps1
@@ -161,19 +133,10 @@ jobs:
       - name: Extract TurboVNC
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true'  }}
+        env:
+          TURBOVNC_VERSION : ${{ matrix.turbovnc-version }}
         with:
-          macos: echo "Skip"
-          linux: |
-            # Download 
-            wget $TURBOVNC_DOWNLOAD/${{ matrix.turbovnc-version }}/turbovnc_${{ matrix.turbovnc-version }}_amd64.deb -O turbovnc.deb
-
-            # Extract
-            dpkg-deb -x turbovnc.deb turbovnc
-
-            # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
-            cp -r turbovnc/opt/TurboVNC "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
-            cp -r turbovnc/usr/share "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
-            cp -r turbovnc/etc "${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"
+          linux: . "${RCM_CHECKOUT}/scripts/ci/04-install-turbovnc.sh"
           windows: |
             # Install innoextract locally
             Invoke-WebRequest -URI "https://github.com/dscharrer/innoextract/releases/download/1.9/innoextract-1.9-windows.zip" -OutFile innoextract.zip 
@@ -196,10 +159,7 @@ jobs:
           ORIG_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
           NEW_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,'
         with:
-          linux: |
-            JAVA_SECURITY=$(find "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}" -name java.security)
-            echo "${JAVA_SECURITY}"
-            sed -i "s/${{ env.ORIG_LINE }}/${{ env.NEW_LINE }}/" "${JAVA_SECURITY}"
+          linux: . "${RCM_CHECKOUT}/scripts/ci/05-patch-turbovnc.sh"
           windows: |
             $JAVA_SECURITY = dir -Path "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}" -Filter java.security -Recurse | %{$_.FullName}
             echo "${JAVA_SECURITY}"
@@ -210,20 +170,7 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         if: ${{ steps.cache-step.outputs.cache-hit != 'true'  }}
         with:
-          macos: echo "Skip"
-          linux: |
-            # Download step
-            wget "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_linux_${{ env.SMALLSTEP_VERSION }}_amd64.tar.gz" -O step.tgz
-            
-            # Make tmp and external directories
-            mkdir -p "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
-
-            # Extract and copy executable
-            tar -xzvf step.tgz
-            cp step*/bin/step "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
-
-            # Check
-            ls "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
+          linux: . "${RCM_CHECKOUT}/scripts/ci/06-install-step.sh"
           windows: |
             # Download step
             Invoke-WebRequest -URI "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_windows_${{ env.SMALLSTEP_VERSION }}_amd64.zip" -OutFile step.zip
@@ -256,7 +203,7 @@ jobs:
       - name: (GHO) Move RCM-repo (to avoid conflict with RCM executable) and define EXT
         shell: bash
         run: |
-          mv RCM RCM-repo
+          # mv RCM RCM-repo
 
           if [ ${{ matrix.os }} == 'windows-latest' ]; then
             echo "EXT=.exe" >> "${GITHUB_ENV}"
@@ -270,7 +217,6 @@ jobs:
           # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
           find dist -type f -name "RCM${EXT}" -exec cp '{}' . \;
           find dist -type f -name "RCM.zip" -exec cp '{}' . \;
-          # find dist '(' -name "RCM.exe" -o -name "RCM" ')' -type f -exec bash -c 'cp $0 .' {} \;
 
       - name: (GHO) Install cosign
         uses: sigstore/cosign-installer@v3.3.0
@@ -307,11 +253,11 @@ jobs:
             RCM-zip.sig
             RCM.pub
 
-      - name: (GHO) Restore RCM-repo
-        shell: bash
-        run: |
-          rm -rf RCM RCM.exe RCM-dir
-          mv RCM-repo RCM
+      # - name: (GHO) Restore RCM-repo
+      #   shell: bash
+      #   run: |
+      #     rm -rf RCM RCM.exe RCM-dir
+      #     mv RCM-repo RCM
 
   nightly-link:
     runs-on: ubuntu-latest
