@@ -211,7 +211,7 @@ jobs:
         shell: bash
         run: |
           # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
-          mv rcm rmc_bck
+          mv rcm rcm_bck
           find dist -type f -name "RCM${EXT}" -exec cp '{}' . \;
           find dist -type f -name "RCM.zip" -exec cp '{}' . \;
 
