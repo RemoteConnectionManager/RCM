@@ -55,21 +55,21 @@ echo -e "\033[0;32mSuccess\033[0m"
 
 if uname -a | grep -q "^Linux"; then
     echo -e "\033[0;34m##############################################################################"
-    echo -e "# 4) DOWNLOAD AND EXTRACT TURBOVNC (LINUX-ONLY)"
+    echo -e "# 4a) DOWNLOAD AND EXTRACT TURBOVNC (LINUX-ONLY)"
     echo -e "##############################################################################\033[0m"
-    . "scripts/ci/04-install-turbovnc-linux.sh"
+    . "scripts/ci/04a-extract-turbovnc-linux.sh"
     echo -e "\033[0;32mSuccess\033[0m"
 
     echo -e "\033[0;34m##############################################################################"
-    echo -e "# 5) PATCH TURBOVNC (LINUX-ONLY)"
+    echo -e "# 4b) PATCH TURBOVNC (LINUX-ONLY)"
     echo -e "##############################################################################\033[0m"
-    . "scripts/ci/05-patch-turbovnc-linux.sh"
+    . "scripts/ci/04b-patch-turbovnc-linux.sh"
     echo -e "\033[0;32mSuccess\033[0m"
 
     echo -e "\033[0;34m##############################################################################"
-    echo -e "# 6) DOWNLOAD AND EXTRACT STEP (LINUX-ONLY)"
+    echo -e "# 5) DOWNLOAD AND EXTRACT STEP (LINUX-ONLY)"
     echo -e "##############################################################################\033[0m"
-    . "scripts/ci/06-install-step-linux.sh"
+    . "scripts/ci/05-extract-step-linux.sh"
     echo -e "\033[0;32mSuccess\033[0m"
 fi
 

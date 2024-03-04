@@ -136,7 +136,7 @@ jobs:
         env:
           TURBOVNC_VERSION : ${{ matrix.turbovnc-version }}
         with:
-          linux: . "${RCM_CHECKOUT}/scripts/ci/04-install-turbovnc.sh"
+          linux: . "${RCM_CHECKOUT}/scripts/ci/04a-extract-turbovnc-linux.sh"
           windows: |
             # Install innoextract locally
             Invoke-WebRequest -URI "https://github.com/dscharrer/innoextract/releases/download/1.9/innoextract-1.9-windows.zip" -OutFile innoextract.zip 
@@ -159,7 +159,7 @@ jobs:
           ORIG_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
           NEW_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,'
         with:
-          linux: . "${RCM_CHECKOUT}/scripts/ci/05-patch-turbovnc.sh"
+          linux: . "${RCM_CHECKOUT}/scripts/ci/04b-patch-turbovnc-linux.sh"
           windows: |
             $JAVA_SECURITY = dir -Path "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}" -Filter java.security -Recurse | %{$_.FullName}
             echo "${JAVA_SECURITY}"
@@ -170,7 +170,7 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         if: ${{ steps.cache-step.outputs.cache-hit != 'true'  }}
         with:
-          linux: . "${RCM_CHECKOUT}/scripts/ci/06-install-step.sh"
+          linux: . "${RCM_CHECKOUT}/scripts/ci/05-install-step-linux.sh"
           windows: |
             # Download step
             Invoke-WebRequest -URI "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_windows_${{ env.SMALLSTEP_VERSION }}_amd64.zip" -OutFile step.zip
