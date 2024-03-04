@@ -170,7 +170,7 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         if: ${{ steps.cache-step.outputs.cache-hit != 'true'  }}
         with:
-          linux: . "${RCM_CHECKOUT}/scripts/ci/05-install-step-linux.sh"
+          linux: . "${RCM_CHECKOUT}/scripts/ci/05-extract-step-linux.sh"
           windows: |
             # Download step
             Invoke-WebRequest -URI "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_windows_${{ env.SMALLSTEP_VERSION }}_amd64.zip" -OutFile step.zip
