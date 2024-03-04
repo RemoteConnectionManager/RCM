@@ -211,7 +211,7 @@ jobs:
         shell: bash
         run: |
           # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
-          ls -ltr
+          mv rcm rmc_bck
           find dist -type f -name "RCM${EXT}" -exec cp '{}' . \;
           find dist -type f -name "RCM.zip" -exec cp '{}' . \;
 
@@ -250,11 +250,11 @@ jobs:
             RCM-zip.sig
             RCM.pub
 
-      # - name: (GHO) Restore RCM-repo
-      #   shell: bash
-      #   run: |
-      #     rm -rf RCM RCM.exe RCM-dir
-      #     mv RCM-repo RCM
+      - name: (GHO) Restore RCM-repo
+        shell: bash
+        run: |
+          rm -rf RCM RCM.exe RCM-dir
+          mv rcm_bck rcm
 
   nightly-link:
     runs-on: ubuntu-latest
