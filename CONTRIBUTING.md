@@ -39,7 +39,7 @@ Add documentation on development processes, add docstring to the code or help us
 1. Based on your platform, install the proper version of *Python*, configure the *Python* virtual environment and download and extract external packages. You can check the steps from `RCM/.github/workflows/main.yaml` or use the installation scripts in the `RCM/` folder.
    ```shell 
    # Ubuntu setup
-   # Install missing Qt lWibraries
+   # Install missing Qt libraries
    $ sudo apt update
    $ sudo apt install qtbase5-dev qt5-qmake qtwayland5
    $ RCM/scripts/ci/setup.sh
