@@ -1,5 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
+New-Item -ItemType Directory -Path "${env:RCM_CHECKOUT}\tmp" -Force
+
 # Download step
 Invoke-WebRequest -URI "${env:SMALLSTEP_DOWNLOAD}/v${env:SMALLSTEP_VERSION}/step_windows_${env:SMALLSTEP_VERSION}_amd64.zip" -OutFile "${env:RCM_CHECKOUT}/tmp/step.zip"
 
