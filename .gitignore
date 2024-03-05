@@ -115,5 +115,5 @@ spack_patched
 /rcm/server/etc/site
 !/rcm/etc/defaults
 
-# Pyinstaller file
-build_platform.txt
+# Temporary directory used to setup the environment
+tmp

@@ -23,53 +23,43 @@ export SMALLSTEP_EXTERNAL="rcm/client/external/step"
 
 
 # CD in RCM directory
-cd "$(dirname "$0")/../../"
-
-if uname -a | grep -q "^Linux"; then
-    echo -e "\033[0;34m##############################################################################"
-    echo -e "# 0) INSTALLING QT5 DEPENDENCIES \033[0;31m(SUDO IS REQUIRED)\033[0;34m"
-    echo -e "##############################################################################\033[0m"
-    sudo apt update
-    sudo apt install qtbase5-dev qt5-qmake qtwayland5
-    echo -e "\033[0;32mSuccess\033[0m"
-
-fi
+RCM_CHECKOUT="$(dirname "$0")/../../"
 
 echo -e "\033[0;34m##############################################################################"
 echo -e "# 1) SETUP PYENV ENVIRONMENT"
 echo -e "##############################################################################\033[0m"
-source "scripts/ci/01-setup-pyenv.sh"
+source "${RCM_CHECKOUT}/scripts/ci/01-setup-pyenv.sh"
 echo -e "\033[0;32mSuccess\033[0m"
 
 echo -e "\033[0;34m##############################################################################"
 echo -e "# 2) INSTALLING PYENV LOCALLY"
 echo -e "##############################################################################\033[0m"
-. "scripts/ci/02-install-python.sh"
+. "${RCM_CHECKOUT}/scripts/ci/02-install-python.sh"
 echo -e "\033[0;32mSuccess\033[0m"
 
 echo -e "\033[0;34m##############################################################################"
 echo -e "# 3) INSTALLING VENV AND PATCH PARAMIKO"
 echo -e "##############################################################################\033[0m"
-. "scripts/ci/03-install-venv.sh"
+. "${RCM_CHECKOUT}/scripts/ci/03-install-venv.sh"
 echo -e "\033[0;32mSuccess\033[0m"
 
 if uname -a | grep -q "^Linux"; then
     echo -e "\033[0;34m##############################################################################"
     echo -e "# 4a) DOWNLOAD AND EXTRACT TURBOVNC (LINUX-ONLY)"
     echo -e "##############################################################################\033[0m"
-    . "scripts/ci/04a-extract-turbovnc-linux.sh"
+    . "${RCM_CHECKOUT}/scripts/ci/04a-extract-turbovnc-ubuntu.sh"
     echo -e "\033[0;32mSuccess\033[0m"
 
     echo -e "\033[0;34m##############################################################################"
     echo -e "# 4b) PATCH TURBOVNC (LINUX-ONLY)"
     echo -e "##############################################################################\033[0m"
-    . "scripts/ci/04b-patch-turbovnc-linux.sh"
+    . "${RCM_CHECKOUT}/scripts/ci/04b-patch-turbovnc-linux.sh"
     echo -e "\033[0;32mSuccess\033[0m"
 
     echo -e "\033[0;34m##############################################################################"
     echo -e "# 5) DOWNLOAD AND EXTRACT STEP (LINUX-ONLY)"
     echo -e "##############################################################################\033[0m"
-    . "scripts/ci/05-extract-step-linux.sh"
+    . "${RCM_CHECKOUT}/scripts/ci/05-extract-step-linux.sh"
     echo -e "\033[0;32mSuccess\033[0m"
 fi
 

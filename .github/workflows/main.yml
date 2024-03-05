@@ -32,12 +32,12 @@ jobs:
     strategy:
       matrix:
         os:
-        # - windows-latest
+        - windows-latest
         - ubuntu-latest	
-        # - ubuntu-20.04
+        - ubuntu-20.04
         turbovnc-version:
         - '3.1'
-        # - '2.2.7'
+        - '2.2.7'
         include:
           - os: macos-latest
             turbovnc-version: 'none'
@@ -93,15 +93,7 @@ jobs:
         with:
           macos: . "${RCM_CHECKOUT}/scripts/ci/01-setup-pyenv.sh"
           linux: . "${RCM_CHECKOUT}/scripts/ci/01-setup-pyenv.sh"
-          windows: |
-            $env:PYENV_ROOT = "$HOME/.pyenv/pyenv-win"
-            echo "PYENV=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
-            echo "PYENV_ROOT=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
-            echo "PYENV_HOME=${env:PYENV_ROOT}/" >> "${env:GITHUB_ENV}"
-            echo "${env:PYENV_ROOT}/bin" >> "${env:GITHUB_PATH}"
-            echo "${env:PYENV_ROOT}/shims" >> "${env:GITHUB_PATH}"
-            echo "${env:PYENV_ROOT}/versions/${env:PYTHON_VERSION}/bin" >> "${env:GITHUB_PATH}"
-            echo "C:\Program Files\Git\usr\bin" >> "${env:GITHUB_PATH}"
+          windows: . "${RCM_CHECKOUT}\scripts\ci\01-setup-pyenv.ps1"
 
       - name: Install pyenv locally
         if: ${{steps.cache-pyenv.outputs.cache-hit != 'true' }}
@@ -109,9 +101,7 @@ jobs:
         with:
           macos: . "${RCM_CHECKOUT}/scripts/ci/02-install-python.sh"
           linux: . "${RCM_CHECKOUT}/scripts/ci/02-install-python.sh"
-          windows: |
-            git clone "https://github.com/pyenv-win/pyenv-win.git" $HOME/.pyenv
-            pyenv.bat install "${env:PYTHON_VERSION}"
+          windows: . "${RCM_CHECKOUT}\scripts\ci\02-install-python.ps1"
 
       # VENV
       - name: Install venv
@@ -120,14 +110,7 @@ jobs:
         with:
           macos: . "${RCM_CHECKOUT}/scripts/ci/03-install-venv.sh"
           linux: . "${RCM_CHECKOUT}/scripts/ci/03-install-venv.sh"
-          windows: |
-            python.exe -m venv venv
-            venv\Scripts\Activate.ps1
-            pip install -r "${env:RCM_CHECKOUT}\rcm\client\requirements.txt"
-
-            Invoke-WebRequest -URI https://github.com/paramiko/paramiko/pull/2258/commits/1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3.patch -OutFile paramiko.patch
-            $env:PARAMIKO_FILE = python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))"
-            patch -N $env:PARAMIKO_FILE -i paramiko.patch
+          windows: . "${RCM_CHECKOUT}\scripts\ci\03-install-venv.ps1"
 
       # TURBOVNC
       - name: Extract TurboVNC
@@ -136,21 +119,8 @@ jobs:
         env:
           TURBOVNC_VERSION : ${{ matrix.turbovnc-version }}
         with:
-          linux: . "${RCM_CHECKOUT}/scripts/ci/04a-extract-turbovnc-linux.sh"
-          windows: |
-            # Install innoextract locally
-            Invoke-WebRequest -URI "https://github.com/dscharrer/innoextract/releases/download/1.9/innoextract-1.9-windows.zip" -OutFile innoextract.zip 
-            Expand-Archive -LiteralPath .\innoextract.zip -DestinationPath .\innoextract
-
-            # Download 
-            Invoke-WebRequest -URI "${{ env.TURBOVNC_DOWNLOAD }}/${{ matrix.turbovnc-version }}/TurboVNC-${{ matrix.turbovnc-version }}-x64.exe" -OutFile turbovnc.exe 
-  
-            # Extract
-            .\innoextract\innoextract turbovnc.exe
-          
-            # Copy extracted file to `"${RCM_CHECKOUT}/${TURBOVNC_EXTERNAL}"`
-            mkdir "${{ env.RCM_CHECKOUT }}\${{ env.TURBOVNC_EXTERNAL }}"
-            mv app "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}/bin"
+          linux: . "${RCM_CHECKOUT}/scripts/ci/04a-extract-turbovnc-ubuntu.sh"
+          windows: . "${RCM_CHECKOUT}\scripts\ci\04a-extract-turbovnc.ps1"
 
       - name: Patch TurboVNC 3.x
         uses: carlkidcrypto/os-specific-runner@v2.0.0
@@ -160,10 +130,7 @@ jobs:
           NEW_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,'
         with:
           linux: . "${RCM_CHECKOUT}/scripts/ci/04b-patch-turbovnc-linux.sh"
-          windows: |
-            $JAVA_SECURITY = dir -Path "${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}" -Filter java.security -Recurse | %{$_.FullName}
-            echo "${JAVA_SECURITY}"
-            (Get-Content "${JAVA_SECURITY}").replace("${{ env.ORIG_LINE }}", "${{ env.NEW_LINE }}") | Set-Content "${JAVA_SECURITY}"
+          windows: . "${RCM_CHECKOUT}\scripts\ci\04b-patch-turbovnc.ps1"
 
       # EXTERNAL STEP
       - name: External step
@@ -171,19 +138,7 @@ jobs:
         if: ${{ steps.cache-step.outputs.cache-hit != 'true'  }}
         with:
           linux: . "${RCM_CHECKOUT}/scripts/ci/05-extract-step-linux.sh"
-          windows: |
-            # Download step
-            Invoke-WebRequest -URI "${{ env.SMALLSTEP_DOWNLOAD }}/v${{ env.SMALLSTEP_VERSION }}/step_windows_${{ env.SMALLSTEP_VERSION }}_amd64.zip" -OutFile step.zip
-
-            # Make external directories
-            New-Item -ItemType Directory -Path "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}" -Force
-            
-            # Extract and copy executable
-            Expand-Archive -LiteralPath .\step.zip -DestinationPath .
-            Copy-Item step*\bin\step.exe -Destination "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
-
-            # Check
-            Get-ChildItem "${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}"
+          windows: . "${RCM_CHECKOUT}\scripts\ci\05-extract-step.ps1"
 
       # PYINSTALLER
       - name: Build pyinstaller

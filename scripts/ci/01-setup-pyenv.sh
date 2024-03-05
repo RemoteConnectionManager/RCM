@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
-export PYENV_ROOT=.pyenv
+export PYENV_ROOT="${RCM_CHECKOUT:?}/.pyenv"
 
 if [ -n "${GITHUB_ENV}" ]; then
     echo "PYENV_ROOT=${PYENV_ROOT}" >> "${GITHUB_ENV}"
