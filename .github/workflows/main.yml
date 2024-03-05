@@ -93,7 +93,7 @@ jobs:
         with:
           macos: . "${RCM_CHECKOUT}/scripts/ci/01-setup-pyenv.sh"
           linux: . "${RCM_CHECKOUT}/scripts/ci/01-setup-pyenv.sh"
-          windows: . "${RCM_CHECKOUT}\scripts\ci\01-setup-pyenv.ps1"
+          windows: . "${env:RCM_CHECKOUT}\scripts\ci\01-setup-pyenv.ps1"
 
       - name: Install pyenv locally
         if: ${{steps.cache-pyenv.outputs.cache-hit != 'true' }}
@@ -101,7 +101,7 @@ jobs:
         with:
           macos: . "${RCM_CHECKOUT}/scripts/ci/02-install-python.sh"
           linux: . "${RCM_CHECKOUT}/scripts/ci/02-install-python.sh"
-          windows: . "${RCM_CHECKOUT}\scripts\ci\02-install-python.ps1"
+          windows: . "${env:RCM_CHECKOUT}\scripts\ci\02-install-python.ps1"
 
       # VENV
       - name: Install venv
@@ -110,7 +110,7 @@ jobs:
         with:
           macos: . "${RCM_CHECKOUT}/scripts/ci/03-install-venv.sh"
           linux: . "${RCM_CHECKOUT}/scripts/ci/03-install-venv.sh"
-          windows: . "${RCM_CHECKOUT}\scripts\ci\03-install-venv.ps1"
+          windows: . "${env:RCM_CHECKOUT}\scripts\ci\03-install-venv.ps1"
 
       # TURBOVNC
       - name: Extract TurboVNC
@@ -120,7 +120,7 @@ jobs:
           TURBOVNC_VERSION : ${{ matrix.turbovnc-version }}
         with:
           linux: . "${RCM_CHECKOUT}/scripts/ci/04a-extract-turbovnc-ubuntu.sh"
-          windows: . "${RCM_CHECKOUT}\scripts\ci\04a-extract-turbovnc.ps1"
+          windows: . "${env:RCM_CHECKOUT}\scripts\ci\04a-extract-turbovnc.ps1"
 
       - name: Patch TurboVNC 3.x
         uses: carlkidcrypto/os-specific-runner@v2.0.0
@@ -130,7 +130,7 @@ jobs:
           NEW_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,'
         with:
           linux: . "${RCM_CHECKOUT}/scripts/ci/04b-patch-turbovnc-linux.sh"
-          windows: . "${RCM_CHECKOUT}\scripts\ci\04b-patch-turbovnc.ps1"
+          windows: . "${env:RCM_CHECKOUT}\scripts\ci\04b-patch-turbovnc.ps1"
 
       # EXTERNAL STEP
       - name: External step
@@ -138,7 +138,7 @@ jobs:
         if: ${{ steps.cache-step.outputs.cache-hit != 'true'  }}
         with:
           linux: . "${RCM_CHECKOUT}/scripts/ci/05-extract-step-linux.sh"
-          windows: . "${RCM_CHECKOUT}\scripts\ci\05-extract-step.ps1"
+          windows: . "${env:RCM_CHECKOUT}\scripts\ci\05-extract-step.ps1"
 
       # PYINSTALLER
       - name: Build pyinstaller
@@ -152,7 +152,7 @@ jobs:
             pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
           windows: |
             .venv\Scripts\Activate.ps1
-            pyinstaller "${{ env.RCM_CHECKOUT }}\rcm\client\rcm_client_qt.spec"
+            pyinstaller "${env:RCM_CHECKOUT}\rcm\client\rcm_client_qt.spec"
   
       # ARTIFACT
       - name: (GHO) Define EXT
