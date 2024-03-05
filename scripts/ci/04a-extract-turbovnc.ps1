@@ -1,5 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
+New-Item -ItemType Directory -Path "${env:RCM_CHECKOUT}\tmp" -Force
+
 # Install innoextract locally
 Invoke-WebRequest -URI "https://github.com/dscharrer/innoextract/releases/download/1.9/innoextract-1.9-windows.zip" -OutFile "${env:RCM_CHECKOUT}\tmp\innoextract.zip"
 Expand-Archive -LiteralPath "${env:RCM_CHECKOUT}\tmp\innoextract.zip" -DestinationPath "${env:RCM_CHECKOUT}\tmp\innoextract" -Force
