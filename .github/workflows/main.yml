@@ -167,7 +167,7 @@ jobs:
         run: |
           # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
           mv rcm rcm_bck
-          find dist -type f -name "RCM${EXT}" -exec cp '{}' . \;
+          find dist -type f -name "RCM${{ env.EXT }}" -exec cp '{}' . \;
           find dist -type f -name "RCM.zip" -exec cp '{}' . \;
 
       - name: (GHO) Install cosign
@@ -176,9 +176,9 @@ jobs:
       - name: (GHO) Sign image with a key
         shell: bash
         run: |
-          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "RCM.sig" "RCM${EXT}"
+          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "RCM.sig" "RCM${{ env.EXT }}"
           cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "RCM-zip.sig" "RCM.zip"
-          cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "RCM.sig" "RCM${EXT}"
+          cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "RCM.sig" "RCM${{ env.EXT }}"
           cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "RCM-zip.sig" "RCM.zip"
           echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
         env:
@@ -191,8 +191,7 @@ jobs:
         with:
           name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
           path: |
-            RCM
-            RCM.exe
+            "RCM${{ env.EXT }}"
             RCM.sig
             RCM.pub
 
