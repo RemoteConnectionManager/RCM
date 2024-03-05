@@ -160,14 +160,13 @@ jobs:
         with:
           macos: echo "EXT=" >> "${GITHUB_ENV}"
           linux: echo "EXT=" >> "${GITHUB_ENV}"
-          windows: echo "EXT=.exe" >> "${GITHUB_ENV}"
+          windows: echo "EXT=.exe" >> "${env:GITHUB_ENV}"
 
       - name: (GHO) Move preartifacts
         shell: bash
         run: |
           # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
           mv rcm rcm_bck
-          echo ">>>>>>>>>>>>>>>>>> $EXT <<<<<<<<<<<<<<<<<<<<<<<<<<"
           find dist -type f -name "RCM${EXT}" -exec cp '{}' . \;
           find dist -type f -name "RCM.zip" -exec cp '{}' . \;
 
