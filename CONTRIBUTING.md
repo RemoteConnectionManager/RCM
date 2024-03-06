@@ -38,13 +38,17 @@ Add documentation on development processes, add docstring to the code or help us
 
    ```shell
    # macOS
-   # Install homebrew if necessary (https://brew.sh/)
+   ## Install homebrew if necessary (https://brew.sh/)
    $ brew install git git-flow
    ```
 
    ```PowerShell
    # Windows
    > winget install --id Git.Git -e --source winget
+   ## Add <Git_opt>/usr/bin to path in order to use patch and git-flow
+   > $env:Path = (Join-Path -Path (Split-Path -parent (Split-Path -parent (Get-Command git).source)) -ChildPath "usr/bin")+";"+$env:Path
+   ## Make the $env:Path modification permanent
+   > [System.Environment]::SetEnvironmentVariable('Path',$env:Path,[System.EnvironmentVariableTarget]::User)
    ```
 
 1. Clone the repository (see [How to contribute](#how-to-contribute)).
@@ -66,10 +70,6 @@ Add documentation on development processes, add docstring to the code or help us
    ```PowerShell
    # Windows setup
    > RCM\scripts\ci\setup.ps1
-   # Add <Git_opt>/usr/bin to path in order to use patch and git-flow
-   > $env:Path = (Join-Path -Path (Split-Path -parent (Split-Path -parent (Get-Command git).source)) -ChildPath "usr/bin")+";"+$env:Path
-   # Make the $env:Path modification permanent
-   > [System.Environment]::SetEnvironmentVariable('Path',$env:Path,[System.EnvironmentVariableTarget]::User)
    ```
 
 
