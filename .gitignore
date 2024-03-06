@@ -117,3 +117,6 @@ spack_patched
 
 # Temporary directory used to setup the environment
 tmp
+build
+dist
+build_platform.txt

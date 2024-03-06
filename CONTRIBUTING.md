@@ -29,18 +29,33 @@ Add documentation on development processes, add docstring to the code or help us
 
 ## Setting Up Local Development
 
-1. Fork `RCM` repo on GitHub (https://github.com/RemoteConnectionManager/RCM/fork).
-
-1. Clone your fork locally:
-   ```shell
-   $ git clone git@github.com:<your_name_here>/RCM.git
+### Install Local Development
+1. Install `git` and `git-flow`.
+   ```shell 
+   # Ubuntu
+   $ sudo apt update && sudo apt install git gitflow
    ```
 
-1. Based on your platform, install the proper version of *Python*, configure the *Python* virtual environment and download and extract external packages. You can check the steps from `RCM/.github/workflows/main.yaml` or use the installation scripts in the `RCM/` folder.
+   ```shell
+   # macOS
+   # Install homebrew if necessary (https://brew.sh/)
+   $ brew install git git-flow
+   ```
+
+   ```PowerShell
+   # Windows
+   > winget install --id Git.Git -e --source winget
+   ```
+
+1. Clone the repository (see [How to contribute](#how-to-contribute)).
+
+1. Based on your platform, install the proper version of *Python*, configure the *Python* virtual environment and download and extract external packages. You can check the steps from `RCM/.github/workflows/main.yaml` or use the installation scripts in the `RCM/scripts/ci` folder.
+
    ```shell 
    # Ubuntu setup
-   # Install missing Qt libraries
+   # Install missing Python dependency libraries and Qt libraries
    $ sudo apt update
+   $ sudo apt install libbz2-dev libncurses-dev libssl-dev
    $ sudo apt install qtbase5-dev qt5-qmake qtwayland5
    $ RCM/scripts/ci/setup.sh
    ```
@@ -51,6 +66,20 @@ Add documentation on development processes, add docstring to the code or help us
    ```PowerShell
    # Windows setup
    > RCM\scripts\ci\setup.ps1
+   # Add <Git_opt>/usr/bin to path in order to use patch and git-flow
+   > $env:Path = (Join-Path -Path (Split-Path -parent (Split-Path -parent (Get-Command git).source)) -ChildPath "usr/bin")+";"+$env:Path
+   # Make the $env:Path modification permanent
+   > [System.Environment]::SetEnvironmentVariable('Path',$env:Path,[System.EnvironmentVariableTarget]::User)
+   ```
+
+
+### How to contribute
+
+1. Fork `RCM` repo on GitHub (https://github.com/RemoteConnectionManager/RCM/fork).
+
+1. Clone your fork locally:
+   ```shell
+   $ git clone git@github.com:<your_name_here>/RCM.git
    ```
 
 1. Start using `git-flow` by initializing your git repository:
@@ -97,6 +126,5 @@ Before you submit a pull request, check that it meets these guidelines:
 1. The pull request must pass all CI/CD jobs before being ready for review.
 
 [comment]: # ( 1. If one CI/CD job is failing for unrelated reasons you may want to create another PR to fix that first. )
-
 
 [comment]: # ( ### Coding Standards )
