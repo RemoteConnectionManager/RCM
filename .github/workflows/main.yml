@@ -26,7 +26,8 @@ env:
   SMALLSTEP_DOWNLOAD: "https://github.com/smallstep/cli/releases/download"
   SMALLSTEP_VERSION: "0.25.2"
   SMALLSTEP_EXTERNAL: "rcm/client/external/step"
-  
+  IS_TAG_PULL: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}  
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -46,7 +47,7 @@ jobs:
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
-    
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Install Qt missing libraries (linux only)
@@ -291,13 +292,12 @@ jobs:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
       - name: (GHO) Upload exe to release
-        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+        if: ${{ env.IS_TAG_PULL }}
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: |
-            RCM
-            RCM.exe
+            RCM${{ env.EXT }}
             RCM.sig
             RCM.pub
           asset_name: RCM-client_${{ matrix.os }}
@@ -306,18 +306,17 @@ jobs:
           tag: ${{ github.ref }}
 
       - name: (GHO) Upload exe
-        if: github.event_name != 'push' && !contains(github.ref, 'refs/tags/')
+        if: ! ${{ env.IS_TAG_PULL }}
         uses: actions/upload-artifact@v4.3.1
         with:
           name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
           path: |
-            RCM
-            RCM.exe
+            RCM${{ env.EXT }}
             RCM.sig
             RCM.pub
 
       - name: (GHO) Upload dir
-        if: github.event_name != 'push' && !contains(github.ref, 'refs/tags/')
+        if: ! ${{ env.IS_TAG_PULL }}
         uses: actions/upload-artifact@v4.3.1
         with:
           name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
@@ -334,7 +333,7 @@ jobs:
 
   nightly-link:
     runs-on: ubuntu-latest
-    if: ${{ always() }} && github.event_name != 'push' && !contains(github.ref, 'refs/tags/')
+    if: ${{ always() }} && ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}  
     steps:
       - name: Generate Annotation
         run: |
