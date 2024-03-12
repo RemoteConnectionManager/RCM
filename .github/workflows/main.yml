@@ -305,7 +305,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM.sig
-          asset_name: RCM-client_${{ matrix.os }}.sig
+          asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}.sig
           prerelease: true
           overwrite: true
           tag: ${{ github.ref }}
