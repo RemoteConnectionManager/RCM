@@ -7,6 +7,8 @@ on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: [ "dev" ]
+    tags:
+      - v*
   pull_request:
     branches: [ "dev" ]
 
@@ -288,7 +290,23 @@ jobs:
           COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
+      - name: (GHO) Upload exe to release
+        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: |
+            RCM
+            RCM.exe
+            RCM.sig
+            RCM.pub
+          asset_name: RCM-client_${{ matrix.os }}
+          prerelease: true
+          overwrite: true
+          tag: ${{ github.ref }}
+
       - name: (GHO) Upload exe
+        if: ! ( github.event_name == 'push' && contains(github.ref, 'refs/tags/') )
         uses: actions/upload-artifact@v4.3.1
         with:
           name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
@@ -299,6 +317,7 @@ jobs:
             RCM.pub
 
       - name: (GHO) Upload dir
+        if: ! ( github.event_name == 'push' && contains(github.ref, 'refs/tags/') )
         uses: actions/upload-artifact@v4.3.1
         with:
           name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
@@ -315,7 +334,7 @@ jobs:
 
   nightly-link:
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: ${{ always() }} && ! ( github.event_name == 'push' && contains(github.ref, 'refs/tags/') )
     steps:
       - name: Generate Annotation
         run: |
