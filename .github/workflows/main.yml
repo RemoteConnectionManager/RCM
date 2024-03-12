@@ -290,16 +290,22 @@ jobs:
           COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
-      - name: (GHO) Upload exe to release
+      - name: (GHO)(TAG) Upload exe to release
         if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}  
         uses: svenstaro/upload-release-action@v2
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: |
-            RCM${{ env.EXT }}
-            RCM.sig
-            RCM.pub
+          file: RCM${{ env.EXT }}
           asset_name: RCM-client_${{ matrix.os }}
+          prerelease: true
+          overwrite: true
+          tag: ${{ github.ref }}
+  
+      - name: (GHO)(TAG) Upload sign to release
+        if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}  
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: RCM.sig
+          asset_name: RCM-client_${{ matrix.os }}.sig
           prerelease: true
           overwrite: true
           tag: ${{ github.ref }}
@@ -329,6 +335,24 @@ jobs:
         run: |
           rm -rf RCM RCM.exe RCM-dir
           mv RCM-repo RCM
+
+  upload-public-key:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}  
+    steps:
+      - name: (GHO) Sign image with a key
+        run: echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
+        env:
+          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+
+      - name: (GHO)(TAG) Upload exe to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: RCM.pub
+          asset_name: RCM.pub
+          prerelease: true
+          overwrite: true
+          tag: ${{ github.ref }}
 
   nightly-link:
     runs-on: ubuntu-latest
