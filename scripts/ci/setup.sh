@@ -2,19 +2,24 @@
 set -e
 
 usage() {
-    cat >&1 <<EOF
+    EXIT_CODE=$1
+    if [[ $EXIT_CODE -ge 1 ]]; then
+        STD=2
+    else
+        STD=1
+    fi
+    SCRIPT_NAME=$(basename $0)
+    cat >&$STD <<EOF
+Setup linux environment for RCM development.
 
-Usage: $0 [--silent]
-       $0 --restart [--silent]
-       $0 --clean-only
+Usage: $SCRIPT_NAME [--restart|--clean-only]
 
 Options:
-  -u | --clean-only   : Clean actual setup without reinstalling it (python, venv, externals) [default: False]
-  -r | --restart      : Restart installation without cleaning up [default: False]
-  -s | --silent       : Suppress command stdout
-  -h | --help         : Print usage message
-
+  -c, --clean-only  clean actual enviroment without reinstalling it [default: False]
+  -r, --restart     restart installation without cleaning up [default: False]
+  -h, --help        display this help and exit
 EOF
+    exit $EXIT_CODE
 }
 
 
@@ -22,12 +27,11 @@ options=$(getopt -o hscr --long help,silent,clean-only,restart -- "$@")
 eval set -- "$options"
 while true; do
     case "$1" in
-    -h | --help) usage 0; exit 0;;
-    -s | --silent) SILENT=1 && shift ;;
+    -h | --help) usage 0;;
     -c | --clean-only) CLEAN_ONLY=1 && shift ;;
     -r | --restart) RESTART=1 && shift ;;
     --) shift && break ;;
-    *) usage ;;
+    *) usage 1;;
     esac
 done
 
@@ -51,11 +55,7 @@ function run_step {
         fi
         if [[ "${CLEAN_ONLY}" -ne 1 ]]; then
             printf "\e[90m[INFO] Running '%s' ...\033[0m\n" "${SCRIPT}"
-            if [[ "${SILENT}" -eq 1 ]]; then
-                "${SCRIPT}" > /dev/null
-            else
-                "${SCRIPT}"
-            fi
+            . "${SCRIPT}"
         fi
         echo -e "\033[0;32mSuccess\033[0m"
     fi
@@ -83,7 +83,7 @@ export SMALLSTEP_EXTERNAL="rcm/client/external/step"
 
 
 # CD in RCM directory
-RCM_CHECKOUT="$(dirname "$0")/../../"
+RCM_CHECKOUT="$(realpath $(dirname "$0")/../..)"
 export RCM_CHECKOUT
 
 run_step "1) SETUP ENVIRONMENT" \
