@@ -10,8 +10,8 @@
 - TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
 - TURBOVNC_EXTERNAL: "rcm/client/external/turbovnc"
 ## patch turbovnc
-- ORIG_LINE: 'jdk.tls.disabledAlgorithms: SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
-- NEW_LINE: 'jdk.tls.disabledAlgorithms: SSLv3, RC4, DES, MD5withRSA,'
+- ORIG_LINE: 'jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
+- NEW_LINE: 'jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,'
 ## smallstep
 - SMALLSTEP_DOWNLOAD: "https://github.com/smallstep/cli/releases/download"
 - SMALLSTEP_VERSION: "0.25.2"

@@ -2,9 +2,10 @@
 ## General
 
 * :computer:`[dev]`: Adopted *git-flow*/*pull-request* flow.
-* :computer:`[dev]`: Renamed main branches to *git-flow* standard.
-* :computer:`[dev]`: Clean up branches.
 * :books:`[doc]`: Add `CHANGELOG.md` and `CONTRIBUTION.md`.
+
+[comment]: <> (* :computer:`[dev]`: Renamed main branches to *git-flow* standard.)
+[comment]: <> (* :computer:`[dev]`: Clean up branches.)
 
 ## Client
 
