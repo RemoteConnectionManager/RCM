@@ -1,0 +1,18 @@
+- TURBOVNC_VERSION: '3.1'
+- PYTHON_VERSION: "3.10.11"
+# GENERIC
+## pyenv
+- PYENV_VERSION: "2.3.35"
+## venv
+- PARAMIKO_PULL: "2258"
+- PARAMIKO_COMMIT: "1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3"
+## turbovnc
+- TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
+- TURBOVNC_EXTERNAL: "rcm/client/external/turbovnc"
+## patch turbovnc
+- ORIG_LINE: 'jdk.tls.disabledAlgorithms: SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
+- NEW_LINE: 'jdk.tls.disabledAlgorithms: SSLv3, RC4, DES, MD5withRSA,'
+## smallstep
+- SMALLSTEP_DOWNLOAD: "https://github.com/smallstep/cli/releases/download"
+- SMALLSTEP_VERSION: "0.25.2"
+- SMALLSTEP_EXTERNAL: "rcm/client/external/step"

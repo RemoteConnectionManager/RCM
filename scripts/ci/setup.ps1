@@ -42,29 +42,17 @@ function RunStep {
     }
 }
 
-
-$env:TURBOVNC_VERSION = '3.1'
-$env:PYTHON_VERSION = "3.10.11"
-
-# GENERIC
-## pyenv
-$env:PYENV_VERSION = "2.3.35"
-## venv
-$env:PARAMIKO_PULL = "2258"
-$env:PARAMIKO_COMMIT = "1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3"
-## turbovnc
-$env:TURBOVNC_DOWNLOAD = "https://github.com/TurboVNC/turbovnc/releases/download"
-$env:TURBOVNC_EXTERNAL = "rcm/client/external/turbovnc"
-## patch turbovnc
-$env:ORIG_LINE = 'jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
-$env:NEW_LINE = 'jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,'
-## smallstep
-$env:SMALLSTEP_DOWNLOAD = "https://github.com/smallstep/cli/releases/download"
-$env:SMALLSTEP_VERSION = "0.25.2"
-$env:SMALLSTEP_EXTERNAL = "rcm/client/external/step"
-
 # CD in RCM directory
 $env:RCM_CHECKOUT = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+
+[regex]$Match1 = "^- "
+$Replace1 = '$env:'
+[regex]$Match2 = ": "
+$Replace2 = " = "
+
+foreach($line in Get-Content "${env:RCM_CHECKOUT}\scripts\ci\common_vars.yaml"){
+    Invoke-Expression $Match2.replace($Match1.replace($line, $Replace1, 1), $Replace2, 1)
+}
 
 RunStep -Title "1) SETUP ENVIRONMENT" `
         -Script "${env:RCM_CHECKOUT}\scripts\ci\01-setup-pyenv.ps1" `

@@ -61,30 +61,12 @@ function run_step {
     fi
 }
 
-export TURBOVNC_VERSION='3.1'
-export PYTHON_VERSION="3.10.11"
-
-# GENERIC
-## pyenv
-export PYENV_VERSION="2.3.35"
-## venv
-export PARAMIKO_PULL="2258"
-export PARAMIKO_COMMIT="1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3"
-## turbovnc
-export TURBOVNC_DOWNLOAD="https://github.com/TurboVNC/turbovnc/releases/download"
-export TURBOVNC_EXTERNAL="rcm/client/external/turbovnc"
-## patch turbovnc
-export ORIG_LINE='jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
-export NEW_LINE='jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,'
-## smallstep
-export SMALLSTEP_DOWNLOAD="https://github.com/smallstep/cli/releases/download"
-export SMALLSTEP_VERSION="0.25.2"
-export SMALLSTEP_EXTERNAL="rcm/client/external/step"
-
 
 # CD in RCM directory
 RCM_CHECKOUT="$(realpath $(dirname "$0")/../..)"
 export RCM_CHECKOUT
+
+eval "$(sed 's/- /export /;s/: /=/' "${RCM_CHECKOUT}/scripts/ci/common_vars.yaml")"
 
 run_step "1) SETUP ENVIRONMENT" \
          "${RCM_CHECKOUT}/scripts/ci/01-setup-pyenv.sh" \
