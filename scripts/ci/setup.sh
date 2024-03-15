@@ -84,7 +84,7 @@ run_step "4a) DOWNLOAD AND EXTRACT TURBOVNC" \
          "${RCM_CHECKOUT}/scripts/ci/04a-extract-turbovnc-ubuntu.sh" \
          "${RCM_CHECKOUT}/rcm/client/external/turbovnc" 
 
-run_step "4b) INSTALLING PYENV LOCALLY" \
+run_step "4b) PATH TURBOVNC 3.x JAVA CONF" \
          "${RCM_CHECKOUT}/scripts/ci/04b-patch-turbovnc-linux.sh"
 
 run_step "5) DOWNLOAD AND EXTRACT STEP" \

@@ -70,7 +70,7 @@ RunStep -Title "4a) DOWNLOAD AND EXTRACT TURBOVNC" `
         -Script "${env:RCM_CHECKOUT}\scripts\ci\04a-extract-turbovnc.ps1" `
         -TargetDir "${env:RCM_CHECKOUT}\rcm\client\external\turbovnc" 
 
-RunStep -Title "4b) INSTALLING PYENV LOCALLY" `
+RunStep -Title "4b) PATH TURBOVNC 3.x JAVA CONF" `
         -Script "${env:RCM_CHECKOUT}\scripts\ci\04b-patch-turbovnc.ps1"
 
 RunStep -Title "5) DOWNLOAD AND EXTRACT STEP" `
