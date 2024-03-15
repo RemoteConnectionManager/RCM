@@ -115,3 +115,8 @@ spack_patched
 /rcm/server/etc/site
 !/rcm/etc/defaults
 
+# Temporary directory used to setup the environment
+tmp
+build
+dist
+build_platform.txt
