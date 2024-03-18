@@ -55,12 +55,16 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      # - name: Install Qt missing libraries (linux only)
+      #   uses: awalsh128/cache-apt-pkgs-action@latest
+      #   if: ${{ contains(matrix.os, 'ubuntu')  }}
+      #   with:
+      #     packages: qtbase5-dev qt5-qmake qtwayland5
+      #     version: 1.0-${{ matrix.os }}
+
       - name: Install Qt missing libraries (linux only)
-        uses: awalsh128/cache-apt-pkgs-action@latest
         if: ${{ contains(matrix.os, 'ubuntu')  }}
-        with:
-          packages: qtbase5-dev qt5-qmake qtwayland5
-          version: 1.0-${{ matrix.os }}
+        run: sudo apt update && sudo apt install qtbase5-dev qt5-qmake qtwayland5
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout RCM
