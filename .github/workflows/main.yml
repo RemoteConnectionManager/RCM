@@ -44,10 +44,10 @@ jobs:
 
           - os: ubuntu-latest
             turbovnc-version: '3.1'
-            image: 'ubuntu/18.04'
+            image: 'ubuntu:18.04'
           - os: ubuntu-latest
             turbovnc-version: '2.2.7'
-            image: 'ubuntu/18.04'
+            image: 'ubuntu:18.04'
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
