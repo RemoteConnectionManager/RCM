@@ -274,6 +274,7 @@ class MainWidget(QWidget):
 
         # Add text log
         self.text_log_frame = QPlainTextEdit(self)
+        self.text_log_frame.setReadOnly(True)
         splitter.addWidget(self.text_log_frame)
 
         # configure logging
