@@ -64,7 +64,7 @@ jobs:
 
       - name: Install Qt missing libraries (linux only)
         if: ${{ contains(matrix.os, 'ubuntu')  }}
-        run: sudo apt update && sudo apt install qtbase5-dev qt5-qmake qtwayland5
+        run: apt update && apt install qtbase5-dev qt5-qmake qtwayland5
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout RCM
