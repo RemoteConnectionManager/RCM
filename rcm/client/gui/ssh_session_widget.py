@@ -74,6 +74,7 @@ class QSSHSessionWidget(QWidget):
         self.platform_config = None
         self.remote_connection_manager = None
         self.is_logged = False
+        self.host_reachable = False
 
         # threads
         self.login_thread = None
@@ -129,27 +130,52 @@ class QSSHSessionWidget(QWidget):
         grid_login_layout.addWidget(session_label, 0, 0)
         grid_login_layout.addWidget(self.session_combo, 0, 1)
 
+        err_font = QFont()
+        err_font.setItalic(True)
+        err_font.setPixelSize(15)
+
         host_label = QLabel(self)
         host_label.setText('Host:')
-
         grid_login_layout.addWidget(host_label, 1, 0)
         grid_login_layout.addWidget(self.host_line, 1, 1)
+        
+        self.host_error_label = QLabel(self)
+        self.host_error_label.setFont(err_font)
+        self.host_error_label.setStyleSheet('color: red')
+        grid_login_layout.addWidget(self.host_error_label, 2, 1)
 
         user_label = QLabel(self)
         user_label.setText('User:')
-        grid_login_layout.addWidget(user_label, 2, 0)
-        grid_login_layout.addWidget(self.user_line, 2, 1)
+        grid_login_layout.addWidget(user_label, 3, 0)
+        grid_login_layout.addWidget(self.user_line, 3, 1)
+        
+        self.user_error_label = QLabel(self)
+        self.user_error_label.setFont(err_font)
+        self.user_error_label.setStyleSheet('color: red')
+        grid_login_layout.addWidget(self.user_error_label, 4, 1)
+
 
         pssw_label = QLabel(self)
         pssw_label.setText('Password:')
         self.pssw_line.setEchoMode(QLineEdit.Password)
-        grid_login_layout.addWidget(pssw_label, 3, 0)
-        grid_login_layout.addWidget(self.pssw_line, 3, 1)
+        grid_login_layout.addWidget(pssw_label, 5, 0)
+        grid_login_layout.addWidget(self.pssw_line, 5, 1)
+    
+        pssw_info_label = QLabel(self)
+        pssw_info_label.setText('Optional')
+        opt_font = QFont()
+        opt_font.setItalic(True)
+        opt_font.setPixelSize(15)
+        pssw_info_label.setFont(opt_font)
+        pssw_info_label.setStyleSheet('color: gray')
+        
+        pssw_info_label.setToolTip("Optional for passwordless login (key-based or step)")
+        grid_login_layout.addWidget(pssw_info_label, 6, 1)
 
         preload_label = QLabel(self)
         preload_label.setText('Preload:')
-        grid_login_layout.addWidget(preload_label, 4, 0)
-        grid_login_layout.addWidget(self.preload_line, 4, 1)
+        grid_login_layout.addWidget(preload_label, 7, 0)
+        grid_login_layout.addWidget(self.preload_line, 7, 1)
 
         # hor login layout
         self.login_button = QPushButton('Login', self)
@@ -363,10 +389,29 @@ class QSSHSessionWidget(QWidget):
 
         if not self.host:
             logger.warning("Host field is empty")
-            return
-
+            self.host_error_label.setText("Host is required!")
+            self.host_line.setStyleSheet("border-style: solid;border-width: 1px;border-color: red")
+        else:
+            self.host_error_label.setText("")
+            self.host_line.setStyleSheet(self.preload_line.styleSheet())    
+        
         if not self.user:
             logger.warning("User field is empty")
+            self.user_error_label.setText("User is required!")
+            self.user_line.setStyleSheet("border-style: solid;border-width: 1px;border-color: red")
+        else:
+            self.user_error_label.setText("")
+            self.user_line.setStyleSheet(self.preload_line.styleSheet())
+
+        if not self.host or not self.user:
+            return
+
+        import socket
+        try:
+            socket.gethostbyname(self.host)
+        except socket.gaierror as e:
+            logger.error(f"{self.host} is not reachable: {e}")
+            QMessageBox.critical(self, "Host is not reachable", f"'{self.host}' is not reachable. Please check 'Host' field.")
             return
 
         if not self.session_name:
@@ -396,7 +441,12 @@ class QSSHSessionWidget(QWidget):
         self.login_thread.start()
 
     def on_logged(self):
-        if self.is_logged:
+        if not self.host_reachable:
+            QMessageBox.critical(self, "Host is not reachable", f"'{self.host}' is not reachable. Please check 'Host' field.")
+        if not self.is_logged:
+            QMessageBox.critical(self, "Failed to login", f"Authentication failed. Please check your input entries.")
+
+        if self.host_reachable and self.is_logged:
             # Show the session widget
             self.containerLoginWidget.hide()
             self.containerWaitingWidget.hide()

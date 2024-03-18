@@ -18,12 +18,13 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import socket
 from PyQt5.QtCore import QThread, Qt
+from PyQt5.QtWidgets import QMessageBox
 
 # local includes
 from client.miscellaneous.logger import logger
 from client.utils.rcm_enum import Status
-
 
 class LoginThread(QThread):
     def __init__(self, session_widget, host, user, password, preload=''):
@@ -37,6 +38,7 @@ class LoginThread(QThread):
 
     def run(self):
         try:
+            socket.gethostbyname(self.host)
             self.session_widget.remote_connection_manager.login_setup(host=self.host,
                                                                       user=self.user,
                                                                       password=self.password,
@@ -44,8 +46,14 @@ class LoginThread(QThread):
 
             self.session_widget.platform_config = self.session_widget.remote_connection_manager.get_config()
             self.session_widget.is_logged = True
+        except socket.gaierror as e:
+            self.session_widget.is_logged = False
+            self.session_widget.host_reachable = False
+            logger.error(f"{self.host} is not reachable: {e}")
+            logger.error(e)
         except Exception as e:
             self.session_widget.is_logged = False
+            self.session_widget.host_reachable = True
             logger.error("Failed to login")
             logger.error(e)
 
