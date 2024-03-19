@@ -44,7 +44,7 @@ jobs:
 
           - os: ubuntu-latest
             turbovnc-version: '3.1'
-            image: 'ubuntu:18.04'
+            image: 'ubuntu-18.04'
 
           # - os: ubuntu-latest
           #   turbovnc-version: '2.2.7'
