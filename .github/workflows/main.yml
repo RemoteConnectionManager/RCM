@@ -98,7 +98,7 @@ jobs:
 
       - name: Install Qt missing libraries (container only)
         if: ${{ matrix.image && contains(matrix.os, 'ubuntu') }} 
-        run: docker build -t rcm .
+        run: docker build -t rcm "${RCM_CHECKOUT}/scripts/ci/"
 
       # PYTHON
       - name: Setup pyenv environment
