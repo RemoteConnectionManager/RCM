@@ -112,8 +112,8 @@ jobs:
       - name: Setup all (Docker only)
         if: ${{ matrix.image && steps.cache-pyenv.outputs.cache-hit != 'true' && steps.cache-venv.outputs.cache-hit != 'true' && steps.cache-turbovnc.outputs.cache-hit != 'true' && steps.cache-step.outputs.cache-hit != 'true' }}
         run: |
-        sed -i 's/^- TURBOVNC_VERSION:*/- TURBOVNC_VERSION: "${{ matrix.turbovnc-version }}"/' ${RCM_CHECKOUT}/scripts/ci/common_vars.yaml
-        docker run -v ${RCM_CHECKOUT}:/RCM rcm bash -c "scripts/ci/setup.sh"
+          sed -i 's/^- TURBOVNC_VERSION:*/- TURBOVNC_VERSION: "${{ matrix.turbovnc-version }}"/' ${RCM_CHECKOUT}/scripts/ci/common_vars.yaml
+          docker run -v ${RCM_CHECKOUT}:/RCM rcm bash -c "scripts/ci/setup.sh"
         
       # PYTHON
       - name: Setup pyenv environment
