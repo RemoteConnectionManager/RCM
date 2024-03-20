@@ -105,18 +105,17 @@ jobs:
           packages: qtbase5-dev qt5-qmake qtwayland5
           version: 1.0-${{ matrix.image || matrix.os }}
 
-      - name: Install Qt missing libraries (DOCKER only)
+      - name: Install Qt missing libraries (Docker only)
         if: ${{ matrix.image && contains(matrix.os, 'ubuntu') }}
-        run: |
-          sed -i 's/^- TURBOVNC_VERSION:*/- TURBOVNC_VERSION: "${{ matrix.turbovnc-version }}"/' ${RCM_CHECKOUT}/scripts/ci/common_vars.yaml
-          docker build -t rcm "${RCM_CHECKOUT}/scripts/ci/"
-
-      # PYTHON
-      - name: Setup pyenv environment
+        run: docker build -t rcm "${RCM_CHECKOUT}/scripts/ci/"
+        
+      - name: Setup all (Docker only)
         if: ${{ matrix.image && steps.cache-pyenv.outputs.cache-hit != 'true' && steps.cache-venv.outputs.cache-hit != 'true' && steps.cache-turbovnc.outputs.cache-hit != 'true' && steps.cache-step.outputs.cache-hit != 'true' }}
-        run:
-          docker run -v ${RCM_CHECKOUT}:/RCM rcm bash -c "scripts/ci/setup.sh"
-
+        run: |
+        sed -i 's/^- TURBOVNC_VERSION:*/- TURBOVNC_VERSION: "${{ matrix.turbovnc-version }}"/' ${RCM_CHECKOUT}/scripts/ci/common_vars.yaml
+        docker run -v ${RCM_CHECKOUT}:/RCM rcm bash -c "scripts/ci/setup.sh"
+        
+      # PYTHON
       - name: Setup pyenv environment
         if: ${{ ! matrix.image }}
         uses: carlkidcrypto/os-specific-runner@v2.0.0
