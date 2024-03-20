@@ -49,10 +49,10 @@ jobs:
 
           - os: ubuntu-20.04
             turbovnc-version: '3.1'
-          - os: ubuntu-latest
-            turbovnc-version: '2.2.7'
-
           - os: ubuntu-20.04
+            turbovnc-version: '2.2.7'
+            
+          - os: ubuntu-latest
             turbovnc-version: '3.1'
             image: 'ubuntu-18.04'
           - os: ubuntu-latest
@@ -108,7 +108,7 @@ jobs:
       - name: Install Qt missing libraries (DOCKER only)
         if: ${{ matrix.image && contains(matrix.os, 'ubuntu') }}
         run: |
-          sed -i 's/^- TURBOVNC_VERSION:*/- TURBOVNC_VERSION: "${{ matrix.turbovnc-version }}"/'
+          sed -i 's/^- TURBOVNC_VERSION:*/- TURBOVNC_VERSION: "${{ matrix.turbovnc-version }}"/' ${RCM_CHECKOUT}/scripts/ci/common_vars.yaml
           docker build -t rcm "${RCM_CHECKOUT}/scripts/ci/"
 
       # PYTHON
