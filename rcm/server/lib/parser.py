@@ -25,7 +25,7 @@ class CommandParser:
 
         for name, func in inspect.getmembers(api.ServerAPIs):
             if self._is_class_method(name, func):
-                f_args = inspect.getargspec(func)[0]
+                f_args = inspect.getfullargspec(func)[0]
                 self.functions[str(name)] = (func, f_args)
                 help += "\n --command=" + str(name)
                 for arg in f_args:

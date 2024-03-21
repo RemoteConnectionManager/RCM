@@ -10,6 +10,7 @@
 """
 import re
 import string
+
 try:
     from collections.abc import Mapping
 except ImportError:
