@@ -63,7 +63,8 @@ class ServerManager:
     def init(self, info=None):
         if not info is None:
             self.info = info
-        self.login_fullname = socket.getfqdn()
+#this give variable inconsistent results on leonardo        self.login_fullname = socket.getfqdn()
+        self.login_fullname = os.uname()[1]
 
         self.configuration = config.getConfig('default')
 
