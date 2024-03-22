@@ -44,6 +44,10 @@ allow-direct-references = true
 [tool.hatch.build.targets.wheel]
 include = ["rcm"]
 exclude = ["spack"]
+artifacts = [
+  "*.so",
+  "*.dll",
+]
 
 [tool.hatch.build.targets.wheel.hooks.custom]
 path = "scripts/external_hook.py"
@@ -57,3 +61,5 @@ RCM_cli = "rcm_client.client.rcm_client_qt:main"
 # [tool.hatch.version]
 # version = "1.2.0"
 # path = "src/hatch_demo/__about__.py"
+
+

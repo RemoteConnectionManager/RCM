@@ -117,8 +117,12 @@ def external_step():
 class ExternalBuildHook(BuildHookInterface):
     PLUGIN_NAME = "external"
 
-    def initialize(self, _version, _build_data):
+    def initialize(self, _version, build_data):
         # _version='standard'
         # _build_data={'infer_tag': False, 'pure_python': True, 'dependencies': [], 'force_include_editable': {}, 'extra_metadata': {}, 'artifacts': [], 'force_include': {}, 'build_hooks': ('custom',)}
         external_turbovnc()
         external_step()
+        build_data['infer_tag'] = True
+        build_data['pure_python'] = False
+        # build_data['artifacts'].extend(self.artifact_patterns)
+        # build_data['force_include'].update(self.get_forced_inclusion_map())
