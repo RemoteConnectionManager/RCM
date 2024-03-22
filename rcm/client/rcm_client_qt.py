@@ -37,8 +37,7 @@ from client.miscellaneous.config_parser import parser
 from client.utils.rcm_enum import Mode
 from client.miscellaneous.logger import configure_logger
 
-
-if __name__ == '__main__':
+def main():
     try:
         debug_log_level = json.loads(parser.get('Settings', 'debug_log_level'))
         configure_logger(Mode.GUI, debug_log_level)
@@ -49,3 +48,6 @@ if __name__ == '__main__':
     rcm_win = RCMMainWindow()
     rcm_win.show()
     sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()

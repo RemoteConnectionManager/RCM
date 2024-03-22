@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rcm-client"
+description = "Remote Connection Manager"
+readme = "README.md"
+# dynamic = ["version"]
+version = "1.2dev"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+dependencies = [
+  "pyqt5",
+  "cryptography",
+  "six",
+  "pexpect",
+  "sshtunnel",
+  "paramiko @ git+https://github.com/giuncan/paramiko.git@main",
+]
+  # "paramiko==3.4",
+  # "paramiko @ git+https://github.com/paramiko/paramiko.git@refs/pull/2258/head",
+
+[project.optional-dependencies]
+dev = ["pyinstaller", "bump-my-version"]
+
+
+[project.urls]
+Homepage = "https://wiki.u-gov.it/confluence/pages/viewpage.action?pageId=358200249"
+Source = "https://github.com/RemoteConnectionManager/RCM"
+Issues = "https://github.com/RemoteConnectionManager/RCM/issues"
+Changelog = "https://github.com/RemoteConnectionManager/RCM/blob/dev/CHANGELOG.md"
+
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+# [tool.hatch.build]
+# packages = ["rcm-client"]
+
+[tool.hatch.build.targets.wheel.sources]
+"rcm" = "rcm_client"
+
+[tool.hatch.build.targets.wheel]
+include = ["rcm"]
+exclude = ["spack"]
+
+[tool.hatch.build.targets.wheel.hooks.custom]
+path = "scripts/external_hook.py"
+
+[project.gui-scripts]
+RCM = "rcm_client.client.rcm_client_qt:main"
+
+[project.scripts]
+RCM_cli = "rcm_client.client.rcm_client_qt:main"
+
+# [tool.hatch.version]
+# version = "1.2.0"
+# path = "src/hatch_demo/__about__.py"
