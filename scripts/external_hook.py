@@ -1,6 +1,5 @@
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
-
 import subprocess
 from sys import platform
 import urllib.request
@@ -120,9 +119,11 @@ class ExternalBuildHook(BuildHookInterface):
     def initialize(self, _version, build_data):
         # _version='standard'
         # _build_data={'infer_tag': False, 'pure_python': True, 'dependencies': [], 'force_include_editable': {}, 'extra_metadata': {}, 'artifacts': [], 'force_include': {}, 'build_hooks': ('custom',)}
-        external_turbovnc()
-        external_step()
-        build_data['infer_tag'] = True
-        build_data['pure_python'] = False
-        # build_data['artifacts'].extend(self.artifact_patterns)
-        # build_data['force_include'].update(self.get_forced_inclusion_map())
+        rcm_install_external = os.environ.get("RCM_INSTALL_EXTERNAL", "false").lower()
+        if rcm_install_external == 'true' or rcm_install_external == '1':
+            external_turbovnc()
+            external_step()
+            build_data['infer_tag'] = True
+            build_data['pure_python'] = False
+            # build_data['artifacts'].extend(self.artifact_patterns)
+            # build_data['force_include'].update(self.get_forced_inclusion_map())

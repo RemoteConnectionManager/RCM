@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "rcm-client"
+name = "rcm"
 description = "Remote Connection Manager"
 readme = "README.md"
 # dynamic = ["version"]
@@ -39,7 +39,7 @@ allow-direct-references = true
 # packages = ["rcm-client"]
 
 [tool.hatch.build.targets.wheel.sources]
-"rcm" = "rcm_client"
+"rcm" = "rcm"
 
 [tool.hatch.build.targets.wheel]
 include = ["rcm"]
@@ -53,10 +53,10 @@ artifacts = [
 path = "scripts/external_hook.py"
 
 [project.gui-scripts]
-RCM = "rcm_client.client.rcm_client_qt:main"
+RCM = "rcm.client.rcm_client_qt:main"
 
 [project.scripts]
-RCM_cli = "rcm_client.client.rcm_client_qt:main"
+RCM_cli = "rcm.client.rcm_client_qt:main"
 
 # [tool.hatch.version]
 # version = "1.2.0"
