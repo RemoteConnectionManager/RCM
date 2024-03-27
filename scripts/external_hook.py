@@ -11,10 +11,7 @@ import re
 import pathlib
 from distutils.dir_util import copy_tree
 
-TURBOVNC_VERSION = "3.1.1"
-STEP_VERSION = "0.25.2"
 RCM_CLIENT_EXTERNAL = "rcm/client/external"
-
 
 def clean_mkdir(dir_path):
     if os.path.exists(dir_path):
@@ -22,7 +19,7 @@ def clean_mkdir(dir_path):
     os.makedirs(dir_path, exist_ok = True)
 
 
-def external_turbovnc():
+def external_turbovnc(turbovnc_version):
     turbovnc_preurl = "https://github.com/TurboVNC/turbovnc/releases/download"
     turbovnc_taget_dir = f"{RCM_CLIENT_EXTERNAL}/turbovnc"
     orig_line = r'^jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
@@ -32,7 +29,7 @@ def external_turbovnc():
         clean_mkdir("tmp")
 
         # Download turbovnc
-        turbovnc_url = "{0}/{1}/turbovnc_{1}_amd64.deb".format(turbovnc_preurl, TURBOVNC_VERSION)
+        turbovnc_url = "{0}/{1}/turbovnc_{1}_amd64.deb".format(turbovnc_preurl, turbovnc_version)
         urllib.request.urlretrieve(turbovnc_url, "tmp/turbovnc.deb")
 
         # Extract turbovnc
@@ -54,7 +51,7 @@ def external_turbovnc():
                 target.write(z.read(f'innoextract.exe'))
 
         # Download turbovnc
-        turbovnc_url = "{0}/{1}/TurboVNC-{1}-x64.exe".format(turbovnc_preurl, TURBOVNC_VERSION)
+        turbovnc_url = "{0}/{1}/TurboVNC-{1}-x64.exe".format(turbovnc_preurl, turbovnc_version)
         urllib.request.urlretrieve(turbovnc_url, "tmp/turbovnc.exe")
 
         # Extract turbovnc
@@ -79,33 +76,33 @@ def external_turbovnc():
                 sources.write(re.sub(orig_line, new_line, line))
 
 
-def external_step():
+def external_step(step_version):
     step_preurl = "https://github.com/smallstep/cli/releases/download"
     step_taget_dir = f"{RCM_CLIENT_EXTERNAL}/step"
 
     if platform.startswith("linux"):
         clean_mkdir("tmp")
-        step_url = "{0}/v{1}/step_linux_{1}_amd64.tar.gz".format(step_preurl, STEP_VERSION)
+        step_url = "{0}/v{1}/step_linux_{1}_amd64.tar.gz".format(step_preurl, step_version)
         urllib.request.urlretrieve(step_url, "tmp/step.tgz")
 
         with tarfile.open("tmp/step.tgz", 'r:gz') as tgz:
-            tgz.extract(f"step_{STEP_VERSION}/bin/step", 'tmp')
+            tgz.extract(f"step_{step_version}/bin/step", 'tmp')
         
         clean_mkdir(step_taget_dir)
-        shutil.copy(f"tmp/step_{STEP_VERSION}/bin/step", step_taget_dir)
+        shutil.copy(f"tmp/step_{step_version}/bin/step", step_taget_dir)
 
         shutil.rmtree("tmp")
 
     elif platform == "win32":
         clean_mkdir("tmp")
-        step_url = "{0}/v{1}/step_windows_{1}_amd64.zip".format(step_preurl, STEP_VERSION)
+        step_url = "{0}/v{1}/step_windows_{1}_amd64.zip".format(step_preurl, step_version)
         urllib.request.urlretrieve(step_url, "tmp/step.zip")
 
         clean_mkdir(step_taget_dir)
 
         with zipfile.ZipFile('tmp/step.zip') as z:
             with open(f'{step_taget_dir}/step.exe', 'wb') as target:
-                target.write(z.read(f'step_{STEP_VERSION}/bin/step.exe'))
+                target.write(z.read(f'step_{step_version}/bin/step.exe'))
 
         shutil.rmtree("tmp")
 
@@ -121,8 +118,11 @@ class ExternalBuildHook(BuildHookInterface):
         # _build_data={'infer_tag': False, 'pure_python': True, 'dependencies': [], 'force_include_editable': {}, 'extra_metadata': {}, 'artifacts': [], 'force_include': {}, 'build_hooks': ('custom',)}
         rcm_install_external = os.environ.get("RCM_INSTALL_EXTERNAL", "false").lower()
         if rcm_install_external == 'true' or rcm_install_external == '1':
-            external_turbovnc()
-            external_step()
+            turbovnc_version = os.environ.get("TURBOVNC_VERSION", "3.1.1")
+            step_version = os.environ.get("STEP_VERSION", "0.25.2")
+            
+            external_turbovnc(turbovnc_version)
+            external_step(step_version)
             build_data['infer_tag'] = True
             build_data['pure_python'] = False
             # build_data['artifacts'].extend(self.artifact_patterns)

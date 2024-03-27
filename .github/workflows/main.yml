@@ -6,11 +6,11 @@ name: RCM_CI
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "dev" ]
+    branches: [ "dev", "feature/*" ]
     tags:
       - v*
   pull_request:
-    branches: [ "dev" ]
+    branches: [ "dev", "feature/*" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -19,13 +19,6 @@ env:
   RCM_CHECKOUT: "."
   PYTHON_VERSION: "3.10.11"
   PYENV_VERSION: "2.3.35"
-  PARAMIKO_PULL: "2258"
-  PARAMIKO_COMMIT: "1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3"
-  TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
-  TURBOVNC_EXTERNAL: "rcm/client/external/turbovnc"
-  SMALLSTEP_DOWNLOAD: "https://github.com/smallstep/cli/releases/download"
-  SMALLSTEP_VERSION: "0.25.2"
-  SMALLSTEP_EXTERNAL: "rcm/client/external/step"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -68,27 +61,6 @@ jobs:
           path: .pyenv
           key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}
 
-      - name: (GHO) Cache venv
-        uses: actions/cache@v4.0.0
-        id: cache-venv
-        with:
-          path: .venv
-          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}
-
-      - name: (GHO) Cache turbovnc
-        uses: actions/cache@v4.0.0
-        id: cache-turbovnc
-        with:
-          path: ${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}
-          key: turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}
-
-      - name: (GHO) Cache step
-        uses: actions/cache@v4.0.0
-        id: cache-step
-        with:
-          path: ${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}
-          key: step-${{ matrix.os }}
-
       # PYTHON
       - name: Setup pyenv environment
         uses: carlkidcrypto/os-specific-runner@v2.0.0
@@ -105,42 +77,35 @@ jobs:
           linux: . "${RCM_CHECKOUT}/scripts/ci/02-install-python.sh"
           windows: . "${env:RCM_CHECKOUT}\scripts\ci\02-install-python.ps1"
 
-      # VENV
-      - name: Install venv
-        uses: carlkidcrypto/os-specific-runner@v2.0.0
-        if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
-        with:
-          macos: . "${RCM_CHECKOUT}/scripts/ci/03-install-venv.sh"
-          linux: . "${RCM_CHECKOUT}/scripts/ci/03-install-venv.sh"
-          windows: . "${env:RCM_CHECKOUT}\scripts\ci\03-install-venv.ps1"
+      # - name: (GHO) Cache venv
+      #   uses: actions/cache@v4.0.0
+      #   id: cache-venv
+      #   with:
+      #     path: .venv
+      #     key: venv-${{ hashFiles( format('{0}/pyproject.toml', env.RCM_CHECKOUT )) }}${{ hashFiles( format('{0}/scripts/external_hook.py', env.RCM_CHECKOUT )) }}-turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}
+      # if: ${{steps.cache-pyenv.outputs.cache-hit != 'true' }}
 
-      # TURBOVNC
-      - name: Extract TurboVNC
+      - name: Install venv and RCM-client
         uses: carlkidcrypto/os-specific-runner@v2.0.0
-        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true'  }}
-        env:
-          TURBOVNC_VERSION : ${{ matrix.turbovnc-version }}
         with:
-          linux: . "${RCM_CHECKOUT}/scripts/ci/04a-extract-turbovnc-ubuntu.sh"
-          windows: . "${env:RCM_CHECKOUT}\scripts\ci\04a-extract-turbovnc.ps1"
-
-      - name: Patch TurboVNC 3.x
-        uses: carlkidcrypto/os-specific-runner@v2.0.0
-        if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' && startsWith(matrix.turbovnc-version, '3') }}
-        env:
-          ORIG_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
-          NEW_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,'
-        with:
-          linux: . "${RCM_CHECKOUT}/scripts/ci/04b-patch-turbovnc-linux.sh"
-          windows: . "${env:RCM_CHECKOUT}\scripts\ci\04b-patch-turbovnc.ps1"
-
-      # EXTERNAL STEP
-      - name: External step
-        uses: carlkidcrypto/os-specific-runner@v2.0.0
-        if: ${{ steps.cache-step.outputs.cache-hit != 'true'  }}
-        with:
-          linux: . "${RCM_CHECKOUT}/scripts/ci/05-extract-step-linux.sh"
-          windows: . "${env:RCM_CHECKOUT}\scripts\ci\05-extract-step.ps1"
+          macos: |
+            python -m venv "${RCM_CHECKOUT:?}/.venv"
+            source "${RCM_CHECKOUT:?}/.venv/bin/activate"
+            export RCM_INSTALL_EXTERNAL=true
+            export TURBOVNC_VERSION=${{ matrix.turbovnc-version }}
+            pip install "${RCM_CHECKOUT:?}"
+          linux: |
+            python -m venv "${RCM_CHECKOUT:?}/.venv"
+            source "${RCM_CHECKOUT:?}/.venv/bin/activate"
+            export RCM_INSTALL_EXTERNAL=true
+            export TURBOVNC_VERSION=${{ matrix.turbovnc-version }}
+            pip install "${RCM_CHECKOUT:?}"
+          windows: |
+            python.exe -m venv "${env:RCM_CHECKOUT}/.venv"
+            . "${env:RCM_CHECKOUT}\.venv\Scripts\Activate.ps1"
+            $env:RCM_INSTALL_EXTERNAL = "true"
+            $env:TURBOVNC_VERSION = ${{ matrix.turbovnc-version }}
+            pip install "${env:RCM_CHECKOUT}"
 
       # PYINSTALLER
       - name: Build pyinstaller
@@ -234,23 +199,6 @@ jobs:
           rm -rf RCM RCM.exe RCM-dir
           mv rcm_bck rcm
 
-  upload-public-key:
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}  
-    steps:
-      - name: (GHO) Sign image with a key
-        run: echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
-        env:
-          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
-
-      - name: (GHO)(TAG) Upload exe to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          file: RCM.pub
-          asset_name: RCM.pub
-          prerelease: true
-          overwrite: true
-          tag: ${{ github.ref }}
 
   nightly-link:
     runs-on: ubuntu-latest

@@ -6,14 +6,19 @@ build-backend = "hatchling.build"
 name = "rcm"
 description = "Remote Connection Manager"
 readme = "README.md"
+# authors = [
+#   {name = "", email = ""},
+# ]
+# maintainers = [
+#   {name = "", email = ""}
+# ]
+
 # dynamic = ["version"]
 version = "1.2dev"
 license = {file = "LICENSE"}
-requires-python = ">=3.10"
+requires-python = ">=3.8"
 dependencies = [
   "pyqt5",
-  "cryptography",
-  "six",
   "pexpect",
   "sshtunnel",
   "paramiko @ git+https://github.com/giuncan/paramiko.git@main",
