@@ -220,6 +220,14 @@ jobs:
         env:
           COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
 
+      - name: Checkout RCM
+        uses: actions/checkout@v4.1.1
+
+      - name: (GHO) Override dev tag
+        run: git tag -f dev && git push origin --tags -f
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
+          
       - name: Push tag dev
         id: dev
         uses: mathieudutour/github-tag-action@v6.2
