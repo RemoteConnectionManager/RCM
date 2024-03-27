@@ -67,7 +67,7 @@ def external_turbovnc(turbovnc_version):
     elif platform == "darwin":
         pass
 
-    if platform.startswith('linux') or platform == 'win32':
+    if turbovnc_version.startswith("3") and ( platform.startswith('linux') or platform == 'win32' ):
         java_security = list(pathlib.Path(turbovnc_taget_dir).glob('**/java.security'))[0]
         with open(java_security, "r") as sources:
             lines = sources.readlines()
