@@ -172,19 +172,21 @@ jobs:
             RCM.sig
             RCM.pub
 
-      # Upload to release when tag is created
-      - name: (GHO)(TAG) Upload exe to tag release
-        if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}  
+
+      - name: (GHO)(DEV) Upload exe to dev release 
+        if: ${{ contains(github.ref, 'refs/heads/feature') }}  
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM${{ env.EXT }}
           asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}${{ env.EXT }}
           prerelease: true
           overwrite: true
-          tag: ${{ github.ref }}
+          tag: "dev"
 
-      - name: (GHO)(DEV) Upload exe to dev release 
-        if: ${{ contains(github.ref, 'refs/heads/feature') }}  
+
+      # Upload to release when tag is created
+      - name: (GHO)(TAG) Upload exe to tag release
+        if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}  
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM${{ env.EXT }}
@@ -218,14 +220,20 @@ jobs:
         env:
           COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
 
-      - name: (GHO)(TAG) Upload exe to release
+      - name: Push tag dev
+        id: dev
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+    
+      - name: Upload exe to release
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM.pub
           asset_name: RCM.pub
           prerelease: true
           overwrite: true
-          tag: ${{ github.ref }}
+          tag: "dev"
 
   nightly-link:
     runs-on: ubuntu-latest
