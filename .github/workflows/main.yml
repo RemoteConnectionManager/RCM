@@ -143,11 +143,10 @@ jobs:
       - name: (GHO) Sign image with a key
         shell: bash
         run: |
-          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "RCM.sig" "RCM${EXT}"
-          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "RCM-zip.sig" "RCM.zip"
-          cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "RCM.sig" "RCM${EXT}"
-          cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "RCM-zip.sig" "RCM.zip"
-          echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
+          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --bundle "RCM.bundlesig" "RCM${EXT}"
+          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --bundle "RCM-zip.bundlesig" "RCM.zip"
+          cosign verify-blob --bundle "RCM.bundlesig" "RCM${EXT}"
+          cosign verify-blob --bundle "RCM-zip.bundlesig" "RCM.zip"
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
@@ -167,8 +166,8 @@ jobs:
         if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}  
         uses: svenstaro/upload-release-action@v2
         with:
-          file: RCM.sig
-          asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}.sig
+          file: RCM.bundlesig
+          asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}.bundlesig
           prerelease: true
           overwrite: true
           tag: ${{ github.ref }}
@@ -180,7 +179,7 @@ jobs:
           name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
           path: |
             RCM${{ env.EXT }}
-            RCM.sig
+            RCM.bundlesig
             RCM.pub
 
       - name: (GHO) Upload dir
@@ -190,7 +189,7 @@ jobs:
           name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
           path: |
             RCM.zip
-            RCM-zip.sig
+            RCM-zip.bundlesig
             RCM.pub
 
       - name: (GHO) Restore RCM-repo
