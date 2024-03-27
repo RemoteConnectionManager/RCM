@@ -22,8 +22,37 @@ env:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
+  upload-public-key:
+    runs-on: ubuntu-latest
+    if: ${{ contains(github.ref, 'refs/heads/feature') }}  
+    steps:
+      - name: Checkout RCM
+        uses: actions/checkout@v4.1.1
+
+      - name: (GHO) Override dev tag
+        run: |
+          git tag -f dev
+          git push origin --tags -f
+          gh release delete dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
+
+      - name: (GHO) Sign image with a key
+        run: echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
+        env:
+          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+  
+      - name: Upload exe to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: RCM.pub
+          asset_name: RCM.pub
+          prerelease: true
+          overwrite: true
+          tag: "dev"
+
   build:
+    needs: upload-public-key
     strategy:
       matrix:
         os:
@@ -211,37 +240,6 @@ jobs:
           rm -rf RCM RCM.exe RCM-dir
           mv rcm_bck rcm
 
-  upload-public-key:
-    runs-on: ubuntu-latest
-    if: ${{ contains(github.ref, 'refs/heads/feature') }}  
-    steps:
-      - name: (GHO) Sign image with a key
-        run: echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
-        env:
-          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
-
-      - name: Checkout RCM
-        uses: actions/checkout@v4.1.1
-
-      - name: (GHO) Override dev tag
-        run: git tag -f dev && git push origin --tags -f
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
-          
-      - name: Push tag dev
-        id: dev
-        uses: mathieudutour/github-tag-action@v6.2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-    
-      - name: Upload exe to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          file: RCM.pub
-          asset_name: RCM.pub
-          prerelease: true
-          overwrite: true
-          tag: "dev"
 
   nightly-link:
     runs-on: ubuntu-latest
