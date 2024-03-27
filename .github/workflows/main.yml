@@ -225,7 +225,7 @@ jobs:
           asset_name: RCM.pub
           prerelease: true
           overwrite: true
-          tag: "dev"
+          tag: ${{ github.ref }}
 
   nightly-link:
     runs-on: ubuntu-latest
