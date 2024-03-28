@@ -49,7 +49,6 @@ jobs:
           overwrite: true
           release_name: "Continuous dev"
           tag: dev
-          target_commit: $GITHUB_SHA
 
   build:
     needs: upload-public-key
@@ -212,7 +211,6 @@ jobs:
           overwrite: true
           release_name: "Continuous dev"
           tag: dev
-          target_commit: $GITHUB_SHA
 
       - name: (GHO)(DEV) Upload sig to dev release 
         if: ${{ contains(github.ref, 'refs/heads/feature') }}  
@@ -224,7 +222,6 @@ jobs:
           overwrite: true
           release_name: "Continuous dev"
           tag: dev
-          target_commit: $GITHUB_SHA
 
       # Upload to release when tag is created
       - name: (GHO)(TAG) Upload exe to tag release
