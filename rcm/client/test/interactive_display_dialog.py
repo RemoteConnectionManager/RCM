@@ -34,12 +34,12 @@ sys.path.append(os.path.join(root_rcm_path, 'server', 'lib'))
 sys.path.append(os.path.join(root_rcm_path, 'client'))
 
 
-from server.lib.jobscript_builder import *
-from server.lib.scheduler import *
-from server.lib.manager import *
+from rcm.server.lib.jobscript_builder import *
+from rcm.server.lib.scheduler import *
+from rcm.server.lib.manager import *
 import config
 
-from gui.dynamic_display_dialog import *
+from rcm.client.gui.dynamic_display_dialog import *
 
 # This is needed, otherwise no default logging happen
 logging.debug("Start test app")

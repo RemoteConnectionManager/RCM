@@ -5,7 +5,8 @@ import os
 import sys
 import platform
 import shutil
-basepath = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(SPEC))))
+import pathlib
+basepath = pathlib.Path(SPEC).absolute().parents[2]
 
 
 version = "1.0"
@@ -94,11 +95,11 @@ exe_se = EXE(pyz,
              console=False)
 
 ##################################################################
-source_root = os.path.dirname(os.path.dirname(os.path.abspath(SPEC)))
+source_root = pathlib.Path(SPEC).absolute().parents[1]
 print("adding path: ",source_root)
 sys.path.append(source_root)
-import client.logic.rcm_utils
-import utils.external
+import rcm.client.logic.rcm_utils
+import rcm.utils.external
 import yaml
 
 if sys.platform == 'win32':
@@ -106,7 +107,7 @@ if sys.platform == 'win32':
 else:
     exe_extension = ''
 
-hash = client.logic.rcm_utils.compute_checksum(os.path.join('dist', exe_name + exe_extension))
+hash = rcm.client.logic.rcm_utils.compute_checksum(os.path.join('dist', exe_name + exe_extension))
 
 yaml_dict = {'download' :
                 {'platforms' :

@@ -29,10 +29,10 @@ from PyQt5.QtWidgets import QWidget, QFrame, QLabel, \
     QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog
 
 # local includes
-from client.utils.pyinstaller_utils import resource_path
-from client.miscellaneous.logger import logger
-from client.gui.thread import KillThread
-from client.utils.rcm_enum import Status
+from rcm.client.utils.pyinstaller_utils import resource_path
+from rcm.client.miscellaneous.logger import logger
+from rcm.client.gui.thread import KillThread
+from rcm.client.utils.rcm_enum import Status
 
 
 class QDisplaySessionWidget(QWidget):

@@ -27,11 +27,11 @@ if sys.platform == 'win32':
 import threading
 
 # local includes
-import client.logic.rcm_utils as rcm_utils
-from client.miscellaneous.logger import logic_logger
-from client.utils.pyinstaller_utils import resource_path
-import client.logic.cipher as cipher
-from client.miscellaneous.config_parser import parser, defaults
+import rcm.client.logic.rcm_utils as rcm_utils
+from rcm.client.miscellaneous.logger import logic_logger
+from rcm.client.utils.pyinstaller_utils import resource_path
+import rcm.client.logic.cipher as cipher
+from rcm.client.miscellaneous.config_parser import parser, defaults
 
 
 class Executable(object):

@@ -26,9 +26,9 @@ from PyQt5.QtWidgets import QLabel, QDialog, QRadioButton, \
     QHBoxLayout, QVBoxLayout, QGroupBox, QPushButton, QCheckBox, QLineEdit
 
 # local includes
-from client.miscellaneous.logger import logger, configure_logger
-from client.miscellaneous.config_parser import parser, config_file_name, defaults
-from client.utils.rcm_enum import Mode
+from rcm.client.miscellaneous.logger import logger, configure_logger
+from rcm.client.miscellaneous.config_parser import parser, config_file_name, defaults
+from rcm.client.utils.rcm_enum import Mode
 
 
 class QEditSettingsDialog(QDialog):

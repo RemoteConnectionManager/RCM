@@ -26,8 +26,8 @@ import logging.handlers
 from PyQt5.QtCore import pyqtSignal, QObject
 
 # local import
-import server.rcm
-from client.utils.rcm_enum import Mode
+import rcm
+from rcm.client.utils.rcm_enum import Mode
 
 rootLogger = logging.getLogger()
 rootLogger.setLevel(logging.INFO)
@@ -143,7 +143,7 @@ def configure_logger(mode=Mode.GUI, debug=False):
     logger.addHandler(text_log_handler)
     logic_logger.addHandler(text_log_handler)
     protocol_logger.addHandler(text_log_handler)
-    server.rcm.logger.addHandler(text_log_handler)
+    rcm.logger.addHandler(text_log_handler)
     ssh_logger.addHandler(text_log_handler)
 
 

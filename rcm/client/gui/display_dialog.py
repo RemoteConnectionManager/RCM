@@ -29,8 +29,8 @@ from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
     QDesktopWidget
 
 # local includes
-from client.miscellaneous.logger import logger
-from client.miscellaneous.config_parser import parser, config_file_name
+from rcm.client.miscellaneous.logger import logger
+from rcm.client.miscellaneous.config_parser import parser, config_file_name
 
 
 class QDisplayDialog(QDialog):

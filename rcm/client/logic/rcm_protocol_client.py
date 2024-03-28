@@ -23,12 +23,12 @@ import os
 import types
 import inspect
 
-root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(root_rcm_path)
+# root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# sys.path.append(root_rcm_path)
 
 # local includes
-from server.lib.api import ServerAPIs
-from client.miscellaneous.logger import logic_logger
+from rcm.server.lib.api import ServerAPIs
+from rcm.client.miscellaneous.logger import logic_logger
 
 
 def rcm_decorate(fn):

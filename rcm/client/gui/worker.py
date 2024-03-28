@@ -24,8 +24,8 @@ import traceback
 from PyQt5.QtCore import QRunnable, pyqtSlot, pyqtSignal, QObject
 
 # local includes
-from client.utils.rcm_enum import Status
-from client.miscellaneous.logger import logger
+from rcm.client.utils.rcm_enum import Status
+from rcm.client.miscellaneous.logger import logger
 
 
 # Reference https://martinfitzpatrick.name/article/multithreading-pyqt-applications-with-qthreadpool/

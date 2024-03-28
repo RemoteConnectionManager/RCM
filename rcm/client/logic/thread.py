@@ -27,8 +27,8 @@ import os
 import sys
 
 # local includes
-from client.miscellaneous.logger import logic_logger
-from client.logic.plugin import NativeSSHTunnelForwarder
+from rcm.client.miscellaneous.logger import logic_logger
+from rcm.client.logic.plugin import NativeSSHTunnelForwarder
 
 
 class SessionThread(threading.Thread):

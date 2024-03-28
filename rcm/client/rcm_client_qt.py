@@ -21,21 +21,21 @@
 
 # std lib
 import sys
-import os
+import pathlib
 import json
 
 # pyqt5
 from PyQt5.QtWidgets import QApplication
 
-# add python path
-source_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(source_root)
+# # add python path
+# source_root = pathlib.Path(__file__).absolute().parents[1]
+# sys.path.append(source_root)
 
 # local includes
-from client.gui.rcm_main_window import RCMMainWindow
-from client.miscellaneous.config_parser import parser
-from client.utils.rcm_enum import Mode
-from client.miscellaneous.logger import configure_logger
+from rcm.client.gui.rcm_main_window import RCMMainWindow
+from rcm.client.miscellaneous.config_parser import parser
+from rcm.client.utils.rcm_enum import Mode
+from rcm.client.miscellaneous.logger import configure_logger
 
 def main():
     try:

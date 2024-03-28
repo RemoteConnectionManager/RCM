@@ -33,13 +33,13 @@ sys.path.append(os.path.join(root_rcm_path, 'server'))
 
 # local includes
 import rcm
-import client.logic.rcm_utils as rcm_utils
-import client.logic.plugin as plugin
-import client.logic.cipher as cipher
-import client.logic.thread as thread
-import client.logic.rcm_protocol_client as rcm_protocol_client
-from client.miscellaneous.logger import logic_logger
-from client.miscellaneous.config_parser import parser, defaults
+import rcm.client.logic.rcm_utils as rcm_utils
+import rcm.client.logic.plugin as plugin
+import rcm.client.logic.cipher as cipher
+import rcm.client.logic.thread as thread
+import rcm.client.logic.rcm_protocol_client as rcm_protocol_client
+from rcm.client.miscellaneous.logger import logic_logger
+from rcm.client.miscellaneous.config_parser import parser, defaults
 
 
 class RemoteConnectionManager:

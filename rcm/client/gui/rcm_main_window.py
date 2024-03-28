@@ -29,12 +29,12 @@ from PyQt5.QtWidgets import QMainWindow, QWidget, \
     QTabBar, QStyle, QPlainTextEdit, QMessageBox, QSplitter
 
 # local includes
-from client.gui.ssh_session_widget import QSSHSessionWidget
-from client.gui.edit_settings_dialog import QEditSettingsDialog
-from client.utils.pyinstaller_utils import resource_path
-from client.miscellaneous.logger import text_log_handler, logger
-import server.rcm as rcm
-import client.logic.rcm_utils as rcm_utils
+import rcm
+from rcm.client.gui.ssh_session_widget import QSSHSessionWidget
+from rcm.client.gui.edit_settings_dialog import QEditSettingsDialog
+from rcm.client.utils.pyinstaller_utils import resource_path
+from rcm.client.miscellaneous.logger import text_log_handler, logger
+import rcm.client.logic.rcm_utils as rcm_utils
 
 
 class RCMMainWindow(QMainWindow):

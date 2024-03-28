@@ -21,8 +21,8 @@
 from PyQt5.QtCore import QThread, Qt
 
 # local includes
-from client.miscellaneous.logger import logger
-from client.utils.rcm_enum import Status
+from rcm.client.miscellaneous.logger import logger
+from rcm.client.utils.rcm_enum import Status
 
 
 class LoginThread(QThread):

@@ -37,18 +37,18 @@ from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, \
     QStyle, QProgressBar, QMessageBox
 
 # local includes
-from client.gui.display_dialog import QDisplayDialog
-from client.gui.dynamic_display_dialog import QDynamicDisplayDialog
-from client.gui.display_session_widget import QDisplaySessionWidget
-from client.utils.pyinstaller_utils import resource_path
-from client.miscellaneous.logger import logger
-from client.miscellaneous.config_parser import parser, config_file_name, preset_sessions, merge_preset_sessions
-from client.logic import manager
-from client.gui.thread import LoginThread, ReloadThread
-from client.gui.worker import Worker
-from client.utils.rcm_enum import Status
-import client.logic.rcm_utils as rcm_utils
-import client.utils.pyinstaller_utils as pyinstaller_utils
+from rcm.client.gui.display_dialog import QDisplayDialog
+from rcm.client.gui.dynamic_display_dialog import QDynamicDisplayDialog
+from rcm.client.gui.display_session_widget import QDisplaySessionWidget
+from rcm.client.utils.pyinstaller_utils import resource_path
+from rcm.client.miscellaneous.logger import logger
+from rcm.client.miscellaneous.config_parser import parser, config_file_name, preset_sessions, merge_preset_sessions
+from rcm.client.logic import manager
+from rcm.client.gui.thread import LoginThread, ReloadThread
+from rcm.client.gui.worker import Worker
+from rcm.client.utils.rcm_enum import Status
+import rcm.client.logic.rcm_utils as rcm_utils
+import rcm.client.utils.pyinstaller_utils as pyinstaller_utils
 
 
 class QSSHSessionWidget(QWidget):

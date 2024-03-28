@@ -25,8 +25,8 @@ import random
 # local includes
 # VNC password encription python implementation
 # from https://github.com/trinitronx/vncpasswd.py
-import client.logic.d3des as d3des
-from client.miscellaneous.logger import logic_logger
+import rcm.client.logic.d3des as d3des
+from rcm.client.miscellaneous.logger import logic_logger
 
 
 def vnc_crypt(vncpass, decrypt=False):
@@ -81,7 +81,7 @@ class RCMCipher:
         self.vncpassword = self.random_pwd_generator()
         self.acypher = None
         if self.encryptpass:
-            import client.logic.aes_cipher as aes_cipher
+            import rcm.client.logic.aes_cipher as aes_cipher
             self.acypher = aes_cipher.AESCipher(self.encryptpass)
 
     def encrypt(self, vncpassword=None):

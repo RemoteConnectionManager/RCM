@@ -30,8 +30,8 @@ root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 sys.path.append(root_rcm_path)
 
 # local includes
-from client.miscellaneous.logger import logic_logger
-import client.utils.pyinstaller_utils as pyinstaller_utils
+from rcm.client.miscellaneous.logger import logic_logger
+import rcm.client.utils.pyinstaller_utils as pyinstaller_utils
 
 
 def compute_checksum(filename):

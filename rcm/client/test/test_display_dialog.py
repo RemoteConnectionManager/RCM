@@ -34,9 +34,9 @@ rcm_root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 sys.path.append(rcm_root_path)
 
 # local import
-from client.gui.dynamic_display_dialog import QDynamicDisplayDialog
-from client.utils.rcm_enum import Mode
-from client.miscellaneous.logger import configure_logger
+from rcm.client.gui.dynamic_display_dialog import QDynamicDisplayDialog
+from rcm.client.utils.rcm_enum import Mode
+from rcm.client.miscellaneous.logger import configure_logger
 
 
 class TestQDisaplyDialog(unittest.TestCase):
