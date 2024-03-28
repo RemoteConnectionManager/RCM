@@ -31,7 +31,11 @@ jobs:
 
       - name: (GHO) Override dev tag
         run: |
-          gh release delete dev
+          git tag -f dev
+          git push origin --tags -f
+          
+          # Clean release if exists
+          gh release list | awk '{print $1}' | grep -q "^dev$" || gh release delete dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
 
