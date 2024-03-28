@@ -106,7 +106,7 @@ jobs:
               --env RCM_CHECKOUT=${RCM_CHECKOUT} \
               --env TURBOVNC_VERSION=${{ matrix.turbovnc-version }} \
               rcm \
-              bash -c ". scripts/ci/01-setup-pyenv.sh && . scripts/ci/02-install-python.sh && source .venv/bin/activate && pip install ".[dev]" && pyinstaller rcm/client/rcm_client_qt.spec"
+              bash -c "source scripts/ci/01-setup-pyenv.sh && . scripts/ci/02-install-python.sh && source .venv/bin/activate && pip install ".[dev]" && pyinstaller rcm/client/rcm_client_qt.spec"
 
       # CACHE
       - name: (GHO) Cache pyenv
