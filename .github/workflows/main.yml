@@ -114,7 +114,7 @@ jobs:
         id: cache-pyenv
         with:
           path: .pyenv
-          key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.image }}
+          key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}
 
       # PYTHON
       - name: Setup pyenv environment
@@ -282,7 +282,6 @@ jobs:
 
   nightly-link:
     runs-on: ubuntu-latest
-    if: ${{ always() }}
     steps:
       - name: Generate Annotation
         run: |
