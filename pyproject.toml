@@ -18,6 +18,7 @@ version = "1.2dev"
 license = {file = "LICENSE"}
 requires-python = ">=3.8"
 dependencies = [
+  "six",
   "pyqt5",
   "pexpect",
   "sshtunnel",
