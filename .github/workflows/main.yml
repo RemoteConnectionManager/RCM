@@ -67,6 +67,8 @@ jobs:
         turbovnc-version:
         - '3.1'
         - '2.2.7'
+        image:
+        - false
         include:
           - os: macos-latest
             turbovnc-version: 'none'
@@ -108,7 +110,7 @@ jobs:
               --env PYENV_VERSION=${PYENV_VERSION} \
               --env TURBOVNC_VERSION=${{ matrix.turbovnc-version }} \
               rcm \
-              bash -c "source scripts/ci/01-setup-pyenv.sh && . scripts/ci/02-install-python.sh && source .venv/bin/activate && pip install ".[dev]" && pyinstaller rcm/client/rcm_client_qt.spec"
+              bash -c "source scripts/ci/01-setup-pyenv.sh && . scripts/ci/02-install-python.sh && python -m venv .venv && source .venv/bin/activate && pip install ".[dev]" && pyinstaller rcm/client/rcm_client_qt.spec"
 
       # CACHE
       - name: (GHO) Cache pyenv
