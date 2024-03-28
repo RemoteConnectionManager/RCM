@@ -70,33 +70,55 @@ jobs:
         include:
           - os: macos-latest
             turbovnc-version: 'none'
+          - os: ubuntu-latest
+            turbovnc-version: '3.1'
+            image: 'ubuntu-18.04'
+          - os: ubuntu-latest	
+            turbovnc-version: '2.2.7'
+            image: 'ubuntu-18.04'
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Install Qt missing libraries (linux only)
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        if: ${{ contains(matrix.os, 'ubuntu')  }}
-        with:
-          packages: qtbase5-dev qt5-qmake qtwayland5
-          version: 1.0-${{ matrix.os }}
-
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout RCM
         uses: actions/checkout@v4.1.1
 
+      - name: Install Qt missing libraries (linux only)
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        if: ${{ ! matrix.image && contains(matrix.os, 'ubuntu') }} 
+        with:
+          packages: qtbase5-dev qt5-qmake qtwayland5
+          version: 1.0-${{ matrix.os }}
+
+      - name: Build Docker (Docker only)
+        if: ${{ matrix.image && contains(matrix.os, 'ubuntu') }}
+        run: docker build -t rcm "${RCM_CHECKOUT}/scripts/ci/"
+
+      - name: Setup env and build executable (Docker only)
+        if: ${{ matrix.image && contains(matrix.os, 'ubuntu') }}
+        run: |
+          docker run \
+              -v ${RCM_CHECKOUT}:/RCM \
+              --env RCM_INSTALL_EXTERNAL=true \
+              --env TURBOVNC_VERSION=${{ matrix.turbovnc-version }} \
+              rcm \
+              bash -c ". scripts/ci/01-setup-pyenv.sh && . scripts/ci/02-install-python.sh && source .venv/bin/activate && pip install ".[dev]" && pyinstaller rcm/client/rcm_client_qt.spec"
+
       # CACHE
       - name: (GHO) Cache pyenv
+        if: ${{ ! matrix.image }}
         uses: actions/cache@v4.0.0
         id: cache-pyenv
         with:
           path: .pyenv
-          key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}
+          key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.image }}
 
       # PYTHON
       - name: Setup pyenv environment
+        if: ${{ ! matrix.image }}
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: . "${RCM_CHECKOUT}/scripts/ci/01-setup-pyenv.sh"
@@ -104,7 +126,7 @@ jobs:
           windows: . "${env:RCM_CHECKOUT}\scripts\ci\01-setup-pyenv.ps1"
 
       - name: Install pyenv locally
-        if: ${{steps.cache-pyenv.outputs.cache-hit != 'true' }}
+        if: ${{ ! matrix.image && steps.cache-pyenv.outputs.cache-hit != 'true' }}
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: . "${RCM_CHECKOUT}/scripts/ci/02-install-python.sh"
@@ -116,10 +138,11 @@ jobs:
       #   id: cache-venv
       #   with:
       #     path: .venv
-      #     key: venv-${{ hashFiles( format('{0}/pyproject.toml', env.RCM_CHECKOUT )) }}${{ hashFiles( format('{0}/scripts/external_hook.py', env.RCM_CHECKOUT )) }}-turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}
+      #     key: venv-${{ hashFiles( format('{0}/pyproject.toml', env.RCM_CHECKOUT )) }}${{ hashFiles( format('{0}/scripts/external_hook.py', env.RCM_CHECKOUT )) }}-turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.image || matrix.os }}
       # if: ${{steps.cache-pyenv.outputs.cache-hit != 'true' }}
 
       - name: Install venv and RCM-client
+        if: ${{ ! matrix.image }}
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: |
@@ -143,6 +166,7 @@ jobs:
 
       # PYINSTALLER
       - name: Build pyinstaller
+        if: ${{ ! matrix.image }}
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: |
@@ -191,7 +215,7 @@ jobs:
       - name: (GHO) Upload dir
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
+          name: RCM-client-${{ matrix.image || matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
           path: |
             RCM.zip
             RCM-zip.sig
@@ -200,7 +224,7 @@ jobs:
       - name: (GHO) Upload exe
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
+          name: RCM-client-${{ matrix.image || matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
           path: |
             RCM${{ env.EXT }}
             RCM.sig
@@ -212,7 +236,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM${{ env.EXT }}
-          asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}${{ env.EXT }}
+          asset_name: RCM-client_${{ matrix.image || matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}${{ env.EXT }}
           prerelease: true
           overwrite: true
           release_name: "Continuous dev"
@@ -223,7 +247,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM.sig
-          asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}.sig
+          asset_name: RCM-client_${{ matrix.image || matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}.sig
           prerelease: true
           overwrite: true
           release_name: "Continuous dev"
@@ -235,7 +259,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM${{ env.EXT }}
-          asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}${{ env.EXT }}
+          asset_name: RCM-client_${{ matrix.image || matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}${{ env.EXT }}
           prerelease: true
           overwrite: true
           tag: ${{ github.ref }}
@@ -245,7 +269,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM.sig
-          asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}.sig
+          asset_name: RCM-client_${{ matrix.image || matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}.sig
           prerelease: true
           overwrite: true
           tag: ${{ github.ref }}
