@@ -47,6 +47,8 @@ jobs:
           asset_name: RCM.pub
           prerelease: true
           overwrite: true
+          release_name: "Continuous dev"
+          tag: dev
           target_commit: $GITHUB_SHA
 
   build:
@@ -209,6 +211,7 @@ jobs:
           prerelease: true
           overwrite: true
           release_name: "Continuous dev"
+          tag: dev
           target_commit: $GITHUB_SHA
 
       - name: (GHO)(DEV) Upload sig to dev release 
@@ -220,6 +223,7 @@ jobs:
           prerelease: true
           overwrite: true
           release_name: "Continuous dev"
+          tag: dev
           target_commit: $GITHUB_SHA
 
       # Upload to release when tag is created
