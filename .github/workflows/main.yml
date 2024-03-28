@@ -26,16 +26,14 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ contains(github.ref, 'refs/heads/feature') }}  
     steps:
-      - name: Checkout RCM
-        uses: actions/checkout@v4.1.1
+      # - name: Checkout RCM
+      #   uses: actions/checkout@v4.1.1
 
-      - name: (GHO) Override dev tag
-        run: |
-          git tag -f dev
-          git push origin --tags -f
-          gh release delete dev
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
+      # - name: (GHO) Override dev tag
+      #   run: |
+      #     gh release delete dev
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
 
       - name: (GHO) Sign image with a key
         run: echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
@@ -141,13 +139,13 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: |
-            source .venv/bin/activate
+            source "${RCM_CHECKOUT:?}/.venv/bin/activate"
             pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
           linux: |
-            source .venv/bin/activate
+            source ${RCM_CHECKOUT:?}/.venv/bin/activate"
             pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
           windows: |
-            .venv\Scripts\Activate.ps1
+            . "${env:RCM_CHECKOUT}\.venv\Scripts\Activate.ps1"
             pyinstaller "${env:RCM_CHECKOUT}\rcm\client\rcm_client_qt.spec"
   
       # ARTIFACT
@@ -201,7 +199,7 @@ jobs:
             RCM.sig
             RCM.pub
 
-
+      # Upload to release when dev to continuous dev
       - name: (GHO)(DEV) Upload exe to dev release 
         if: ${{ contains(github.ref, 'refs/heads/feature') }}  
         uses: svenstaro/upload-release-action@v2
@@ -210,8 +208,19 @@ jobs:
           asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}${{ env.EXT }}
           prerelease: true
           overwrite: true
-          tag: "dev"
+          release_name: "Continuous dev"
+          target_commit: GITHUB_SHA
 
+      - name: (GHO)(DEV) Upload sig to dev release 
+        if: ${{ contains(github.ref, 'refs/heads/feature') }}  
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: RCM.sig
+          asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}.sig
+          prerelease: true
+          overwrite: true
+          release_name: "Continuous dev"
+          target_commit: GITHUB_SHA
 
       # Upload to release when tag is created
       - name: (GHO)(TAG) Upload exe to tag release
@@ -239,7 +248,6 @@ jobs:
         run: |
           rm -rf RCM RCM.exe RCM-dir
           mv rcm_bck rcm
-
 
   nightly-link:
     runs-on: ubuntu-latest
