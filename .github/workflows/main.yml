@@ -47,7 +47,7 @@ jobs:
           asset_name: RCM.pub
           prerelease: true
           overwrite: true
-          tag: "dev"
+          target_commit: $GITHUB_SHA
 
   build:
     needs: upload-public-key
@@ -209,7 +209,7 @@ jobs:
           prerelease: true
           overwrite: true
           release_name: "Continuous dev"
-          target_commit: GITHUB_SHA
+          target_commit: $GITHUB_SHA
 
       - name: (GHO)(DEV) Upload sig to dev release 
         if: ${{ contains(github.ref, 'refs/heads/feature') }}  
@@ -220,7 +220,7 @@ jobs:
           prerelease: true
           overwrite: true
           release_name: "Continuous dev"
-          target_commit: GITHUB_SHA
+          target_commit: $GITHUB_SHA
 
       # Upload to release when tag is created
       - name: (GHO)(TAG) Upload exe to tag release
