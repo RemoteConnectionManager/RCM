@@ -33,9 +33,11 @@ jobs:
         run: |
           git tag -f dev
           git push origin --tags -f
-          
+
           # Clean release if exists
-          gh release list | awk '{print $1}' | grep -q "^dev$" || gh release delete dev
+          if gh release list | awk '{print $1}' | grep -q "^dev$"; then
+            gh release delete dev
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
 
