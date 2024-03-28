@@ -26,14 +26,14 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ contains(github.ref, 'refs/heads/feature') }}  
     steps:
-      # - name: Checkout RCM
-      #   uses: actions/checkout@v4.1.1
+      - name: Checkout RCM
+        uses: actions/checkout@v4.1.1
 
-      # - name: (GHO) Override dev tag
-      #   run: |
-      #     gh release delete dev
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
+      - name: (GHO) Override dev tag
+        run: |
+          gh release delete dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
 
       - name: (GHO) Sign image with a key
         run: echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
@@ -141,10 +141,10 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: |
-            source "${RCM_CHECKOUT:?}/.venv/bin/activate"
+            source "${RCM_CHECKOUT}/.venv/bin/activate"
             pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
           linux: |
-            source ${RCM_CHECKOUT:?}/.venv/bin/activate"
+            source "${RCM_CHECKOUT}/.venv/bin/activate"
             pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
           windows: |
             . "${env:RCM_CHECKOUT}\.venv\Scripts\Activate.ps1"
