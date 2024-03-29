@@ -125,26 +125,20 @@ jobs:
             export RCM_INSTALL_EXTERNAL=true
             export TURBOVNC_VERSION=${{ matrix.turbovnc-version }}
             cd ${{ env.RCM_CHECKOUT }}
-            ls
             pip install ".[dev]"
-            ls
           linux: |
             python -m venv "${{ env.RCM_CHECKOUT }}/.venv"
             source "${{ env.RCM_CHECKOUT }}/.venv/bin/activate"
             export RCM_INSTALL_EXTERNAL=true
             export TURBOVNC_VERSION=${{ matrix.turbovnc-version }}
-            ls
             cd ${{ env.RCM_CHECKOUT }}
-            ls
             pip install ".[dev]"
           windows: |
             python.exe -m venv "${{ env.RCM_CHECKOUT }}\.venv"
             . "${{ env.RCM_CHECKOUT }}\.venv\Scripts\Activate.ps1"
             $env:RCM_INSTALL_EXTERNAL = "true"
             $env:TURBOVNC_VERSION = ${{ matrix.turbovnc-version }}
-            ls
             cd ${{ env.RCM_CHECKOUT }}
-            ls
             pip install ".[dev]"
 
       # PYINSTALLER
@@ -174,8 +168,8 @@ jobs:
         shell: bash
         run: |
           # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
-          find dist -type f -name "RCM${EXT}" -exec cp '{}' . \;
-          find dist -type f -name "RCM.zip" -exec cp '{}' . \;
+          find . -type f -name "RCM${EXT}" -exec cp '{}' . \;
+          find . -type f -name "RCM.zip" -exec cp '{}' . \;
 
       - name: (GHO) Install cosign
         uses: sigstore/cosign-installer@v3.3.0
