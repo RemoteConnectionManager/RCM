@@ -43,16 +43,16 @@ jobs:
         - '2.2.7'
         image:
         - false
-        # include:
-        #   - os: macos-latest
-        #     turbovnc-version: 'none'
-        #     image: false
-        #   - os: ubuntu-latest
-        #     turbovnc-version: '3.1'
-        #     image: 'ubuntu-18.04'
-        #   - os: ubuntu-latest	
-        #     turbovnc-version: '2.2.7'
-        #     image: 'ubuntu-18.04'
+        include:
+          - os: macos-latest
+            turbovnc-version: 'none'
+            image: false
+          - os: ubuntu-latest
+            turbovnc-version: '3.1'
+            image: 'ubuntu-18.04'
+          - os: ubuntu-latest	
+            turbovnc-version: '2.2.7'
+            image: 'ubuntu-18.04'
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
@@ -95,7 +95,7 @@ jobs:
         uses: actions/cache@v4.0.0
         id: cache-pyenv
         with:
-          path: .pyenv
+          path: ${{ env.RCM_CHECKOUT }}/.pyenv
           key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}
 
       # PYTHON
@@ -247,12 +247,12 @@ jobs:
         if: ${{ env.IS_CD }}
         run: |
           cd ${{ env.RCM_CHECKOUT }}
-          git tag -f ${{ env.tag }}
+          git tag -f ${{ env.TAG }}
           git push origin --tags -f
 
           # Clean release if exists
-          if gh release list | awk '{print $1}' | grep -q "^${{ env.tag }}$"; then
-            gh release delete ${{ env.tag }}
+          if gh release list | awk '{print $1}' | grep -q "^${{ env.TAG }}$"; then
+            gh release delete ${{ env.TAG }}
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
@@ -285,16 +285,16 @@ jobs:
         - '2.2.7'
         image:
         - false
-        # include:
-        #   - os: macos-latest
-        #     turbovnc-version: 'none'
-        #     image: false
-        #   - os: ubuntu-latest
-        #     turbovnc-version: '3.1'
-        #     image: 'ubuntu-18.04'
-        #   - os: ubuntu-latest	
-        #     turbovnc-version: '2.2.7'
-        #     image: 'ubuntu-18.04'
+        include:
+          - os: macos-latest
+            turbovnc-version: 'none'
+            image: false
+          - os: ubuntu-latest
+            turbovnc-version: '3.1'
+            image: 'ubuntu-18.04'
+          - os: ubuntu-latest	
+            turbovnc-version: '2.2.7'
+            image: 'ubuntu-18.04'
 
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
