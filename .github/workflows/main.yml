@@ -36,11 +36,11 @@ jobs:
       matrix:
         os:
         - windows-latest
-        # - ubuntu-latest	
-        # - ubuntu-20.04
+        - ubuntu-latest	
+        - ubuntu-20.04
         turbovnc-version:
         - '3.1'
-        # - '2.2.7'
+        - '2.2.7'
         image:
         - false
         # include:
@@ -241,12 +241,12 @@ jobs:
         if: ${{ env.IS_CD }}
         uses: actions/checkout@v4.1.1
         with:
-          path: repo
+          path: ${{ env.RCM_CHECKOUT }}
 
       - name: (GHO) Override dev tag
         if: ${{ env.IS_CD }}
         run: |
-          cd repo
+          cd ${{ env.RCM_CHECKOUT }}
           git tag -f ${{ env.tag }}
           git push origin --tags -f
 
@@ -278,11 +278,11 @@ jobs:
       matrix:
         os:
         - windows-latest
-        # - ubuntu-latest	
-        # - ubuntu-20.04
+        - ubuntu-latest	
+        - ubuntu-20.04
         turbovnc-version:
         - '3.1'
-        # - '2.2.7'
+        - '2.2.7'
         image:
         - false
         # include:
