@@ -173,8 +173,8 @@ jobs:
         shell: bash
         run: |
           # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
-          find dist -type f -name "RCM${EXT}" -exec cp '{}' . \;
-          find dist -type f -name "RCM.zip" -exec cp '{}' . \;
+          find "${RCM_CHECKOUT}/dist" -type f -name "RCM${EXT}" -exec cp '{}' . \;
+          find "${RCM_CHECKOUT}/dist" -type f -name "RCM.zip" -exec cp '{}' . \;
 
       - name: (GHO) Install cosign
         uses: sigstore/cosign-installer@v3.3.0
