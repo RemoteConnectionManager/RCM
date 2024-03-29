@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 env:
-  RCM_CHECKOUT: "repo"
+  RCM_CHECKOUT: "rcm_repository"
   PYTHON_VERSION: "3.10.11"
   PYENV_VERSION: "2.3.35"
 
