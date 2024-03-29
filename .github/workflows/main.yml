@@ -36,23 +36,23 @@ jobs:
       matrix:
         os:
         - windows-latest
-        - ubuntu-latest	
-        - ubuntu-20.04
+        # - ubuntu-latest	
+        # - ubuntu-20.04
         turbovnc-version:
         - '3.1'
-        - '2.2.7'
+        # - '2.2.7'
         image:
         - false
-        include:
-          - os: macos-latest
-            turbovnc-version: 'none'
-            image: false
-          - os: ubuntu-latest
-            turbovnc-version: '3.1'
-            image: 'ubuntu-18.04'
-          - os: ubuntu-latest	
-            turbovnc-version: '2.2.7'
-            image: 'ubuntu-18.04'
+        # include:
+        #   - os: macos-latest
+        #     turbovnc-version: 'none'
+        #     image: false
+        #   - os: ubuntu-latest
+        #     turbovnc-version: '3.1'
+        #     image: 'ubuntu-18.04'
+        #   - os: ubuntu-latest	
+        #     turbovnc-version: '2.2.7'
+        #     image: 'ubuntu-18.04'
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
@@ -133,21 +133,27 @@ jobs:
             export RCM_INSTALL_EXTERNAL=true
             export TURBOVNC_VERSION=${{ matrix.turbovnc-version }}
             cd ${RCM_CHECKOUT:?}
-            pip install rcm ".[dev]"
+            ls
+            pip install ".[dev]"
+            ls
           linux: |
             python -m venv ".venv"
             source ".venv/bin/activate"
             export RCM_INSTALL_EXTERNAL=true
             export TURBOVNC_VERSION=${{ matrix.turbovnc-version }}
+            ls
             cd ${RCM_CHECKOUT:?}
-            pip install rcm ".[dev]"
+            ls
+            pip install ".[dev]"
           windows: |
             python.exe -m venv ".venv"
             . ".venv\Scripts\Activate.ps1"
             $env:RCM_INSTALL_EXTERNAL = "true"
             $env:TURBOVNC_VERSION = ${{ matrix.turbovnc-version }}
+            ls
             cd ${RCM_CHECKOUT:?}
-            pip install rcm ".[dev]"
+            ls
+            pip install ".[dev]"
 
       # PYINSTALLER
       - name: Build pyinstaller
