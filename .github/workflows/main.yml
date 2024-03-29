@@ -310,9 +310,6 @@ jobs:
         with:
           name: RCM-client-${{ matrix.image || matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
 
-      - name: Setup env
-        run: ls
-
       # Upload to release when dev to continuous dev
       - name: (GHO) Upload exe to release 
         uses: svenstaro/upload-release-action@v2
