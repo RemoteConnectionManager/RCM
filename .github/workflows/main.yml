@@ -10,54 +10,28 @@ on:
     tags:
       - v*
   pull_request:
-    branches: [ "dev", "feature/*" ]
+    branches: [ "dev" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 env:
-  RCM_CHECKOUT: "."
+  RCM_CHECKOUT: "repo"
   PYTHON_VERSION: "3.10.11"
   PYENV_VERSION: "2.3.35"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  upload-public-key:
+
+  nightly-link:
     runs-on: ubuntu-latest
-    if: ${{ contains(github.ref, 'refs/heads/feature') }}  
     steps:
-      - name: Checkout RCM
-        uses: actions/checkout@v4.1.1
-
-      - name: (GHO) Override dev tag
+      - name: Generate Annotation
         run: |
-          git tag -f dev
-          git push origin --tags -f
-
-          # Clean release if exists
-          if gh release list | awk '{print $1}' | grep -q "^dev$"; then
-            gh release delete dev
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
-
-      - name: (GHO) Sign image with a key
-        run: echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
-        env:
-          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
-  
-      - name: Upload exe to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          file: RCM.pub
-          asset_name: RCM.pub
-          prerelease: true
-          overwrite: true
-          release_name: "Continuous dev"
-          tag: dev
+          url="https://nightly.link/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "::notice title=Download the artificats from nightly.link (without logging in) by visiting the URL below::$url"
 
   build:
-    needs: upload-public-key
     strategy:
       matrix:
         os:
@@ -72,6 +46,7 @@ jobs:
         include:
           - os: macos-latest
             turbovnc-version: 'none'
+            image: false
           - os: ubuntu-latest
             turbovnc-version: '3.1'
             image: 'ubuntu-18.04'
@@ -87,6 +62,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout RCM
         uses: actions/checkout@v4.1.1
+        with:
+          path: repo
 
       - name: Install Qt missing libraries (linux only)
         uses: awalsh128/cache-apt-pkgs-action@latest
@@ -105,7 +82,7 @@ jobs:
           docker run \
               -v ${RCM_CHECKOUT}:/RCM \
               --env RCM_INSTALL_EXTERNAL=true \
-              --env RCM_CHECKOUT=${RCM_CHECKOUT} \
+              --env RCM_CHECKOUT='.' \
               --env PYTHON_VERSION=${PYTHON_VERSION} \
               --env PYENV_VERSION=${PYENV_VERSION} \
               --env TURBOVNC_VERSION=${{ matrix.turbovnc-version }} \
@@ -151,20 +128,20 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: |
-            python -m venv "${RCM_CHECKOUT:?}/.venv"
-            source "${RCM_CHECKOUT:?}/.venv/bin/activate"
+            python -m venv ".venv"
+            source ".venv/bin/activate"
             export RCM_INSTALL_EXTERNAL=true
             export TURBOVNC_VERSION=${{ matrix.turbovnc-version }}
             pip install "${RCM_CHECKOUT:?}[dev]"
           linux: |
-            python -m venv "${RCM_CHECKOUT:?}/.venv"
-            source "${RCM_CHECKOUT:?}/.venv/bin/activate"
+            python -m venv ".venv"
+            source ".venv/bin/activate"
             export RCM_INSTALL_EXTERNAL=true
             export TURBOVNC_VERSION=${{ matrix.turbovnc-version }}
             pip install "${RCM_CHECKOUT:?}[dev]"
           windows: |
-            python.exe -m venv "${env:RCM_CHECKOUT}/.venv"
-            . "${env:RCM_CHECKOUT}\.venv\Scripts\Activate.ps1"
+            python.exe -m venv ".venv"
+            . ".venv\Scripts\Activate.ps1"
             $env:RCM_INSTALL_EXTERNAL = "true"
             $env:TURBOVNC_VERSION = ${{ matrix.turbovnc-version }}
             pip install "${env:RCM_CHECKOUT}[dev]"
@@ -175,13 +152,13 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: |
-            source "${RCM_CHECKOUT}/.venv/bin/activate"
+            source ".venv/bin/activate"
             pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
           linux: |
-            source "${RCM_CHECKOUT}/.venv/bin/activate"
+            source ".venv/bin/activate"
             pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
           windows: |
-            . "${env:RCM_CHECKOUT}\.venv\Scripts\Activate.ps1"
+            . ".venv\Scripts\Activate.ps1"
             pyinstaller "${env:RCM_CHECKOUT}\rcm\client\rcm_client_qt.spec"
   
       # ARTIFACT
@@ -196,7 +173,6 @@ jobs:
         shell: bash
         run: |
           # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
-          mv rcm rcm_bck
           find dist -type f -name "RCM${EXT}" -exec cp '{}' . \;
           find dist -type f -name "RCM.zip" -exec cp '{}' . \;
 
@@ -235,60 +211,122 @@ jobs:
             RCM.sig
             RCM.pub
 
-      # Upload to release when dev to continuous dev
-      - name: (GHO)(DEV) Upload exe to dev release 
-        if: ${{ contains(github.ref, 'refs/heads/feature') }}  
-        uses: svenstaro/upload-release-action@v2
-        with:
-          file: RCM${{ env.EXT }}
-          asset_name: RCM-client_${{ matrix.image || matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}${{ env.EXT }}
-          prerelease: true
-          overwrite: true
-          release_name: "Continuous dev"
-          tag: dev
-
-      - name: (GHO)(DEV) Upload sig to dev release 
-        if: ${{ contains(github.ref, 'refs/heads/feature') }}  
-        uses: svenstaro/upload-release-action@v2
-        with:
-          file: RCM.sig
-          asset_name: RCM-client_${{ matrix.image || matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}.sig
-          prerelease: true
-          overwrite: true
-          release_name: "Continuous dev"
-          tag: dev
-
-      # Upload to release when tag is created
-      - name: (GHO)(TAG) Upload exe to tag release
-        if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}  
-        uses: svenstaro/upload-release-action@v2
-        with:
-          file: RCM${{ env.EXT }}
-          asset_name: RCM-client_${{ matrix.image || matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}${{ env.EXT }}
-          prerelease: true
-          overwrite: true
-          tag: ${{ github.ref }}
-
-      - name: (GHO)(TAG) Upload sign to tag release
-        if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}  
-        uses: svenstaro/upload-release-action@v2
-        with:
-          file: RCM.sig
-          asset_name: RCM-client_${{ matrix.image || matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}.sig
-          prerelease: true
-          overwrite: true
-          tag: ${{ github.ref }}
-
-      - name: (GHO) Restore RCM-repo
-        shell: bash
-        run: |
-          rm -rf RCM RCM.exe RCM-dir
-          mv rcm_bck rcm
-
-  nightly-link:
+  upload-public-key:
+    needs: build
     runs-on: ubuntu-latest
+    if: ${{ ( github.event_name == 'push' && contains(github.ref, 'refs/tags/') ) || contains(github.ref, 'refs/heads/feature') }}
     steps:
-      - name: Generate Annotation
+      - name: Setup env
         run: |
-          url="https://nightly.link/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          echo "::notice title=Download the artificats from nightly.link (without logging in) by visiting the URL below::$url"
+          if ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}; then
+            echo "IS_TAG=true" >> "${GITHUB_ENV}"
+            echo "TAG=${{ github.ref }}" >> "${GITHUB_ENV}"
+            echo "RELEASE_NAME=${{ github.ref }}" >> "${GITHUB_ENV}"
+          else
+            echo "IS_CD=" >> "${GITHUB_ENV}"
+            echo "TAG=dev" >> "${GITHUB_ENV}"
+            echo "RELEASE_NAME='Continuous dev'" >> "${GITHUB_ENV}"
+          fi
+
+      - name: Checkout RCM
+        if: ${{ env.IS_CD }}
+        uses: actions/checkout@v4.1.1
+        with:
+          path: repo
+
+      - name: (GHO) Override dev tag
+        if: ${{ env.IS_CD }}
+        run: |
+          cd repo
+          git tag -f ${{ env.tag }}
+          git push origin --tags -f
+
+          # Clean release if exists
+          if gh release list | awk '{print $1}' | grep -q "^${{ env.tag }}$"; then
+            gh release delete ${{ env.tag }}
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
+
+      - name: (GHO) Sign image with a key
+        run: echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
+        env:
+          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+  
+      - name: Upload exe to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: RCM.pub
+          asset_name: RCM.pub
+          prerelease: true
+          overwrite: true
+          release_name: ${{ env.RELEASE_NAME }}
+          tag: ${{ env.TAG }}
+
+  upload-release:
+    needs: upload-public-key
+    strategy:
+      matrix:
+        os:
+        - windows-latest
+        - ubuntu-latest	
+        - ubuntu-20.04
+        turbovnc-version:
+        - '3.1'
+        - '2.2.7'
+        image:
+        - false
+        include:
+          - os: macos-latest
+            turbovnc-version: 'none'
+            image: false
+          - os: ubuntu-latest
+            turbovnc-version: '3.1'
+            image: 'ubuntu-18.04'
+          - os: ubuntu-latest	
+            turbovnc-version: '2.2.7'
+            image: 'ubuntu-18.04'
+
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    if: ${{ ( github.event_name == 'push' && contains(github.ref, 'refs/tags/') ) || contains(github.ref, 'refs/heads/feature') }}
+    steps:
+      - name: Setup env
+        run: |
+          if ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}; then
+            echo "IS_TAG=true" >> "${GITHUB_ENV}"
+            echo "TAG=${{ github.ref }}" >> "${GITHUB_ENV}"
+            echo "RELEASE_NAME=${{ github.ref }}" >> "${GITHUB_ENV}"
+          else
+            echo "IS_CD=" >> "${GITHUB_ENV}"
+            echo "TAG=dev" >> "${GITHUB_ENV}"
+            echo "RELEASE_NAME='Continuous dev'" >> "${GITHUB_ENV}"
+          fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: RCM-client-${{ matrix.image || matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
+
+      - name: Setup env
+        run: ls
+
+      # Upload to release when dev to continuous dev
+      - name: (GHO) Upload exe to release 
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: RCM${{ env.EXT }}
+          asset_name: RCM-client_${{ matrix.image || matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}${{ env.EXT }}
+          prerelease: true
+          overwrite: true
+          release_name: ${{ env.RELEASE_NAME }}
+          tag: ${{ env.TAG }}
+
+      - name: (GHO) Upload sig to release 
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: RCM.sig
+          asset_name: RCM-client_${{ matrix.image || matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}.sig
+          prerelease: true
+          overwrite: true
+          release_name: "Continuous dev"
+          tag: dev
