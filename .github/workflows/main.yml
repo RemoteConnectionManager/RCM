@@ -232,7 +232,7 @@ jobs:
             echo "TAG=${{ github.ref }}" >> "${GITHUB_ENV}"
             echo "RELEASE_NAME=${{ github.ref }}" >> "${GITHUB_ENV}"
           else
-            echo "IS_CD=" >> "${GITHUB_ENV}"
+            echo "IS_CD=true" >> "${GITHUB_ENV}"
             echo "TAG=dev" >> "${GITHUB_ENV}"
             echo "RELEASE_NAME='Continuous dev'" >> "${GITHUB_ENV}"
           fi
@@ -307,10 +307,17 @@ jobs:
             echo "TAG=${{ github.ref }}" >> "${GITHUB_ENV}"
             echo "RELEASE_NAME=${{ github.ref }}" >> "${GITHUB_ENV}"
           else
-            echo "IS_CD=" >> "${GITHUB_ENV}"
+            echo "IS_CD=true" >> "${GITHUB_ENV}"
             echo "TAG=dev" >> "${GITHUB_ENV}"
             echo "RELEASE_NAME='Continuous dev'" >> "${GITHUB_ENV}"
           fi
+
+      - name: (GHO) Define EXT
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        with:
+          macos: echo "EXT=" >> "${GITHUB_ENV}"
+          linux: echo "EXT=" >> "${GITHUB_ENV}"
+          windows: echo "EXT=.exe" >> "${env:GITHUB_ENV}"
 
       - uses: actions/download-artifact@v4
         with:
