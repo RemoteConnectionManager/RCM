@@ -300,7 +300,7 @@ jobs:
             echo "TAG=dev" >> "${GITHUB_ENV}"
             echo "RELEASE_NAME='Continuous dev'" >> "${GITHUB_ENV}"
           fi
-          if ${{ matrix.os }} == "windows-latest"; then
+          if [ ${{ matrix.os }} == "windows-latest" ]; then
             echo "EXT=.exe" >> "${GITHUB_ENV}"
           else
             echo "EXT=" >> "${GITHUB_ENV}"
