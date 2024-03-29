@@ -132,19 +132,22 @@ jobs:
             source ".venv/bin/activate"
             export RCM_INSTALL_EXTERNAL=true
             export TURBOVNC_VERSION=${{ matrix.turbovnc-version }}
-            pip install "${RCM_CHECKOUT:?}[dev]"
+            cd ${RCM_CHECKOUT:?}
+            pip install rcm ".[dev]"
           linux: |
             python -m venv ".venv"
             source ".venv/bin/activate"
             export RCM_INSTALL_EXTERNAL=true
             export TURBOVNC_VERSION=${{ matrix.turbovnc-version }}
-            pip install "${RCM_CHECKOUT:?}[dev]"
+            cd ${RCM_CHECKOUT:?}
+            pip install rcm ".[dev]"
           windows: |
             python.exe -m venv ".venv"
             . ".venv\Scripts\Activate.ps1"
             $env:RCM_INSTALL_EXTERNAL = "true"
             $env:TURBOVNC_VERSION = ${{ matrix.turbovnc-version }}
-            pip install "${env:RCM_CHECKOUT}[dev]"
+            cd ${RCM_CHECKOUT:?}
+            pip install rcm ".[dev]"
 
       # PYINSTALLER
       - name: Build pyinstaller
