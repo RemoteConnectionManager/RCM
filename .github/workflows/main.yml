@@ -115,14 +115,6 @@ jobs:
           linux: . "${RCM_CHECKOUT}/scripts/ci/02-install-python.sh"
           windows: . "${env:RCM_CHECKOUT}\scripts\ci\02-install-python.ps1"
 
-      # - name: (GHO) Cache venv
-      #   uses: actions/cache@v4.0.0
-      #   id: cache-venv
-      #   with:
-      #     path: .venv
-      #     key: venv-${{ hashFiles( format('{0}/pyproject.toml', env.RCM_CHECKOUT )) }}${{ hashFiles( format('{0}/scripts/external_hook.py', env.RCM_CHECKOUT )) }}-turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.image || matrix.os }}
-      # if: ${{steps.cache-pyenv.outputs.cache-hit != 'true' }}
-
       - name: Install venv and RCM-client
         if: ${{ ! matrix.image }}
         uses: carlkidcrypto/os-specific-runner@v2.0.0
