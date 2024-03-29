@@ -128,30 +128,30 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: |
-            python -m venv ".venv"
-            source ".venv/bin/activate"
+            python -m venv "${{ env.RCM_CHECKOUT }}/.venv"
+            source "${{ env.RCM_CHECKOUT }}/.venv/bin/activate"
             export RCM_INSTALL_EXTERNAL=true
             export TURBOVNC_VERSION=${{ matrix.turbovnc-version }}
-            cd ${RCM_CHECKOUT:?}
+            cd ${{ env.RCM_CHECKOUT }}
             ls
             pip install ".[dev]"
             ls
           linux: |
-            python -m venv ".venv"
-            source ".venv/bin/activate"
+            python -m venv "${{ env.RCM_CHECKOUT }}/.venv"
+            source "${{ env.RCM_CHECKOUT }}/.venv/bin/activate"
             export RCM_INSTALL_EXTERNAL=true
             export TURBOVNC_VERSION=${{ matrix.turbovnc-version }}
             ls
-            cd ${RCM_CHECKOUT:?}
+            cd ${{ env.RCM_CHECKOUT }}
             ls
             pip install ".[dev]"
           windows: |
-            python.exe -m venv ".venv"
-            . ".venv\Scripts\Activate.ps1"
+            python.exe -m venv "${{ env.RCM_CHECKOUT }}\.venv"
+            . "${{ env.RCM_CHECKOUT }}\.venv\Scripts\Activate.ps1"
             $env:RCM_INSTALL_EXTERNAL = "true"
             $env:TURBOVNC_VERSION = ${{ matrix.turbovnc-version }}
             ls
-            cd ${RCM_CHECKOUT:?}
+            cd ${{ env.RCM_CHECKOUT }}
             ls
             pip install ".[dev]"
 
@@ -161,13 +161,13 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: |
-            source ".venv/bin/activate"
+            source "${{ env.RCM_CHECKOUT }}/.venv/bin/activate"
             pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
           linux: |
-            source ".venv/bin/activate"
+            source "${{ env.RCM_CHECKOUT }}/.venv/bin/activate"
             pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
           windows: |
-            . ".venv\Scripts\Activate.ps1"
+            . "${{ env.RCM_CHECKOUT }}\.venv\Scripts\Activate.ps1"
             pyinstaller "${env:RCM_CHECKOUT}\rcm\client\rcm_client_qt.spec"
   
       # ARTIFACT
