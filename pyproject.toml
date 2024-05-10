@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "distro"]
 build-backend = "hatchling.build"
 
 [project]
@@ -19,13 +19,12 @@ license = {file = "LICENSE"}
 requires-python = ">=3.8"
 dependencies = [
   "six",
+  "cryptography",
   "pyqt5",
   "pexpect",
   "sshtunnel",
-  "paramiko @ git+https://github.com/giuncan/paramiko.git@main",
+  "paramiko==3.4",
 ]
-  # "paramiko==3.4",
-  # "paramiko @ git+https://github.com/paramiko/paramiko.git@refs/pull/2258/head",
 
 [project.optional-dependencies]
 dev = ["pyinstaller", "bump-my-version"]
@@ -53,6 +52,10 @@ exclude = ["spack"]
 artifacts = [
   "*.so",
   "*.dll",
+  ".png",
+  ".gif",
+  ".ico",
+  "icns"
 ]
 
 [tool.hatch.build.targets.wheel.hooks.custom]

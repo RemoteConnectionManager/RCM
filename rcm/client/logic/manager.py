@@ -29,7 +29,7 @@ import paramiko
 # in order to parse the pickle message coming from the server, we need to import rcm as below
 root_rcm_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root_rcm_path)
-sys.path.append(os.path.join(root_rcm_path, 'server'))
+# sys.path.append(os.path.join(root_rcm_path, 'server'))
 
 # local includes
 import rcm
@@ -40,6 +40,25 @@ import rcm.client.logic.thread as thread
 import rcm.client.logic.rcm_protocol_client as rcm_protocol_client
 from rcm.client.miscellaneous.logger import logic_logger
 from rcm.client.miscellaneous.config_parser import parser, defaults
+
+""" 
+https://github.com/RemoteConnectionManager/RCM/issues/46
+Solved applying paramiko pull request: paramiko/paramiko#2258
+"""
+if paramiko.__version__ == '3.4.0':
+    def _get_key_type_and_bits(self, key):
+        """
+        Given any key, return its type/algorithm & bits-to-sign.
+
+        Intended for input to or verification of, key signatures.
+        """
+        # Use certificate contents, if available, plain pubkey otherwise
+        if hasattr(key, "public_blob") and key.public_blob:
+            return key.public_blob.key_type, key.public_blob.key_blob
+        else:
+            return key.get_name(), key
+
+    paramiko.auth_handler.AuthHandler._get_key_type_and_bits = _get_key_type_and_bits
 
 
 class RemoteConnectionManager:
@@ -109,7 +128,7 @@ class RemoteConnectionManager:
         fullcommand += ' ' + cmd
         logic_logger.info("On " + host + " run: <br><span style=\" font-size:5; font-weight:400; color:#101010;\" >" +
                           fullcommand + "</span>")
-
+        
         # ssh full command execution
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
