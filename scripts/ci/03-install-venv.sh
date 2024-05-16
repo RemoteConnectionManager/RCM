@@ -16,4 +16,4 @@ else
 fi
 
 PARAMIKO_FILE="${PARAMIKO_DIR}"/pkey.py
-sed -i "s/if 0x20 <= padding_length < 0x7F:/if 0x20 <= padding_length < 0x7F or padding_length == 0:/" "${PARAMIKO_FILE}"
+sed -i.backup "s/if 0x20 <= padding_length < 0x7F:/if 0x20 <= padding_length < 0x7F or padding_length == 0:/" "${PARAMIKO_FILE}"
