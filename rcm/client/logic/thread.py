@@ -50,7 +50,8 @@ class SessionThread(threading.Thread):
                  local_port_number=0,
                  compute_node='',
                  port_number=0,
-                 tunnelling_method='internal'
+                 tunnelling_method='internal',
+                 allow_agent=True
                  ):
         self.ssh_server = None
         self.tunnelling_method = tunnelling_method
@@ -79,6 +80,8 @@ class SessionThread(threading.Thread):
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             self.startupinfo = startupinfo
 
+        self.allow_agent = allow_agent
+        
         logic_logger.debug('Thread ' + str(self.threadnum) + ' is initialized')
 
     def terminate(self):
@@ -141,7 +144,8 @@ class SessionThread(threading.Thread):
                 ssh_password=self.password,
                 ssh_pkey=default_ssh_pkey,
                 remote_bind_address=(self.node, self.portnumber),
-                local_bind_address=('127.0.0.1', self.local_portnumber)
+                local_bind_address=('127.0.0.1', self.local_portnumber),
+                allow_agent=self.allow_agent
         ) as self.ssh_server:
             self.service_process = subprocess.Popen(shlex.split(self.service_command),
                                                     bufsize=1,

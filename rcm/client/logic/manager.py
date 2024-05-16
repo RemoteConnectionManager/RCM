@@ -72,6 +72,13 @@ class RemoteConnectionManager:
                                                         'preload_command',
                                                         fallback=defaults['preload_command']))
 
+        # Check if ssh agent is active
+        try:
+            paramiko.Agent()
+            self.allow_agent = True
+        except paramiko.ssh_exception.SSHException as e:
+            self.allow_agent = False
+
     def login_setup(self, host, user, password=None, preload=''):
         self.proxynode = host
         self.preload = preload
@@ -114,7 +121,8 @@ class RemoteConnectionManager:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            ssh.connect(host, username=self.user, password=self.password, timeout=10)
+            ssh.connect(host, username=self.user, password=self.password, timeout=10,
+                        allow_agent=self.allow_agent)
             self.auth_method = ssh.get_transport().auth_handler.auth_method
             stdin, stdout, stderr = ssh.exec_command(fullcommand)
             out = ''.join(stdout)
@@ -237,7 +245,13 @@ class RemoteConnectionManager:
             tunnelling_method = json.loads(parser.get('Settings', 'ssh_client'))
         except Exception:
             tunnelling_method = "internal"
-        logic_logger.info("Using " + str(tunnelling_method) + " ssh tunnelling")
+        
+        extra_info = ""
+        if not self.allow_agent and not self.password:
+            tunnelling_method = "external"
+            extra_info = " (forced because ssh-agent is not active)"
+            
+        logic_logger.info("Using " + str(tunnelling_method) + " ssh tunnelling" + extra_info)
 
         plugin_exe = plugin.TurboVNCExecutable()
         plugin_exe.build(session=session, local_portnumber=local_port_number)
@@ -252,7 +266,8 @@ class RemoteConnectionManager:
                                   local_port_number,
                                   compute_node,
                                   port_number,
-                                  tunnelling_method)
+                                  tunnelling_method,
+                                  self.allow_agent)
 
         self.session_threads.append(st)
         st.start()

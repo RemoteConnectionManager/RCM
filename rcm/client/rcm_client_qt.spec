@@ -42,6 +42,8 @@ if sys.platform != "darwin":
     icon = os.path.join(basepath, 'rcm/client/gui/logo/logo.ico')
     datas.append((os.path.join(basepath, 'rcm/client/external/turbovnc'), 'turbovnc'))
     datas.append((os.path.join(basepath, 'rcm/client/external/step'), 'step'))
+    if sys.platform == "win32":
+        datas.append((os.path.join(basepath, 'rcm/client/external/plink'), 'plink'))
 else:
     icon = os.path.join(basepath, 'rcm/client/gui/logo/logo.icns')
     datas.append((os.path.join(basepath, 'rcm/client/gui/logo/logo.icns'), 'gui/logo/'))

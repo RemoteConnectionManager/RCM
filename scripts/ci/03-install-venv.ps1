@@ -26,5 +26,9 @@ if (-Not (Get-Command "patch.exe" -ErrorAction SilentlyContinue)) {
 }
 
 Invoke-WebRequest -URI "https://github.com/paramiko/paramiko/pull/${env:PARAMIKO_PULL}/commits/${env:PARAMIKO_COMMIT}.patch" -OutFile "${env:RCM_CHECKOUT}\tmp\paramiko.patch"
-$env:PARAMIKO_FILE = python -c "import paramiko, os; print(os.path.join(os.path.dirname(paramiko.__file__), 'auth_handler.py'))"
+$env:PARAMIKO_DIR = python -c "import paramiko, os; print(os.path.dirname(paramiko.__file__))"
+$env:PARAMIKO_FILE = "${env:PARAMIKO_DIR}\auth_handler.py"
 patch.exe -N "${env:PARAMIKO_FILE}" -i "${env:RCM_CHECKOUT}\tmp\paramiko.patch"
+
+$env:PARAMIKO_FILE = "${env:PARAMIKO_DIR}\pkey.py"
+(Get-Content "${env:PARAMIKO_FILE}").replace("if 0x20 <= padding_length < 0x7F:", "if 0x20 <= padding_length < 0x7F or padding_length == 0:") | Set-Content "${env:PARAMIKO_FILE}"
