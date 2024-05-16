@@ -147,11 +147,6 @@ class TurboVNCExecutable(Executable):
         # local_portnumber = rcm_utils.get_unused_portnumber()
 
         tunnel = session.hash['tunnel']
-        try:
-            tunnelling_method = json.loads(parser.get('Settings', 'ssh_client'))
-        except Exception:
-            tunnelling_method = "internal"
-        logic_logger.info("Using " + str(tunnelling_method) + " ssh tunnelling")
 
         # Decrypt password
         vncpassword = session.hash.get('vncpassword', '')
@@ -190,18 +185,22 @@ class TurboVNCExecutable(Executable):
 
 
 class SSHExecutable(Executable):
-    def __init__(self):
+    def __init__(self, ssh_password):
 
         self.set_env()
 
         # ssh executable
         if sys.platform == 'win32':
-            exe = rcm_utils.which('PLINK')
+            if ssh_password:
+                self.set_env_plink()
+                exe = rcm_utils.which('PLINK')
+            else:
+                exe = rcm_utils.which('ssh')
         else:
             exe = rcm_utils.which('ssh')
         if not exe:
             if sys.platform == 'win32':
-                logic_logger.error("plink.exe not found! Check the PATH environment variable.")
+                logic_logger.error("ssh.exe or plink.exe not found! Check the PATH environment variable.")
             else:
                 logic_logger.error("ssh not found!")
             return
@@ -213,6 +212,27 @@ class SSHExecutable(Executable):
 
     def set_env(self):
         return
+
+    def set_env_plink(self):
+        # set the environment
+        if getattr(sys, 'frozen', False):
+            logic_logger.debug("Running in a bundle")
+            # if running in a bundle, we hardcode the path
+            # of the built-in vnc viewer and plink (windows only)
+            os.environ['PLINK_HOME'] = resource_path('plink')
+            # on windows 10, administration policies prevent execution  of external programs
+            # located in %TEMP% ... it seems that it cannot be loaded
+            home_path = os.path.expanduser('~')
+            desktop_path = os.path.join(home_path, 'Desktop')
+            exe_dir_path = os.path.dirname(sys.executable)
+            if os.path.exists(desktop_path):
+                rcm_unprotected_path = os.path.join(exe_dir_path, '.rcm', 'executables')
+                os.makedirs(rcm_unprotected_path, exist_ok=True)
+                dest_dir = os.path.join(rcm_unprotected_path, 'plink')
+                rcm_utils.copytree(resource_path('plink'), dest_dir)
+                os.environ['PLINK_HOME'] = dest_dir
+        os.environ['PATH'] = os.path.join(os.environ['PLINK_HOME'], 'bin') + os.pathsep + os.environ['PATH']
+        logic_logger.debug("PATH: " + str(os.environ['PATH']))
 
     def build(self,
               login_node,
@@ -229,14 +249,19 @@ class SSHExecutable(Executable):
 
         self.add_default_arg("-N")
         self.add_arg_value("-L", local_host + ":" + local_port_number + ":" + compute_node + ":" + port_number)
+        
+        # Only for plink
         if sys.platform == 'win32':
-            self.add_default_arg("-ssh")
-            if ssh_password:
-                self.add_arg_value("-pw", str(ssh_password))
+            if 'plink.exe' in " ".join(self.exe).lower():
+                self.add_default_arg("-ssh")
+                if ssh_password:
+                    self.add_arg_value("-pw", str(ssh_password))
 
-            default_ssh_pkey = os.path.join(os.path.abspath(os.path.expanduser("~")), '.ssh', 'id_rsa.ppk')
-            if os.path.exists(default_ssh_pkey):
-                self.add_arg_value("-i", default_ssh_pkey)
+                default_ssh_pkey = os.path.join(os.path.abspath(os.path.expanduser("~")), '.ssh', 'id_rsa.ppk')
+                if os.path.exists(default_ssh_pkey):
+                    self.add_arg_value("-i", default_ssh_pkey)
+            else:
+                self.add_arg_value("-o", '"StrictHostKeyChecking no"')
 
         self.add_default_arg(ssh_username + "@" + login_node)
 
@@ -254,7 +279,7 @@ class NativeSSHTunnelForwarder(object):
                  remote_bind_address,
                  local_bind_address):
 
-        ssh_exe = SSHExecutable()
+        ssh_exe = SSHExecutable(ssh_password)
         ssh_exe.build(login_node=login_node,
                       ssh_username=ssh_username,
                       ssh_password=ssh_password,
@@ -270,15 +295,17 @@ class NativeSSHTunnelForwarder(object):
 
     def __enter__(self):
         if sys.platform == 'win32':
-            self.tunnel_process = pexpect.popen_spawn.PopenSpawn(self.tunnel_command)
+            if "plink.exe" in self.tunnel_command.lower():
+                self.tunnel_process = pexpect.popen_spawn.PopenSpawn(self.tunnel_command)
 
-            i = self.tunnel_process.expect(['connection',
-                                            pexpect.TIMEOUT,
-                                            pexpect.EOF],
-                                           timeout=2)
-            if i == 0:
-                self.tunnel_process.sendline('yes')
-
+                i = self.tunnel_process.expect(['connection',
+                                                pexpect.TIMEOUT,
+                                                pexpect.EOF],
+                                                timeout=2)
+                if i == 0:
+                    self.tunnel_process.sendline('yes')
+            else:
+                self.tunnel_process = pexpect.popen_spawn.PopenSpawn(self.tunnel_command, timeout=None)
         else:
             self.tunnel_process = pexpect.spawn(self.tunnel_command,
                                                 timeout=None)
