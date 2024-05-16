@@ -77,4 +77,8 @@ RunStep -Title "5) DOWNLOAD AND EXTRACT STEP" `
         -Script "${env:RCM_CHECKOUT}\scripts\ci\05-extract-step.ps1" `
         -TargetDir "${env:RCM_CHECKOUT}\rcm\client\external\step" 
 
+RunStep -Title "6) DOWNLOAD PLINK" `
+        -Script "${env:RCM_CHECKOUT}\scripts\ci\06-download-plink.ps1" `
+        -TargetDir "${env:RCM_CHECKOUT}\rcm\client\external\plink" 
+
 Write-Host ("{0}`n# {1}`n{0}" -f "${SEPARATOR}", "ENVIRONMENT SETUP COMPLETED" ) -ForegroundColor Green
