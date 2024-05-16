@@ -170,6 +170,12 @@ jobs:
         with:
           linux: . "${RCM_CHECKOUT}/scripts/ci/05-extract-step-linux.sh"
           windows: . "${env:RCM_CHECKOUT}\scripts\ci\05-extract-step.ps1"
+      
+      # EXTERNAL PLINK
+      - name: External plink (windows)
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        with:
+          windows: . "${env:RCM_CHECKOUT}\scripts\ci\06-download-plink.ps1"
 
       # PYINSTALLER
       - name: Build pyinstaller
