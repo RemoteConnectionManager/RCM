@@ -17,6 +17,9 @@
 * :herb:`[dep]`: Update *paramiko* to `3.4` (patch required to work with *step*).
 * :herb:`[dep]`: Update *TurboVNC* to `3.x` (Windows executable is changed, patch to *Java* required to work with old RCM servers).
 * :herb:`[dep]`: Add *step* executables in the bundle.
+* :herb:`[dep]`: Add *plink* executables in the bundle (Windows only).
 * :beetle:`[bug]`: Fix `subprocess` call on windows (pop up *cmd* terminal).
+* :beetle:`[bug]`: Patch `paramiko` connection, when `ssh-agent` is disabled.
+* :beetle:`[bug]`: Force `external` tunnelling with OpenSSH, when `ssh-agent` is disabled.
 * :window:`[gui]`: Add **RCM** logo in the GUI.
 * :package:`[release]`: Add GitHub *attestations*.
