@@ -8,7 +8,7 @@ import shutil
 basepath = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(SPEC))))
 
 
-version = "1.0"
+version = "1.2-rc1"
 distribution_name = ''
 if len(sys.argv) > 2:
     version = str(sys.argv[2])
@@ -32,7 +32,7 @@ exe_path = os.path.join('dist', exe_name)
 
 build_platform_filename = os.path.join(basepath, 'build_platform.txt')
 with open(build_platform_filename, "w") as f:
-    f.write(platform + '\n')
+    f.write(platform + '_dev' + '\n')
     f.write(version)
 datas = [(os.path.join(basepath, 'rcm/client/gui/icons/*.png'), 'gui/icons/'),
          (os.path.join(basepath, 'rcm/client/gui/logo/logo.ico'), 'gui/logo/'),
