@@ -343,7 +343,7 @@ class SlurmScheduler(BatchScheduler):
         partitions = OrderedDict()
         scontrol = self.COMMANDS.get('scontrol', None)
         if scontrol:
-            params = '--oneliner show partition'.split(' ')
+            params = '-a --oneliner show partition'.split(' ')
             raw_output = scontrol(*params,
                                 output=str)
             for l in raw_output.splitlines():
@@ -359,7 +359,7 @@ class SlurmScheduler(BatchScheduler):
 
         sinfo = self.COMMANDS.get('sinfo', None)
         if sinfo:
-            params = "-o %R|%l|%m|%c".split(' ')
+            params = "-a -o %R|%l|%m|%c".split(' ')
             raw_output = sinfo(*params,
                                output=str)
             for l in raw_output.splitlines()[1:]:
@@ -512,7 +512,12 @@ class SlurmScheduler(BatchScheduler):
 
                     stringtime = ''
                     max_node_memory_for_partition = convert_memory_to_megabytes(self.partitions.get(partition, dict()).get('MaxMemPerNode', '0M'))
-                    max_node_cpu_for_partition = int(self.partitions.get(partition, dict()).get('MaxCPUsPerNode', '0'))
+                    max_node_cpu_for_partition_string = self.partitions.get(partition, dict()).get('MaxCPUsPerNode', '0')
+                    if '+' == max_node_cpu_for_partition_string[-1] :
+                        max_node_cpu_for_partition = int(max_node_cpu_for_partition_string[:-1])
+                    else:
+                        max_node_cpu_for_partition = int(max_node_cpu_for_partition_string)
+
                     partition_specific_qos_data = self.qos.get(self.partitions.get(partition, dict()).get('QoS', ''),dict())
                     max_memory_per_node_for_partition_qos = convert_memory_to_megabytes(partition_specific_qos_data.get('max_per_node_mem','0M'))
                     max_cpu_per_node_for_partition_qos = int(partition_specific_qos_data.get('max_per_node_cpu','0'))
