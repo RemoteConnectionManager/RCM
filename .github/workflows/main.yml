@@ -196,7 +196,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM${{ env.EXT }}
-          asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}${{ env.EXT }}
+          asset_name: RCM-client_${{ matrix.os }}_${{ runner.arch }}_turbovnc_${{ matrix.turbovnc-version }}${{ env.EXT }}
           prerelease: true
           overwrite: true
           tag: ${{ github.ref }}
@@ -206,7 +206,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM.sig
-          asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}.sig
+          asset_name: RCM-client_${{ matrix.os }}_${{ runner.arch }}_turbovnc_${{ matrix.turbovnc-version }}.sig
           prerelease: true
           overwrite: true
           tag: ${{ github.ref }}
@@ -215,7 +215,7 @@ jobs:
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
+          name: RCM-client-${{ matrix.os }}-${{ runner.arch }}-turbovnc-${{ matrix.turbovnc-version }}
           path: |
             RCM${{ env.EXT }}
             RCM.sig
@@ -225,7 +225,7 @@ jobs:
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
+          name: RCM-client-${{ matrix.os }}-${{ runner.arch }}-turbovnc-${{ matrix.turbovnc-version }}-dir
           path: |
             RCM.zip
             RCM-zip.sig
