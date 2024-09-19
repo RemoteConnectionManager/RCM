@@ -77,7 +77,11 @@ jobs:
             echo "EXT=.exe" >> "${env:GITHUB_ENV}"
 
       - name: Define artifact basename
-        run: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${{ runner.arch }}_turbovnc_${{ matrix.turbovnc-version }}" >> "${{ env.GITHUB_ENV }}"
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        with:
+          macos: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${{ runner.arch }}" >> "${GITHUB_ENV}"
+          linux: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${{ runner.arch }}_turbovnc_${{ matrix.turbovnc-version }}" >> "${GITHUB_ENV}"
+          windows: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${{ runner.arch }}_turbovnc_${{ matrix.turbovnc-version }}" >> "${env:GITHUB_ENV}"
 
       # CACHE
       - name: (GHO) Cache pyenv
