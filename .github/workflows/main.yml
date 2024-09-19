@@ -64,11 +64,9 @@ jobs:
           macos: |
             sed "s/- //;s/: /=/;s/=[\"']/=/;s/[\"']$//" "${{ env.RCM_CHECKOUT }}/scripts/ci/common_vars.yaml" | grep -v "^#" >> "${GITHUB_ENV}"
             echo "EXT=" >> "${GITHUB_ENV}"
-            echo "${env:GITHUB_ENV}"
           linux: |
             sed "s/- //;s/: /=/;s/=[\"']/=/;s/[\"']$//" "${{ env.RCM_CHECKOUT }}/scripts/ci/common_vars.yaml" | grep -v "^#" >> "${GITHUB_ENV}"
             echo "EXT=" >> "${GITHUB_ENV}"
-            echo "${env:GITHUB_ENV}"
           windows: |
             [regex]$Match1 = "^- "
             [regex]$Match2 = ": [`"']"
@@ -77,7 +75,9 @@ jobs:
               echo $Match3.replace($Match2.replace($Match1.replace($line, '', 1), '=', 1), '', 1) >> "${env:GITHUB_ENV}"
             }
             echo "EXT=.exe" >> "${env:GITHUB_ENV}"
-            echo "${env:GITHUB_ENV}"
+
+      - name: Define artifact basename
+        run: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${{ runner.arch }}_turbovnc_${{ matrix.turbovnc-version }}" >> "${{ env.GITHUB_ENV }}"
 
       # CACHE
       - name: (GHO) Cache pyenv
@@ -188,18 +188,20 @@ jobs:
         uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
         with:
           subject-path: RCM${{ env.EXT }}
+          subject-name: ${{ env.ARTIFACT_BASENAME }}
 
       - name: (Attestation) Attest RCM zip
         uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
         with:
           subject-path: RCM.zip
+          subject-name: ${{ env.ARTIFACT_BASENAME }}-dir
 
       - name: (GHO)(TAG) Upload exe to release
         if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM${{ env.EXT }}
-          asset_name: RCM-client_${{ matrix.os }}_${{ runner.arch }}_turbovnc_${{ matrix.turbovnc-version }}${{ env.EXT }}
+          asset_name: ${{ env.ARTIFACT_BASENAME }}${{ env.EXT }}
           prerelease: true
           overwrite: true
           tag: ${{ github.ref }}
@@ -208,7 +210,7 @@ jobs:
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: RCM-client-${{ matrix.os }}-${{ runner.arch }}-turbovnc-${{ matrix.turbovnc-version }}
+          name: ${{ env.ARTIFACT_BASENAME }}
           path: |
             RCM${{ env.EXT }}
 
@@ -216,7 +218,7 @@ jobs:
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: RCM-client-${{ matrix.os }}-${{ runner.arch }}-turbovnc-${{ matrix.turbovnc-version }}-dir
+          name: ${{ env.ARTIFACT_BASENAME }}-dir
           path: |
             RCM.zip
 
@@ -224,8 +226,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh attestation verify "RCM${{ env.EXT }}" --owner "$GITHUB_REPOSITORY_OWNER"
-          gh attestation verify "RCM.zip" --owner "$GITHUB_REPOSITORY_OWNER"
+          gh attestation verify "RCM${{ env.EXT }}" --owner "${{ env.GITHUB_REPOSITORY_OWNER }}"
+          gh attestation verify "RCM.zip" --owner "${{ env.GITHUB_REPOSITORY_OWNER }}"
 
       - name: (GHO) Restore RCM-repo
         shell: bash
