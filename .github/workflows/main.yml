@@ -227,11 +227,12 @@ jobs:
             RCM.zip
 
       - name: (Attestation) Verify RCM executable and zip
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh attestation verify "RCM${{ env.EXT }}" --owner "${{ env.GITHUB_REPOSITORY_OWNER }}"
-          gh attestation verify "RCM.zip" --owner "${{ env.GITHUB_REPOSITORY_OWNER }}"
+          gh attestation verify "RCM${{ env.EXT }}" --owner "${GITHUB_REPOSITORY_OWNER}"
+          gh attestation verify "RCM.zip" --owner "${GITHUB_REPOSITORY_OWNER}"
 
       - name: (GHO) Restore RCM-repo
         shell: bash
