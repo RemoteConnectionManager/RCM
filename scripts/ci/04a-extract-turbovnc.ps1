@@ -12,6 +12,7 @@ Invoke-WebRequest -URI "${env:TURBOVNC_DOWNLOAD}/${env:TURBOVNC_VERSION}/TurboVN
 # Extract from exe
 & "${env:RCM_CHECKOUT}\tmp\turbovnc.exe" /SILENT /DIR="${env:RCM_CHECKOUT}\tmp\app"
 Wait-Process (Get-Process turbovnc).id
+Remove-Item "${env:RCM_CHECKOUT}\tmp\app\unins000*"
 # Push-Location "${env:RCM_CHECKOUT}\tmp"
 # .\innoextract\innoextract turbovnc.exe
 # Pop-Location

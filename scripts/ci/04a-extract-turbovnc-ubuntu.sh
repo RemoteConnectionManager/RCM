@@ -8,6 +8,7 @@ wget "${TURBOVNC_DOWNLOAD:?}/${TURBOVNC_VERSION:?}/turbovnc_${TURBOVNC_VERSION:?
 # Extract without using dpkg-deb that is distributed only in debian-based distro
 # dpkg-deb -x "${RCM_CHECKOUT:?}/tmp/turbovnc.deb" "${RCM_CHECKOUT:?}/tmp/turbovnc"
 ar -x "${RCM_CHECKOUT:?}/tmp/turbovnc.deb" --output "${RCM_CHECKOUT:?}/tmp"
+ls "${RCM_CHECKOUT:?}/tmp"
 tar -xvf "${RCM_CHECKOUT:?}/tmp/data.tar.xz" -C "${RCM_CHECKOUT:?}/tmp/turbovnc"
 
 # Copy extracted file to `"${TURBOVNC_EXTERNAL}"`
