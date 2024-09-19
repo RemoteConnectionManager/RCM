@@ -10,7 +10,7 @@ New-Item -ItemType Directory -Path "${env:RCM_CHECKOUT}\tmp" -Force
 Invoke-WebRequest -URI "${env:TURBOVNC_DOWNLOAD}/${env:TURBOVNC_VERSION}/TurboVNC-${env:TURBOVNC_VERSION}-x64.exe" -OutFile "${env:RCM_CHECKOUT}\tmp\turbovnc.exe"
 
 # Extract from exe
-turbovnc.exe /SILENT /DIR="${env:RCM_CHECKOUT}\tmp\app"
+& "${env:RCM_CHECKOUT}\tmp\turbovnc.exe" /SILENT /DIR="${env:RCM_CHECKOUT}\tmp\app"
 # Push-Location "${env:RCM_CHECKOUT}\tmp"
 # .\innoextract\innoextract turbovnc.exe
 # Pop-Location
