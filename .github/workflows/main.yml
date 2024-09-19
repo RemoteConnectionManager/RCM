@@ -17,15 +17,6 @@ on:
 
 env:
   RCM_CHECKOUT: "."
-  PYTHON_VERSION: "3.10.12"
-  PYENV_VERSION: "2.3.35"
-  PARAMIKO_PULL: "2258"
-  PARAMIKO_COMMIT: "1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3"
-  TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
-  TURBOVNC_EXTERNAL: "rcm/client/external/turbovnc"
-  SMALLSTEP_DOWNLOAD: "https://github.com/smallstep/cli/releases/download"
-  SMALLSTEP_VERSION: "0.25.2"
-  SMALLSTEP_EXTERNAL: "rcm/client/external/step"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -52,6 +43,24 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      # ARTIFACT
+      - name: Setup environment from yaml
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        with:
+          macos: |
+            sed 's/- //;s/: /=/' "${{ env.RCM_CHECKOUT }}/scripts/ci/common_vars.yaml" | grep -v "^#" >> "${GITHUB_ENV}"
+            echo "EXT=" >> "${GITHUB_ENV}"
+          linux: |
+            sed 's/- //;s/: /=/' "${{ env.RCM_CHECKOUT }}/scripts/ci/common_vars.yaml" | grep -v "^#" >> "${GITHUB_ENV}"
+            echo "EXT=" >> "${GITHUB_ENV}"
+          windows: |
+            [regex]$Match1 = "^- "
+            [regex]$Match2 = ": "
+            foreach($line in Get-Content "${{ env.RCM_CHECKOUT }}\scripts\ci\common_vars.yaml" | Where-Object { $_ -notmatch '^\s*#' }){
+              echo $Match2.replace($Match1.replace($line, '', 1), '=', 1) >> "${env:GITHUB_ENV}"
+            }
+            echo "EXT=.exe" >> "${env:GITHUB_ENV}"
+
       - name: Install Qt missing libraries (linux only)
         uses: awalsh128/cache-apt-pkgs-action@latest
         if: ${{ contains(matrix.os, 'ubuntu')  }}
@@ -158,14 +167,6 @@ jobs:
           windows: |
             .venv\Scripts\Activate.ps1
             pyinstaller "${env:RCM_CHECKOUT}\rcm\client\rcm_client_qt.spec"
-
-      # ARTIFACT
-      - name: (GHO) Define EXT
-        uses: carlkidcrypto/os-specific-runner@v2.0.0
-        with:
-          macos: echo "EXT=" >> "${GITHUB_ENV}"
-          linux: echo "EXT=" >> "${GITHUB_ENV}"
-          windows: echo "EXT=.exe" >> "${env:GITHUB_ENV}"
 
       - name: (GHO) Move preartifacts
         shell: bash
