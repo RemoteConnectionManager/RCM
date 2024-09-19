@@ -58,18 +58,22 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: |
-            sed 's/- //;s/: /=/' "${{ env.RCM_CHECKOUT }}/scripts/ci/common_vars.yaml" | grep -v "^#" >> "${GITHUB_ENV}"
+            sed "s/- //;s/: /=/;s/=[\"']/=/;s/[\"']$//" "${{ env.RCM_CHECKOUT }}/scripts/ci/common_vars.yaml" | grep -v "^#" >> "${GITHUB_ENV}"
             echo "EXT=" >> "${GITHUB_ENV}"
+            echo "${env:GITHUB_ENV}"
           linux: |
-            sed 's/- //;s/: /=/' "${{ env.RCM_CHECKOUT }}/scripts/ci/common_vars.yaml" | grep -v "^#" >> "${GITHUB_ENV}"
+            sed "s/- //;s/: /=/;s/=[\"']/=/;s/[\"']$//" "${{ env.RCM_CHECKOUT }}/scripts/ci/common_vars.yaml" | grep -v "^#" >> "${GITHUB_ENV}"
             echo "EXT=" >> "${GITHUB_ENV}"
+            echo "${env:GITHUB_ENV}"
           windows: |
             [regex]$Match1 = "^- "
-            [regex]$Match2 = ": "
+            [regex]$Match2 = ": [`"']"
+            [regex]$Match3 = "[`"']$"
             foreach($line in Get-Content "${{ env.RCM_CHECKOUT }}\scripts\ci\common_vars.yaml" | Where-Object { $_ -notmatch '^\s*#' }){
-              echo $Match2.replace($Match1.replace($line, '', 1), '=', 1) >> "${env:GITHUB_ENV}"
+              echo $Match3.replace($Match2.replace($Match1.replace($line, '', 1), '=', 1), '', 1) >> "${env:GITHUB_ENV}"
             }
             echo "EXT=.exe" >> "${env:GITHUB_ENV}"
+            echo "${env:GITHUB_ENV}"
 
       # CACHE
       - name: (GHO) Cache pyenv
