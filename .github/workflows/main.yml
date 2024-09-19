@@ -43,7 +43,17 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # ARTIFACT
+      - name: Install Qt missing libraries (linux only)
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        if: ${{ contains(matrix.os, 'ubuntu')  }}
+        with:
+          packages: qtbase5-dev qt5-qmake qtwayland5
+          version: 1.0-${{ matrix.os }}
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout RCM
+        uses: actions/checkout@v4.1.1
+
       - name: Setup environment from yaml
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
@@ -61,17 +71,6 @@ jobs:
             }
             echo "EXT=.exe" >> "${env:GITHUB_ENV}"
 
-      - name: Install Qt missing libraries (linux only)
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        if: ${{ contains(matrix.os, 'ubuntu')  }}
-        with:
-          packages: qtbase5-dev qt5-qmake qtwayland5
-          version: 1.0-${{ matrix.os }}
-
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout RCM
-        uses: actions/checkout@v4.1.1
-
       # CACHE
       - name: (GHO) Cache pyenv
         uses: actions/cache@v4.0.0
@@ -85,7 +84,7 @@ jobs:
         id: cache-venv
         with:
           path: .venv
-          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}
+          key: venv-python-${{ env.PYTHON_VERSION }}-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}
 
       - name: (GHO) Cache turbovnc
         uses: actions/cache@v4.0.0
@@ -168,6 +167,7 @@ jobs:
             .venv\Scripts\Activate.ps1
             pyinstaller "${env:RCM_CHECKOUT}\rcm\client\rcm_client_qt.spec"
 
+      # ARTIFACT
       - name: (GHO) Move preartifacts
         shell: bash
         run: |
