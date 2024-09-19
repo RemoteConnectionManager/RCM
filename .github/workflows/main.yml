@@ -30,7 +30,7 @@ jobs:
           - ubuntu-22.04
           - ubuntu-20.04
         turbovnc-version:
-          - "3.1.2"
+          - "3.1"
           - "2.2.7"
         include:
           - os: macos-13
@@ -181,18 +181,18 @@ jobs:
         run: |
           # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
           mv rcm rcm_bck
-          find dist -type f -name "RCM${EXT}" -exec cp '{}' . \;
+          find dist -type f -name "RCM${{ env.EXT }}" -exec cp '{}' . \;
           find dist -type f -name "RCM.zip" -exec cp '{}' . \;
 
       - name: (Attestation) Attest RCM executable
         uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
         with:
-          subject-path: "RCM${EXT}"
+          subject-path: RCM${{ env.EXT }}
 
       - name: (Attestation) Attest RCM zip
         uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
         with:
-          subject-path: "RCM.zip"
+          subject-path: RCM.zip
 
       - name: (GHO)(TAG) Upload exe to release
         if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
@@ -211,7 +211,6 @@ jobs:
           name: RCM-client-${{ matrix.os }}-${{ runner.arch }}-turbovnc-${{ matrix.turbovnc-version }}
           path: |
             RCM${{ env.EXT }}
-            RCM.pub
 
       - name: (GHO) Upload artifact dir
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
@@ -220,13 +219,12 @@ jobs:
           name: RCM-client-${{ matrix.os }}-${{ runner.arch }}-turbovnc-${{ matrix.turbovnc-version }}-dir
           path: |
             RCM.zip
-            RCM.pub
 
       - name: (Attestation) Verify RCM executable and zip
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh attestation verify "RCM${EXT}" --owner "$GITHUB_REPOSITORY_OWNER"
+          gh attestation verify "RCM${{ env.EXT }}" --owner "$GITHUB_REPOSITORY_OWNER"
           gh attestation verify "RCM.zip" --owner "$GITHUB_REPOSITORY_OWNER"
 
       - name: (GHO) Restore RCM-repo
