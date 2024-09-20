@@ -78,10 +78,14 @@ jobs:
 
       - name: Define artifact basename
         uses: carlkidcrypto/os-specific-runner@v2.0.0
+        env:
+          RUNNER_ARCH: ${{ runner.arch }}
         with:
-          macos: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${{ runner.arch }}" >> "${GITHUB_ENV}"
-          linux: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${{ runner.arch }}_turbovnc_${{ matrix.turbovnc-version }}" >> "${GITHUB_ENV}"
-          windows: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${{ runner.arch }}_turbovnc_${{ matrix.turbovnc-version }}" >> "${env:GITHUB_ENV}"
+          macos: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${RUNNER_ARCH,,}" >> "${GITHUB_ENV}"
+          linux: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${RUNNER_ARCH,,}_turbovnc_${{ matrix.turbovnc-version }}" >> "${GITHUB_ENV}"
+          windows: |
+            $runner_arch=${env:RUNNER_ARCH}.toLower()
+            echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${runner_arch}_turbovnc_${{ matrix.turbovnc-version }}" >> "${env:GITHUB_ENV}"
 
       # CACHE
       - name: (GHO) Cache pyenv
@@ -215,16 +219,14 @@ jobs:
         uses: actions/upload-artifact@v4.3.1
         with:
           name: ${{ env.ARTIFACT_BASENAME }}
-          path: |
-            RCM${{ env.EXT }}
+          path: RCM${{ env.EXT }}
 
       - name: (GHO) Upload artifact dir
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4.3.1
         with:
           name: ${{ env.ARTIFACT_BASENAME }}-dir
-          path: |
-            RCM.zip
+          path: RCM.zip
 
       - name: (Attestation) Verify RCM executable and zip
         shell: bash
