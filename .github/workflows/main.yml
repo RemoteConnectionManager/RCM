@@ -81,7 +81,9 @@ jobs:
         env:
           RUNNER_ARCH: ${{ runner.arch }}
         with:
-          macos: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${RUNNER_ARCH,,}" >> "${GITHUB_ENV}"
+          macos: |
+            runner_arch=$(echo "${RUNNER_ARCH}" |  tr '[:upper:]' '[:lower:]')
+            echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${runner_arch}" >> "${GITHUB_ENV}"
           linux: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${RUNNER_ARCH,,}_turbovnc_${{ matrix.turbovnc-version }}" >> "${GITHUB_ENV}"
           windows: |
             $runner_arch=${env:RUNNER_ARCH}.toLower()
