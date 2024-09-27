@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#set -e
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path wh
+ere the symlink file was located
+done
+export ROOTPATH="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+TRUE_LXTERMINAL=$(which --all lxterminal | xargs -n1 realpath  | grep --invert-match $ROOTPATH | head -1)
+echo "fake lxterminal $TRUE_LXTERMINAL with purge in $ROOTPATH"
+module purge
+$TRUE_LXTERMINAL
+
