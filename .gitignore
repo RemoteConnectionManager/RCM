@@ -116,6 +116,8 @@ spack_patched
 !/rcm/etc/defaults
 
 # Temporary directory used to setup the environment
+.venv
+.pyenv
 tmp
 build
 dist

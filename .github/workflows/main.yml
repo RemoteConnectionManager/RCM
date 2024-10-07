@@ -6,26 +6,17 @@ name: RCM_CI
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "dev" ]
+    branches: ["dev"]
     tags:
       - v*
   pull_request:
-    branches: [ "dev" ]
+    branches: ["dev"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 env:
   RCM_CHECKOUT: "."
-  PYTHON_VERSION: "3.10.11"
-  PYENV_VERSION: "2.3.35"
-  PARAMIKO_PULL: "2258"
-  PARAMIKO_COMMIT: "1a45c7ec74cf8ee1d537e3ca032e7fef40fa62b3"
-  TURBOVNC_DOWNLOAD: "https://github.com/TurboVNC/turbovnc/releases/download"
-  TURBOVNC_EXTERNAL: "rcm/client/external/turbovnc"
-  SMALLSTEP_DOWNLOAD: "https://github.com/smallstep/cli/releases/download"
-  SMALLSTEP_VERSION: "0.25.2"
-  SMALLSTEP_EXTERNAL: "rcm/client/external/step"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -34,18 +25,25 @@ jobs:
     strategy:
       matrix:
         os:
-        - windows-latest
-        - ubuntu-latest	
-        - ubuntu-20.04
+          - windows-2022
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - ubuntu-20.04
         turbovnc-version:
-        - '3.1'
-        - '2.2.7'
+          - "3.1"
+          - "2.2.7"
         include:
-          - os: macos-latest
-            turbovnc-version: 'none'
+          - os: macos-13
+            turbovnc-version: "none"
+          - os: macos-14
+            turbovnc-version: "none"
 
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -60,6 +58,37 @@ jobs:
       - name: Checkout RCM
         uses: actions/checkout@v4.1.1
 
+      - name: Setup environment from yaml
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        with:
+          macos: |
+            sed "s/- //;s/: /=/;s/=[\"']/=/;s/[\"']$//" "${{ env.RCM_CHECKOUT }}/scripts/ci/common_vars.yaml" | grep -v "^#" >> "${GITHUB_ENV}"
+            echo "EXT=" >> "${GITHUB_ENV}"
+          linux: |
+            sed "s/- //;s/: /=/;s/=[\"']/=/;s/[\"']$//" "${{ env.RCM_CHECKOUT }}/scripts/ci/common_vars.yaml" | grep -v "^#" >> "${GITHUB_ENV}"
+            echo "EXT=" >> "${GITHUB_ENV}"
+          windows: |
+            [regex]$Match1 = "^- "
+            [regex]$Match2 = ": [`"']"
+            [regex]$Match3 = "[`"']$"
+            foreach($line in Get-Content "${{ env.RCM_CHECKOUT }}\scripts\ci\common_vars.yaml" | Where-Object { $_ -notmatch '^\s*#' }){
+              echo $Match3.replace($Match2.replace($Match1.replace($line, '', 1), '=', 1), '', 1) >> "${env:GITHUB_ENV}"
+            }
+            echo "EXT=.exe" >> "${env:GITHUB_ENV}"
+
+      - name: Define artifact basename
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        env:
+          RUNNER_ARCH: ${{ runner.arch }}
+        with:
+          macos: |
+            runner_arch=$(echo "${RUNNER_ARCH}" |  tr '[:upper:]' '[:lower:]')
+            echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${runner_arch}" >> "${GITHUB_ENV}"
+          linux: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${RUNNER_ARCH,,}_turbovnc_${{ matrix.turbovnc-version }}" >> "${GITHUB_ENV}"
+          windows: |
+            $runner_arch=${env:RUNNER_ARCH}.toLower()
+            echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${runner_arch}_turbovnc_${{ matrix.turbovnc-version }}" >> "${env:GITHUB_ENV}"
+
       # CACHE
       - name: (GHO) Cache pyenv
         uses: actions/cache@v4.0.0
@@ -73,7 +102,7 @@ jobs:
         id: cache-venv
         with:
           path: .venv
-          key: venv-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}
+          key: venv-python-${{ env.PYTHON_VERSION }}-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}
 
       - name: (GHO) Cache turbovnc
         uses: actions/cache@v4.0.0
@@ -119,7 +148,7 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true'  }}
         env:
-          TURBOVNC_VERSION : ${{ matrix.turbovnc-version }}
+          TURBOVNC_VERSION: ${{ matrix.turbovnc-version }}
         with:
           linux: . "${RCM_CHECKOUT}/scripts/ci/04a-extract-turbovnc-ubuntu.sh"
           windows: . "${env:RCM_CHECKOUT}\scripts\ci\04a-extract-turbovnc.ps1"
@@ -128,8 +157,8 @@ jobs:
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' && startsWith(matrix.turbovnc-version, '3') }}
         env:
-          ORIG_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,'
-          NEW_LINE : 'jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,'
+          ORIG_LINE: "jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,"
+          NEW_LINE: "jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA,"
         with:
           linux: . "${RCM_CHECKOUT}/scripts/ci/04b-patch-turbovnc-linux.sh"
           windows: . "${env:RCM_CHECKOUT}\scripts\ci\04b-patch-turbovnc.ps1"
@@ -155,78 +184,59 @@ jobs:
           windows: |
             .venv\Scripts\Activate.ps1
             pyinstaller "${env:RCM_CHECKOUT}\rcm\client\rcm_client_qt.spec"
-  
-      # ARTIFACT
-      - name: (GHO) Define EXT
-        uses: carlkidcrypto/os-specific-runner@v2.0.0
-        with:
-          macos: echo "EXT=" >> "${GITHUB_ENV}"
-          linux: echo "EXT=" >> "${GITHUB_ENV}"
-          windows: echo "EXT=.exe" >> "${env:GITHUB_ENV}"
 
+      # ARTIFACT
       - name: (GHO) Move preartifacts
         shell: bash
         run: |
           # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
           mv rcm rcm_bck
-          find dist -type f -name "RCM${EXT}" -exec cp '{}' . \;
+          find dist -type f -name "RCM${{ env.EXT }}" -exec cp '{}' . \;
           find dist -type f -name "RCM.zip" -exec cp '{}' . \;
 
-      - name: (GHO) Install cosign
-        uses: sigstore/cosign-installer@v3.3.0
+      - name: (Attestation) Attest RCM executable
+        uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
+        with:
+          subject-path: RCM${{ env.EXT }}
+          subject-name: ${{ env.ARTIFACT_BASENAME }}
 
-      - name: (GHO) Sign image with a key
-        shell: bash
-        run: |
-          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "RCM.sig" "RCM${EXT}"
-          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature "RCM-zip.sig" "RCM.zip"
-          cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "RCM.sig" "RCM${EXT}"
-          cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature "RCM-zip.sig" "RCM.zip"
-          echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
-        env:
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+      - name: (Attestation) Attest RCM zip
+        uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
+        with:
+          subject-path: RCM.zip
+          subject-name: ${{ env.ARTIFACT_BASENAME }}-dir
 
       - name: (GHO)(TAG) Upload exe to release
-        if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}  
+        if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM${{ env.EXT }}
-          asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}${{ env.EXT }}
-          prerelease: true
-          overwrite: true
-          tag: ${{ github.ref }}
-  
-      - name: (GHO)(TAG) Upload sign to release
-        if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}  
-        uses: svenstaro/upload-release-action@v2
-        with:
-          file: RCM.sig
-          asset_name: RCM-client_${{ matrix.os }}_turbovnc_${{ matrix.turbovnc-version }}.sig
+          asset_name: ${{ env.ARTIFACT_BASENAME }}${{ env.EXT }}
           prerelease: true
           overwrite: true
           tag: ${{ github.ref }}
 
-      - name: (GHO) Upload exe
-        if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}  
+      - name: (GHO) Upload artifact exe
+        if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}
-          path: |
-            RCM${{ env.EXT }}
-            RCM.sig
-            RCM.pub
+          name: ${{ env.ARTIFACT_BASENAME }}
+          path: RCM${{ env.EXT }}
 
-      - name: (GHO) Upload dir
-        if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }} 
+      - name: (GHO) Upload artifact dir
+        if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: RCM-client-${{ matrix.os }}-turbovnc-${{ matrix.turbovnc-version }}-dir
-          path: |
-            RCM.zip
-            RCM-zip.sig
-            RCM.pub
+          name: ${{ env.ARTIFACT_BASENAME }}-dir
+          path: RCM.zip
+
+      - name: (Attestation) Verify RCM executable and zip
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh attestation verify "RCM${{ env.EXT }}" --owner "${GITHUB_REPOSITORY_OWNER}"
+          gh attestation verify "RCM.zip" --owner "${GITHUB_REPOSITORY_OWNER}"
 
       - name: (GHO) Restore RCM-repo
         shell: bash
@@ -234,27 +244,9 @@ jobs:
           rm -rf RCM RCM.exe RCM-dir
           mv rcm_bck rcm
 
-  upload-public-key:
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}  
-    steps:
-      - name: (GHO) Sign image with a key
-        run: echo "${{ env.COSIGN_PUBLIC_KEY }}" > RCM.pub
-        env:
-          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
-
-      - name: (GHO)(TAG) Upload exe to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          file: RCM.pub
-          asset_name: RCM.pub
-          prerelease: true
-          overwrite: true
-          tag: ${{ github.ref }}
-
   nightly-link:
     runs-on: ubuntu-latest
-    if: ${{ always() }} && ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}  
+    if: ${{ always() }} && ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
     steps:
       - name: Generate Annotation
         run: |
