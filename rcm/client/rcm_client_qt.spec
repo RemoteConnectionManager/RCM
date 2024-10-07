@@ -8,7 +8,7 @@ import shutil
 basepath = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(SPEC))))
 
 
-version = "1.2-rc1"
+version = "1.2-rc2"
 distribution_name = ''
 if len(sys.argv) > 2:
     version = str(sys.argv[2])
