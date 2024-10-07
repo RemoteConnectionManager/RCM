@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2014-2019 CINECA.
 #
-# This file is part of RCM (Remote Connection Manager) 
+# This file is part of RCM (Remote Connection Manager)
 # (see http://www.hpc.cineca.it/software/rcm).
 #
 # This program is free software: you can redistribute it and/or modify
@@ -73,11 +73,7 @@ class RemoteConnectionManager:
                                                         fallback=defaults['preload_command']))
 
         # Check if ssh agent is active
-        try:
-            paramiko.Agent()
-            self.allow_agent = True
-        except paramiko.ssh_exception.SSHException as e:
-            self.allow_agent = False
+        self.allow_agent = False if paramiko.agent.get_agent_connection() is None else True
 
     def login_setup(self, host, user, password=None, preload=''):
         self.proxynode = host
@@ -245,12 +241,12 @@ class RemoteConnectionManager:
             tunnelling_method = json.loads(parser.get('Settings', 'ssh_client'))
         except Exception:
             tunnelling_method = "internal"
-        
+
         extra_info = ""
         if not self.allow_agent and not self.password:
             tunnelling_method = "external"
             extra_info = " (forced because ssh-agent is not active)"
-            
+
         logic_logger.info("Using " + str(tunnelling_method) + " ssh tunnelling" + extra_info)
 
         plugin_exe = plugin.TurboVNCExecutable()
