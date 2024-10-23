@@ -95,27 +95,27 @@ jobs:
         id: cache-pyenv
         with:
           path: .pyenv
-          key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}
+          key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}-${{ hashFiles('scripts/ci/02-install-python.*') }}
 
       - name: (GHO) Cache venv
         uses: actions/cache@v4.0.0
         id: cache-venv
         with:
           path: .venv
-          key: venv-python-${{ env.PYTHON_VERSION }}-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}
+          key: venv-python-${{ env.PYTHON_VERSION }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}-${{ hashFiles('scripts/ci/03-install-venv.*', '**/requirements.txt') }}
 
       - name: (GHO) Cache turbovnc
         uses: actions/cache@v4.0.0
         id: cache-turbovnc
         with:
           path: ${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}
-          key: turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}
+          key: turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}-${{ hashFiles('scripts/ci/04*') }}
 
       - name: (GHO) Cache step
         uses: actions/cache@v4.0.0
         id: cache-step
         with:
-          path: ${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}
+          path: ${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}-${{ hashFiles('scripts/ci/05*') }}
           key: step-${{ matrix.os }}
 
       # PYTHON
@@ -170,7 +170,7 @@ jobs:
         with:
           linux: . "${RCM_CHECKOUT}/scripts/ci/05-extract-step-linux.sh"
           windows: . "${env:RCM_CHECKOUT}\scripts\ci\05-extract-step.ps1"
-      
+
       # EXTERNAL PLINK
       - name: External plink (windows)
         uses: carlkidcrypto/os-specific-runner@v2.0.0
@@ -217,7 +217,17 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM${{ env.EXT }}
-          asset_name: ${{ env.ARTIFACT_BASENAME }}${{ env.EXT }}
+          asset_name: ${{ env.ARTIFACT_BASENAME }}-${{ github.ref_name }}${{ env.EXT }}
+          prerelease: true
+          overwrite: true
+          tag: ${{ github.ref }}
+
+      - name: (GHO)(TAG) Upload exe to release
+        if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: RCM.zip
+          asset_name: ${{ env.ARTIFACT_BASENAME }}-${{ github.ref_name }}.zip
           prerelease: true
           overwrite: true
           tag: ${{ github.ref }}
@@ -226,14 +236,14 @@ jobs:
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: ${{ env.ARTIFACT_BASENAME }}
+          name: ${{ env.ARTIFACT_BASENAME }}-${{ github.sha }}
           path: RCM${{ env.EXT }}
 
       - name: (GHO) Upload artifact dir
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: ${{ env.ARTIFACT_BASENAME }}-dir
+          name: ${{ env.ARTIFACT_BASENAME }}-${{ github.sha }}-dir
           path: RCM.zip
 
       - name: (Attestation) Verify RCM executable and zip
