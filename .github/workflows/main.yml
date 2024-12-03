@@ -95,7 +95,7 @@ jobs:
 
       - name: Define artifact basename
         shell: bash
-        run: echo "ARTIFACT_BASENAME=RCM-client_${{ env.ARTIFACT_PLATFORM }}" >> "${GITHUB_ENV}"
+        run: echo "ARTIFACT_BASENAME=RCM-client--${{ env.ARTIFACT_PLATFORM }}" >> "${GITHUB_ENV}"
 
       - name: Define artifact version for tag
         if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
@@ -209,13 +209,13 @@ jobs:
         with:
           macos: |
             source .venv/bin/activate
-            pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec" ${{ env.ARTIFACT_VERSION }} ${{ env.ARTIFACT_PLATFORM }}
+            pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec" -- ${{ env.ARTIFACT_VERSION }} ${{ env.ARTIFACT_PLATFORM }}
           linux: |
             source .venv/bin/activate
-            pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec" ${{ env.ARTIFACT_VERSION }} ${{ env.ARTIFACT_PLATFORM }}
+            pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec" -- ${{ env.ARTIFACT_VERSION }} ${{ env.ARTIFACT_PLATFORM }}
           windows: |
             .venv\Scripts\Activate.ps1
-            pyinstaller "${env:RCM_CHECKOUT}\rcm\client\rcm_client_qt.spec" ${{ env.ARTIFACT_VERSION }} ${{ env.ARTIFACT_PLATFORM }}
+            pyinstaller "${env:RCM_CHECKOUT}\rcm\client\rcm_client_qt.spec" -- ${{ env.ARTIFACT_VERSION }} ${{ env.ARTIFACT_PLATFORM }}
 
       # ======================================================================
       # ARTIFACTS AND RELESES
@@ -234,7 +234,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM${{ env.EXT }}
-          asset_name: ${{ env.ARTIFACT_BASENAME }}-${{ env.ARTIFACT_VERSION }}${{ env.EXT }}
+          asset_name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}${{ env.EXT }}
           prerelease: true
           overwrite: true
           tag: ${{ github.ref }}
@@ -244,7 +244,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM.zip
-          asset_name: ${{ env.ARTIFACT_BASENAME }}-${{ env.ARTIFACT_VERSION }}.zip
+          asset_name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}.zip
           prerelease: true
           overwrite: true
           tag: ${{ github.ref }}
@@ -254,14 +254,14 @@ jobs:
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: ${{ env.ARTIFACT_BASENAME }}-${{ env.ARTIFACT_VERSION }}
+          name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}
           path: RCM${{ env.EXT }}
 
       - name: (GHO) Upload artifact dir
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: ${{ env.ARTIFACT_BASENAME }}-${{ env.ARTIFACT_VERSION }}-dir
+          name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}-dir
           path: RCM.zip
 
       # ATTESTATION
@@ -269,13 +269,13 @@ jobs:
         uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
         with:
           subject-path: RCM${{ env.EXT }}
-          subject-name: ${{ env.ARTIFACT_BASENAME }}-${{ env.ARTIFACT_VERSION }}
+          subject-name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}
 
       - name: (Attestation) Attest RCM zip
         uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
         with:
           subject-path: RCM.zip
-          subject-name: ${{ env.ARTIFACT_BASENAME }}-${{ env.ARTIFACT_VERSION }}-dir
+          subject-name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}-dir
 
       - name: (Attestation) Verify RCM executable and zip
         shell: bash
