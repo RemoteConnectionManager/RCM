@@ -10,25 +10,28 @@ basepath = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(SPEC)
 
 version = "1.2-rc2"
 distribution_name = ''
-if len(sys.argv) > 2:
-    version = str(sys.argv[2])
+if len(sys.argv) > 1:
+    version = str(sys.argv[1])
     print("RCM version: " + version)
-if len(sys.argv) > 3:
-    distribution_name = str(sys.argv[3]).split('/')[0]
+if len(sys.argv) > 2:
+    distribution_name = str(sys.argv[2]).split('/')[0]
     print("RCM distribution: " + distribution_name)
+
 if distribution_name:
-    distribution_name = '_' + distribution_name
-# this, should extract the part of the version name that comes after '_' or ''
-# has to be applied to the output of git describe --tags --long
-# like "v0.0.8-132-gdb62f50" --> ''
-# "v0.0.8_dev-132-gdb62f50" --> 'dev'
-platform_version = (version.strip().rsplit("-")[0].split("_")[1:][-1:]+[""])[0]
-if platform_version:
-    platform_version = '_' + platform_version
-platform = str(sys.platform) + '_' + str(platform.architecture()[0]) + distribution_name + platform_version
+    platform_version = ''
+    platform = distribution_name
+else:
+    # this, should extract the part of the version name that comes after '_' or ''
+    # has to be applied to the output of git describe --tags --long
+    # like "v0.0.8-132-gdb62f50" --> ''
+    # "v0.0.8_dev-132-gdb62f50" --> 'dev'
+    platform_version = (version.strip().rsplit("-")[0].split("_")[1:][-1:]+[""])[0]
+    if platform_version:
+        platform_version = '_' + platform_version
+    platform = str(sys.platform) + '_' + str(platform.architecture()[0]) + distribution_name + platform_version
+
 exe_name = 'RCM' + platform_version
 exe_path = os.path.join('dist', exe_name)
-
 
 build_platform_filename = os.path.join(basepath, 'build_platform.txt')
 with open(build_platform_filename, "w") as f:
