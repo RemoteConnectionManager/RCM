@@ -31,7 +31,7 @@ jobs:
           - ubuntu-20.04
         turbovnc-version:
           - "3.1"
-          - "2.2.7"
+          # - "2.2.7"
         include:
           - os: macos-13
             turbovnc-version: "none"
@@ -42,7 +42,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     permissions:
       attestations: write
-      contents: read
+      contents: write
       id-token: write
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -76,47 +76,71 @@ jobs:
             }
             echo "EXT=.exe" >> "${env:GITHUB_ENV}"
 
-      - name: Define artifact basename
+      # ======================================================================
+      # CI VARIABLES
+      # ======================================================================
+      - name: Define platform
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         env:
           RUNNER_ARCH: ${{ runner.arch }}
         with:
           macos: |
             runner_arch=$(echo "${RUNNER_ARCH}" |  tr '[:upper:]' '[:lower:]')
-            echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${runner_arch}" >> "${GITHUB_ENV}"
-          linux: echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${RUNNER_ARCH,,}_turbovnc_${{ matrix.turbovnc-version }}" >> "${GITHUB_ENV}"
+            echo "ARTIFACT_PLATFORM=${{ matrix.os }}_${runner_arch}" >> "${GITHUB_ENV}"
+          linux: |
+            echo "ARTIFACT_PLATFORM=${{ matrix.os }}_${RUNNER_ARCH,,}" >> "${GITHUB_ENV}"
           windows: |
             $runner_arch=${env:RUNNER_ARCH}.toLower()
-            echo "ARTIFACT_BASENAME=RCM-client_${{ matrix.os }}_${runner_arch}_turbovnc_${{ matrix.turbovnc-version }}" >> "${env:GITHUB_ENV}"
+            echo "ARTIFACT_PLATFORM=${{ matrix.os }}_${runner_arch}" >> "${env:GITHUB_ENV}"
 
+      - name: Define artifact basename
+        shell: bash
+        run: echo "ARTIFACT_BASENAME=RCM-client--${{ env.ARTIFACT_PLATFORM }}" >> "${GITHUB_ENV}"
+
+      - name: Define artifact version for tag
+        if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
+        shell: bash
+        run: echo "ARTIFACT_VERSION=${{ github.ref_name }}" >> "${GITHUB_ENV}"
+
+      - name: Define artifact version for normal commit
+        if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
+        shell: bash
+        run: echo "ARTIFACT_VERSION=${{ github.sha }}" >> "${GITHUB_ENV}"
+
+      # ======================================================================
       # CACHE
+      # ======================================================================
       - name: (GHO) Cache pyenv
         uses: actions/cache@v4.0.0
         id: cache-pyenv
         with:
           path: .pyenv
-          key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}
+          key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}-${{ hashFiles('scripts/ci/02-install-python.*') }}
 
       - name: (GHO) Cache venv
         uses: actions/cache@v4.0.0
         id: cache-venv
         with:
           path: .venv
-          key: venv-python-${{ env.PYTHON_VERSION }}-${{ hashFiles( format('{0}/rcm/client/requirements.txt', env.RCM_CHECKOUT ) ) }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}
+          key: venv-python-${{ env.PYTHON_VERSION }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}-${{ hashFiles('scripts/ci/03-install-venv.*', '**/requirements.txt') }}
 
       - name: (GHO) Cache turbovnc
         uses: actions/cache@v4.0.0
         id: cache-turbovnc
         with:
           path: ${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}
-          key: turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}
+          key: turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}-${{ hashFiles('scripts/ci/04*') }}
 
       - name: (GHO) Cache step
         uses: actions/cache@v4.0.0
         id: cache-step
         with:
-          path: ${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}
+          path: ${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}-${{ hashFiles('scripts/ci/05*') }}
           key: step-${{ matrix.os }}
+
+      # ======================================================================
+      # CI STEPS
+      # ======================================================================
 
       # PYTHON
       - name: Setup pyenv environment
@@ -171,21 +195,31 @@ jobs:
           linux: . "${RCM_CHECKOUT}/scripts/ci/05-extract-step-linux.sh"
           windows: . "${env:RCM_CHECKOUT}\scripts\ci\05-extract-step.ps1"
 
+      # EXTERNAL PLINK
+      - name: External plink (windows)
+        uses: carlkidcrypto/os-specific-runner@v2.0.0
+        with:
+          windows: . "${env:RCM_CHECKOUT}\scripts\ci\06-download-plink.ps1"
+
+      # ======================================================================
       # PYINSTALLER
+      # ======================================================================
       - name: Build pyinstaller
         uses: carlkidcrypto/os-specific-runner@v2.0.0
         with:
           macos: |
             source .venv/bin/activate
-            pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
+            pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec" -- ${{ env.ARTIFACT_VERSION }} ${{ env.ARTIFACT_PLATFORM }}
           linux: |
             source .venv/bin/activate
-            pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec"
+            pyinstaller "${RCM_CHECKOUT}/rcm/client/rcm_client_qt.spec" -- ${{ env.ARTIFACT_VERSION }} ${{ env.ARTIFACT_PLATFORM }}
           windows: |
             .venv\Scripts\Activate.ps1
-            pyinstaller "${env:RCM_CHECKOUT}\rcm\client\rcm_client_qt.spec"
+            pyinstaller "${env:RCM_CHECKOUT}\rcm\client\rcm_client_qt.spec" -- ${{ env.ARTIFACT_VERSION }} ${{ env.ARTIFACT_PLATFORM }}
 
-      # ARTIFACT
+      # ======================================================================
+      # ARTIFACTS AND RELESES
+      # ======================================================================
       - name: (GHO) Move preartifacts
         shell: bash
         run: |
@@ -194,41 +228,54 @@ jobs:
           find dist -type f -name "RCM${{ env.EXT }}" -exec cp '{}' . \;
           find dist -type f -name "RCM.zip" -exec cp '{}' . \;
 
-      - name: (Attestation) Attest RCM executable
-        uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
-        with:
-          subject-path: RCM${{ env.EXT }}
-          subject-name: ${{ env.ARTIFACT_BASENAME }}
-
-      - name: (Attestation) Attest RCM zip
-        uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
-        with:
-          subject-path: RCM.zip
-          subject-name: ${{ env.ARTIFACT_BASENAME }}-dir
-
+      # TAG RELEASE
       - name: (GHO)(TAG) Upload exe to release
         if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
         uses: svenstaro/upload-release-action@v2
         with:
           file: RCM${{ env.EXT }}
-          asset_name: ${{ env.ARTIFACT_BASENAME }}${{ env.EXT }}
+          asset_name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}${{ env.EXT }}
           prerelease: true
           overwrite: true
           tag: ${{ github.ref }}
 
+      - name: (GHO)(TAG) Upload exe to release
+        if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: RCM.zip
+          asset_name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}.zip
+          prerelease: true
+          overwrite: true
+          tag: ${{ github.ref }}
+
+      # CI ARTIFACT
       - name: (GHO) Upload artifact exe
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: ${{ env.ARTIFACT_BASENAME }}
+          name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}
           path: RCM${{ env.EXT }}
 
       - name: (GHO) Upload artifact dir
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: ${{ env.ARTIFACT_BASENAME }}-dir
+          name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}-dir
           path: RCM.zip
+
+      # ATTESTATION
+      - name: (Attestation) Attest RCM executable
+        uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
+        with:
+          subject-path: RCM${{ env.EXT }}
+          subject-name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}
+
+      - name: (Attestation) Attest RCM zip
+        uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
+        with:
+          subject-path: RCM.zip
+          subject-name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}-dir
 
       - name: (Attestation) Verify RCM executable and zip
         shell: bash
