@@ -25,10 +25,10 @@ jobs:
     strategy:
       matrix:
         os:
+          - windows-2025
           - windows-2022
           - ubuntu-24.04
           - ubuntu-22.04
-          - ubuntu-20.04
         turbovnc-version:
           - "3.1"
           # - "2.2.7"
@@ -36,6 +36,8 @@ jobs:
           - os: macos-13
             turbovnc-version: "none"
           - os: macos-14
+            turbovnc-version: "none"
+          - os: macos-15
             turbovnc-version: "none"
 
     # The type of runner that the job will run on
