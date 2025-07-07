@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, QThreadPool, Qt
 from PyQt5.QtGui import QIcon, QTextCursor, QGuiApplication
 from PyQt5.QtWidgets import QMainWindow, QWidget, \
     QTabWidget, QVBoxLayout, QPushButton, QAction, QFileDialog, \
-    QTabBar, QStyle, QPlainTextEdit, QMessageBox, QSplitter
+    QTabBar, QStyle, QPlainTextEdit, QMessageBox, QSplitter, QApplication
 
 # local includes
 from client.gui.ssh_session_widget import QSSHSessionWidget
@@ -48,9 +48,13 @@ class RCMMainWindow(QMainWindow):
         self.setWindowTitle(title)
         self.setWindowIcon(QIcon(resource_path('gui/logo/logo.ico')))
 
+        screens = QApplication.screens()
+        global_screen_width = sum(screen.geometry().width() for screen in screens)
+        global_screen_height = sum(screen.geometry().height() for screen in screens)
+
         screen_width = QGuiApplication.primaryScreen().size().width()
         screen_height = QGuiApplication.primaryScreen().size().height()
-        pack_info.add_client_screen_dimensions(screen_width, screen_height)
+        pack_info.add_client_screen_dimensions(global_screen_width, global_screen_height)
 
         app_width = 0.6 * screen_width  # 1200
         app_height = max(0.375 * app_width, 360)  # 450

@@ -26,10 +26,10 @@ import traceback
 
 # pyqt5
 from PyQt5.QtCore import Qt, pyqtSlot, QRegExp
-from PyQt5.QtGui import QRegExpValidator
+from PyQt5.QtGui import QRegExpValidator, QGuiApplication
 from PyQt5.QtWidgets import QLabel, QLineEdit, QDialog, QComboBox, \
     QHBoxLayout, QVBoxLayout, QPushButton, \
-    QApplication, QTabWidget, QWidget, QSlider, QSizePolicy, QFrame
+    QTabWidget, QWidget, QSlider, QSizePolicy, QFrame
 
 
 class QDynamicDisplayDialog(QDialog):
@@ -93,6 +93,7 @@ class QDynamicDisplayDialog(QDialog):
                 for key2, value2 in container_widget.choices.items():
                     self.choices[key2] = value2
 
+        custom_display_name = self.job.custom_name_le.text()
 
         for key in self.name_choices:
             if key in self.choices:
@@ -101,6 +102,9 @@ class QDynamicDisplayDialog(QDialog):
                 else:
                     separator = ''
                 self.display_name += (separator + self.choices[key])
+
+        if custom_display_name:
+            self.display_name = custom_display_name
 
         self.callback(self.choices)
 
@@ -138,6 +142,18 @@ class QJobWidget(QContainerWidget):
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         self.main_layout = QVBoxLayout()
+
+        self.custom_name_le = QLineEdit(self)
+        regexp = QRegExp("^[a-zA-Z0-9_-]+$")
+        validator = QRegExpValidator(regexp)
+        self.custom_name_le.setValidator(validator)
+
+        custom_session_name_edit_layout = QHBoxLayout()
+        custom_session_name_label = QLabel("Session name:", self)
+        custom_session_name_edit_layout.addWidget(custom_session_name_label)
+        custom_session_name_edit_layout.addWidget(self.custom_name_le)
+
+        self.main_layout.addLayout(custom_session_name_edit_layout)
 
         for key, childs in self.display_dialog_ui.items():
             self.recursive_init_ui(childs, self, self.main_layout, key, key)
@@ -370,6 +386,15 @@ def widget_factory(widget_type):
             s_min = int(values.get('min', 0))
             s_max = int(values.get('max', 1))
             slider_default = values.get('default', int((s_max + s_min) / 2 ))
+
+            screen_width = QGuiApplication.primaryScreen().size().width()
+            screen_height = QGuiApplication.primaryScreen().size().height()
+
+            if self.path.endswith('XSIZE'):
+                slider_default = int(screen_width * 0.80)
+            elif self.path.endswith('YSIZE'):
+                slider_default = int(screen_height * 0.80)
+                
             if 0 < slider_default and slider_default < 1:
                 slider_min = min(s_min, s_max)
                 slider_max = max(s_min, s_max)
@@ -391,8 +416,14 @@ def widget_factory(widget_type):
                 if description:
                     self.slider.setToolTip(description)
 
-            self.slider_edit.textChanged.connect(self.slider_edit_change)
+            # only numbers allowed in the line edit
+            regexp = QRegExp("^[0-9]+$")
+            validator = QRegExpValidator(regexp)
+            self.slider_edit.setValidator(validator)
+
+            self.slider_edit.editingFinished.connect(self.slider_edit_change)
             self.slider.valueChanged.connect(self.slider_change)
+
             self.slider.setValue(slider_default)
 
             main_layout.addStretch(1)
