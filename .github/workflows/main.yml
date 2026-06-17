@@ -48,7 +48,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Install Qt missing libraries (linux only)
-        uses: awalsh128/cache-apt-pkgs-action@latest
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.1
         if: ${{ contains(matrix.os, 'ubuntu')  }}
         with:
           packages: qtbase5-dev qt5-qmake qtwayland5
@@ -56,10 +56,10 @@ jobs:
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout RCM
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6.0.3
 
       - name: Setup environment from yaml
-        uses: carlkidcrypto/os-specific-runner@v2.1.2
+        uses: carlkidcrypto/os-specific-runner@v2.3.0
         with:
           macos: |
             sed "s/- //;s/: /=/;s/=[\"']/=/;s/[\"']$//" "${{ env.RCM_CHECKOUT }}/scripts/ci/common_vars.yaml" | grep -v "^#" >> "${GITHUB_ENV}"
@@ -80,7 +80,7 @@ jobs:
       # CI VARIABLES
       # ======================================================================
       - name: Define platform
-        uses: carlkidcrypto/os-specific-runner@v2.1.2
+        uses: carlkidcrypto/os-specific-runner@v2.3.0
         env:
           RUNNER_ARCH: ${{ runner.arch }}
         with:
@@ -111,28 +111,28 @@ jobs:
       # CACHE
       # ======================================================================
       - name: (GHO) Cache pyenv
-        uses: actions/cache@v4.2.3
+        uses: actions/cache@v5.0.5
         id: cache-pyenv
         with:
           path: .pyenv
           key: pyenv-${{ env.PYENV_VERSION }}-python-${{ env.PYTHON_VERSION }}-${{ matrix.os }}-${{ hashFiles('scripts/ci/02-install-python.*') }}
 
       - name: (GHO) Cache venv
-        uses: actions/cache@v4.2.3
+        uses: actions/cache@v5.0.5
         id: cache-venv
         with:
           path: .venv
           key: venv-python-${{ env.PYTHON_VERSION }}-paramiko-${{ env.PARAMIKO_PULL }}-${{env.PARAMIKO_COMMIT}}-${{ matrix.os }}-${{ hashFiles('scripts/ci/03-install-venv.*', '**/requirements.txt') }}
 
       - name: (GHO) Cache turbovnc
-        uses: actions/cache@v4.2.3
+        uses: actions/cache@v5.0.5
         id: cache-turbovnc
         with:
           path: ${{ env.RCM_CHECKOUT }}/${{ env.TURBOVNC_EXTERNAL }}
           key: turbovnc-${{ matrix.turbovnc-version }}-${{ matrix.os }}-${{ hashFiles('scripts/ci/04*') }}
 
       - name: (GHO) Cache step
-        uses: actions/cache@v4.2.3
+        uses: actions/cache@v5.0.5
         id: cache-step
         with:
           path: ${{ env.RCM_CHECKOUT }}/${{ env.SMALLSTEP_EXTERNAL }}-${{ hashFiles('scripts/ci/05*') }}
@@ -144,7 +144,7 @@ jobs:
 
       # PYTHON
       - name: Setup pyenv environment
-        uses: carlkidcrypto/os-specific-runner@v2.1.2
+        uses: carlkidcrypto/os-specific-runner@v2.3.0
         with:
           macos: . "${RCM_CHECKOUT}/scripts/ci/01-setup-pyenv.sh"
           linux: . "${RCM_CHECKOUT}/scripts/ci/01-setup-pyenv.sh"
@@ -152,7 +152,7 @@ jobs:
 
       - name: Install pyenv locally
         if: ${{steps.cache-pyenv.outputs.cache-hit != 'true' }}
-        uses: carlkidcrypto/os-specific-runner@v2.1.2
+        uses: carlkidcrypto/os-specific-runner@v2.3.0
         with:
           macos: . "${RCM_CHECKOUT}/scripts/ci/02-install-python.sh"
           linux: . "${RCM_CHECKOUT}/scripts/ci/02-install-python.sh"
@@ -160,7 +160,7 @@ jobs:
 
       # VENV
       - name: Install venv
-        uses: carlkidcrypto/os-specific-runner@v2.1.2
+        uses: carlkidcrypto/os-specific-runner@v2.3.0
         if: ${{ steps.cache-venv.outputs.cache-hit != 'true' }}
         with:
           macos: . "${RCM_CHECKOUT}/scripts/ci/03-install-venv.sh"
@@ -169,7 +169,7 @@ jobs:
 
       # TURBOVNC
       - name: Extract TurboVNC
-        uses: carlkidcrypto/os-specific-runner@v2.1.2
+        uses: carlkidcrypto/os-specific-runner@v2.3.0
         if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true'  }}
         env:
           TURBOVNC_VERSION: ${{ matrix.turbovnc-version }}
@@ -178,7 +178,7 @@ jobs:
           windows: . "${env:RCM_CHECKOUT}\scripts\ci\04a-extract-turbovnc.ps1"
 
       - name: Patch TurboVNC 3.x
-        uses: carlkidcrypto/os-specific-runner@v2.1.2
+        uses: carlkidcrypto/os-specific-runner@v2.3.0
         if: ${{ steps.cache-turbovnc.outputs.cache-hit != 'true' && startsWith(matrix.turbovnc-version, '3') }}
         env:
           ORIG_LINE: "jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, RC4, DES, MD5withRSA,"
@@ -189,7 +189,7 @@ jobs:
 
       # EXTERNAL STEP
       - name: External step
-        uses: carlkidcrypto/os-specific-runner@v2.1.2
+        uses: carlkidcrypto/os-specific-runner@v2.3.0
         if: ${{ steps.cache-step.outputs.cache-hit != 'true'  }}
         with:
           linux: . "${RCM_CHECKOUT}/scripts/ci/05-extract-step-linux.sh"
@@ -197,7 +197,7 @@ jobs:
 
       # EXTERNAL PLINK
       - name: External plink (windows)
-        uses: carlkidcrypto/os-specific-runner@v2.1.2
+        uses: carlkidcrypto/os-specific-runner@v2.3.0
         with:
           windows: . "${env:RCM_CHECKOUT}\scripts\ci\06-download-plink.ps1"
 
@@ -205,7 +205,7 @@ jobs:
       # PYINSTALLER
       # ======================================================================
       - name: Build pyinstaller
-        uses: carlkidcrypto/os-specific-runner@v2.1.2
+        uses: carlkidcrypto/os-specific-runner@v2.3.0
         with:
           macos: |
             source .venv/bin/activate
@@ -231,7 +231,7 @@ jobs:
       # TAG RELEASE
       - name: (GHO)(TAG) Upload exe to release
         if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
-        uses: svenstaro/upload-release-action@v2
+        uses: svenstaro/upload-release-action@2.11.5
         with:
           file: RCM${{ env.EXT }}
           asset_name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}${{ env.EXT }}
@@ -241,7 +241,7 @@ jobs:
 
       - name: (GHO)(TAG) Upload exe to release
         if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
-        uses: svenstaro/upload-release-action@v2
+        uses: svenstaro/upload-release-action@2.11.5
         with:
           file: RCM.zip
           asset_name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}.zip
@@ -252,27 +252,27 @@ jobs:
       # CI ARTIFACT
       - name: (GHO) Upload artifact exe
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}
           path: RCM${{ env.EXT }}
 
       - name: (GHO) Upload artifact dir
         if: ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}-dir
           path: RCM.zip
 
       # ATTESTATION
       - name: (Attestation) Attest RCM executable
-        uses: actions/attest-build-provenance@v2.4.0
+        uses: actions/attest-build-provenance@v4.1.0
         with:
           subject-path: RCM${{ env.EXT }}
           subject-name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}
 
       - name: (Attestation) Attest RCM zip
-        uses: actions/attest-build-provenance@v2.4.0
+        uses: actions/attest-build-provenance@v4.1.0
         with:
           subject-path: RCM.zip
           subject-name: ${{ env.ARTIFACT_BASENAME }}--${{ env.ARTIFACT_VERSION }}-dir
