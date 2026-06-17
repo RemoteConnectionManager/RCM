@@ -33,8 +33,6 @@ jobs:
           - "3.1"
           # - "2.2.7"
         include:
-          - os: macos-13
-            turbovnc-version: "none"
           - os: macos-14
             turbovnc-version: "none"
           - os: macos-15
