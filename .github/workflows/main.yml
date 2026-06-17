@@ -293,7 +293,7 @@ jobs:
 
   nightly-link:
     runs-on: ubuntu-latest
-    if: ${{ always() }} && ${{ github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
+    if: ${{ always() && github.event_name != 'push' && !contains(github.ref, 'refs/tags/') }}
     steps:
       - name: Generate Annotation
         run: |
