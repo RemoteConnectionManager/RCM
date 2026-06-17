@@ -7,7 +7,8 @@ New-Item -ItemType Directory -Path "${env:RCM_CHECKOUT}\tmp" -Force
 # Expand-Archive -LiteralPath "${env:RCM_CHECKOUT}\tmp\innoextract.zip" -DestinationPath "${env:RCM_CHECKOUT}\tmp\innoextract" -Force
 
 # Download turbovnc
-Invoke-WebRequest -URI "${env:TURBOVNC_DOWNLOAD}/${env:TURBOVNC_VERSION}/TurboVNC-${env:TURBOVNC_VERSION}-x64.exe" -OutFile "${env:RCM_CHECKOUT}\tmp\turbovnc.exe"
+$suffix = if ([version]${env:TURBOVNC_VERSION} -gt [version]"3.1.4") { "" } else { "-x64" }
+Invoke-WebRequest -URI "${env:TURBOVNC_DOWNLOAD}/${env:TURBOVNC_VERSION}/TurboVNC-${env:TURBOVNC_VERSION}${suffix}.exe" -OutFile "${env:RCM_CHECKOUT}\tmp\turbovnc.exe"
 
 # Extract from exe
 & "${env:RCM_CHECKOUT}\tmp\turbovnc.exe" /SILENT /DIR="${env:RCM_CHECKOUT}\tmp\app"

@@ -9,7 +9,7 @@ wget "${TURBOVNC_DOWNLOAD:?}/${TURBOVNC_VERSION:?}/turbovnc_${TURBOVNC_VERSION:?
 # dpkg-deb -x "${RCM_CHECKOUT:?}/tmp/turbovnc.deb" "${RCM_CHECKOUT:?}/tmp/turbovnc"
 ar -x "${RCM_CHECKOUT:?}/tmp/turbovnc.deb" --output "${RCM_CHECKOUT:?}/tmp"
 data_tar=$(ls "${RCM_CHECKOUT:?}/tmp/data.tar"*)
-tar $(file "$data_tar" | grep -q "gzip" && echo "-xzvf" || echo "-xvf" ) "$data_tar" -C "${RCM_CHECKOUT:?}/tmp/turbovnc"
+tar "$(file "$data_tar" | grep -q "gzip" && echo "-xzvf" || echo "-xvf" )" "$data_tar" -C "${RCM_CHECKOUT:?}/tmp/turbovnc"
 
 # Copy extracted file to `"${TURBOVNC_EXTERNAL}"`
 rm -rf "${RCM_CHECKOUT:?}/${TURBOVNC_EXTERNAL:?}"
