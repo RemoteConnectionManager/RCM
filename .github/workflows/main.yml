@@ -38,7 +38,9 @@ jobs:
             turbovnc-version: "none"
           - os: macos-15
             turbovnc-version: "none"
-          - os: macos-14
+          - os: macos-26-intel
+            turbovnc-version: "none"
+          - os: macos-15-intel
             turbovnc-version: "none"
 
     # The type of runner that the job will run on
